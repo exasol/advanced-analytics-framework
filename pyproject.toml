@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "exasol-advanced-analytics-framework"
+version = "0.1.0"
+description = "Framework for data analysis methodologies"
+
+authors = [
+    	"Umit Buyuksahin <umit.buyuksahin@exasol.com>",
+    	"Torsten Kilias <torsten.kilias@exasol.com>"
+]
+
+readme = 'README.md'
+
+repository = "https://github.com/exasol/advanced-analytics-framework"
+homepage = "https://github.com/exasol/advanced-analytics-framework"
+
+
+keywords = ['exasol']
+
+[tool.poetry.dependencies]
+python = ">=3.6.1,<4.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
