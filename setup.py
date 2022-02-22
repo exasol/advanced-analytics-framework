@@ -10,7 +10,7 @@ package_data = \
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',
     'version': '0.1.0',
-    'description': 'Framework for data analysis methodologies',
+    'description': 'Framework for building complex data analysis algorithms with Exasol',
     'long_description': '',
     'author': 'Umit Buyuksahin',
     'author_email': 'umit.buyuksahin@exasol.com',
@@ -19,7 +19,7 @@ setup_kwargs = {
     'url': 'https://github.com/exasol/advanced-analytics-framework',
     'packages': packages,
     'package_data': package_data,
-    'python_requires': '>=3.6.1,<4.0',
+    'python_requires': '>=3.8,<4.0',
 }
 
 

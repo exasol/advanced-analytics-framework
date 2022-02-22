@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "exasol-advanced-analytics-framework"
 version = "0.1.0"
-description = "Framework for data analysis methodologies"
+description = "Framework for building complex data analysis algorithms with Exasol"
 
 authors = [
     	"Umit Buyuksahin <umit.buyuksahin@exasol.com>",
@@ -17,7 +17,7 @@ homepage = "https://github.com/exasol/advanced-analytics-framework"
 keywords = ['exasol']
 
 [tool.poetry.dependencies]
-python = ">=3.6.1,<4.0"
+python = ">=3.8,<4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
