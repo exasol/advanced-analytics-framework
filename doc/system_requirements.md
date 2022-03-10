@@ -122,4 +122,3 @@ Covers:
 * [feat~event-handler~1](#event-handler)
 
 Needs: dsn
-t builds the query to call the Event Handler again, from a given query which gives the result with which the Event handler will get called again.
