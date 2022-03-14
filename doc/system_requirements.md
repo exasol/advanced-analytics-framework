@@ -165,7 +165,7 @@ Needs: dsn
 #### Electing Leader
 `req~electing-leader~1`
 
-The framework needs to elect a leader from among the UDF instances.
+The message passing framework needs to be able to elect a leader from among the UDF instances.
 
 Covers:
 
@@ -177,7 +177,7 @@ Needs: dsn
 #### Achieving Parallelism
 `req~collective-operation~1`
 
-The framework must support Collective operation on UDF instances to achieve 
+The message passing framework must support Collective operation on UDF instances to achieve 
 parallelism.
 
 Covers:
