@@ -38,7 +38,8 @@ Needs: req
 
 The logic of the algorithm is implemented by user. The implementation needs 
 to call a framework which provides certain features to the user code, such as 
-automatic state handling. 
+temporary table handling, running the queries and returning the results. 
+Furthermore, the framework should handle message passing in parallel computing. 
 
 Needs: req
 
@@ -63,11 +64,11 @@ feature where they belong to a single feature.
 
 ### Global Loop
 
-#### Initiating Global Loop
-`req~intiating-global-loop~1`
+#### Initiating Algorithm
+`req~intiating-algorithm~1`
 
-It expects the configuration of the operation, which is implemented by user, as 
-input. It needs to build starting queries using this configuration. 
+The algorithm expects a configuration of the operation, which is implemented 
+by user, as input. 
 
 Covers:
 
@@ -78,8 +79,10 @@ Needs: dsn
 #### Iterating over Loop
 `req~iterating-over-loop~1`
 
-At each iteration, the framework asks the user code to check the output of the executed query 
-to decide whether to continue. If the user code decides to stop the framework returns the results returned by the user code. Otherwise, the user code can start another iteration with further queries.
+At each iteration, the framework asks the user code to check the output of the 
+executed query to decide whether to continue. If the user code decides to stop 
+the framework returns the results returned by the user code. Otherwise, the user 
+code can start another iteration with further queries.
 
 Covers:
 
@@ -87,20 +90,6 @@ Covers:
 
 Needs: dsn
 
-
-#### Generating Return Query
-`req~generating-return-query~1`
-
-When the operation needs to continue, the output of the operation query returns
-the next query that should get called again.  It is required to build the  
-return query using the current state information and make it ready to be  
-called as a new state.
-
-Covers:
-
-* [feat~global-loop~1](#global-loop)
-
-Needs: dsn
 
 #### Returning Result
 `req~returning-result~1`
@@ -112,7 +101,6 @@ Covers:
 * [feat~global-loop~1](#global-loop)
 
 Needs: dsn
-
 
 
 
@@ -132,25 +120,12 @@ Covers:
 
 Needs: dsn
 
-#### Handling States
-`req~handling-states~1`
-
-The framework should keep track of states during iterations. To do this, it 
-needs to access BucketFS and store its state there.
-
-Covers:
-
-* [feat~implementation-framework~1](#implementation-framework)
-
-Needs: dsn
-
-
 #### Managing Temporary BucketFS Files
 `req~managing-temporary-bucketfs-files~1`
 
-The algorithm should be able to create temporary BucketFS files that will be 
-kept as result. These temporary file should be placed  in the same directory in 
-the BucketFS so that it will be easy to access them.
+The algorithm should be able to access BucketFS and create temporary BucketFS 
+files that will be kept as result. These temporary file should be placed  in the 
+same directory in the BucketFS so that it will be easy to access them.
 
 Covers:
 
@@ -173,6 +148,18 @@ Covers:
 Needs: dsn
 
 
+#### Message Passing in Distributed Computation
+`req~message-passing-in-distributed-computation~1`
+
+The data used by the algorithm might be distributed to the instances. The 
+framework should enable message passing between these instances to access data 
+of the other partitions.
+
+Covers:
+
+* [feat~implementation-framework~1](#implementation-framework)
+
+Needs: dsn
 
 ### Error Handling
 
