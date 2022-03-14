@@ -151,8 +151,8 @@ Needs: dsn
 #### Message Passing in Distributed Computation
 `req~message-passing-in-distributed-computation~1`
 
-The data used by the algorithm might be distributed to the instances. The 
-framework should enable message passing between these instances to access data 
+The data used by the algorithm might be distributed to the UDF instances. The 
+framework should enable message passing between these UDF instances to access data or intermediate results
 of the other partitions.
 
 Covers:
