@@ -46,7 +46,7 @@ Needs: req
 ### Error Handling
 `feat~error-handling~1`
 
-Any errors, that may occur during state transitions or  the execution of queries, 
+Any errors, that may occur during user code execution or the execution of queries, 
 should be handled. Temporarily created files and tables need to be cleaned.
 User can set option to keep temporary records. It can be useful to keep these 
 for debugging.
@@ -67,7 +67,7 @@ feature where they belong to a single feature.
 `req~intiating-global-loop~1`
 
 It expects the configuration of the operation, which is implemented by user, as 
-input. It needs to build starting query using this configuration. 
+input. It needs to build starting queries using this configuration. 
 
 Covers:
 
@@ -78,10 +78,8 @@ Needs: dsn
 #### Iterating over Loop
 `req~iterating-over-loop~1`
 
-At each iteration, the framework checks the output of the called operation query 
-to decide whether to continue. If the output contains the necessary SQLs and the 
-status information indicating that it is in progress, these SQLs should run as 
-the next state action and perform the new state transition. 
+At each iteration, the framework asks the user code to check the output of the executed query 
+to decide whether to continue. If the user code decides to stop the framework returns the results returned by the user code. Otherwise, the user code can start another iteration with further queries.
 
 Covers:
 
