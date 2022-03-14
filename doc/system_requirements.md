@@ -152,14 +152,40 @@ Needs: dsn
 `req~message-passing-in-distributed-computation~1`
 
 The data used by the algorithm might be distributed to the UDF instances. The 
-framework should enable message passing between these UDF instances to access data or intermediate results
-of the other partitions.
+framework should enable message passing between these UDF instances to access 
+data or intermediate results of the other partitions.
 
 Covers:
 
 * [feat~implementation-framework~1](#implementation-framework)
 
 Needs: dsn
+
+
+#### Electing Leader
+`req~electing-leader~1`
+
+The framework needs to elect a leader from among the UDF instances.
+
+Covers:
+
+* [feat~implementation-framework~1](#implementation-framework)
+
+Needs: dsn
+
+
+#### Achieving Parallelism
+`req~collective-operation~1`
+
+The framework must support Collective operation on UDF instances to achieve 
+parallelism.
+
+Covers:
+
+* [feat~implementation-framework~1](#implementation-framework)
+
+Needs: dsn
+
 
 ### Error Handling
 
