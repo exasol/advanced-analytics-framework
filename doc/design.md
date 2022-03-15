@@ -2,16 +2,15 @@
 
 
 ## Introduction
-This library is an event-driven framework that allows users to build complex 
-data processing algorithms in Exasol.
+This document describes the design of the advanced analytics framework on which 
+complex algorithms can be built.
 
 ## Constraints / Limitations
 
-- The most efficient way to run SQL queries is to use Lua script. Because Lua 
+- The best way to run dynamic SQL queries is to use Lua script. Because Lua
 scripting enable us to run queries in the same transaction using `pquery` method.
 - The results of `pquery` are simple handles and there is a limit of 250 open 
 result set handles for Lua scripts.
-
 
 ## Assumptions
 
@@ -43,8 +42,18 @@ operation by storing states in BucketFS.
 
 ## System Design and Architecture
  
-TBD 
+ToDo 
 
+
+As seen from the figure, the designed event-driven framework is consists of 3 
+main components: (1) Even Loop that handles only the state transitions, (2) 
+Event Handler Framework that defines a state machine and provide a framework to 
+user code, (3) Event Handler, where user implements algorithm. The Event Loop 
+component is proposed to be implemented in Lua, because Lua script  is the only 
+way to run the dynamic SQL queries in the same transactions. On the other hand, 
+Event Handler is implemented in Python  cript, since Python simplifies the 
+development of data analysis methods by offering a wide variety of data 
+processing tools.
 
 
 ## Event Loop
@@ -61,11 +70,11 @@ that will be called in the loop and forward them to it.
 
 Covers:
 
-* `req~intiating-global-loop~1`
+* `req~intiating-algorithm~1`
 
 Needs: impl, utest, itest
 
-### Handling States
+### Iterating over Loop
 `dsn~handling-states~1`
 
 The  output of the called Event Handler query can include SQL queries to 
@@ -78,19 +87,6 @@ Covers:
 
 Needs: impl, utest, itest
 
-
-### Generating Return Query
-`dsn~generating-return-query~1`
-
-At each iteration the return query of the Event Handler is rebuild with current 
-state information and called again as the next state action so that  the new 
-state transition is performed.
-
-Covers:
-
-* `req~generating-return-query~1`
-
-Needs: impl, utest, itest
 
 
 ### Returning JSON Result
@@ -115,8 +111,22 @@ state. It stores the states in BucketFS.
 ### Python UDF Framework 
 `dsn~python-udf-framework~1`
 
-An Event Handler designed as Python UDF  allows users to have a easy-to-use and 
-better tooling framework to build their algorithm on top it.
+An Event Handler designed as Python UDF  allows users to have an easy-to-use and 
+better tooling framework to build their algorithm on top it. The user can develop 
+the algorithm as a Python UDF script in which the framework is imported. Some 
+details of this framework interface are listed below:
+
+- The event handler is implemented as a class and states are kept as attributes 
+of a class to facilitate the states operations.
+- The user code should implement a method `handle_event` where the logic of the 
+code is placed.
+- The event handler is initiated by getting the following inputs: The results of 
+the return query,  the next state information including its parameters, 
+context object. 
+- Upon completion of the algorithm, the Event Handler calls methods itself to 
+remove temporary records.
+- In case of an error caught in the Event Loop, the cleanup event is called for 
+the Event Handler and the temporary records are deleted.
 
 Covers:
 
@@ -128,14 +138,30 @@ Needs: impl, utest, itest
 ### Storing States in BucketFS 
 `dsn~storing-states-in-bucketfs~1`
 
-The framework  keeps states during iterations by storing them in BucketFS.
+The framework keeps states during iterations by storing them in BucketFS.
 
 Covers:
 
-* `req~handling-states~1`
+* `req~managing-temporary-bucketfs-files~1`
 
 Needs: impl, utest, itest
 
+
+It returns the sequence of SQL queries to execute
+A query to call the same UDF to run the action for the next state
+
+### Returning Queries
+`dsn~returning-queries~1`
+
+The Event Handler returns a list of SQL queries to execute and the return query 
+which will be called again as the next state action so that the new  state 
+transition is performed.
+
+Covers:
+
+* `feat~implementation-framework~1`
+
+Needs: impl, utest, itest
 
 ### Managing Temporary BucketFS Files
 `dsn~managing-temporary-bucketfs-files~1`
@@ -162,6 +188,35 @@ Covers:
 Needs: impl, utest, itest
 
 
+### Electing Leader
+`dsn~electing-leader~1`
+
+In leader election, the UDF instance with the largest id is elected as the 
+leader. For this, the sum of node_id and vm_id is assigned to each instance as 
+unique id. Other instances send a confirmation message to the instance with the 
+highest id that it is the leader. If the leader got all the confirmation, it 
+acknowledges them. 
+
+Covers:
+
+* `req~electing-leader~1`
+
+Needs: impl, utest, itest
+
+
+### Collective Operation
+`dsn~collective-operation~1`
+
+The framework uses collective operation approach, where tasks are simultaneously 
+run on multiple UDF instances to achieve parallelism.
+
+Covers:
+
+* `req~collective-operation~1`
+
+Needs: impl, utest, itest
+
+
 ### Error Handling
 In case of any errors in the execution, temporarily created files and tables 
 are cleaned. 
@@ -177,7 +232,7 @@ Covers:
 
 * `req~cleanup-temporary-tables~1`
 
-Needs: impl, utest, itestn
+Needs: impl, utest, itest
 
 
 
