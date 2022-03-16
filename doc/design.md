@@ -26,7 +26,7 @@ assumed that Lua scripts is not nested more than 250 times.
 The DB usually allows 4 GB per query and node. The UDF can consume up to 32 GB 
 per node, but gets throttled down after the 4 GB. However, the 32 GB are shared 
 between all queries on a node.
-- The state of the algorithm is not too large.
+- Because Python UDF can't run constantly, we need to save its state to the BucketFS. Saving and loading needs to reasonable fast to not introduce too much overhead. For that, we assume the state of the Python UDF is reasonable small (max a few MB).
 - The (de-)serialization and the upload/download of the state to the BucketFS 
 take less than 3 seconds.
 
