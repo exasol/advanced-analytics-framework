@@ -70,10 +70,16 @@ event handler UDF.
 
 ```python
 class Result:
-  query_list: List[str]
-  return_query: Optional[str]
+    query_list: List[str]
+    return_query: Optional[str]
 
-def handle_event(row_iterator:RowIterable)->Result
+class Context:
+    """The Context is part of the Python framework and provides additional functions to the user code."""
+    
+    def getTemporaryTableManager():TemporaryTableManager
+    def getTemporaryBucketFSFileManager():TemporaryBucketFSFileManager
+    
+def handle_event(row_iterator:RowIterable,context:Context)->Result
     # user code
 ```
 
