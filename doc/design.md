@@ -52,15 +52,17 @@ Because Python UDF cannot be kept running and used as server, we have to call fo
 
 ## System Design and Architecture
  
+![System Design Diagram](./images/system_design_diagram.png "System Design Diagram")
+
 The designed event-driven framework consists of 3 
 main components: (1) Even Loop that handles only the state transitions, (2) 
 Event Handler Framework that defines a state machine and provide a framework to 
-the user code, (3) Event Handler, where the user implements their algorithm. The Event Loop 
-component is proposed to be implemented in Lua, because a Lua script is the only 
-way to run the dynamic SQL queries in the same transactions. On the other hand, 
-the Event Handler is implemented in Python script, since Python simplifies the 
-development of data analysis methods by offering a wide variety of data 
-processing tools.
+the user code, (3) Event Handler, where the user implements their algorithm. 
+The Event Loop component is proposed to be implemented in Lua, because a Lua 
+script is the only way to run the dynamic SQL queries in the same transactions. 
+On the other hand, the Event Handler is implemented in Python script, since 
+Python simplifies the development of data analysis methods by offering a wide 
+variety of data processing tools.
 
 
 ## Event Loop
