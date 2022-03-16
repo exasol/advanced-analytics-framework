@@ -7,6 +7,8 @@
 ### Features
 
   - #1: Added the initial setup of the project
+  - #4: Added the design document
+  - #5: Added the system requirements document
   
 ### Bug Fixes
 
