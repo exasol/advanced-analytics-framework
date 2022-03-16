@@ -64,6 +64,19 @@ On the other hand, the Event Handler is implemented in Python script, since
 Python simplifies the development of data analysis methods by offering a wide 
 variety of data processing tools.
 
+Below you can find the code snippet that simply indicates the Python framework 
+interface. Please note that the `return_query` is wrapped into the next call to 
+event handler UDF.
+
+```python
+class Result:
+  query_list: List[str]
+  return_query: Optional[str]
+
+def handle_event(row_iterator:RowIterable)->Result
+    # user code
+```
+
 
 ## Event Loop
 The Event Loop processes only the state transitions by executing queries returned 
