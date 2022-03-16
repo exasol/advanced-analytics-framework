@@ -41,8 +41,7 @@ The designed framework is divided into two parts:
 - The first part needs to be a Lua Script which is responsible for running SQL queries.
 - The second part runs the python user code and is responsible for generating the SQL queries
 
-Because the Python UDF cannot return values to the calling Lua Script, before 
-their query ends, we have to call for each iteration the UDF again.
+Because Python UDF cannot be kept running and used as server, we have to call for each iteration the UDF again.
 - This means the UDF has to store and load its state each time it is getting called. 
 - Furthermore, the interface to the user code needs to be suitable for this form of execution. 
 - The user code can't wait actively for the result of a query. The framework will execute it while the UDF is not running anymore.
@@ -133,8 +132,9 @@ the return query, the next state information including its parameters,
 the ExasolDB context object. 
 - Upon completion of the algorithm, the Event Handler calls methods itself to 
 remove temporary records.
-- In case of an error caught in the Event Loop, the cleanup event is called for 
-the Event Handler and the temporary records are deleted.
+- In case of an error caught in the Event Loop, If the keep option is not set, 
+the cleanup event is called for the Event Handler and the temporary records are 
+deleted. Otherwise, they are kept and can be used for further investigations such as debugging.
 
 Covers:
 
