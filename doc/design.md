@@ -11,6 +11,12 @@ complex algorithms can be built.
 scripting enable us to run queries in the same transaction using `pquery` method.
 - The results of `pquery` are simple handles and there is a limit of 250 open 
 result set handles for Lua scripts.
+- The main logic of the framework should be implemented in Python, which is 
+widely used in data processing and analysis.
+- Python UDF, where the main logic is placed, returns the result of the query 
+and finishes its execution. Due to that,  it cannot be kept running and used 
+as server.
+
 
 ## Assumptions
 
@@ -28,24 +34,26 @@ take less than 3 seconds.
 
 ## Design Considerations
 
-- The main logic of the framework should be implemented in Python, which is 
-widely used in data processing and analysis.
+Due to the fact that pquery is only available for Lua and  Python is useful to 
+implement the user code, we proposed an event-driven design for this framework. 
+The designed framework is divided into two parts:
 
-- The two main components of the framework, which are an Event Loop and an Event 
-Handler, should be decoupled so that they can be independently updated and 
-implemented. It also allows us to replace them with a different implementation 
-in another programming language.
+- The first parts needs to be a Lua Script which is responsible for running SQL queries.
+- The second part, runs the python user code and is responsible for generating the SQL queries
 
-- The Event Handler should be able to keep track of the status of a particular 
-operation by storing states in BucketFS.
-
+Because the Python UDF cannot return values to the calling Lua Script, before 
+their query ends, we have to call for each iteration the UDF again.
+- This means the UDF has to store and load its state each time it is getting called. 
+- Furthermore, the interface to the user code needs to be suitable for this form of execution. 
+- The user code can't wait actively for the result of a query. The framework will execute it while the UDF is running anymore.
+    - The user code has to get called again, when the SQL queries are ready. 
+    - The user code is a kind of callback, however a call back with state.
+    - To this execution, fits best the model of an event handler.
+    - The Lua Script is then our event loop.
 
 ## System Design and Architecture
  
-ToDo 
-
-
-As seen from the figure, the designed event-driven framework is consists of 3 
+The designed event-driven framework is consists of 3 
 main components: (1) Even Loop that handles only the state transitions, (2) 
 Event Handler Framework that defines a state machine and provide a framework to 
 user code, (3) Event Handler, where user implements algorithm. The Event Loop 
@@ -191,11 +199,12 @@ Needs: impl, utest, itest
 ### Electing Leader
 `dsn~electing-leader~1`
 
-In leader election, the UDF instance with the largest id is elected as the 
-leader. For this, the sum of node_id and vm_id is assigned to each instance as 
-unique id. Other instances send a confirmation message to the instance with the 
-highest id that it is the leader. If the leader got all the confirmation, it 
-acknowledges them. 
+The leader selection consist of 3 main steps: Firstly, each UDF is assigned a 
+unique id which is the concatenation of node_id and vm_id. Secondly, the list of 
+UDF instances are discovered using pycos. Thirdly,  the UDF instance with the 
+largest id is elected as the leader. Other instances send a confirmation message 
+to the  instance with the highest id that it is the leader. If the leader got 
+all the confirmation, it acknowledges them. 
 
 Covers:
 
