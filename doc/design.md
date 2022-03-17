@@ -148,9 +148,9 @@ details of this framework interface are listed below:
 of a class to facilitate the states operations.
 - The user code should implement a method `handle_event` where the logic of the 
 code is placed.
-- The event handler is initiated by getting the following inputs: The results of 
-the return query, the next state information including its parameters, 
-the ExasolDB context object. 
+- The first time the framework calls the event handler, it calls its constructor with a config __init__(config:Dict[str,Any]), the config is given to the event loop and the Python UDF in JSON format and deserialized to a Dict
+- The event handler is called by getting the following inputs: The results of 
+the return query, the ExasolDB context object. 
 - Upon completion of the algorithm, the Event Handler calls methods itself to 
 remove temporary records.
 - In case of an error caught in the Event Loop, If the keep option is not set, 
@@ -168,6 +168,7 @@ Needs: impl, utest, itest
 `dsn~storing-states-in-bucketfs~1`
 
 The framework keeps states during iterations by storing them in BucketFS.
+The states includes the event handler class of the user and the context state for managing temporary tables or bucketfs files
 
 Covers:
 
@@ -205,7 +206,7 @@ Covers:
 Needs: impl, utest, itest
 
 
-### Managing Temporary BucketFS Files
+### Managing Temporary Tables
 `dsn~managing-temporary-tables~1`
 
 The Event Handler uses temporary tables to store large intermediate results. 
