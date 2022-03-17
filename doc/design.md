@@ -64,25 +64,6 @@ On the other hand, the Event Handler is implemented in Python script, since
 Python simplifies the development of data analysis methods by offering a wide 
 variety of data processing tools.
 
-Below you can find the code snippet that simply indicates the Python framework 
-interface. Please note that the `return_query` is wrapped into the next call to 
-event handler UDF.
-
-```python
-class Result:
-    query_list: List[str]
-    return_query: Optional[str]
-
-class Context:
-    """The Context is part of the Python framework and provides additional functions to the user code."""
-    
-    def getTemporaryTableManager():TemporaryTableManager
-    def getTemporaryBucketFSFileManager():TemporaryBucketFSFileManager
-    
-def handle_event(row_iterator:RowIterable,context:Context)->Result
-    # user code
-```
-
 
 ## Event Loop
 The Event Loop processes only the state transitions by executing queries returned 
@@ -157,6 +138,27 @@ remove temporary records.
 the cleanup event is called for the Event Handler and the temporary records are 
 deleted. Otherwise, they are kept and can be used for further investigations such as debugging.
 
+
+Below you can find the code snippet that simply indicates the Python framework 
+interface. Please note that the `return_query` is wrapped into the next call to 
+event handler UDF.
+
+```python
+class Result:
+    query_list: List[str]
+    return_query: Optional[str]
+
+class Context:
+    """The Context is part of the Python framework and provides additional functions to the user code."""
+    
+    def getTemporaryTableManager():TemporaryTableManager
+    def getTemporaryBucketFSFileManager():TemporaryBucketFSFileManager
+    
+def handle_event(row_iterator:RowIterable,context:Context)->Result
+    # user code
+```
+
+
 Covers:
 
 * `req~user-friendly-framework-interface~1`
@@ -168,7 +170,7 @@ Needs: impl, utest, itest
 `dsn~storing-states-in-bucketfs~1`
 
 The framework keeps states during iterations by storing them in BucketFS.
-The states includes the event handler class of the user and the context state for managing temporary tables or bucketfs files
+The states include the event handler class of the user and the context state for managing temporary tables or bucketfs files
 
 Covers:
 
@@ -176,9 +178,6 @@ Covers:
 
 Needs: impl, utest, itest
 
-
-It returns the sequence of SQL queries to execute
-a query to call the same UDF again to run the action for the next state.
 
 ### Returning Queries
 `dsn~returning-queries~1`
