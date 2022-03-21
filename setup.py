@@ -5,7 +5,7 @@ packages = \
 ['exasol_advanced_analytics_framework']
 
 package_data = \
-{'': ['*']}
+{'': ['*'], 'exasol_advanced_analytics_framework': ['lua/src/*', 'lua/test/*']}
 
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',

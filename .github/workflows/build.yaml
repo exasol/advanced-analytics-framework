@@ -3,7 +3,7 @@ name: Build and test project
 on: [ push ]
 
 jobs:
-  integration_tests:
+  unit_tests:
     strategy:
       fail-fast: false
       matrix:
@@ -22,12 +22,12 @@ jobs:
         run: poetry install
       - name: Poetry build
         run: poetry build
-      - name: Poetry run pytest integration tests
-        run: poetry run pytest tests
-
       - name: Install Lua dependencies
         run: |
           sudo apt-get install luarocks
           sudo luarocks install --only-deps *.rockspec
+
+      - name: Run Python tests
+        run: poetry run pytest tests
       - name: Run Lua unit tests and static code analyzer
         run: poetry run poe lua-tests
