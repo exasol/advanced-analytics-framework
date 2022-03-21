@@ -18,8 +18,10 @@ _G.global_env = {
 -- Executes the given set of queries.
 --
 function M._run_queries(queries, from_index)
+    local all_success = true
     for i=from_index, #queries do
-        local success, result = _G.global_env.pquery(result[i])
+        local success, result = _G.global_env.pquery(queries[i][1])
+        all_success = all_success and success
         if not success then
             local error_obj = exa_error.create(
                     "E-AAF-3",
@@ -27,6 +29,7 @@ function M._run_queries(queries, from_index)
             _G.global_env.error(tostring(error_obj))
         end
     end
+    return all_success
 end
 
 ---
@@ -49,7 +52,7 @@ function M.init(query_to_event_handler)
         M._run_queries(result, 3)
     until (status == 'completed')
 
-    return nil
+    return status -- TODO return
 end
 
 return M;
