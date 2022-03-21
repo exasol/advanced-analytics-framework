@@ -18,16 +18,19 @@ jobs:
       - uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: 1.1.4
-      - name: Poetry install
+      - name: Install Poetry
         run: poetry install
-      - name: Poetry build
+      - name: Build Poetry
         run: poetry build
+      - name: Install project whl
+        run: pip install dist/*.whl
       - name: Install Lua dependencies
         run: |
           sudo apt-get install luarocks
           sudo luarocks install --only-deps *.rockspec
 
-      - name: Run Python tests
-        run: poetry run pytest tests
       - name: Run Lua unit tests and static code analyzer
         run: poetry run poe lua-tests
+
+      - name: Run Python tests
+        run: poetry run pytest tests
