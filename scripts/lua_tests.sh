@@ -99,7 +99,7 @@ function run_static_code_analysis {
     echo "Running static code analysis"
     echo
     luacheck "$src_module_path" "$test_module_path" --codes \
-      --ignore 111 --ignore 112  --ignore 113 --ignore 142
+      --ignore 111 --ignore 112  --ignore 113 --ignore 142 --ignore 311
     return "$?"
 }
 
