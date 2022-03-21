@@ -26,7 +26,7 @@ function M._parse_arguments(json_str)
     if not success then
 		local error_obj = exaerror.create(
                 "E-SME-5",
-                "Error while parsing input json string, it could not be converted to json object:"
+                "It could not be converted to json object"
         ):add_mitigations("Check syntax of the input string json is correct")
 		_G.global_env.error(tostring(error_obj))
 	end
@@ -38,11 +38,11 @@ end
 --
 function M._prepare_init_query(args)
     local action = args['action'] -- TODO
-    local params = args['params']
+    local params = args['parameters']
     local schema = args['schema']
     local sql_prefix = args['sql_prefix']
 
-    local _udf_name = schema .. ".'" .. sql_prefix .."'_EVENT_HANDLER_RUNNER_UDF"
+    local _udf_name = schema .. "." .. sql_prefix .."_EVENT_HANDLER_RUNNER_UDF"
     local _udf_args = "('" .. action .. "','".. params .."')"
     local query = "SELECT ".. _udf_name .. _udf_args
     return query
