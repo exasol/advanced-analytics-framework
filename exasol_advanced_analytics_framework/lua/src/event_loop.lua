@@ -7,15 +7,26 @@
 
 
 local M = {}
+local exa_error = require("exaerror")
 
-local exaerror = require("exaerror")
-
+_G.global_env = {
+    pquery = pquery,
+    error = error
+}
 
 ---
 -- Executes the given set of queries.
 --
-function M._run_queries(result, from_index)
-    -- TODO
+function M._run_queries(queries, from_index)
+    for i=from_index, #queries do
+        local success, result = _G.global_env.pquery(result[i])
+        if not success then
+            local error_obj = exa_error.create(
+                    "E-AAF-3",
+                    "Error occurred in executing queries: " .. result.error_message)
+            _G.global_env.error(tostring(error_obj))
+        end
+    end
 end
 
 ---
@@ -25,12 +36,14 @@ function M.init(query_to_event_handler)
     local status = "started"
 
     repeat
-        local success, result = pquery(query_to_event_handler) -- TODO
+        local success, result = _G.global_env.pquery(query_to_event_handler)
         if not success then
-            local error_obj = exaerror.create() -- TODO
-            error(tostring(error_obj))
+            local error_obj = exa_error.create(
+                    "E-AAF-2",
+                    "Error occurred in calling Event Handler: " .. result.error_message)
+            _G.global_env.error(tostring(error_obj))
         end
-        query_to_event_handler = result[1][1] -- TODO
+        query_to_event_handler = result[1][1]
         status = result[2][1]
 
         M._run_queries(result, 3)
