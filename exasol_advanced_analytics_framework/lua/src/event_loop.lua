@@ -25,7 +25,10 @@ function M._run_queries(queries, from_index)
         if not success then
             local error_obj = exa_error.create(
                     "E-AAF-3",
-                    "Error occurred in executing queries: " .. result.error_message)
+                    "Error occurred in executing the query: "
+                            .. queries[i][1]
+                            .. " error message: "
+                            .. result.error_message)
             _G.global_env.error(tostring(error_obj))
         end
     end
@@ -54,5 +57,6 @@ function M.init(query_to_event_handler)
 
     return status -- TODO return
 end
+
 
 return M;

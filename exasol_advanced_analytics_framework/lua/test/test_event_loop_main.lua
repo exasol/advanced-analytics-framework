@@ -5,23 +5,23 @@ local event_loop_main = require("event_loop_main")
 test_event_loop_main = {
     correct_json_str = [[
     {
-        "action" : "action",
-        "parameter" : "parameters",
+        "udf_name" : "AN_EVENT_HANDLER_RUNNER_UDF",
+        "parameters" : "params",
         "schema" : "SCHEMA",
-        "sql_prefix" : "PRE"
+        "bucketfs_connection" : "bfs_conn"
     }]],
     incorrect_json_str = [[
     {
-        "action" : "action",
-        "parameter" : "parameters"
+        "udf_name" : "AN_EVENT_HANDLER_RUNNER_UDF",
+        "parameters" : "params",
     ]],
     args = {
-        action = "action",
-        parameters = "parameters",
+        udf_name = "AN_EVENT_HANDLER_RUNNER_UDF",
+        parameters = "params",
         schema = "SCHEMA",
-        sql_prefix = "PRE"
+        bucketfs_connection = "bfs_conn"
     },
-    query = "SELECT SCHEMA.PRE_EVENT_HANDLER_RUNNER_UDF('action','parameters')"
+    query = "SELECT SCHEMA.AN_EVENT_HANDLER_RUNNER_UDF('params','bfs_conn')"
 }
 
 local function mock_error_return_nil(exa_mock)
@@ -37,19 +37,19 @@ end
 function test_event_loop_main.test_parse_correct_json()
     local args = event_loop_main._parse_arguments(
             test_event_loop_main.correct_json_str)
-    luaunit.assertNotNil(args["action"])
-    luaunit.assertNotNil(args["parameter"])
+    luaunit.assertNotNil(args["udf_name"])
+    luaunit.assertNotNil(args["parameters"])
     luaunit.assertNotNil(args["schema"])
-    luaunit.assertNotNil(args["sql_prefix"])
+    luaunit.assertNotNil(args["bucketfs_connection"])
 end
 
 function test_event_loop_main.test_parse_incorrect_json()
     local args = event_loop_main._parse_arguments(
             test_event_loop_main.incorrect_json_str)
-    luaunit.assertNil(args["action"])
-    luaunit.assertNil(args["parameter"])
+    luaunit.assertNil(args["udf_name"])
+    luaunit.assertNil(args["parameters"])
     luaunit.assertNil(args["schema"])
-    luaunit.assertNil(args["sql_prefix"])
+    luaunit.assertNil(args["bucketfs_connection"])
 end
 
 function test_event_loop_main.test_prepare_init_query()

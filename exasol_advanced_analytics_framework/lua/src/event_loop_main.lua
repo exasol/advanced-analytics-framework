@@ -1,7 +1,7 @@
 ---
 -- @module event_loop_main
 --
--- This scrip includes the main function of the Event Loop
+-- This script includes the main function of the Event Loop
 --
 
 local M = {}
@@ -36,14 +36,16 @@ end
 ---
 -- Prepare the initial query that initiates the Event Loop and calls Event Handler
 --
+-- @param args  lua table including parameters
+--
 function M._prepare_init_query(args)
-    local action = args['action'] -- TODO
+    local udf_name = args['udf_name']
     local params = args['parameters']
     local schema = args['schema']
-    local sql_prefix = args['sql_prefix']
+    local bfs_conn = args['bucketfs_connection']
 
-    local _udf_name = schema .. "." .. sql_prefix .."_EVENT_HANDLER_RUNNER_UDF"
-    local _udf_args = "('" .. action .. "','".. params .."')"
+    local _udf_name = schema .. "." .. udf_name
+    local _udf_args = "('".. params .. "','" .. bfs_conn .. "')"
     local query = "SELECT ".. _udf_name .. _udf_args
     return query
 end
