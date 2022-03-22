@@ -17,7 +17,7 @@ _G.global_env = {
 ---
 -- Parse a given arguments in json string format.
 --
--- @param json_str	input parameters as json string
+-- @param json_str input parameters as json string
 --
 -- @return lua table including parameters
 --
@@ -37,6 +37,8 @@ end
 -- Prepare the initial query that initiates the Event Loop and calls Event Handler
 --
 -- @param args  lua table including parameters
+--
+-- @return query string that calls the event handler
 --
 function M._prepare_init_query(args)
     local udf_name = args['udf_name']

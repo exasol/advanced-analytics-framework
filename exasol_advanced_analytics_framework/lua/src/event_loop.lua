@@ -4,8 +4,6 @@
 -- This module processes only the state transitions by executing queries returned by the Event Handler
 --
 
-
-
 local M = {}
 local exa_error = require("exaerror")
 
@@ -16,6 +14,11 @@ _G.global_env = {
 
 ---
 -- Executes the given set of queries.
+--
+-- @queries lua table including queries
+-- @from_index the index where the queries in the lua table start
+--
+-- @return True if all queries ran successfully.
 --
 function M._run_queries(queries, from_index)
     local all_success = true
@@ -38,6 +41,8 @@ end
 ---
 -- Initiates the Event Loop that handles state transition
 --
+-- @param query string that calls the event handler
+--
 function M.init(query_to_event_handler)
     local status = "started"
 
@@ -51,7 +56,6 @@ function M.init(query_to_event_handler)
         end
         query_to_event_handler = result[1][1]
         status = result[2][1]
-
         M._run_queries(result, 3)
     until (status == 'completed')
 
