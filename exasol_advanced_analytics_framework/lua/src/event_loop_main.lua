@@ -25,7 +25,7 @@ function M._parse_arguments(json_str)
     local success, args =  pcall(json.decode, json_str)
     if not success then
 		local error_obj = exaerror.create(
-                "E-SME-5",
+                "E-AAF-1",
                 "It could not be converted to json object"
         ):add_mitigations("Check syntax of the input string json is correct")
 		_G.global_env.error(tostring(error_obj))
