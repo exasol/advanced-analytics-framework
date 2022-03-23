@@ -46,9 +46,9 @@ function M._prepare_init_query(args)
     local schema = args['schema']
     local bfs_conn = args['bucketfs_connection']
 
-    local _udf_name = schema .. "." .. udf_name
-    local _udf_args = "('".. params .. "','" .. bfs_conn .. "')"
-    local query = "SELECT ".. _udf_name .. _udf_args
+    local _udf_name = string.format("%s.%s", schema, udf_name)
+    local _udf_args = string.format("('%s','%s')", params, bfs_conn)
+    local query = string.format("SELECT %s%s", _udf_name, _udf_args)
     return query
 end
 
