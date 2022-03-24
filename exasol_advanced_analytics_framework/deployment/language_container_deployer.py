@@ -25,13 +25,14 @@ class LanguageContainerDeployer:
             "SYSTEM", path_in_udf)
         alter_session_command = self._generate_alter_command(
             "SESSION", path_in_udf)
+        print(alter_session_command)
         self._pyexasol_conn.execute(alter_system_command)
         self._pyexasol_conn.execute(alter_session_command)
 
     def upload_container(self) -> PurePosixPath:
         if not self._container_file.is_file():
-            raise RuntimeError( f"Container file {self._container_file} "
-                                f"is not a file.")
+            raise RuntimeError(f"Container file {self._container_file} "
+                               f"is not a file.")
         with open(self._container_file, "br") as f:
             upload_uri, path_in_udf = \
                 self._bucketfs_location.upload_fileobj_to_bucketfs(
@@ -56,7 +57,7 @@ class LanguageContainerDeployer:
         return new_definitions_str
 
     def _generate_new_language_settings(self, path_in_udf: PurePosixPath,
-                                       prev_lang_aliases: List[str]) -> str:
+                                        prev_lang_aliases: List[str]) -> str:
         other_definitions = [
             alias_definition for alias_definition in prev_lang_aliases
             if not alias_definition.startswith(self._language_alias + "=")]
@@ -75,8 +76,8 @@ class LanguageContainerDeployer:
             alias_definition for alias_definition in prev_lang_aliases
             if alias_definition.startswith(self._language_alias + "=")]
         if not len(definition_for_requested_alias) == 0:
-            raise RuntimeError(f"The requested language alias "
-                               f"{self._language_alias} is already in use.")
+            print(f"The requested language alias "
+                  f"{self._language_alias} is already in use.")
 
     def _get_previous_language_settings(self, alter_type: str) -> str:
         result = self._pyexasol_conn.execute(

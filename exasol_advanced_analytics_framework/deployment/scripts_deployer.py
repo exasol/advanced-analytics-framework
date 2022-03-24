@@ -10,9 +10,9 @@ class ScriptsDeployer:
         self._schema = schema
         self._pyexasol_conn = pyexasol_conn
 
-        self._base_dir = "advanced_analytics_framework"
+        self._base_dir = "exasol_advanced_analytics_framework"
         self._resource_dir = "resource"
-        self._source_dir = files("advanced_analytics_framework.interface")
+        self._source_dir = files(f"{self._base_dir}.interface")
         self._templates_for_udf_calls = {
             "create_event_handler_udf_call.py": "create_event_handler.jinja.sql"
         }

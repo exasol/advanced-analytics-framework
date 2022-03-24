@@ -18,7 +18,7 @@ from exasol_advanced_analytics_framework.deployment.language_container_deployer 
 @click.option('--dsn', type=str, required=True)
 @click.option('--db-user', type=str, required=True)
 @click.option('--db-password', type=str)
-@click.option('--language-alias', type=str, default="PYTHON_AAF")
+@click.option('--language-alias', type=str, default="PYTHON3_AAF")
 def language_container_deployer_main(
         bucketfs_name: str,
         bucketfs_host: str,

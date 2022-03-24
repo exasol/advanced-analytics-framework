@@ -9,7 +9,7 @@ from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
 @click.option('--user', type=str, required=True)
 @click.option('--pass', 'pwd', type=str)
 @click.option('--schema', type=str, required=True)
-@click.option('--language-alias', type=str, default="PYTHON_AAF")
+@click.option('--language-alias', type=str, default="PYTHON3_AAF")
 def scripts_deployer_main(dsn: str, user: str, pwd: str,
                           schema: str, language_alias: str):
     password = utils.get_password(
