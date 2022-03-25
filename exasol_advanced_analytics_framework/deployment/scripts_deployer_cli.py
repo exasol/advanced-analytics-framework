@@ -24,4 +24,9 @@ def scripts_deployer_main(dsn: str, user: str, pwd: str,
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(
+        format='%(asctime)s - %(module)s  - %(message)s',
+        level=logging.DEBUG)
+
     scripts_deployer_main()

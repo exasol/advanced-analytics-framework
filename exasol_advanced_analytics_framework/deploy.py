@@ -1,3 +1,4 @@
+import logging
 import click
 from exasol_advanced_analytics_framework.deployment. \
     language_container_deployer_cli import language_container_deployer_main
@@ -11,6 +12,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main.add_command(language_container_deployer_main)
+    logging.basicConfig(
+        format='%(asctime)s - %(module)s  - %(message)s',
+        level=logging.DEBUG)
+
     main.add_command(scripts_deployer_main)
+    main.add_command(language_container_deployer_main)
     main()

@@ -17,7 +17,7 @@ from exasol_advanced_analytics_framework.deployment.language_container_deployer 
 @click.option('--container-file', type=click.Path(exists=True, file_okay=True), required=True)
 @click.option('--dsn', type=str, required=True)
 @click.option('--db-user', type=str, required=True)
-@click.option('--db-password', type=str)
+@click.option('--db-pass', type=str)
 @click.option('--language-alias', type=str, default="PYTHON3_AAF")
 def language_container_deployer_main(
         bucketfs_name: str,
@@ -31,13 +31,13 @@ def language_container_deployer_main(
         container_file: str,
         dsn: str,
         db_user: str,
-        db_password: str,
+        db_pass: str,
         language_alias: str):
     bucketfs_password = utils.get_password(
         bucketfs_password, bucketfs_user,
         utils.BUCKETFS_PASSWORD_ENVIRONMENT_VARIABLE, "BucketFS Password")
     db_password = utils.get_password(
-        db_password, db_user,
+        db_pass, db_user,
         utils.DB_PASSWORD_ENVIRONMENT_VARIABLE, "DB Password")
 
     LanguageContainerDeployer.run(
@@ -58,4 +58,9 @@ def language_container_deployer_main(
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(
+        format='%(asctime)s - %(module)s  - %(message)s',
+        level=logging.DEBUG)
+
     language_container_deployer_main()

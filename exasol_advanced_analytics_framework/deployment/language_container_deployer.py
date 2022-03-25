@@ -6,7 +6,8 @@ from exasol_bucketfs_utils_python.bucketfs_config import BucketFSConfig
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_bucketfs_utils_python.bucketfs_connection_config import \
     BucketFSConnectionConfig
-
+import logging
+logger = logging.getLogger(__name__)
 
 class LanguageContainerDeployer:
     def __init__(self,
@@ -18,16 +19,14 @@ class LanguageContainerDeployer:
         self._bucketfs_location = bucketfs_location
         self._language_alias = language_alias
         self._pyexasol_conn = pyexasol_connection
+        logger.debug(f"Init {LanguageContainerDeployer.__name__}")
 
     def deploy_container(self):
         path_in_udf = self.upload_container()
-        alter_system_command = self._generate_alter_command(
-            "SYSTEM", path_in_udf)
-        alter_session_command = self._generate_alter_command(
-            "SESSION", path_in_udf)
-        print(alter_session_command)
-        self._pyexasol_conn.execute(alter_system_command)
-        self._pyexasol_conn.execute(alter_session_command)
+        for alter in ["SYSTEM", "SESSION"]:
+            alter_command = self._generate_alter_command(alter, path_in_udf)
+            self._pyexasol_conn.execute(alter_command)
+            logging.debug(alter_command)
 
     def upload_container(self) -> PurePosixPath:
         if not self._container_file.is_file():
@@ -37,6 +36,7 @@ class LanguageContainerDeployer:
             upload_uri, path_in_udf = \
                 self._bucketfs_location.upload_fileobj_to_bucketfs(
                     fileobj=f, bucket_file_path=self._container_file.name)
+        logging.debug("Container is uploaded to bucketfs")
         return PurePosixPath(path_in_udf)
 
     def _generate_alter_command(self, alter_type: str,
@@ -76,8 +76,8 @@ class LanguageContainerDeployer:
             alias_definition for alias_definition in prev_lang_aliases
             if alias_definition.startswith(self._language_alias + "=")]
         if not len(definition_for_requested_alias) == 0:
-            print(f"The requested language alias "
-                  f"{self._language_alias} is already in use.")
+            logging.warning(f"The requested language alias "
+                            f"{self._language_alias} is already in use.")
 
     def _get_previous_language_settings(self, alter_type: str) -> str:
         result = self._pyexasol_conn.execute(
