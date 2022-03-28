@@ -22,13 +22,13 @@ class LanguageContainerDeployer:
         logger.debug(f"Init {LanguageContainerDeployer.__name__}")
 
     def deploy_container(self):
-        path_in_udf = self.upload_container()
+        path_in_udf = self._upload_container()
         for alter in ["SYSTEM", "SESSION"]:
             alter_command = self._generate_alter_command(alter, path_in_udf)
             self._pyexasol_conn.execute(alter_command)
             logging.debug(alter_command)
 
-    def upload_container(self) -> PurePosixPath:
+    def _upload_container(self) -> PurePosixPath:
         if not self._container_file.is_file():
             raise RuntimeError(f"Container file {self._container_file} "
                                f"is not a file.")

@@ -20,14 +20,14 @@ class ScriptsDeployer:
         }
         logger.debug(f"Init {ScriptsDeployer.__name__}.")
 
-    def _open_schema(self):
+    def _open_schema(self) -> None:
         queries = ["CREATE SCHEMA IF NOT EXISTS {schema_name}",
                    "OPEN SCHEMA {schema_name}"]
         for query in queries:
             self._pyexasol_conn.execute(query.format(schema_name=self._schema))
         logger.debug(f"Schema {self._schema} is opened.")
 
-    def _deploy_udf_scripts(self):
+    def _deploy_udf_scripts(self) -> None:
         for udf_call_src, template_src in self._templates_for_udf_calls.items():
             udf_content = self._source_dir.joinpath(udf_call_src).read_text()
             env = Environment(
@@ -41,14 +41,14 @@ class ScriptsDeployer:
             logger.debug(f"UDF statement of the template "
                          f"{template_src} is executed.")
 
-    def deploy_scripts(self):
+    def deploy_scripts(self) -> None:
         self._open_schema()
         self._deploy_udf_scripts()
         logger.debug(f"Scripts are deployed.")
 
     @classmethod
     def run(cls, dsn: str, user: str, password: str,
-            schema: str, language_alias: str):
+            schema: str, language_alias: str) :
 
         pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
         scripts_deployer = cls(language_alias, schema, pyexasol_conn)
