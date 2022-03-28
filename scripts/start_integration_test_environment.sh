@@ -17,4 +17,4 @@ else
 fi
 
 
-./start-test-env spawn-test-environment --environment-name test --database-port-forward 8888 --bucketfs-port-forward 6666 --db-mem-size 4GB --nameserver 8.8.8.8
+./start-test-env spawn-test-environment --environment-name test --database-port-forward 9563 --bucketfs-port-forward 6666 --db-mem-size 4GB --nameserver 8.8.8.8
