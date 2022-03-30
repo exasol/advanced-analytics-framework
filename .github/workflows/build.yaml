@@ -3,7 +3,7 @@ name: Build and test project
 on: [ push ]
 
 jobs:
-  unit_tests:
+  build_and_test:
     strategy:
       fail-fast: false
       matrix:

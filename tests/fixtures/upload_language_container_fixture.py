@@ -1,42 +1,35 @@
-import subprocess
-from pathlib import Path
 import pytest
-
-
-def find_script(script_name: str) -> Path:
-    current_path = Path(__file__).parent
-    script_path = None
-    while current_path != current_path.root:
-        script_path = Path(current_path, script_name)
-        if script_path.exists():
-            break
-        current_path = current_path.parent
-    if script_path.exists():
-        return script_path
-    else:
-        raise RuntimeError(f"Could not find {script_name}")
+from pathlib import Path
+from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
+from tests.utils.parameters import bucketfs_params
 
 
 @pytest.fixture(scope="session")
-def language_container() -> dict:
-    script_dir = find_script("build_language_container.sh")
-    completed_process = subprocess.run([script_dir],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
-    output = completed_process.stdout.decode("UTF-8")
-    print(output)
+def upload_language_container(pyexasol_connection, language_container) -> str:
+    bucket_fs_factory = BucketFSFactory()
+    container_bucketfs_location = \
+        bucket_fs_factory.create_bucketfs_location(
+            url=bucketfs_params.address(),
+            user=bucketfs_params.user,
+            pwd=bucketfs_params.password,
+            base_path=None)
+    container_path = Path(language_container["container_path"])
+    alter_session = language_container["alter_session"]
+    language_alias = alter_session.split("=")[0]
+    with open(container_path, "rb") as container_file:
+        container_bucketfs_location.upload_fileobj_to_bucketfs(
+            container_file,
+            "exasol_advanced_analytics_framework_container.tar.gz")
 
-    completed_process.check_returncode()
-    lines = output.splitlines()
-    alter_session_selector = "ALTER SESSION SET SCRIPT_LANGUAGES='"
-    alter_session = [line for line in lines
-                     if line.startswith(alter_session_selector)][0]
-    alter_session = alter_session[len(alter_session_selector):-2]
+    result = pyexasol_connection.execute(
+        f"""SELECT "SYSTEM_VALUE" FROM SYS.EXA_PARAMETERS WHERE 
+        PARAMETER_NAME='SCRIPT_LANGUAGES'""").fetchall()
+    original_alter_system = result[0][0]
+    pyexasol_connection.execute(
+        f"ALTER SESSION SET SCRIPT_LANGUAGES='{alter_session}'")
+    pyexasol_connection.execute(
+        f"ALTER SYSTEM SET SCRIPT_LANGUAGES='{alter_session}'")
 
-    container_path_selector = "Cached container under "
-    container_path = [line for line in lines
-                      if line.startswith(container_path_selector)][0]
-    container_path = container_path[len(container_path_selector):]
-
-    return {"container_path": container_path,
-            "alter_session": alter_session}
+    yield language_alias
+    pyexasol_connection.execute(
+        f"ALTER SYSTEM SET SCRIPT_LANGUAGES='{original_alter_system}'")

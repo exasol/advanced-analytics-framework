@@ -9,6 +9,7 @@ from exasol_bucketfs_utils_python.bucketfs_connection_config import \
 import logging
 logger = logging.getLogger(__name__)
 
+
 class LanguageContainerDeployer:
     def __init__(self,
                  pyexasol_connection: pyexasol.ExaConnection,
@@ -23,7 +24,7 @@ class LanguageContainerDeployer:
 
     def deploy_container(self):
         path_in_udf = self._upload_container()
-        for alter in ["SYSTEM", "SESSION"]:
+        for alter in ["SESSION", "SYSTEM"]:
             alter_command = self._generate_alter_command(alter, path_in_udf)
             self._pyexasol_conn.execute(alter_command)
             logging.debug(alter_command)
