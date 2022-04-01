@@ -1,6 +1,7 @@
 import textwrap
 from exasol_advanced_analytics_framework.deployment.language_container_deployer \
     import LanguageContainerDeployer
+from tests.utils import db_queries
 from tests.utils.revert_language_settings import revert_language_settings
 from tests.utils.db_queries import DBQueries
 from tests.utils.parameters import bucketfs_params, db_params
@@ -13,6 +14,7 @@ def _call_deploy_language_container_deployer_cli(
     db_conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
 
+    # call language container deployer
     LanguageContainerDeployer.run(
         bucketfs_name=bucketfs_params.name,
         bucketfs_host=bucketfs_params.host,
@@ -29,6 +31,13 @@ def _call_deploy_language_container_deployer_cli(
         language_alias=language_alias
     )
 
+    # make this db session same with the db system
+    system_language_settings = DBQueries.get_language_settings_from(
+        db_conn, "SYSTEM")
+    DBQueries.set_language_settings_to(
+        db_conn, "SESSION", system_language_settings)
+
+    # create a sample UDF using the new language alias
     db_conn.execute(textwrap.dedent(f"""
     CREATE OR REPLACE {language_alias} SCALAR SCRIPT "TEST_UDF"()
     RETURNS BOOLEAN AS

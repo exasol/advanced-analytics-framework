@@ -13,6 +13,7 @@ def _call_deploy_language_container_deployer_cli(
     db_conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
 
+    # call language container deployer
     args_list = [
         "language-container",
         "--bucketfs-name", bucketfs_params.name,
@@ -33,6 +34,13 @@ def _call_deploy_language_container_deployer_cli(
     result = runner.invoke(deploy.main, args_list)
     assert result.exit_code == 0
 
+    # make this db session same with the db system
+    system_language_settings = DBQueries.get_language_settings_from(
+        db_conn, "SYSTEM")
+    DBQueries.set_language_settings_to(
+        db_conn, "SESSION", system_language_settings)
+
+    # create a sample UDF using the new language alias
     db_conn.execute(textwrap.dedent(f"""
     CREATE OR REPLACE {language_alias} SCALAR SCRIPT "TEST_UDF"()
     RETURNS BOOLEAN AS

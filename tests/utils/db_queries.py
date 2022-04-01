@@ -30,3 +30,14 @@ class DBQueries:
             FROM SYS.EXA_PARAMETERS 
             WHERE PARAMETER_NAME='SCRIPT_LANGUAGES'"""
         return db_conn.execute(query).fetchall()
+
+    @staticmethod
+    def get_language_settings_from(db_conn, alter_type):
+        result = DBQueries.get_language_settings(db_conn)
+        return result[0][0] if alter_type.upper() == "SYSTEM" else result[0][1]
+
+    @staticmethod
+    def set_language_settings_to(db_conn, alter_type, language_settings):
+        db_conn.execute(
+            f"""ALTER {alter_type.upper()} SET SCRIPT_LANGUAGES=
+            '{language_settings}'""")
