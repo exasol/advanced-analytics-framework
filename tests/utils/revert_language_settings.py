@@ -1,4 +1,6 @@
+import pyexasol
 import pytest
+from tests.utils.parameters import db_params
 
 
 def revert_language_settings(func):
@@ -12,9 +14,13 @@ def revert_language_settings(func):
             raise pytest.fail(exc)
         finally:
             print("Revert language settings")
-            db_conn.execute(f"ALTER SYSTEM SET SCRIPT_LANGUAGES="
-                            f"'{language_settings[0][0]}';")
-            db_conn.execute(f"ALTER SESSION SET SCRIPT_LANGUAGES="
-                            f"'{language_settings[0][1]}';")
+            db_conn_revert = pyexasol.connect(
+                dsn=db_params.address(),
+                user=db_params.user,
+                password=db_params.password)
+            db_conn_revert.execute(f"ALTER SYSTEM SET SCRIPT_LANGUAGES="
+                                   f"'{language_settings[0][0]}';")
+            db_conn_revert.execute(f"ALTER SESSION SET SCRIPT_LANGUAGES="
+                                   f"'{language_settings[0][1]}';")
 
     return wrapper

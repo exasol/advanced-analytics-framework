@@ -1,4 +1,5 @@
 import textwrap
+import pyexasol
 from click.testing import CliRunner
 from exasol_advanced_analytics_framework import deploy
 from tests.utils.revert_language_settings import revert_language_settings
@@ -34,14 +35,13 @@ def _call_deploy_language_container_deployer_cli(
     result = runner.invoke(deploy.main, args_list)
     assert result.exit_code == 0
 
-    # make this db session same with the db system
-    system_language_settings = DBQueries.get_language_settings_from(
-        db_conn, "SYSTEM")
-    DBQueries.set_language_settings_to(
-        db_conn, "SESSION", system_language_settings)
-
     # create a sample UDF using the new language alias
-    db_conn.execute(textwrap.dedent(f"""
+    db_conn_test = pyexasol.connect(
+        dsn=db_params.address(),
+        user=db_params.user,
+        password=db_params.password)
+    db_conn_test.execute(f"OPEN SCHEMA {schema}")
+    db_conn_test.execute(textwrap.dedent(f"""
     CREATE OR REPLACE {language_alias} SCALAR SCRIPT "TEST_UDF"()
     RETURNS BOOLEAN AS
 
@@ -50,7 +50,7 @@ def _call_deploy_language_container_deployer_cli(
 
     /
     """))
-    result = db_conn.execute('SELECT "TEST_UDF"()').fetchall()
+    result = db_conn_test.execute('SELECT "TEST_UDF"()').fetchall()
     return result
 
 

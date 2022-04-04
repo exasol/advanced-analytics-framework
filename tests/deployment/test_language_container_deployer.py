@@ -1,10 +1,10 @@
 import textwrap
+from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_advanced_analytics_framework.deployment.language_container_deployer \
     import LanguageContainerDeployer
-from tests.utils import db_queries
 from tests.utils.revert_language_settings import revert_language_settings
 from tests.utils.db_queries import DBQueries
-from tests.utils.parameters import bucketfs_params, db_params
+from tests.utils.parameters import bucketfs_params
 from pathlib import Path
 
 
@@ -15,27 +15,16 @@ def _call_deploy_language_container_deployer_cli(
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
 
     # call language container deployer
-    LanguageContainerDeployer.run(
-        bucketfs_name=bucketfs_params.name,
-        bucketfs_host=bucketfs_params.host,
-        bucketfs_port=int(bucketfs_params.port),
-        bucketfs_use_https=False,
-        bucketfs_user=bucketfs_params.user,
-        bucketfs_password=bucketfs_params.password,
-        bucket=bucketfs_params.bucket,
-        path_in_bucket=bucketfs_params.path_in_bucket,
-        container_file=container_path,
-        dsn=db_params.address(),
-        db_user=db_params.user,
-        db_password=db_params.password,
-        language_alias=language_alias
-    )
-
-    # make this db session same with the db system
-    system_language_settings = DBQueries.get_language_settings_from(
-        db_conn, "SYSTEM")
-    DBQueries.set_language_settings_to(
-        db_conn, "SESSION", system_language_settings)
+    bucket_fs_factory = BucketFSFactory()
+    bucketfs_location = bucket_fs_factory.create_bucketfs_location(
+        url=f"http://{bucketfs_params.host}:{bucketfs_params.port}/"
+            f"{bucketfs_params.bucket}/{language_alias};{bucketfs_params.name}",
+        user=f"{bucketfs_params.user}",
+        pwd=f"{bucketfs_params.password}",
+        base_path=None)
+    language_container_deployer = LanguageContainerDeployer(
+        db_conn, language_alias, bucketfs_location, container_path)
+    language_container_deployer.deploy_container()
 
     # create a sample UDF using the new language alias
     db_conn.execute(textwrap.dedent(f"""
@@ -55,7 +44,7 @@ def test_language_container_deployer(
         request, pyexasol_connection, language_container):
     schema_name = request.node.name
     language_settings = DBQueries.get_language_settings(pyexasol_connection)
-    
+
     result = _call_deploy_language_container_deployer_cli(
         "PYTHON_AAF_DEPLOY_TEST",
         schema_name,
