@@ -45,7 +45,7 @@ def test_language_container_deployer(
     schema_name = request.node.name
     language_settings = DBQueries.get_language_settings(pyexasol_connection)
 
-    result = _call_deploy_language_container_deployer_cli(
+    result = _call_deploy_language_container_deployer(
         "PYTHON_AAF_DEPLOY_TEST",
         schema_name,
         pyexasol_connection,
