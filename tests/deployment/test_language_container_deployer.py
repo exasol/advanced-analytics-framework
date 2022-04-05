@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 @revert_language_settings
-def _call_deploy_language_container_deployer_cli(
+def _call_deploy_language_container_deployer(
         language_alias, schema, db_conn, container_path, language_settings):
     db_conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
