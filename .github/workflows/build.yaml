@@ -3,7 +3,7 @@ name: Build and test project
 on: [ push ]
 
 jobs:
-  unit_tests:
+  build_and_test:
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +28,12 @@ jobs:
         run: |
           sudo apt-get install luarocks
           sudo luarocks install --only-deps *.rockspec
+
+      - name: Build language container
+        run: ./build_language_container.sh
+
+      - name: Start test environment
+        run: bash ./scripts/start_integration_test_environment.sh
 
       - name: Run Lua unit tests and static code analyzer
         run: poetry run poe lua-tests

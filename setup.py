@@ -2,10 +2,23 @@
 from setuptools import setup
 
 packages = \
-['exasol_advanced_analytics_framework']
+['exasol_advanced_analytics_framework',
+ 'exasol_advanced_analytics_framework.deployment',
+ 'exasol_advanced_analytics_framework.interface']
 
 package_data = \
-{'': ['*'], 'exasol_advanced_analytics_framework': ['lua/src/*', 'lua/test/*']}
+{'': ['*'],
+ 'exasol_advanced_analytics_framework': ['lua/src/*',
+                                         'lua/test/*',
+                                         'resource/*']}
+
+install_requires = \
+['Jinja2>=3.0.3,<4.0.0',
+ 'click>=8.0.4,<9.0.0',
+ 'exasol-bucketfs-utils-python @ '
+ 'git+https://github.com/exasol/bucketfs-utils-python.git@main',
+ 'importlib-resources>=5.4.0,<6.0.0',
+ 'pyexasol>=0.24.0,<0.25.0']
 
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',
@@ -19,6 +32,7 @@ setup_kwargs = {
     'url': 'https://github.com/exasol/advanced-analytics-framework',
     'packages': packages,
     'package_data': package_data,
+    'install_requires': install_requires,
     'python_requires': '>=3.8,<4.0',
 }
 

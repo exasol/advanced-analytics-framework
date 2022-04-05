@@ -1,6 +1,6 @@
 local luaunit = require("luaunit")
 local mockagne = require("mockagne")
-local event_loop_main = require("event_loop_main")
+require("event_loop_main")
 
 test_event_loop_main = {
     correct_json_str = [[
@@ -35,8 +35,7 @@ function  test_event_loop_main.setUp()
 end
 
 function test_event_loop_main.test_parse_correct_json()
-    local args = event_loop_main._parse_arguments(
-            test_event_loop_main.correct_json_str)
+    local args = _parse_arguments(test_event_loop_main.correct_json_str)
     luaunit.assertNotNil(args["udf_name"])
     luaunit.assertNotNil(args["parameters"])
     luaunit.assertNotNil(args["schema"])
@@ -44,8 +43,7 @@ function test_event_loop_main.test_parse_correct_json()
 end
 
 function test_event_loop_main.test_parse_incorrect_json()
-    local args = event_loop_main._parse_arguments(
-            test_event_loop_main.incorrect_json_str)
+    local args = _parse_arguments(test_event_loop_main.incorrect_json_str)
     luaunit.assertNil(args["udf_name"])
     luaunit.assertNil(args["parameters"])
     luaunit.assertNil(args["schema"])
@@ -53,7 +51,7 @@ function test_event_loop_main.test_parse_incorrect_json()
 end
 
 function test_event_loop_main.test_prepare_init_query()
-    local query = event_loop_main._prepare_init_query(test_event_loop_main.args)
+    local query = _prepare_init_query(test_event_loop_main.args)
     luaunit.assertEquals(query, test_event_loop_main.query)
 end
 

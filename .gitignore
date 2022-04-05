@@ -133,3 +133,6 @@ dmypy.json
 
 # Sphinx
 doc/_build
+
+# Language container
+.build_output
