@@ -1,44 +1,93 @@
-from exasol_advanced_analytics_framework.event_handler.event_handler_base import \
-    EventHandlerBase
-from exasol_advanced_analytics_framework.event_handler.event_handler_context import EventHandlerContext
 import importlib
-
-from exasol_advanced_analytics_framework.event_handler.event_handler_result import \
-    EventHandlerResult
+from collections import OrderedDict
+from pathlib import PurePosixPath
+from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
+from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_advanced_analytics_framework.event_handler.event_handler_base \
+    import EventHandlerBase
+from exasol_advanced_analytics_framework.event_handler.event_handler_context \
+    import EventHandlerContext
+from exasol_advanced_analytics_framework.event_handler.event_handler_result \
+    import EventHandlerResult
+from exasol_advanced_analytics_framework.event_handler.event_handler_state \
+    import EventHandlerState
+from exasol_advanced_analytics_framework.utils.udf_context_wrapper import \
+    UDFContextWrapper
 
 
 class CreateEventHandlerUDF:
+    STATE_DIRECTORY = "aaf_state"
+
     def __init__(self, exa):
         self.exa = exa
 
     def run(self, ctx) -> None:
+        # get and set method parameters
         parameters = ctx.parameters
         bucketfs_connection = ctx.bucketfs_connection
+        bucketfs_location = BucketFSFactory().create_bucketfs_location(
+            url=bucketfs_connection.address,
+            user=bucketfs_connection.user,
+            pwd=bucketfs_connection.password,
+            base_path=parameters["base"]
+        )
+        bucketfs_path = PurePosixPath(
+            self.STATE_DIRECTORY, f"{parameters['bucket_file_path']}.pkl")
 
-        event__handler_context = EventHandlerContext(bucketfs_connection)
-        event_handler_obj = self._get_event_handler_obj(
-            parameters,  event__handler_context)
-        result: EventHandlerResult = event_handler_obj.handle_event()  # TODO ?
-        self._save_event_handler_obj(event_handler_obj, event__handler_context)
+        # load the latest (create if not) event handler state object
+        latest_state = self._load_latest_state(
+            parameters, bucketfs_location, bucketfs_path)
+        event_handler_context: EventHandlerContext = latest_state.context
+        event_handler: EventHandlerBase = latest_state.event_handler
 
+        # call the user code
+        udf_context = self._create_udf_context_wrapper(ctx)
+        result: EventHandlerResult = event_handler.handle_event(
+            udf_context, event_handler_context)  # TODO does user change state?
+
+        # update and save (overwrite)the current state
+        current_state = EventHandlerState(event_handler_context, event_handler)
+        self._save_current_state(
+            bucketfs_location, bucketfs_path, current_state)
+
+        # return queries
         ctx.emit(result.return_query)
         ctx.emit(result.status)
         for query in result.query_list:
             ctx.emit(query)
 
-    def _get_event_handler_obj(
-            self, parameters, event__handler_context) -> EventHandlerBase:
+    def _load_latest_state(
+            self,
+            parameters: dict,
+            bucketfs_location: BucketFSLocation,
+            bucketfs_path: PurePosixPath) -> EventHandlerState:
 
-        event_handler_obj = event__handler_context.\
-            temporary_bucketfs_file_manager.load_class(parameters['name'])
-        if not event_handler_obj:
-            event_handler_class = MyClass = getattr(importlib.import_module(
+        event_handler_state = bucketfs_location.\
+            download_object_from_bucketfs_via_joblib(str(bucketfs_path))
+
+        if not event_handler_state:
+            context = EventHandlerContext(
+                bucketfs_location, self.STATE_DIRECTORY)
+            event_handler_class = getattr(importlib.import_module(
                 parameters["module_name"]), parameters["class_name"])
             event_handler_obj = event_handler_class()
+            event_handler_state = EventHandlerState(context, event_handler_obj)
 
-        return event_handler_obj
+        return event_handler_state
 
-    def _save_event_handler_obj(
-            self, event_handler_obj, event__handler_context) -> None:
-        event__handler_context.\
-            temporary_bucketfs_file_manager.save_class(event_handler_obj)
+    @staticmethod
+    def _save_current_state(
+            bucketfs_location: BucketFSLocation,
+            bucketfs_path: PurePosixPath,
+            current_state: EventHandlerState) -> None:
+        bucketfs_location.upload_object_to_bucketfs_via_joblib(
+            current_state, str(bucketfs_path))
+
+    def _create_udf_context_wrapper(self, ctx) -> UDFContextWrapper:
+        # TODO: need a simplified UDFContextWrapper ?
+        df = ctx.get_dataframe(1)
+        column_name_list = df["2"][0].split(",")
+        column_mapping = OrderedDict([
+            (str(4 + index), column)
+            for index, column in enumerate(column_name_list)])
+        return UDFContextWrapper(ctx, column_mapping=column_mapping)
