@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 
-@dataclass(unsafe_hash=True)
+@dataclass()
 class EventHandlerResult:
     return_query: Optional[str]
     status: str
