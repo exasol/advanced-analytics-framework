@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
 @click.option('--pass', 'pwd', type=str)
 @click.option('--schema', type=str, required=True)
 @click.option('--language-alias', type=str, default="PYTHON3_AAF")
-@click.option('--develop', type=bool, is_flag=True, required=False)
+@click.option('--develop', type=bool, is_flag=True)
 def scripts_deployer_main(
         dsn: str, user: str, pwd: str, schema: str,
         language_alias: str, develop: bool):

@@ -1,6 +1,11 @@
 import os
 from getpass import getpass
 import logging
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+from exasol_advanced_analytics_framework.deployment import constants
+
 logger = logging.getLogger(__name__)
 
 DB_PASSWORD_ENVIRONMENT_VARIABLE = f"AAF_DB_PASSWORD"
@@ -15,3 +20,14 @@ def get_password(pwd: str, user: str, env_var: str, descr: str) -> str:
         else:
             pwd = getpass(f"{descr} for User {user}")
     return pwd
+
+
+def load_and_render_statement(template_name, **kwargs) -> str:
+    env = Environment(
+        loader=PackageLoader(
+            constants.BASE_DIR, constants.TEMPLATES_DIR),
+        autoescape=select_autoescape()
+    )
+    template = env.get_template(template_name)
+    statement = template.render(**kwargs)
+    return statement

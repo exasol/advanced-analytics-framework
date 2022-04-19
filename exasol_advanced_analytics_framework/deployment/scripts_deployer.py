@@ -1,7 +1,7 @@
 import pyexasol
 import logging
 from jinja2 import Environment, PackageLoader, select_autoescape
-from exasol_advanced_analytics_framework.deployment import constants
+from exasol_advanced_analytics_framework.deployment import constants, utils
 from exasol_advanced_analytics_framework.deployment.bundle_lua_scripts import \
     BundleLuaScripts
 
@@ -25,15 +25,10 @@ class ScriptsDeployer:
 
     def _deploy_udf_scripts(self) -> None:
         for udf_call_src, template_src in constants.UDF_CALL_TEMPLATES.items():
-            udf_content_path = constants.SOURCE_DIR.joinpath(udf_call_src)
-            udf_content = udf_content_path.read_text()
-            env = Environment(
-                loader=PackageLoader(
-                    constants.BASE_DIR, constants.TEMPLATES_DIR),
-                autoescape=select_autoescape()
-            )
-            template = env.get_template(template_src)
-            udf_query = template.render(
+            udf_content = constants.SOURCE_DIR.joinpath(
+                udf_call_src).read_text()
+            udf_query = utils.load_and_render_statement(
+                template_src,
                 script_content=udf_content,
                 language_alias=self._language_alias)
             self._pyexasol_conn.execute(udf_query)

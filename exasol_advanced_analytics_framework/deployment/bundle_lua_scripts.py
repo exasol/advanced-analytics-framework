@@ -5,7 +5,7 @@ import logging
 import importlib_resources
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from exasol_advanced_analytics_framework.deployment import constants
+from exasol_advanced_analytics_framework.deployment import constants, utils
 
 logger = logging.getLogger(__name__)
 
@@ -61,14 +61,9 @@ class BundleLuaScripts:
     @staticmethod
     def get_statement() -> str:
         lua_bundled_content = BundleLuaScripts.get_content()
-        env = Environment(
-            loader=PackageLoader(
-                constants.BASE_DIR, constants.TEMPLATES_DIR),
-            autoescape=select_autoescape()
-        )
-        template = env.get_template(constants.LUA_SCRIPT_TEMPLATE)
-        lua_query = template.render(
-            bundled_script=lua_bundled_content)
+        lua_query = utils.load_and_render_statement(
+                constants.LUA_SCRIPT_TEMPLATE,
+                bundled_script=lua_bundled_content)
         return lua_query
 
     @staticmethod
