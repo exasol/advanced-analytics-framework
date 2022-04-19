@@ -3,6 +3,9 @@ import subprocess
 import tempfile
 import logging
 import importlib_resources
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+from exasol_advanced_analytics_framework.deployment import constants
 
 logger = logging.getLogger(__name__)
 
@@ -54,3 +57,24 @@ class BundleLuaScripts:
                     tmp_dir, lua_bundled_file_path), "r") as file:
                 lua_bundled_data = file.read()
         return lua_bundled_data
+
+    @staticmethod
+    def get_statement() -> str:
+        lua_bundled_content = BundleLuaScripts.get_content()
+        env = Environment(
+            loader=PackageLoader(
+                constants.BASE_DIR, constants.TEMPLATES_DIR),
+            autoescape=select_autoescape()
+        )
+        template = env.get_template(constants.LUA_SCRIPT_TEMPLATE)
+        lua_query = template.render(
+            bundled_script=lua_bundled_content)
+        return lua_query
+
+    @staticmethod
+    def save_statement() -> None:
+        stmt = BundleLuaScripts.get_statement()
+        with open(constants.LUA_SCRIPT_OUTPUT, "w") as file:
+            file.write(stmt)
+            logger.debug(f"The Lua bundled statement saved.")
+

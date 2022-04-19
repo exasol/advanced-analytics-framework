@@ -10,7 +10,8 @@ package_data = \
 {'': ['*'],
  'exasol_advanced_analytics_framework': ['lua/src/*',
                                          'lua/test/*',
-                                         'resource/*']}
+                                         'resources/outputs/*',
+                                         'resources/templates/*']}
 
 install_requires = \
 ['Jinja2>=3.0.3,<4.0.0',
