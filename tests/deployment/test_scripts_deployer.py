@@ -16,7 +16,8 @@ def test_scripts_deployer(upload_language_container,
         user=db_params.user,
         password=db_params.password,
         schema=schema_name,
-        language_alias=language_alias
+        language_alias=language_alias,
+        develop=True
     )
     assert DBQueries.check_all_scripts_deployed(
         pyexasol_connection, schema_name)

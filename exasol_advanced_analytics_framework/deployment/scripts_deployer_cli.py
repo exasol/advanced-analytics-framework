@@ -10,8 +10,10 @@ from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
 @click.option('--pass', 'pwd', type=str)
 @click.option('--schema', type=str, required=True)
 @click.option('--language-alias', type=str, default="PYTHON3_AAF")
-def scripts_deployer_main(dsn: str, user: str, pwd: str,
-                          schema: str, language_alias: str):
+@click.option('--develop', type=bool, is_flag=True)
+def scripts_deployer_main(
+        dsn: str, user: str, pwd: str, schema: str,
+        language_alias: str, develop: bool):
     password = utils.get_password(
         pwd, user, utils.DB_PASSWORD_ENVIRONMENT_VARIABLE, "DB Password")
 
@@ -20,7 +22,9 @@ def scripts_deployer_main(dsn: str, user: str, pwd: str,
         user=user,
         password=password,
         schema=schema,
-        language_alias=language_alias)
+        language_alias=language_alias,
+        develop=develop
+    )
 
 
 if __name__ == '__main__':

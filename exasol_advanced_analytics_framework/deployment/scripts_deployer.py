@@ -1,10 +1,7 @@
-import tempfile
-
 import pyexasol
-from importlib_resources import files
-from jinja2 import Environment, PackageLoader, select_autoescape
 import logging
-
+from jinja2 import Environment, PackageLoader, select_autoescape
+from exasol_advanced_analytics_framework.deployment import constants, utils
 from exasol_advanced_analytics_framework.deployment.bundle_lua_scripts import \
     BundleLuaScripts
 
@@ -17,14 +14,6 @@ class ScriptsDeployer:
         self._language_alias = language_alias
         self._schema = schema
         self._pyexasol_conn = pyexasol_conn
-
-        self._base_dir = "exasol_advanced_analytics_framework"
-        self._resource_dir = "resource"
-        self._source_dir = files(f"{self._base_dir}.interface")
-        self._templates_for_udf_calls = {
-            "create_event_handler_udf_call.py": "create_event_handler.jinja.sql"
-        }
-        self._template_for_lua_script = "create_event_loop.jinja.sql"
         logger.debug(f"Init {ScriptsDeployer.__name__}.")
 
     def _open_schema(self) -> None:
@@ -35,14 +24,11 @@ class ScriptsDeployer:
         logger.debug(f"Schema {self._schema} is opened.")
 
     def _deploy_udf_scripts(self) -> None:
-        for udf_call_src, template_src in self._templates_for_udf_calls.items():
-            udf_content = self._source_dir.joinpath(udf_call_src).read_text()
-            env = Environment(
-                loader=PackageLoader(self._base_dir, self._resource_dir),
-                autoescape=select_autoescape()
-            )
-            template = env.get_template(template_src)
-            udf_query = template.render(
+        for udf_call_src, template_src in constants.UDF_CALL_TEMPLATES.items():
+            udf_content = constants.SOURCE_DIR.joinpath(
+                udf_call_src).read_text()
+            udf_query = utils.load_and_render_statement(
+                template_src,
                 script_content=udf_content,
                 language_alias=self._language_alias)
             self._pyexasol_conn.execute(udf_query)
@@ -50,17 +36,11 @@ class ScriptsDeployer:
                          f"{template_src} is executed.")
 
     def _deploy_lua_scripts(self) -> None:
-        lua_bundled_content = BundleLuaScripts.get_content()
-        env = Environment(
-            loader=PackageLoader(self._base_dir, self._resource_dir),
-            autoescape=select_autoescape()
-        )
-        template = env.get_template(self._template_for_lua_script)
-        udf_query = template.render(
-            bundled_script=lua_bundled_content)
-        self._pyexasol_conn.execute(udf_query)
-        logger.debug(f"The Lua statement of the template "
-                     f"{self._template_for_lua_script} is executed.")
+        with open(constants.LUA_SCRIPT_OUTPUT, "r") as file:
+            lua_query = file.read()
+            self._pyexasol_conn.execute(lua_query)
+            logger.debug(f"The Lua statement of the template "
+                         f"{constants.LUA_SCRIPT_TEMPLATE} is executed.")
 
     def deploy_scripts(self) -> None:
         self._open_schema()
@@ -70,12 +50,11 @@ class ScriptsDeployer:
 
     @classmethod
     def run(cls, dsn: str, user: str, password: str,
-            schema: str, language_alias: str) :
+            schema: str, language_alias: str, develop: bool):
+
+        if develop:
+            BundleLuaScripts.save_statement()
 
         pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
         scripts_deployer = cls(language_alias, schema, pyexasol_conn)
         scripts_deployer.deploy_scripts()
-
-
-
-
