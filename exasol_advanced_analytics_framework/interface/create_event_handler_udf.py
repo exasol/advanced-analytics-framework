@@ -11,12 +11,11 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_result \
     import EventHandlerResult
 from exasol_advanced_analytics_framework.event_handler.event_handler_state \
     import EventHandlerState
-from exasol_advanced_analytics_framework.utils.udf_context_wrapper import \
-    UDFContextWrapper
+from exasol_advanced_analytics_framework.context_wrapper.udf_context_wrapper \
+    import UDFContextWrapper
 
 
 class CreateEventHandlerUDF:
-    STATE_DIRECTORY = "aaf_state"
 
     def __init__(self, exa):
         self.exa = exa
@@ -32,7 +31,7 @@ class CreateEventHandlerUDF:
             base_path=parameters["base"]
         )
         bucketfs_path = PurePosixPath(
-            self.STATE_DIRECTORY, f"{parameters['bucket_file_path']}.pkl")
+            f"{parameters['bucket_file_path']}.pkl")
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
@@ -67,7 +66,7 @@ class CreateEventHandlerUDF:
 
         if not event_handler_state:
             context = EventHandlerContext(
-                bucketfs_location, self.STATE_DIRECTORY)
+                bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
                 parameters["module_name"]), parameters["class_name"])
             event_handler_obj = event_handler_class()
@@ -83,7 +82,8 @@ class CreateEventHandlerUDF:
         bucketfs_location.upload_object_to_bucketfs_via_joblib(
             current_state, str(bucketfs_path))
 
-    def _create_udf_context_wrapper(self, ctx) -> UDFContextWrapper:
+    @staticmethod
+    def _create_udf_context_wrapper(ctx) -> UDFContextWrapper:
         # TODO: need a simplified UDFContextWrapper ?
         df = ctx.get_dataframe(1)
         column_name_list = df["2"][0].split(",")
