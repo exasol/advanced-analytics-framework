@@ -3,11 +3,11 @@ from setuptools import setup
 
 packages = \
 ['exasol_advanced_analytics_framework',
+ 'exasol_advanced_analytics_framework.context_wrapper',
  'exasol_advanced_analytics_framework.deployment',
  'exasol_advanced_analytics_framework.event_handler',
  'exasol_advanced_analytics_framework.interface',
- 'exasol_advanced_analytics_framework.temporary_operations',
- 'exasol_advanced_analytics_framework.utils']
+ 'exasol_advanced_analytics_framework.temporary_operations']
 
 package_data = \
 {'': ['*'],
