@@ -50,10 +50,4 @@ function test_event_loop_main.test_parse_incorrect_json()
     luaunit.assertNil(args["bucketfs_connection"])
 end
 
-function test_event_loop_main.test_prepare_init_query()
-    local query = _prepare_init_query(test_event_loop_main.args)
-    luaunit.assertEquals(query, test_event_loop_main.query)
-end
-
 os.exit(luaunit.LuaUnit.run())
-
