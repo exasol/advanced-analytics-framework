@@ -34,18 +34,33 @@ function _parse_arguments(json_str)
 end
 
 ---
+-- Prepare the initial query that initiates the Event Loop and calls Event Handler
+--
+-- @param args  lua table including parameters
+--
+-- @return query string that calls the event handler
+--
+function _prepare_init_query(args)
+    local udf_name = args['udf_name']
+    local params = args['parameters']
+    local schema = args['schema']
+    local bfs_conn = args['bucketfs_connection']
+
+    local _udf_name = string.format("%s.%s", schema, udf_name)
+    local _udf_args = string.format("('%s','%s')", params, bfs_conn)
+    local query = string.format("SELECT %s%s", _udf_name, _udf_args)
+    return query
+end
+
+---
 -- This is the main function of the Event Loop
 --
 -- @param json_str	input parameters as json string
 --
 function main(json_str)
     local args = _parse_arguments(json_str)
-    local result = event_loop.init(
-            args['schema'],
-            args['event_handler_class_name'],
-            args['bucketfs_connection'],
-            args['parameters']
-    )
+    local init_query = _prepare_init_query(args)
+    local result = event_loop.init(init_query)
     return result
 end
 
