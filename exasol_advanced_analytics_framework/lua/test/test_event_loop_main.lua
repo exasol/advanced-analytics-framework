@@ -21,7 +21,7 @@ test_event_loop_main = {
         event_handler_class         = "cls_name",
         event_handler_parameters    = "params"
     },
-    query = "SELECT SCHEMA.EVENT_HANDLER_UDF(0,'bfs_conn','cls_name','params')"
+    query = "SELECT SCHEMA.AAF_EVENT_HANDLER_UDF(0,'bfs_conn','cls_name','params')"
 }
 
 local function mock_error_return_nil(exa_mock)

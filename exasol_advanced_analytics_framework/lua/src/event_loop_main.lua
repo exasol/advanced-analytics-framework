@@ -43,7 +43,7 @@ end
 --
 function _prepare_init_query(args)
     local iter_num = 0
-    local udf_name = string.upper("Event_Handler_UDF")
+    local udf_name = string.upper("AAF_EVENT_HANDLER_UDF")
     local schema = args['schema']
     local bfs_conn = args['bucketfs_connection']
     local cls_name = args['event_handler_class']

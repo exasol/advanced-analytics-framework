@@ -24,10 +24,10 @@ class CreateEventHandlerUDF:
 
     def run(self, ctx) -> None:
         # get and set method parameters
-        iter_num = ctx.iter_num
-        event_handler_class = ctx.event_handler_class_name
-        bucketfs_connection = ctx.bucketfs_connection_name
-        parameters = ctx.event_handler_parameters
+        iter_num = ctx[0]  # iter_num
+        event_handler_class = ctx[1]  # event_handler_class_name
+        bucketfs_connection = ctx[2]  # bucketfs_connection_name
+        parameters = ctx[3]  # event_handler_parameters
 
         bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection.address,
@@ -127,7 +127,7 @@ class CreateEventHandlerUDF:
             query: str, query_columns: dict) -> Tuple[str,str]:
         columns_str = ",".join(query_columns.keys())
         tmp_view_name = "tmp_view".upper()
-        event_handler_udf_name = "event_handler_udf".upper()
+        event_handler_udf_name = "AAF_EVENT_HANDLER_UDF".upper()
         query_create_view = f"Create view {tmp_view_name} as {query};"
         query_event_handler = f"SELECT {event_handler_udf_name}" \
                               f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
