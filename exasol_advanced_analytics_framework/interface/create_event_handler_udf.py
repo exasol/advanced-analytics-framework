@@ -1,6 +1,8 @@
 import importlib
 from collections import OrderedDict
 from pathlib import PurePosixPath
+from typing import Tuple
+
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
@@ -22,57 +24,84 @@ class CreateEventHandlerUDF:
 
     def run(self, ctx) -> None:
         # get and set method parameters
-        parameters = ctx.parameters
-        bucketfs_connection = ctx.bucketfs_connection
+        iter_num = ctx.iter_num
+        event_handler_class = ctx.event_handler_class_name
+        bucketfs_connection = ctx.bucketfs_connection_name
+        parameters = ctx.event_handler_parameters
+
         bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection.address,
             user=bucketfs_connection.user,
             pwd=bucketfs_connection.password,
             base_path=parameters["base"]
         )
-        bucketfs_path = PurePosixPath(
-            f"{parameters['bucket_file_path']}.pkl")
+        latest_bucketfs_path = PurePosixPath(
+            f"{event_handler_class}_{str(iter_num)}.pkl")
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            parameters, bucketfs_location, bucketfs_path)
+            iter_num, event_handler_class,
+            bucketfs_location, latest_bucketfs_path)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
 
         # call the user code
         udf_context = self._create_udf_context_wrapper(ctx)
         result: EventHandlerResult = event_handler.handle_event(
-            udf_context, event_handler_context)  # TODO does user change state?
+            udf_context, event_handler_context)
 
-        # update and save (overwrite)the current state
+        # save the current state
+        iter_num += 1
+        current_bucketfs_path = PurePosixPath(
+            f"{event_handler_class}_{str(iter_num)}.pkl")
         current_state = EventHandlerState(event_handler_context, event_handler)
         self._save_current_state(
-            bucketfs_location, bucketfs_path, current_state)
+            bucketfs_location, current_bucketfs_path, current_state)
+
+        # remove previous state
+        self._remove_previous_state(
+            bucketfs_location, latest_bucketfs_path)
+
+        # wrap return query
+        return_query_view, return_query = self._wrap_return_query(
+            iter_num, bucketfs_connection,
+            result.return_query, result.return_query_columns)
 
         # return queries
-        ctx.emit(result.return_query)
+        ctx.emit(return_query_view)  # TODO-4
+        ctx.emit(return_query)
         ctx.emit(result.status)
         for query in result.query_list:
             ctx.emit(query)
 
+    @staticmethod
     def _load_latest_state(
-            self,
-            parameters: dict,
+            iter_num: int,
+            event_handler_class: str,
             bucketfs_location: BucketFSLocation,
             bucketfs_path: PurePosixPath) -> EventHandlerState:
 
-        event_handler_state = bucketfs_location.\
-            download_object_from_bucketfs_via_joblib(str(bucketfs_path))
-
-        if not event_handler_state:
+        if iter_num > 0:
+            # load the latest state
+            event_handler_state = bucketfs_location.\
+                download_object_from_bucketfs_via_joblib(str(bucketfs_path))
+        else:
+            # create the new state
             context = EventHandlerContext(
                 bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
-                parameters["module_name"]), parameters["class_name"])
+                'module_name'), event_handler_class)  # TODO-1: module name how to get
             event_handler_obj = event_handler_class()
             event_handler_state = EventHandlerState(context, event_handler_obj)
 
         return event_handler_state
+
+    @staticmethod
+    def _remove_previous_state(
+            bucketfs_location: BucketFSLocation,
+            bucketfs_path: PurePosixPath) -> None:
+        # TODO-2: requests.delete(url, ..)
+        pass
 
     @staticmethod
     def _save_current_state(
@@ -91,3 +120,16 @@ class CreateEventHandlerUDF:
             (str(4 + index), column)
             for index, column in enumerate(column_name_list)])
         return UDFContextWrapper(ctx, column_mapping=column_mapping)
+
+    @staticmethod
+    def _wrap_return_query(
+            iter_num: int, bucketfs_conn: str,
+            query: str, query_columns: dict) -> Tuple[str,str]:
+        columns_str = ",".join(query_columns.keys())
+        tmp_view_name = "tmp_view".upper()
+        event_handler_udf_name = "event_handler_udf".upper()
+        query_create_view = f"Create view {tmp_view_name} as {query};"
+        query_event_handler = f"SELECT {event_handler_udf_name}" \
+                              f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
+                              f"FROM {tmp_view_name};"
+        return query_create_view, query_event_handler
