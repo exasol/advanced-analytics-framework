@@ -36,18 +36,22 @@ end
 ---
 -- Prepare the initial query that initiates the Event Loop and calls Event Handler
 --
--- @param args  lua table including parameters
+-- @param args      lua table including parameters
+-- @param udf_name  name of the udf that calls event handler
 --
 -- @return query string that calls the event handler
 --
 function _prepare_init_query(args)
-    local udf_name = args['udf_name']
-    local params = args['parameters']
+    local iter_num = 0
+    local udf_name = string.upper("Event_Handler_UDF")
     local schema = args['schema']
     local bfs_conn = args['bucketfs_connection']
+    local cls_name = args['event_handler_class']
+    local params = args['event_handler_parameters']
 
     local _udf_name = string.format("%s.%s", schema, udf_name)
-    local _udf_args = string.format("('%s','%s')", params, bfs_conn)
+    local _udf_args = string.format("(%d,'%s','%s','%s')",
+            iter_num, bfs_conn, cls_name, params)
     local query = string.format("SELECT %s%s", _udf_name, _udf_args)
     return query
 end
@@ -60,6 +64,7 @@ end
 function main(json_str)
     local args = _parse_arguments(json_str)
     local init_query = _prepare_init_query(args)
+
     local result = event_loop.init(init_query)
     return result
 end
