@@ -1,8 +1,7 @@
 import importlib
 from collections import OrderedDict
 from pathlib import PurePosixPath
-from typing import Tuple, Dict, Any
-
+from typing import Tuple, Dict, Any, Optional
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
@@ -10,7 +9,7 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_base \
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerResult
+    import EventHandlerResult, EventHandlerReturnQuery
 from exasol_advanced_analytics_framework.event_handler.event_handler_state \
     import EventHandlerState
 from exasol_advanced_analytics_framework.context_wrapper.udf_context_wrapper \
@@ -64,9 +63,9 @@ class CreateEventHandlerUDF:
             bucketfs_location, latest_bucketfs_path)
 
         # wrap return query
+        schema = self.exa.meta.script_schema
         return_query_view, return_query = self._wrap_return_query(
-            iter_num, bucketfs_connection,
-            result.return_query, result.return_query_columns)
+            iter_num, bucketfs_connection, schema, result.return_query)
 
         # return queries
         ctx.emit(return_query_view)
@@ -126,13 +125,19 @@ class CreateEventHandlerUDF:
 
     @staticmethod
     def _wrap_return_query(
-            iter_num: int, bucketfs_conn: str,
-            query: str, query_columns: dict) -> Tuple[str,str]:
-        columns_str = ",".join(query_columns.keys())
-        tmp_view_name = "tmp_view".upper()
-        event_handler_udf_name = "AAF_EVENT_HANDLER_UDF".upper()
-        query_create_view = f"Create view {tmp_view_name} as {query};"
-        query_event_handler = f"SELECT {event_handler_udf_name}" \
-                              f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
-                              f"FROM {tmp_view_name};"
+            iter_num: int, bucketfs_conn: str, schema: str,
+            return_query: EventHandlerReturnQuery) \
+            -> Tuple[str, str]:
+        tmp_view_name = \
+            "tmp_view".upper()
+        event_handler_udf_name = \
+            ".".join((schema, "AAF_EVENT_HANDLER_UDF".upper()))
+        query_create_view = \
+            f"Create view {tmp_view_name} as {return_query.query};"
+        columns_str = \
+            ",".join(return_query.query_columns)
+        query_event_handler = \
+            f"SELECT {event_handler_udf_name}" \
+            f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
+            f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
