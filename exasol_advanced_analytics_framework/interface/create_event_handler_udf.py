@@ -86,7 +86,7 @@ class CreateEventHandlerUDF:
         if iter_num > 0:
             # load the latest state
             event_handler_state = bucketfs_location.\
-                download_object_from_bucketfs_via_joblib(str(bucketfs_path))
+                read_file_from_bucketfs_via_joblib(str(bucketfs_path))
         else:
             # create the new state
             context = EventHandlerContext(
