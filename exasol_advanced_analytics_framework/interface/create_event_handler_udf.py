@@ -1,7 +1,7 @@
 import importlib
 from collections import OrderedDict
 from pathlib import PurePosixPath
-from typing import Tuple
+from typing import Tuple, Dict, Any
 
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
@@ -41,7 +41,7 @@ class CreateEventHandlerUDF:
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            iter_num, event_handler_class, event_handler_module,
+            iter_num, event_handler_class, event_handler_module, parameters,
             bucketfs_location, latest_bucketfs_path)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
@@ -80,6 +80,7 @@ class CreateEventHandlerUDF:
             iter_num: int,
             event_handler_module: str,
             event_handler_class: str,
+            parameters: Dict[str, Any],
             bucketfs_location: BucketFSLocation,
             bucketfs_path: PurePosixPath) -> EventHandlerState:
 
@@ -93,7 +94,7 @@ class CreateEventHandlerUDF:
                 bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
                 event_handler_module), event_handler_class)
-            event_handler_obj = event_handler_class()
+            event_handler_obj = event_handler_class(parameters)
             event_handler_state = EventHandlerState(context, event_handler_obj)
 
         return event_handler_state
