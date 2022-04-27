@@ -15,27 +15,27 @@ _G.global_env = {
 ---
 -- Executes the given set of queries.
 --
--- @queries lua table including queries
--- @from_index the index where the queries in the lua table start
+-- @param   queries lua table including queries
+-- @param   from_index the index where the queries in the lua table start
 --
--- @return True if all queries ran successfully.
+-- @return  the result of the latest query
 --
 function M._run_queries(queries, from_index)
-    local all_success = true
     for i=from_index, #queries do
-        local success, result = _G.global_env.pquery(queries[i][1])
-        all_success = all_success and success
-        if not success then
-            local error_obj = exa_error.create(
-                    "E-AAF-3",
-                    "Error occurred in executing the query: "
-                            .. queries[i][1]
-                            .. " error message: "
-                            .. result.error_message)
-            _G.global_env.error(tostring(error_obj))
+        if queries[i][1] ~= nil then
+            success, result = _G.global_env.pquery(queries[i][1])
+            if not success then
+                local error_obj = exa_error.create(
+                        "E-AAF-3",
+                        "Error occurred in executing the query: "
+                                .. queries[i][1]
+                                .. " error message: "
+                                .. result.error_message)
+                _G.global_env.error(tostring(error_obj))
+            end
         end
     end
-    return all_success
+    return result
 end
 
 ---
@@ -45,18 +45,17 @@ end
 --
 function M.init(query_to_event_handler)
     local status = "started"
-
+    local query_to_create_view = nil
     repeat
-        local success, result = _G.global_env.pquery(query_to_event_handler)
-        if not success then
-            local error_obj = exa_error.create(
-                    "E-AAF-2",
-                    "Error occurred in calling Event Handler: " .. result.error_message)
-            _G.global_env.error(tostring(error_obj))
-        end
-        query_to_event_handler = result[1][1]
-        status = result[2][1]
-        M._run_queries(result, 3)
+        -- call EventHandlerUDF return queries
+        local return_queries = {{query_to_create_view}, {query_to_event_handler}}
+        local result = M._run_queries(return_queries, 1)
+
+        -- handle EventHandlerUDF return
+        query_to_create_view = result[1][1]
+        query_to_event_handler = result[2][1]
+        status = result[3][1]
+        M._run_queries(result, 4)
     until (status == 'completed')
 
     return status -- TODO return

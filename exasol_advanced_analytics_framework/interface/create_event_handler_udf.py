@@ -69,7 +69,7 @@ class CreateEventHandlerUDF:
             result.return_query, result.return_query_columns)
 
         # return queries
-        ctx.emit(return_query_view)  # TODO-4
+        ctx.emit(return_query_view)
         ctx.emit(return_query)
         ctx.emit(result.status)
         for query in result.query_list:
