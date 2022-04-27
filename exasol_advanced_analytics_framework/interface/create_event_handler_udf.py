@@ -25,9 +25,10 @@ class CreateEventHandlerUDF:
     def run(self, ctx) -> None:
         # get and set method parameters
         iter_num = ctx[0]  # iter_num
-        event_handler_class = ctx[1]  # event_handler_class_name
-        bucketfs_connection = ctx[2]  # bucketfs_connection_name
-        parameters = ctx[3]  # event_handler_parameters
+        event_handler_module = ctx[1]  # event_handler_module
+        event_handler_class = ctx[2]  # event_handler_class_name
+        bucketfs_connection = ctx[3]  # bucketfs_connection_name
+        parameters = ctx[4]  # event_handler_parameters
 
         bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection.address,
@@ -40,7 +41,7 @@ class CreateEventHandlerUDF:
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            iter_num, event_handler_class,
+            iter_num, event_handler_class, event_handler_module,
             bucketfs_location, latest_bucketfs_path)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
@@ -77,6 +78,7 @@ class CreateEventHandlerUDF:
     @staticmethod
     def _load_latest_state(
             iter_num: int,
+            event_handler_module: str,
             event_handler_class: str,
             bucketfs_location: BucketFSLocation,
             bucketfs_path: PurePosixPath) -> EventHandlerState:
@@ -90,7 +92,7 @@ class CreateEventHandlerUDF:
             context = EventHandlerContext(
                 bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
-                'module_name'), event_handler_class)  # TODO-1: module name how to get
+                event_handler_module), event_handler_class)
             event_handler_obj = event_handler_class()
             event_handler_state = EventHandlerState(context, event_handler_obj)
 

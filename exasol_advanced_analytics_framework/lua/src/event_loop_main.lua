@@ -46,12 +46,13 @@ function _prepare_init_query(args)
     local udf_name = string.upper("AAF_EVENT_HANDLER_UDF")
     local schema = args['schema']
     local bfs_conn = args['bucketfs_connection']
+    local cls_module = args['event_handler_module']
     local cls_name = args['event_handler_class']
     local params = args['event_handler_parameters']
 
     local _udf_name = string.format("%s.%s", schema, udf_name)
-    local _udf_args = string.format("(%d,'%s','%s','%s')",
-            iter_num, bfs_conn, cls_name, params)
+    local _udf_args = string.format("(%d,'%s','%s','%s','%s')",
+            iter_num, bfs_conn, cls_module, cls_name,params)
     local query = string.format("SELECT %s%s", _udf_name, _udf_args)
     return query
 end

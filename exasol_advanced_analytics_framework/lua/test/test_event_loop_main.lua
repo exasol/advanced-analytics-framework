@@ -7,6 +7,7 @@ test_event_loop_main = {
     {
         "schema"                    : "SCHEMA",
         "bucketfs_connection"       : "bfs_conn",
+        "event_handler_module"      : "package.module",
         "event_handler_class"       : "cls_name",
         "event_handler_parameters"  : "params"
     }]],
@@ -18,10 +19,11 @@ test_event_loop_main = {
     args = {
         schema                      = "SCHEMA",
         bucketfs_connection         = "bfs_conn",
+        event_handler_module        = "package.module",
         event_handler_class         = "cls_name",
         event_handler_parameters    = "params"
     },
-    query = "SELECT SCHEMA.AAF_EVENT_HANDLER_UDF(0,'bfs_conn','cls_name','params')"
+    query = "SELECT SCHEMA.AAF_EVENT_HANDLER_UDF(0,'bfs_conn','package.module','cls_name','params')"
 }
 
 local function mock_error_return_nil(exa_mock)
