@@ -4,6 +4,17 @@ from pathlib import PurePosixPath
 from typing import Tuple, Dict, Any, Optional
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+    Column
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
+    ColumnName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
+    ColumnType
+from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
+    SchemaName
+from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
+    TableName
+
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
@@ -128,14 +139,17 @@ class CreateEventHandlerUDF:
             iter_num: int, bucketfs_conn: str, schema: str,
             return_query: EventHandlerReturnQuery) \
             -> Tuple[str, str]:
-        tmp_view_name = \
-            "tmp_view".upper()
-        event_handler_udf_name = \
-            ".".join((schema, "AAF_EVENT_HANDLER_UDF".upper()))
+        tmp_view_name = TableName(
+            table_name="TMP_VIEW",
+            schema=SchemaName(schema)).fully_qualified()
+        event_handler_udf_name = TableName(
+            table_name="AAF_EVENT_HANDLER_UDF",
+            schema=SchemaName(schema)).fully_qualified()
         query_create_view = \
             f"Create view {tmp_view_name} as {return_query.query};"
         columns_str = \
-            ",".join(return_query.query_columns)
+            ",".join([col.name.fully_qualified()
+                      for col in return_query.query_columns])
         query_event_handler = \
             f"SELECT {event_handler_udf_name}" \
             f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
