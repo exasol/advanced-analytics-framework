@@ -4,7 +4,9 @@
 -- This module processes only the state transitions by executing queries returned by the Event Handler
 --
 
-local M = {}
+local M = {
+    string_to_boolean = { ["True"]=true, ["False"]=false }
+}
 local exa_error = require("exaerror")
 
 _G.global_env = {
@@ -44,7 +46,7 @@ end
 -- @param query string that calls the event handler
 --
 function M.init(query_to_event_handler)
-    local status = "started"
+    local is_finished = false
     local final_result = nil
     local query_to_create_view = nil
     repeat
@@ -55,10 +57,10 @@ function M.init(query_to_event_handler)
         -- handle EventHandlerUDF return
         query_to_create_view = result[1][1]
         query_to_event_handler = result[2][1]
-        status = result[3][1]
+        is_finished = M.string_to_boolean[result[3][1]]
         final_result = result[4][1]
         M._run_queries(result, 5)
-    until (status == 'finished')
+    until (is_finished)
 
     return final_result
 end

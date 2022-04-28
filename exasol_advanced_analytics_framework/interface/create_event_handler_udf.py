@@ -71,19 +71,23 @@ class CreateEventHandlerUDF:
         return_query_view = None
         return_query = None
         final_result = {}
-        if result.status != "finished":
-            schema = self.exa.meta.script_schema
-            return_query_view, return_query = self._wrap_return_query(
-                iter_num, bucketfs_connection, schema, result.return_query)
-        else:
+        query_list = []
+        if result.is_finished:
             final_result = result.final_result
+        else:
+            query_list = result.query_list
+            return_query_view, return_query = self._wrap_return_query(
+                iter_num,
+                bucketfs_connection,
+                self.exa.meta.script_schema,
+                result.return_query)
 
-        # return queries
+        # emits
         ctx.emit(return_query_view)
         ctx.emit(return_query)
-        ctx.emit(result.status)
+        ctx.emit(str(result.is_finished))
         ctx.emit(final_result)
-        for query in result.query_list:
+        for query in query_list:
             ctx.emit(query)
 
     @staticmethod

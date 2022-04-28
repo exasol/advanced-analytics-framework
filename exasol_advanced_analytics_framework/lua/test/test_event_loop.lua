@@ -6,7 +6,7 @@ test_event_loop = {
     result = {
         {"CREATE VIEW AS TMP_VIEW SELECT RETURN_QUERY"},
         {"SELECT AAF_EVENT_HANDLER_UDF"},
-        {"finished"},
+        {"True"},
         {"final_result"},
         {"SELECT QUERY1()"},
         {"SELECT QUERY2()"},
