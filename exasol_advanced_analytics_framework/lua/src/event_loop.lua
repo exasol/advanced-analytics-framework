@@ -45,6 +45,7 @@ end
 --
 function M.init(query_to_event_handler)
     local status = "started"
+    local final_result = nil
     local query_to_create_view = nil
     repeat
         -- call EventHandlerUDF return queries
@@ -55,10 +56,11 @@ function M.init(query_to_event_handler)
         query_to_create_view = result[1][1]
         query_to_event_handler = result[2][1]
         status = result[3][1]
-        M._run_queries(result, 4)
-    until (status == 'completed')
+        final_result = result[4][1]
+        M._run_queries(result, 5)
+    until (status == 'finished')
 
-    return status -- TODO return
+    return final_result
 end
 
 

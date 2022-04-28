@@ -6,7 +6,8 @@ test_event_loop = {
     result = {
         {"CREATE VIEW AS TMP_VIEW SELECT RETURN_QUERY"},
         {"SELECT AAF_EVENT_HANDLER_UDF"},
-        {"completed"},
+        {"finished"},
+        {"final_result"},
         {"SELECT QUERY1()"},
         {"SELECT QUERY2()"},
         {"SELECT QUERY3()"},
@@ -23,9 +24,9 @@ end
 
 local function mock_pquery_queries(exa_mock)
     local query_list = {
-        test_event_loop.result[4],
         test_event_loop.result[5],
-        test_event_loop.result[6]
+        test_event_loop.result[6],
+        test_event_loop.result[7]
     }
     for i=1, #query_list do
         mockagne.when(exa_mock.pquery(query_list[i][1], _)).thenAnswer(true, nil)
@@ -41,7 +42,7 @@ end
 function test_event_loop.test_run_queries()
     mock_pquery_queries(exa_mock)
     local result = event_loop._run_queries(
-            test_event_loop.result, 4)
+            test_event_loop.result, 5)
     luaunit.assertEquals(result, nil)
 end
 
@@ -49,8 +50,8 @@ function test_event_loop.test_init()
     mock_pquery_queries(exa_mock)
     mock_pquery_event_handler_query(exa_mock, test_event_loop.result[1][1])
     mock_pquery_event_handler_query(exa_mock, test_event_loop.result[2][1])
-    local status = event_loop.init(test_event_loop.result[2][1])
-    luaunit.assertEquals(status, "completed")
+    local result = event_loop.init(test_event_loop.result[2][1])
+    luaunit.assertEquals(result, "final_result")
 end
 
 

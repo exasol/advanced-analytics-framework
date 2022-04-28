@@ -4,7 +4,7 @@ from typing import Any, Dict
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerResult
+    import EventHandlerResultBase
 from exasol_advanced_analytics_framework.context_wrapper.context_wrapper_base \
     import ContextWrapperBase
 
@@ -17,7 +17,8 @@ class EventHandlerBase(ABC):
     def handle_event(
             self,
             exa_context: ContextWrapperBase,
-            event_handler_context: EventHandlerContext) -> EventHandlerResult:
+            event_handler_context: EventHandlerContext) \
+            -> EventHandlerResultBase:
         raise NotImplementedError
 
     def cleanup(self):

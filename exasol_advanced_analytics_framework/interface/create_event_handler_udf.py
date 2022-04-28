@@ -4,12 +4,6 @@ from pathlib import PurePosixPath
 from typing import Tuple, Dict, Any, Optional
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
-    Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
-    ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
-    ColumnType
 from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
     SchemaName
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
@@ -20,7 +14,7 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_base \
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerResult, EventHandlerReturnQuery
+    import EventHandlerReturnQuery, EventHandlerResultBase
 from exasol_advanced_analytics_framework.event_handler.event_handler_state \
     import EventHandlerState
 from exasol_advanced_analytics_framework.context_wrapper.udf_context_wrapper \
@@ -58,7 +52,7 @@ class CreateEventHandlerUDF:
 
         # call the user code
         udf_context = self._create_udf_context_wrapper(ctx)
-        result: EventHandlerResult = event_handler.handle_event(
+        result: EventHandlerResultBase = event_handler.handle_event(
             udf_context, event_handler_context)
 
         # save the current state
@@ -73,15 +67,22 @@ class CreateEventHandlerUDF:
         self._remove_previous_state(
             bucketfs_location, latest_bucketfs_path)
 
-        # wrap return query
-        schema = self.exa.meta.script_schema
-        return_query_view, return_query = self._wrap_return_query(
-            iter_num, bucketfs_connection, schema, result.return_query)
+        # wrap return query if continue else get final_result dictionary
+        return_query_view = None
+        return_query = None
+        final_result = {}
+        if result.status != "finished":
+            schema = self.exa.meta.script_schema
+            return_query_view, return_query = self._wrap_return_query(
+                iter_num, bucketfs_connection, schema, result.return_query)
+        else:
+            final_result = result.final_result
 
         # return queries
         ctx.emit(return_query_view)
         ctx.emit(return_query)
         ctx.emit(result.status)
+        ctx.emit(final_result)
         for query in result.query_list:
             ctx.emit(query)
 
