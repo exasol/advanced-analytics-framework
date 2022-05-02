@@ -56,17 +56,16 @@ class CreateEventHandlerUDF:
         result: EventHandlerResultBase = event_handler.handle_event(
             udf_context, event_handler_context)
 
-        # save the current state
+        # save the current state and remove the previous state
         iter_num += 1
         current_bucketfs_path = PurePosixPath(
             f"{event_handler_class}_{str(iter_num)}.pkl")
-        current_state = EventHandlerState(event_handler_context, event_handler)
-        self._save_current_state(
-            bucketfs_location, current_bucketfs_path, current_state)
-
-        # remove previous state
-        self._remove_previous_state(
-            bucketfs_location, latest_bucketfs_path)
+        self._handle_states(
+            event_handler_context,
+            event_handler,
+            current_bucketfs_path,
+            latest_bucketfs_path,
+            bucketfs_location)
 
         # wrap return query if continue else get final_result dictionary
         return_query_view = None
@@ -129,6 +128,20 @@ class CreateEventHandlerUDF:
             current_state: EventHandlerState) -> None:
         bucketfs_location.upload_object_to_bucketfs_via_joblib(
             current_state, str(bucketfs_path))
+
+    @staticmethod
+    def _handle_states(
+            event_handler_context: EventHandlerContext,
+            event_handler: EventHandlerBase,
+            current_bucketfs_path: PurePosixPath,
+            latest_bucketfs_path: PurePosixPath,
+            bucketfs_location: BucketFSLocation) -> None :
+        current_state = EventHandlerState(event_handler_context, event_handler)
+        CreateEventHandlerUDF._save_current_state(
+            bucketfs_location, current_bucketfs_path, current_state)
+
+        CreateEventHandlerUDF._remove_previous_state(
+            bucketfs_location, latest_bucketfs_path)
 
     @staticmethod
     def _create_udf_context_wrapper(ctx) -> UDFContextWrapper:
