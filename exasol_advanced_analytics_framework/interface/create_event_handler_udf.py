@@ -14,7 +14,8 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_base \
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerReturnQuery, EventHandlerResultBase
+    import EventHandlerReturnQuery, EventHandlerResultBase, \
+    EventHandlerResultFinished
 from exasol_advanced_analytics_framework.event_handler.event_handler_state \
     import EventHandlerState
 from exasol_advanced_analytics_framework.context_wrapper.udf_context_wrapper \
@@ -72,9 +73,9 @@ class CreateEventHandlerUDF:
         return_query = None
         final_result = {}
         query_list = []
-        if result.is_finished:
+        if isinstance(result, EventHandlerResultFinished):  # result.is_finished
             final_result = result.final_result
-        else:
+        else:  # not result.is_finished
             query_list = result.query_list
             return_query_view, return_query = self._wrap_return_query(
                 iter_num,
