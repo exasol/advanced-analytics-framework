@@ -1,10 +1,18 @@
 from collections import OrderedDict
-from typing import Union,  Mapping
-from exasol_advanced_analytics_framework.context_wrapper.context_wrapper_base \
-    import ContextWrapperBase
+from typing import Union, Mapping, List
+
+from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+    Column
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
+    ColumnName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
+    ColumnType
+
+from exasol_advanced_analytics_framework.event_context.event_context_base \
+    import EventContextBase
 
 
-class UDFContextWrapper(ContextWrapperBase):
+class UDFEventContext(EventContextBase):
     def __init__(self, ctx, column_mapping: Mapping[str, str],
                  start_col: int = 0):
         super().__init__(ctx)
@@ -28,9 +36,13 @@ class UDFContextWrapper(ContextWrapperBase):
     def __getattr__(self, name):
         return self.ctx[self._get_mapped_column(name)]
 
-    def get_dataframe(self, num_rows: Union[str, int],
-                      start_col: int = 0):
-        import pandas as pd
+    def __next__(self):
+        return self.ctx.next()
+
+    def rowcount(self) -> int:
+        return self.ctx.size()
+
+    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0):
         df = self.ctx.get_dataframe(num_rows, start_col=self.start_col)
         filtered_df = df[self.original_columns]
         filtered_df.columns = [self._get_mapped_column(column)
@@ -38,14 +50,19 @@ class UDFContextWrapper(ContextWrapperBase):
         filtered_df_from_start_col = filtered_df.iloc[:, start_col:]
         return filtered_df_from_start_col
 
-    def next(self, reset: bool = False) -> bool:
-        return self.ctx.next(reset)
+    def columns(self) -> List[Column]:
+        query_columns: List[Column] = []
+        for i in range(self.exa.meta.input_column_count):
+            col_name = self.exa.meta.input_columns[i].name
+            col_type = self.exa.meta.input_columns[i].sql_type
+            query_columns.append(
+                Column(ColumnName(col_name), ColumnType(col_type)))
+        return query_columns
 
-    def size(self) -> int:
-        return self.ctx.size()
+    def column_names(self) -> List[str]:
+        column_names: List[str] = []
+        for i in range(self.exa.meta.input_column_count):
+            column_names.append(self.exa.meta.input_columns[i].name)
+        return column_names
 
-    def reset(self):
-        self.ctx.reset()
 
-    def emit(self, *args):
-        self.ctx.emits(*args)

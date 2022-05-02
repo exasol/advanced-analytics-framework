@@ -6,10 +6,6 @@ from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
-    ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
-    ColumnType
 from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
     SchemaName
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
@@ -24,8 +20,8 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_result \
     EventHandlerResultFinished
 from exasol_advanced_analytics_framework.event_handler.event_handler_state \
     import EventHandlerState
-from exasol_advanced_analytics_framework.context_wrapper.udf_context_wrapper \
-    import UDFContextWrapper
+from exasol_advanced_analytics_framework.event_context.udf_event_context \
+    import UDFEventContext
 
 
 class CreateEventHandlerUDF:
@@ -56,11 +52,12 @@ class CreateEventHandlerUDF:
             bucketfs_location, latest_bucketfs_path)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
+        query_columns: List[Column] = latest_state.query_columns
 
         # call the user code
-        udf_context = self._create_udf_context_wrapper(ctx)
+        udf_event_context = self._create_udf_event_context(ctx, query_columns)
         result: EventHandlerResultBase = event_handler.handle_event(
-            udf_context, event_handler_context)
+            udf_event_context, event_handler_context)
 
         # save the current state and remove the previous state
         iter_num += 1
@@ -71,6 +68,7 @@ class CreateEventHandlerUDF:
             event_handler,
             current_bucketfs_path,
             latest_bucketfs_path,
+            udf_event_context.columns(),
             bucketfs_location)
 
         # wrap return query if continue else get final_result dictionary
@@ -141,18 +139,11 @@ class CreateEventHandlerUDF:
             event_handler: EventHandlerBase,
             current_bucketfs_path: PurePosixPath,
             latest_bucketfs_path: PurePosixPath,
+            query_columns: List[Column],
             bucketfs_location: BucketFSLocation) -> None:
-
-        query_columns: List[Column] = []
-        for i in range(self.exa.meta.input_column_count):
-            col_name = self.exa.meta.input_columns[i].name
-            col_type = self.exa.meta.input_columns[i].sql_type
-            query_columns.append(
-                Column(ColumnName(col_name), ColumnType(col_type)))
 
         current_state = EventHandlerState(
             event_handler_context, event_handler, query_columns)
-
         self._save_current_state(
             bucketfs_location, current_bucketfs_path, current_state)
 
@@ -160,14 +151,11 @@ class CreateEventHandlerUDF:
             bucketfs_location, latest_bucketfs_path)
 
     @staticmethod
-    def _create_udf_context_wrapper(ctx) -> UDFContextWrapper:
-        # TODO: need a simplified UDFContextWrapper ?
-        df = ctx.get_dataframe(1)
-        column_name_list = df["2"][0].split(",")
+    def _create_udf_event_context(ctx, query_columns) -> UDFEventContext:
         column_mapping = OrderedDict([
-            (str(4 + index), column)
-            for index, column in enumerate(column_name_list)])
-        return UDFContextWrapper(ctx, column_mapping=column_mapping)
+            (str(4 + index), column.name.fully_qualified())
+            for index, column in enumerate(query_columns)])
+        return UDFEventContext(ctx, column_mapping=column_mapping)
 
     @staticmethod
     def _wrap_return_query(
