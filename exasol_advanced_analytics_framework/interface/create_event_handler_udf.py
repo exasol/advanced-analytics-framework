@@ -1,9 +1,15 @@
 import importlib
 from collections import OrderedDict
 from pathlib import PurePosixPath
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, List
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+    Column
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
+    ColumnName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
+    ColumnType
 from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
     SchemaName
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
@@ -129,18 +135,28 @@ class CreateEventHandlerUDF:
         bucketfs_location.upload_object_to_bucketfs_via_joblib(
             current_state, str(bucketfs_path))
 
-    @staticmethod
     def _handle_states(
+            self,
             event_handler_context: EventHandlerContext,
             event_handler: EventHandlerBase,
             current_bucketfs_path: PurePosixPath,
             latest_bucketfs_path: PurePosixPath,
-            bucketfs_location: BucketFSLocation) -> None :
-        current_state = EventHandlerState(event_handler_context, event_handler)
-        CreateEventHandlerUDF._save_current_state(
+            bucketfs_location: BucketFSLocation) -> None:
+
+        query_columns: List[Column] = []
+        for i in range(self.exa.meta.input_column_count):
+            col_name = self.exa.meta.input_columns[i].name
+            col_type = self.exa.meta.input_columns[i].sql_type
+            query_columns.append(
+                Column(ColumnName(col_name), ColumnType(col_type)))
+
+        current_state = EventHandlerState(
+            event_handler_context, event_handler, query_columns)
+
+        self._save_current_state(
             bucketfs_location, current_bucketfs_path, current_state)
 
-        CreateEventHandlerUDF._remove_previous_state(
+        self._remove_previous_state(
             bucketfs_location, latest_bucketfs_path)
 
     @staticmethod
