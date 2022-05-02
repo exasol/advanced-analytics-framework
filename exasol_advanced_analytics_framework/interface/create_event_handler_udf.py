@@ -118,8 +118,8 @@ class CreateEventHandlerUDF:
     def _remove_previous_state(
             bucketfs_location: BucketFSLocation,
             bucketfs_path: PurePosixPath) -> None:
-        # TODO-2: requests.delete(url, ..)
-        pass
+        bucketfs_location.delete_file_in_bucketfs(
+            str(bucketfs_path))
 
     @staticmethod
     def _save_current_state(
