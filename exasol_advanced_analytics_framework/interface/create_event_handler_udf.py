@@ -14,7 +14,6 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name impor
     SchemaName
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
     TableName
-
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
@@ -38,19 +37,17 @@ class CreateEventHandlerUDF:
         iter_num = ctx[0]  # iter_num
         bucketfs_connection = ctx[1]  # bucketfs_connection_name
         event_handler_class = ctx[2]  # event_handler_class_name
+        bucketfs_connection_obj = self.exa.get_connection(bucketfs_connection)
 
         bucketfs_location = BucketFSFactory().create_bucketfs_location(
-            url=bucketfs_connection.address,
-            user=bucketfs_connection.user,
-            pwd=bucketfs_connection.password
+            url=bucketfs_connection_obj.address,
+            user=bucketfs_connection_obj.user,
+            pwd=bucketfs_connection_obj.password
         )
-        latest_bucketfs_path = PurePosixPath(
-            f"{event_handler_class}_{str(iter_num)}.pkl")
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            ctx, iter_num, event_handler_class,
-            latest_bucketfs_path, bucketfs_location)
+            ctx, iter_num, event_handler_class, bucketfs_location)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
         query_columns: List[Column] = latest_state.query_columns
@@ -61,31 +58,31 @@ class CreateEventHandlerUDF:
         result: EventHandlerResultBase = event_handler.handle_event(
             udf_event_context, event_handler_context)
 
-        # save the current state and remove the previous state
-        iter_num += 1
-        current_bucketfs_path = PurePosixPath(
-            f"{event_handler_class}_{str(iter_num)}.pkl")
-        self._handle_states(
-            event_handler_context,
-            event_handler,
-            current_bucketfs_path,
-            latest_bucketfs_path,
-            bucketfs_location)
-
-        # wrap return query if continue else get final_result dictionary
+        # handle state transition
         return_query_view = None
         return_query = None
         final_result = {}
         query_list = []
-        if isinstance(result, EventHandlerResultFinished):  # result.is_finished
+        if isinstance(result, EventHandlerResultFinished):
             final_result = result.final_result
-        else:  # not result.is_finished
+        else:
             query_list = result.query_list
+
+            # save current state
+            self._save_current_state(
+                iter_num + 1, event_handler_class, event_handler_context,
+                event_handler, result.return_query, bucketfs_location)
+
+            # wrap return query
             return_query_view, return_query = self._wrap_return_query(
                 iter_num,
                 bucketfs_connection,
                 self.exa.meta.script_schema,
                 result.return_query)
+
+        # remove previous state
+        self._remove_previous_state(
+            iter_num, event_handler_class, bucketfs_location)
 
         # emits
         ctx.emit(return_query_view)
@@ -100,9 +97,10 @@ class CreateEventHandlerUDF:
             ctx,
             iter_num: int,
             event_handler_class: str,
-            bucketfs_path: PurePosixPath,
             bucketfs_location: BucketFSLocation) -> EventHandlerState:
 
+        bucketfs_path = self._generate_bucketfs_path(
+            iter_num, event_handler_class)
         if iter_num > 0:
             # load the latest state
             event_handler_state = bucketfs_location.\
@@ -118,40 +116,35 @@ class CreateEventHandlerUDF:
                 event_handler_module), event_handler_class)
             event_handler_obj = event_handler_class(parameters)
             event_handler_state = EventHandlerState(
-                context, event_handler_obj, self.get_query_columns())
+                context, event_handler_obj, self._get_query_columns())
 
         return event_handler_state
 
-    @staticmethod
-    def _remove_previous_state(
-            bucketfs_location: BucketFSLocation,
-            bucketfs_path: PurePosixPath) -> None:
-        bucketfs_location.delete_file_in_bucketfs(
-            str(bucketfs_path))
-
-    @staticmethod
     def _save_current_state(
-            bucketfs_location: BucketFSLocation,
-            bucketfs_path: PurePosixPath,
-            current_state: EventHandlerState) -> None:
-        bucketfs_location.upload_object_to_bucketfs_via_joblib(
-            current_state, str(bucketfs_path))
-
-    def _handle_states(
             self,
+            iter_num: int,
+            event_handler_class: str,
             event_handler_context: EventHandlerContext,
             event_handler: EventHandlerBase,
-            current_bucketfs_path: PurePosixPath,
-            latest_bucketfs_path: PurePosixPath,
+            return_query: EventHandlerReturnQuery,
             bucketfs_location: BucketFSLocation) -> None:
 
+        current_bucketfs_path = self._generate_bucketfs_path(
+            iter_num, event_handler_class)
         current_state = EventHandlerState(
-            event_handler_context, event_handler, self.get_query_columns())
-        self._save_current_state(
-            bucketfs_location, current_bucketfs_path, current_state)
+            event_handler_context, event_handler,
+            return_query.query_columns)
+        self.__save_state(
+            current_state, current_bucketfs_path, bucketfs_location)
 
-        self._remove_previous_state(
-            bucketfs_location, latest_bucketfs_path)
+    def _remove_previous_state(
+            self,
+            iter_num: int,
+            event_handler_class: str,
+            bucketfs_location: BucketFSLocation) -> None:
+        bucketfs_path = self._generate_bucketfs_path(
+            iter_num, event_handler_class)
+        self.__remove_state(bucketfs_path, bucketfs_location)
 
     def _create_udf_event_context(
             self, ctx, iter_num: int,
@@ -161,6 +154,21 @@ class CreateEventHandlerUDF:
             (str(colum_start_ix + index), column.name.fully_qualified())
             for index, column in enumerate(query_columns)])
         return UDFEventContext(ctx, self.exa, column_mapping=column_mapping)
+
+    @staticmethod
+    def __remove_state(
+            bucketfs_path: PurePosixPath,
+            bucketfs_location: BucketFSLocation) -> None:
+        bucketfs_location.delete_file_in_bucketfs(
+            str(bucketfs_path))
+
+    @staticmethod
+    def __save_state(
+            current_state: EventHandlerState,
+            bucketfs_path: PurePosixPath,
+            bucketfs_location: BucketFSLocation) -> None:
+        bucketfs_location.upload_object_to_bucketfs_via_joblib(
+            current_state, str(bucketfs_path))
 
     @staticmethod
     def _wrap_return_query(
@@ -184,7 +192,7 @@ class CreateEventHandlerUDF:
             f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
 
-    def get_query_columns(self):
+    def _get_query_columns(self):
         query_columns: List[Column] = []
         for i in range(self.exa.meta.input_column_count):
             col_name = self.exa.meta.input_columns[i].name
@@ -192,3 +200,8 @@ class CreateEventHandlerUDF:
             query_columns.append(
                 Column(ColumnName(col_name), ColumnType(col_type)))
         return query_columns
+
+    @staticmethod
+    def _generate_bucketfs_path(
+            iter_num: int, event_handler_class: str) -> PurePosixPath:
+        return PurePosixPath(f"{event_handler_class}_{str(iter_num)}.pkl")
