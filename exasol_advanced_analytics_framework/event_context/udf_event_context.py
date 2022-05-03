@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.event_context.event_context_base \
 
 
 class UDFEventContext(EventContextBase):
-    def __init__(self, ctx, column_mapping: Mapping[str, str],
+    def __init__(self, ctx, exa, column_mapping: Mapping[str, str],
                  start_col: int = 0):
         super().__init__(ctx)
         self.start_col = start_col
@@ -25,6 +25,7 @@ class UDFEventContext(EventContextBase):
         self.original_columns = list(self.column_mapping.keys())
         self.new_columns = list(self.column_mapping.values())
         self.ctx = ctx
+        self.exa = exa
 
     def _get_mapped_column(self, original_name: str) -> str:
         if original_name in self.column_mapping:

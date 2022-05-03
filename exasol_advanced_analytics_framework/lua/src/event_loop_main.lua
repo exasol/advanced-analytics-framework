@@ -52,7 +52,7 @@ function _prepare_init_query(args)
 
     local _udf_name = string.format("%s.%s", schema, udf_name)
     local _udf_args = string.format("(%d,'%s','%s','%s','%s')",
-            iter_num, bfs_conn, cls_module, cls_name,params)
+            iter_num, bfs_conn, cls_name, cls_module, params)
     local query = string.format("SELECT %s%s", _udf_name, _udf_args)
     return query
 end

@@ -6,6 +6,10 @@ from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
+    ColumnName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
+    ColumnType
 from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
     SchemaName
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
@@ -32,30 +36,28 @@ class CreateEventHandlerUDF:
     def run(self, ctx) -> None:
         # get and set method parameters
         iter_num = ctx[0]  # iter_num
-        event_handler_module = ctx[1]  # event_handler_module
+        bucketfs_connection = ctx[1]  # bucketfs_connection_name
         event_handler_class = ctx[2]  # event_handler_class_name
-        bucketfs_connection = ctx[3]  # bucketfs_connection_name
-        parameters = ctx[4]  # event_handler_parameters
 
         bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection.address,
             user=bucketfs_connection.user,
-            pwd=bucketfs_connection.password,
-            base_path=parameters["base"]
+            pwd=bucketfs_connection.password
         )
         latest_bucketfs_path = PurePosixPath(
             f"{event_handler_class}_{str(iter_num)}.pkl")
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            iter_num, event_handler_class, event_handler_module, parameters,
-            bucketfs_location, latest_bucketfs_path)
+            ctx, iter_num, event_handler_class,
+            latest_bucketfs_path, bucketfs_location)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
         query_columns: List[Column] = latest_state.query_columns
 
         # call the user code
-        udf_event_context = self._create_udf_event_context(ctx, query_columns)
+        udf_event_context = self._create_udf_event_context(
+            ctx, iter_num, query_columns)
         result: EventHandlerResultBase = event_handler.handle_event(
             udf_event_context, event_handler_context)
 
@@ -68,7 +70,6 @@ class CreateEventHandlerUDF:
             event_handler,
             current_bucketfs_path,
             latest_bucketfs_path,
-            udf_event_context.columns(),
             bucketfs_location)
 
         # wrap return query if continue else get final_result dictionary
@@ -94,14 +95,13 @@ class CreateEventHandlerUDF:
         for query in query_list:
             ctx.emit(query)
 
-    @staticmethod
     def _load_latest_state(
+            self,
+            ctx,
             iter_num: int,
-            event_handler_module: str,
             event_handler_class: str,
-            parameters: Dict[str, Any],
-            bucketfs_location: BucketFSLocation,
-            bucketfs_path: PurePosixPath) -> EventHandlerState:
+            bucketfs_path: PurePosixPath,
+            bucketfs_location: BucketFSLocation) -> EventHandlerState:
 
         if iter_num > 0:
             # load the latest state
@@ -109,12 +109,16 @@ class CreateEventHandlerUDF:
                 read_file_from_bucketfs_via_joblib(str(bucketfs_path))
         else:
             # create the new state
+            event_handler_module = ctx[3]
+            parameters = ctx[4]
+
             context = EventHandlerContext(
                 bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
                 event_handler_module), event_handler_class)
             event_handler_obj = event_handler_class(parameters)
-            event_handler_state = EventHandlerState(context, event_handler_obj)
+            event_handler_state = EventHandlerState(
+                context, event_handler_obj, self.get_query_columns())
 
         return event_handler_state
 
@@ -139,23 +143,24 @@ class CreateEventHandlerUDF:
             event_handler: EventHandlerBase,
             current_bucketfs_path: PurePosixPath,
             latest_bucketfs_path: PurePosixPath,
-            query_columns: List[Column],
             bucketfs_location: BucketFSLocation) -> None:
 
         current_state = EventHandlerState(
-            event_handler_context, event_handler, query_columns)
+            event_handler_context, event_handler, self.get_query_columns())
         self._save_current_state(
             bucketfs_location, current_bucketfs_path, current_state)
 
         self._remove_previous_state(
             bucketfs_location, latest_bucketfs_path)
 
-    @staticmethod
-    def _create_udf_event_context(ctx, query_columns) -> UDFEventContext:
+    def _create_udf_event_context(
+            self, ctx, iter_num: int,
+            query_columns: List[Column]) -> UDFEventContext:
+        colum_start_ix = 5 if iter_num == 0 else 3
         column_mapping = OrderedDict([
-            (str(4 + index), column.name.fully_qualified())
+            (str(colum_start_ix + index), column.name.fully_qualified())
             for index, column in enumerate(query_columns)])
-        return UDFEventContext(ctx, column_mapping=column_mapping)
+        return UDFEventContext(ctx, self.exa, column_mapping=column_mapping)
 
     @staticmethod
     def _wrap_return_query(
@@ -178,3 +183,12 @@ class CreateEventHandlerUDF:
             f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
             f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
+
+    def get_query_columns(self):
+        query_columns: List[Column] = []
+        for i in range(self.exa.meta.input_column_count):
+            col_name = self.exa.meta.input_columns[i].name
+            col_type = self.exa.meta.input_columns[i].sql_type
+            query_columns.append(
+                Column(ColumnName(col_name), ColumnType(col_type)))
+        return query_columns
