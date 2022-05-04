@@ -1,19 +1,19 @@
 import importlib
 from collections import OrderedDict
 from pathlib import PurePosixPath
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, List
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
-    ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
-    ColumnType
-from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import \
-    SchemaName
-from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import \
-    TableName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_name \
+    import ColumnName
+from exasol_data_science_utils_python.preprocessing.sql.schema.column_type \
+    import ColumnType
+from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name \
+    import SchemaName
+from exasol_data_science_utils_python.preprocessing.sql.schema.table_name \
+    import TableName
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
 from exasol_advanced_analytics_framework.event_handler.event_handler_context \
@@ -31,6 +31,7 @@ class CreateEventHandlerUDF:
 
     def __init__(self, exa):
         self.exa = exa
+        self.bucketfs_location = None
 
     def run(self, ctx) -> None:
         # get and set method parameters
@@ -39,7 +40,7 @@ class CreateEventHandlerUDF:
         event_handler_class = ctx[2]  # event_handler_class_name
         bucketfs_connection_obj = self.exa.get_connection(bucketfs_connection)
 
-        bucketfs_location = BucketFSFactory().create_bucketfs_location(
+        self.bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection_obj.address,
             user=bucketfs_connection_obj.user,
             pwd=bucketfs_connection_obj.password
@@ -47,7 +48,7 @@ class CreateEventHandlerUDF:
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
-            ctx, iter_num, event_handler_class, bucketfs_location)
+            ctx, iter_num, event_handler_class)
         event_handler_context: EventHandlerContext = latest_state.context
         event_handler: EventHandlerBase = latest_state.event_handler
         query_columns: List[Column] = latest_state.query_columns
@@ -70,8 +71,8 @@ class CreateEventHandlerUDF:
 
             # save current state
             self._save_current_state(
-                iter_num + 1, event_handler_class, event_handler_context,
-                event_handler, result.return_query, bucketfs_location)
+                iter_num + 1, event_handler_class,
+                event_handler_context, event_handler, result.return_query)
 
             # wrap return query
             return_query_view, return_query = self._wrap_return_query(
@@ -82,7 +83,7 @@ class CreateEventHandlerUDF:
 
         # remove previous state
         self._remove_previous_state(
-            iter_num, event_handler_class, bucketfs_location)
+            iter_num, event_handler_class)
 
         # emits
         ctx.emit(return_query_view)
@@ -96,14 +97,13 @@ class CreateEventHandlerUDF:
             self,
             ctx,
             iter_num: int,
-            event_handler_class: str,
-            bucketfs_location: BucketFSLocation) -> EventHandlerState:
+            event_handler_class: str) -> EventHandlerState:
 
         bucketfs_path = self._generate_bucketfs_path(
             iter_num, event_handler_class)
         if iter_num > 0:
             # load the latest state
-            event_handler_state = bucketfs_location.\
+            event_handler_state = self.bucketfs_location.\
                 read_file_from_bucketfs_via_joblib(str(bucketfs_path))
         else:
             # create the new state
@@ -111,7 +111,7 @@ class CreateEventHandlerUDF:
             parameters = ctx[4]
 
             context = EventHandlerContext(
-                bucketfs_location, bucketfs_path)
+                self.bucketfs_location, bucketfs_path)
             event_handler_class = getattr(importlib.import_module(
                 event_handler_module), event_handler_class)
             event_handler_obj = event_handler_class(parameters)
@@ -126,8 +126,7 @@ class CreateEventHandlerUDF:
             event_handler_class: str,
             event_handler_context: EventHandlerContext,
             event_handler: EventHandlerBase,
-            return_query: EventHandlerReturnQuery,
-            bucketfs_location: BucketFSLocation) -> None:
+            return_query: EventHandlerReturnQuery) -> None:
 
         current_bucketfs_path = self._generate_bucketfs_path(
             iter_num, event_handler_class)
@@ -135,16 +134,15 @@ class CreateEventHandlerUDF:
             event_handler_context, event_handler,
             return_query.query_columns)
         self.__save_state(
-            current_state, current_bucketfs_path, bucketfs_location)
+            current_state, current_bucketfs_path, self.bucketfs_location)
 
     def _remove_previous_state(
             self,
             iter_num: int,
-            event_handler_class: str,
-            bucketfs_location: BucketFSLocation) -> None:
+            event_handler_class: str) -> None:
         bucketfs_path = self._generate_bucketfs_path(
             iter_num, event_handler_class)
-        self.__remove_state(bucketfs_path, bucketfs_location)
+        self.__remove_state(bucketfs_path, self.bucketfs_location)
 
     def _create_udf_event_context(
             self, ctx, iter_num: int,
