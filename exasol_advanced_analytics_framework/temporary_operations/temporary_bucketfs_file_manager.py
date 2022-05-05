@@ -14,7 +14,7 @@ class TemporaryBucketFSFileManager:
             object_to_load, str(PurePosixPath(self.bucketfs_path, file_name)))
 
     def load_object(self, file_name: str) -> typing.Any:
-        self.bucketfs_location.download_object_from_bucketfs_via_joblib(
+        return self.bucketfs_location.download_object_from_bucketfs_via_joblib(
             str(PurePosixPath(self.bucketfs_path, file_name)))
 
     def save_fileobj(self, fileobj: typing.IO, file_name: str ) -> None:

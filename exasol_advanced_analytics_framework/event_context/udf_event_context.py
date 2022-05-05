@@ -53,7 +53,7 @@ class UDFEventContext(EventContextBase):
 
     def columns(self) -> List[Column]:
         query_columns: List[Column] = []
-        for i in range(self.exa.meta.input_column_count):
+        for i in range(len(self.exa.meta.input_columns)):
             col_name = self.exa.meta.input_columns[i].name
             col_type = self.exa.meta.input_columns[i].sql_type
             query_columns.append(
@@ -62,7 +62,7 @@ class UDFEventContext(EventContextBase):
 
     def column_names(self) -> List[str]:
         column_names: List[str] = []
-        for i in range(self.exa.meta.input_column_count):
+        for i in range(len(self.exa.meta.input_columns)):
             column_names.append(self.exa.meta.input_columns[i].name)
         return column_names
 
