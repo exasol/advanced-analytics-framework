@@ -89,7 +89,7 @@ class CreateEventHandlerUDF:
         ctx.emit(return_query_view)
         ctx.emit(return_query)
         ctx.emit(str(result.is_finished))
-        ctx.emit(final_result)
+        ctx.emit(str(final_result))
         for query in query_list:
             ctx.emit(query)
 
@@ -184,15 +184,16 @@ class CreateEventHandlerUDF:
         columns_str = \
             ",".join([col.name.fully_qualified()
                       for col in return_query.query_columns])
+        columns_str = "," + columns_str if columns_str else columns_str
         query_event_handler = \
             f"SELECT {event_handler_udf_name}" \
-            f"({iter_num},'{bucketfs_conn}',{columns_str}) " \
+            f"({iter_num},'{bucketfs_conn}'{columns_str}) " \
             f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
 
     def _get_query_columns(self):
         query_columns: List[Column] = []
-        for i in range(self.exa.meta.input_column_count):
+        for i in range(len(self.exa.meta.input_columns)):
             col_name = self.exa.meta.input_columns[i].name
             col_type = self.exa.meta.input_columns[i].sql_type
             query_columns.append(
