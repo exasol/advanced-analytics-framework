@@ -1,19 +1,13 @@
+from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory
 
+from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
 from exasol_udf_mock_python.group import Group
 from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
-from exasol_advanced_analytics_framework.event_context.event_context_base \
-    import EventContextBase
-from exasol_advanced_analytics_framework.event_handler.event_handler_base \
-    import EventHandlerBase
-from exasol_advanced_analytics_framework.event_handler.event_handler_context \
-    import EventHandlerContext
-from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerResultBase, EventHandlerResultFinished
 from tests.udf_framework import mock_event_handlers
 
 
@@ -32,16 +26,17 @@ def _create_mock_data():
         script_code_wrapper_function=_udf_wrapper,
         input_type="SET",
         input_columns=[
-            Column("iter_num", int, "INTEGER"),
-            Column("bucketfs_connection_name", str, "VARCHAR(2000000)"),
-            Column("event_handler_class_name", str, "VARCHAR(2000000)"),
-            Column("event_handler_module", str, "VARCHAR(2000000)"),
-            Column("event_handler_parameters", str, "VARCHAR(2000000)"),
+            Column("1", int, "INTEGER"),  # iter_num
+            Column("2", str, "VARCHAR(2000000)"),  # bucketfs_connection_name
+            Column("3", str, "VARCHAR(2000000)"),  # event_handler_class_name
+            Column("4", str, "VARCHAR(2000000)"),  # event_handler_module
+            Column("5", str, "VARCHAR(2000000)"),  # event_handler_parameters
          ],
-        output_type="EMIT",
+        output_type="EMITS",
         output_columns=[
             Column("outputs", str, "VARCHAR(2000000)")
-        ]
+        ],
+        is_variadic_input=True
     )
     return meta
 
@@ -73,7 +68,7 @@ def test_event_handler_udf_with_one_iteration():
             assert final_result == str(mock_event_handlers.FINAL_RESULT)
 
 
-def test_event_handler_udf_with_multiple_iteration():
+def test_event_handler_udf_with_two_iteration():
     executor = UDFMockExecutor()
     meta = _create_mock_data()
 
@@ -99,14 +94,21 @@ def test_event_handler_udf_with_multiple_iteration():
             is_finished = result_row[2][0]
             assert is_finished == "False"
             assert query_view == \
-                   "Create view \"TEST_SCHEMA\".\"TMP_VIEW\" as SELECT " \
-                   "AAF_EVENT_HANDLER_UDF(1, 'bucketfs_connection', " \
-                   "'MockEventHandlerWithTwoIterations');"
+                   "Create view \"TEST_SCHEMA\".\"TMP_VIEW\" as " \
+                   "SELECT a, table1.b, c FROM table1, table2 " \
+                   "WHERE table1.b=table2.b;"
             assert query_return == \
-                   "SELECT \"TEST_SCHEMA\".\"AAF_EVENT_HANDLER_UDF\"(0," \
-                   "'bucketfs_connection') FROM \"TEST_SCHEMA\".\"TMP_VIEW\";"
+                   "SELECT \"TEST_SCHEMA\".\"AAF_EVENT_HANDLER_UDF\"(" \
+                   "1,'bucketfs_connection',\"a\",\"b\") " \
+                   "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";"
             for i, query_ in enumerate(mock_event_handlers.QUERY_LIST):
                 assert query_ == result_row[4+i][0]
+
+        # Comment out due to the ticket #66 - Correct listing files method for local operations
+        # assert _is_state_exist(
+        #     1, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+        # assert not _is_state_exist(
+        #     0, "MockEventHandlerWithTwoIterations", bucketfs_connection)
 
         input_data = (
             1,
@@ -123,4 +125,19 @@ def test_event_handler_udf_with_multiple_iteration():
             final_result = result_row[3][0]
             assert is_finished == "True"
             assert final_result == str(mock_event_handlers.FINAL_RESULT)
+
+
+def _is_state_exist(
+        iter_num: int, event_handler_class: str,
+        model_connection: Connection) -> bool:
+    bucketfs_location = BucketFSFactory().create_bucketfs_location(
+        url=model_connection.address,
+        user=model_connection.user,
+        pwd=model_connection.password)
+    bucketfs_path = bucketfs_location.get_complete_file_path_in_bucket(
+        f"{event_handler_class}_{str(iter_num)}.pkl")
+
+    files = bucketfs_location.list_files_in_bucketfs("")
+    return bucketfs_path in files
+
 

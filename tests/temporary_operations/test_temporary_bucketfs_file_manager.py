@@ -1,4 +1,3 @@
-import unittest
 from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from exasol_udf_mock_python.connection import Connection
@@ -40,7 +39,6 @@ def test_object_operations_via_temporary_bucketfs_file_manager():
         assert tmp_data == loaded_tmp_data
 
 
-@unittest.skip("fix the bug in the mock bucketfs upload method (#63)")
 def test_fileobject_operations_via_temporary_bucketfs_file_manager():
     tmp_file_fname = "tmp_file_path.txt"
     input_test_byte_string = b"test_byte_string"

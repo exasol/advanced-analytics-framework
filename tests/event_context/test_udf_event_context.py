@@ -35,7 +35,7 @@ def udf_wrapper():
         assert wrapper.rowcount() == 100
 
 
-def test_partial_fit_iterator():
+def test_udf_event_context():
     executor = UDFMockExecutor()
     meta = MockMetaData(
         script_code_wrapper_function=udf_wrapper,
@@ -45,7 +45,7 @@ def test_partial_fit_iterator():
             Column("t2", float, "FLOAT"),
             Column("t3", float, "FLOAT"),
         ],
-        output_type="EMIT",
+        output_type="EMITS",
         output_columns=[Column("t1", int, "INTEGER"),
                         Column("t2", float, "FLOAT")]
     )

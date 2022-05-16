@@ -9,11 +9,10 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_context \
 def test_event_handler_context():
     with TemporaryDirectory() as path:
         model_connection = Connection(address=f"file://{path}/data")
-        bucketfs_location= BucketFSFactory().create_bucketfs_location(
+        bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=model_connection.address,
             user=model_connection.user,
-            pwd=model_connection.password
-        )
+            pwd=model_connection.password)
 
         files_path = PurePosixPath("temporary_path")
         event_handler_context = EventHandlerContext(

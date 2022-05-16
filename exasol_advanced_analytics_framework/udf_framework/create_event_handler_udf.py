@@ -43,8 +43,7 @@ class CreateEventHandlerUDF:
         self.bucketfs_location = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection_obj.address,
             user=bucketfs_connection_obj.user,
-            pwd=bucketfs_connection_obj.password
-        )
+            pwd=bucketfs_connection_obj.password)
 
         # load the latest (create if not) event handler state object
         latest_state = self._load_latest_state(
@@ -76,7 +75,7 @@ class CreateEventHandlerUDF:
 
             # wrap return query
             return_query_view, return_query = self._wrap_return_query(
-                iter_num,
+                iter_num + 1,
                 bucketfs_connection,
                 self.exa.meta.script_schema,
                 result.return_query)
