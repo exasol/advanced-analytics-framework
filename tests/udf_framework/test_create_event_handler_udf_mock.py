@@ -1,6 +1,7 @@
 from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory
 
+import pytest
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
@@ -21,7 +22,7 @@ def _udf_wrapper():
         udf.run(ctx)
 
 
-def _create_mock_data():
+def create_mock_data():
     meta = MockMetaData(
         script_code_wrapper_function=_udf_wrapper,
         input_type="SET",
@@ -43,7 +44,7 @@ def _create_mock_data():
 
 def test_event_handler_udf_with_one_iteration():
     executor = UDFMockExecutor()
-    meta = _create_mock_data()
+    meta = create_mock_data()
 
     with TemporaryDirectory() as path:
         bucketfs_connection = Connection(address=f"file://{path}/event_handler")
@@ -61,16 +62,16 @@ def test_event_handler_udf_with_one_iteration():
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
             result_row = group.rows
-            assert len(result_row) == 4
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
+            assert len(result_row) == 4
             assert is_finished == "True"
             assert final_result == str(mock_event_handlers.FINAL_RESULT)
 
 
 def test_event_handler_udf_with_two_iteration():
     executor = UDFMockExecutor()
-    meta = _create_mock_data()
+    meta = create_mock_data()
 
     with TemporaryDirectory() as path:
         bucketfs_connection = Connection(address=f"file://{path}/event_handler")
@@ -88,21 +89,21 @@ def test_event_handler_udf_with_two_iteration():
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
             result_row = group.rows
-            assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST)
             query_view = result_row[0][0]
             query_return = result_row[1][0]
             is_finished = result_row[2][0]
-            assert is_finished == "False"
-            assert query_view == \
-                   "Create view \"TEST_SCHEMA\".\"TMP_VIEW\" as " \
-                   "SELECT a, table1.b, c FROM table1, table2 " \
-                   "WHERE table1.b=table2.b;"
-            assert query_return == \
-                   "SELECT \"TEST_SCHEMA\".\"AAF_EVENT_HANDLER_UDF\"(" \
-                   "1,'bucketfs_connection',\"a\",\"b\") " \
-                   "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";"
-            for i, query_ in enumerate(mock_event_handlers.QUERY_LIST):
-                assert query_ == result_row[4+i][0]
+            assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST) \
+                   and is_finished == "False" \
+                   and query_view == "Create view \"TEST_SCHEMA\".\"TMP_VIEW\" " \
+                                     "as SELECT a, table1.b, c FROM table1, " \
+                                     "table2 WHERE table1.b=table2.b;" \
+                   and query_return == "SELECT \"TEST_SCHEMA\"." \
+                                       "\"AAF_EVENT_HANDLER_UDF\"(1," \
+                                       "'bucketfs_connection',\"a\",\"b\") " \
+                                       "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";" \
+                   and pytest.assume(
+                        mock_event_handlers.QUERY_LIST ==
+                        list(map(lambda x: x[0], result_row[4+i:])))
 
         # Comment out due to the ticket #66 - Correct listing files method for local operations
         # assert _is_state_exist(
@@ -120,9 +121,9 @@ def test_event_handler_udf_with_two_iteration():
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
             result_row = group.rows
-            assert len(result_row) == 4
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
+            assert len(result_row) == 4
             assert is_finished == "True"
             assert final_result == str(mock_event_handlers.FINAL_RESULT)
 

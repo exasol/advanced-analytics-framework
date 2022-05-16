@@ -6,8 +6,9 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
 
 DATA_SIZE = 100
-INPUT_DATA = input_data = [(i, (1.0 * i / DATA_SIZE), (2.0 * i))
-                           for i in range(DATA_SIZE)]
+FETCH_SIZE = 10
+INPUT_DATA = [(i, (1.0 * i / DATA_SIZE), (2.0 * i))
+              for i in range(1, DATA_SIZE+1)]
 
 
 def udf_wrapper():
@@ -18,21 +19,12 @@ def udf_wrapper():
 
     def run(ctx: UDFContext):
         wrapper = UDFEventContext(
-            ctx, exa, OrderedDict([("t2", "a"), ("t1", "b")]))
+            ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
         df = wrapper.fetch_as_dataframe(10)
-        assert len(df) == 10
-        assert list(df.columns) == ["a", "b"]
         assert wrapper.column_names() == ["t1", "t2", "t3"]
         assert wrapper.rowcount() == 100
 
-        wrapper = UDFEventContext(
-            ctx, exa, OrderedDict([("t3", "d"), ("t2", "c"), ]), start_col=1)
-        df = wrapper.fetch_as_dataframe(10)
-        assert len(df) == 10
-        assert list(df.columns) == ["d", "c"]
-        assert all(df["c"] < 1.0)
-        assert wrapper.column_names() == ["t1", "t2", "t3"]
-        assert wrapper.rowcount() == 100
+        ctx.emit(df)
 
 
 def test_udf_event_context():
@@ -47,7 +39,13 @@ def test_udf_event_context():
         ],
         output_type="EMITS",
         output_columns=[Column("t1", int, "INTEGER"),
-                        Column("t2", float, "FLOAT")]
+                        Column("t2", float, "FLOAT"),
+                        Column("t3", float, "FLOAT")]
     )
     exa = MockExaEnvironment(meta)
-    executor.run([Group(INPUT_DATA)], exa)
+    result = executor.run([Group(INPUT_DATA)], exa)
+    for i, group in enumerate(result):
+        result_row = group.rows
+        assert len(result_row) == FETCH_SIZE
+        for row in group.rows:
+            assert row[2] <= 1.0
