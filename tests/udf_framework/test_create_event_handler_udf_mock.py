@@ -1,6 +1,5 @@
 from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory
-
 import pytest
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
@@ -64,9 +63,9 @@ def test_event_handler_udf_with_one_iteration():
             result_row = group.rows
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
-            assert len(result_row) == 4
-            assert is_finished == "True"
-            assert final_result == str(mock_event_handlers.FINAL_RESULT)
+            assert len(result_row) == 4 \
+                   and is_finished == "True" \
+                   and final_result == str(mock_event_handlers.FINAL_RESULT)
 
 
 def test_event_handler_udf_with_two_iteration():
@@ -101,9 +100,9 @@ def test_event_handler_udf_with_two_iteration():
                                        "\"AAF_EVENT_HANDLER_UDF\"(1," \
                                        "'bucketfs_connection',\"a\",\"b\") " \
                                        "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";" \
-                   and pytest.assume(
-                        mock_event_handlers.QUERY_LIST ==
-                        list(map(lambda x: x[0], result_row[4+i:])))
+                   and set(mock_event_handlers.QUERY_LIST) == set(
+                            list(map(lambda x: x[0], result_row[4+i:])))
+
 
         # Comment out due to the ticket #66 - Correct listing files method for local operations
         # assert _is_state_exist(
@@ -123,9 +122,9 @@ def test_event_handler_udf_with_two_iteration():
             result_row = group.rows
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
-            assert len(result_row) == 4
-            assert is_finished == "True"
-            assert final_result == str(mock_event_handlers.FINAL_RESULT)
+            assert len(result_row) == 4 \
+                   and is_finished == "True" \
+                   and final_result == str(mock_event_handlers.FINAL_RESULT)
 
 
 def _is_state_exist(
@@ -135,8 +134,7 @@ def _is_state_exist(
         url=model_connection.address,
         user=model_connection.user,
         pwd=model_connection.password)
-    bucketfs_path = bucketfs_location.get_complete_file_path_in_bucket(
-        f"{event_handler_class}_{str(iter_num)}.pkl")
+    bucketfs_path = f"{event_handler_class}_{str(iter_num)}.pkl"
 
     files = bucketfs_location.list_files_in_bucketfs("")
     return bucketfs_path in files

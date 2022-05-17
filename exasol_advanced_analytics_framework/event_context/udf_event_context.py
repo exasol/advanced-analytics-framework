@@ -24,7 +24,7 @@ class UDFEventContext(EventContextBase):
         self.column_mapping = column_mapping
         self.original_columns = list(self.column_mapping.keys())
         self.new_columns = list(self.column_mapping.values())
-        self.ctx = ctx
+        self.__ctx = ctx
         self.exa = exa
 
     def _get_mapped_column(self, original_name: str) -> str:
@@ -35,16 +35,16 @@ class UDFEventContext(EventContextBase):
             f"in mapping {self.column_mapping}")
 
     def __getattr__(self, name):
-        return self.ctx[self._get_mapped_column(name)]
+        return self.__ctx[self._get_mapped_column(name)]
 
     def __next__(self):
-        return self.ctx.next()
+        return self.__ctx.next()
 
     def rowcount(self) -> int:
-        return self.ctx.size()
+        return self.__ctx.size()
 
     def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0):
-        df = self.ctx.get_dataframe(num_rows, start_col=self.start_col)
+        df = self.__ctx.get_dataframe(num_rows, start_col=self.start_col)
         filtered_df = df[self.original_columns]
         filtered_df.columns = [self._get_mapped_column(column)
                                for column in filtered_df.columns]

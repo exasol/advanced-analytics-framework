@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
 from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
@@ -29,13 +31,16 @@ class MockEventHandlerWithOneIteration(EventHandlerBase):
 
 
 class MockEventHandlerWithTwoIterations(EventHandlerBase):
+    def __init__(self, parameters: Dict[str, Any]):
+        super().__init__(parameters)
+        self.iter = 0
+
     def handle_event(self,
                      exa_context: EventContextBase,
                      event_handler_context: EventHandlerContext) -> \
             EventHandlerResultBase:
 
-        is_last_iteration = exa_context.ctx[0] > 0
-        if is_last_iteration:
+        if self.iter > 0:
             event_handler_result = EventHandlerResultFinished(
                 final_result=FINAL_RESULT)
         else:
@@ -50,4 +55,5 @@ class MockEventHandlerWithTwoIterations(EventHandlerBase):
             event_handler_result = EventHandlerResultContinue(
                 query_list=QUERY_LIST,
                 return_query=event_handler_return_query)
+            self.iter += 1
         return event_handler_result

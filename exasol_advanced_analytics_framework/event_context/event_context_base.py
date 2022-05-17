@@ -6,7 +6,7 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
 
 class EventContextBase(ABC):
     def __init__(self, ctx):
-        self.ctx = ctx
+        self.__ctx = ctx
 
     @abstractmethod
     def __next__(self):
