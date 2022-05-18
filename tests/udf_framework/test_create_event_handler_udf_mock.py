@@ -103,10 +103,11 @@ def test_event_handler_udf_with_two_iteration():
                    and set(mock_event_handlers.QUERY_LIST) == set(
                             list(map(lambda x: x[0], result_row[4+i:])))
 
-        assert _is_state_exist(1, "MockEventHandlerWithTwoIterations",
-                               bucketfs_connection)\
-               and not _is_state_exist(0, "MockEventHandlerWithTwoIterations",
-                                       bucketfs_connection)
+        prev_state_exist = _is_state_exist(
+            0, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+        current_state_exist = _is_state_exist(
+            1, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+        assert not prev_state_exist and current_state_exist
 
         input_data = (
             1,
