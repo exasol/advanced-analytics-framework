@@ -55,5 +55,5 @@ class MockEventHandlerWithTwoIterations(EventHandlerBase):
             event_handler_result = EventHandlerResultContinue(
                 query_list=QUERY_LIST,
                 return_query=event_handler_return_query)
-            self.iter += 1
+        self.iter += 1
         return event_handler_result

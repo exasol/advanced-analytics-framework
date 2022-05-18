@@ -19,5 +19,5 @@ def test_event_handler_context():
             bucketfs_location=bucketfs_location,
             files_path=files_path)
 
-        assert event_handler_context.temporary_bucketfs_file_manager
-        assert not event_handler_context.temporary_table_manager
+        assert event_handler_context.temporary_bucketfs_file_manager \
+               and not event_handler_context.temporary_table_manager

@@ -103,12 +103,10 @@ def test_event_handler_udf_with_two_iteration():
                    and set(mock_event_handlers.QUERY_LIST) == set(
                             list(map(lambda x: x[0], result_row[4+i:])))
 
-
-        # Comment out due to the ticket #66 - Correct listing files method for local operations
-        # assert _is_state_exist(
-        #     1, "MockEventHandlerWithTwoIterations", bucketfs_connection)
-        # assert not _is_state_exist(
-        #     0, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+        assert _is_state_exist(1, "MockEventHandlerWithTwoIterations",
+                               bucketfs_connection)\
+               and not _is_state_exist(0, "MockEventHandlerWithTwoIterations",
+                                       bucketfs_connection)
 
         input_data = (
             1,
