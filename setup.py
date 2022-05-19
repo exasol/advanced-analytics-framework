@@ -4,7 +4,10 @@ from setuptools import setup
 packages = \
 ['exasol_advanced_analytics_framework',
  'exasol_advanced_analytics_framework.deployment',
- 'exasol_advanced_analytics_framework.interface']
+ 'exasol_advanced_analytics_framework.event_context',
+ 'exasol_advanced_analytics_framework.event_handler',
+ 'exasol_advanced_analytics_framework.temporary_operations',
+ 'exasol_advanced_analytics_framework.udf_framework']
 
 package_data = \
 {'': ['*'],
@@ -18,8 +21,11 @@ install_requires = \
  'click>=8.0.4,<9.0.0',
  'exasol-bucketfs-utils-python @ '
  'git+https://github.com/exasol/bucketfs-utils-python.git@main',
+ 'exasol-data-science-utils-python @ '
+ 'git+https://github.com/exasol/data-science-utils-python.git@main',
  'importlib-resources>=5.4.0,<6.0.0',
- 'pyexasol>=0.24.0,<0.25.0']
+ 'pandas>=1.1.0,<2.0.0',
+ 'pyexasol>=0.17.0,<0.18.0']
 
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',
