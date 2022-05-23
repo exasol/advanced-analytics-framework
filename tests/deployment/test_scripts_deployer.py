@@ -1,7 +1,7 @@
 from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
     ScriptsDeployer
 from tests.utils.db_queries import DBQueries
-from tests.utils.parameters import db_params
+from tests.utils import db_params
 
 
 def test_scripts_deployer(upload_language_container,

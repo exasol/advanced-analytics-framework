@@ -1,6 +1,4 @@
-from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory
-import pytest
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
@@ -8,7 +6,7 @@ from exasol_udf_mock_python.group import Group
 from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
-from tests.udf_framework import mock_event_handlers
+from tests.unit_tests.udf_framework import mock_event_handlers
 
 
 def _udf_wrapper():
