@@ -14,3 +14,13 @@ class AnalyzeRelease(DockerFlavorAnalyzeImageTask):
     def get_path_in_flavor(self):
         return "flavor_base"
 
+
+class AnalyzeTest(DockerFlavorAnalyzeImageTask):
+    def get_build_step(self) -> str:
+        return "test"
+
+    def requires_tasks(self):
+        return {"release": AnalyzeRelease}
+
+    def get_path_in_flavor(self):
+        return "flavor_base"
