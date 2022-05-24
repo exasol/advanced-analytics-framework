@@ -10,6 +10,8 @@
   - #4: Added the design document
   - #5: Added the system requirements document
   - #7: Added Lua event loop
+  - #6: Added Python event handler
+  - #24: Added integrations test for event loop
   
 ### Bug Fixes
 
