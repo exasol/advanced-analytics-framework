@@ -23,6 +23,8 @@ install_requires = \
  'git+https://github.com/exasol/bucketfs-utils-python.git@main',
  'exasol-data-science-utils-python @ '
  'git+https://github.com/exasol/data-science-utils-python.git@main',
+ 'exasol-udf-mock-python @ '
+ 'git+https://github.com/exasol/udf-mock-python.git@master',
  'importlib-resources>=5.4.0,<6.0.0',
  'pandas>=1.1.0,<2.0.0',
  'pyexasol>=0.17.0,<0.18.0']
