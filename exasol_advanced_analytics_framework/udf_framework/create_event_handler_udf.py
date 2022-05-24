@@ -80,9 +80,10 @@ class CreateEventHandlerUDF:
                 self.exa.meta.script_schema,
                 result.return_query)
 
-        # remove previous state
-        self._remove_previous_state(
-            iter_num, event_handler_class)
+        # remove previous state if exist
+        if iter_num > 0:
+            self._remove_previous_state(
+                iter_num, event_handler_class)
 
         # emits
         ctx.emit(return_query_view)
