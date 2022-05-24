@@ -53,7 +53,7 @@ def test_event_handler_udf_with_one_iteration():
             0,
             "bucketfs_connection",
             "MockEventHandlerWithOneIteration",
-            "tests.udf_framework.mock_event_handlers",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
@@ -80,7 +80,7 @@ def test_event_handler_udf_with_two_iteration():
             0,
             "bucketfs_connection",
             "MockEventHandlerWithTwoIterations",
-            "tests.udf_framework.mock_event_handlers",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
