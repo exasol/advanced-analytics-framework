@@ -96,7 +96,9 @@ def test_event_handler_udf_with_two_iteration():
                                      "table2 WHERE table1.b=table2.b;" \
                    and query_return == "SELECT \"TEST_SCHEMA\"." \
                                        "\"AAF_EVENT_HANDLER_UDF\"(1," \
-                                       "'bucketfs_connection',\"a\",\"b\") " \
+                                       "'bucketfs_connection'," \
+                                       "'MockEventHandlerWithTwoIterations'," \
+                                       "\"a\",\"b\") " \
                                        "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";" \
                    and set(mock_event_handlers.QUERY_LIST) == set(
                             list(map(lambda x: x[0], result_row[4+i:])))

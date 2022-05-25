@@ -29,7 +29,7 @@ def _create_bucketfs_connection(db_conn) -> None:
     query = "CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
             "USER '{user}' IDENTIFIED BY '{pwd}'".format(
         name=bucketfs_connection_name,
-        uri=bucketfs_params.address(),
+        uri=bucketfs_params.address(bucketfs_params.real_port),
         user=bucketfs_params.user,
         pwd=bucketfs_params.password)
     db_conn.execute(query)

@@ -48,8 +48,8 @@ def test_udf_event_context():
     expected_dict = {
         'columns_name': [col.name for col in input_columns],
         'row_count': DATA_SIZE,
-        'df_columns' : ["a", "b", "c"],
-        'fetched_size' : FETCH_SIZE
+        'df_columns': ["a", "b", "c"],
+        'fetched_size': FETCH_SIZE
     }
 
     exa = MockExaEnvironment(meta)

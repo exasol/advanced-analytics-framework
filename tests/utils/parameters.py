@@ -16,14 +16,16 @@ class DBParams:
 class BucketFSParams:
     host: str
     port: str
+    real_port: str
     user: str
     password: str
     name: str
     bucket: str
     path_in_bucket: str
 
-    def address(self) -> str:
-        return f"http://{self.host}:{self.port}/{self.bucket}/" \
+    def address(self, port=None) -> str:
+        port = self.port if not port else port
+        return f"http://{self.host}:{port}/{self.bucket}/" \
                f"{self.path_in_bucket};{self.name}"
 
 
@@ -36,6 +38,7 @@ db_params = DBParams(
 bucketfs_params = BucketFSParams(
     host="127.0.0.1",
     port="6666",
+    real_port="6583",
     user="w",
     password="write",
     name="bfsdefault",
