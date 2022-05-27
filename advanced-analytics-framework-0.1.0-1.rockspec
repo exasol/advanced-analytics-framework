@@ -12,7 +12,7 @@ dependencies = {
     "lua >= 5.1",
     "amalg >= 0.8-1",
     "lua-cjson >= 2.1.0.6-1",
-    "luaunit >= 3.3",
+    "luaunit == 3.3.-1",
     "mockagne >= 1.0-2",
     "exaerror >= 1.1.0-1, <= 1.2.1-1",
     "luacheck >= 0.25.0-1",
