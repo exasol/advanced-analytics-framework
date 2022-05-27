@@ -1,17 +1,16 @@
 import json
 import textwrap
-from datetime import datetime, timedelta
+import pyexasol
 from tests.test_package.test_event_handlers.event_handler_test import \
     FINAL_RESULT, QUERY_LIST
+from tests.utils.parameters import db_params
 
-QUERY_FLUSH_STATS = "flush statistics"
+QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
+QUERY_SESSION_ID = """SELECT CURRENT_SESSION"""
 QUERY_AUDIT_LOGS = """
-SELECT START_TIME, SQL_TEXT 
+SELECT SQL_TEXT 
 FROM EXA_STATISTICS.EXA_DBA_AUDIT_SQL
-WHERE 
-    session_id = CURRENT_SESSION
-    AND COMMAND_NAME = 'SELECT' 
-    AND START_TIME > '{start_time}'
+WHERE COMMAND_NAME = 'SELECT' AND SESSION_ID = {session_id}
 ORDER BY START_TIME DESC;
 """
 N_FETCHED_ROWS = 50
@@ -37,13 +36,11 @@ def test_event_loop_integration_with_one_iteration(
 def test_event_loop_integration_with_two_iteration(
         setup_database, pyexasol_connection, upload_language_container):
 
-    # get audit logs before executing event loop
-    latest_stmt = datetime.utcnow() - timedelta(hours=26)  # the largest timezone difference
-    logs_before_execution = pyexasol_connection.execute(
-        textwrap.dedent(QUERY_AUDIT_LOGS.format(start_time=latest_stmt))
-    ).fetchmany(N_FETCHED_ROWS)
-    if logs_before_execution:
-        latest_stmt = logs_before_execution[0][0]
+    # start a new db session for checking audit logs
+    audit_logs_conn = pyexasol.connect(
+        dsn=db_params.address(),
+        user=db_params.user,
+        password=db_params.password)
 
     # execute event loop
     bucketfs_connection_name, schema_name = setup_database
@@ -58,12 +55,13 @@ def test_event_loop_integration_with_two_iteration(
     result = pyexasol_connection.execute(textwrap.dedent(query)).fetchall()
 
     # get audit logs after executing event loop
-    pyexasol_connection.execute(QUERY_FLUSH_STATS)
-    logs_after_execution = pyexasol_connection.execute(
-        textwrap.dedent(QUERY_AUDIT_LOGS.format(start_time=latest_stmt))
+    session_id = pyexasol_connection.execute(QUERY_SESSION_ID).fetchall()[0][0]
+    audit_logs_conn.execute(QUERY_FLUSH_STATS)
+    audit_logs = audit_logs_conn.execute(
+        textwrap.dedent(QUERY_AUDIT_LOGS.format(session_id=session_id))
     ).fetchmany(N_FETCHED_ROWS)
-    executed_queries = list(map(lambda x: x[1], logs_after_execution))
+    executed_queries = list(map(lambda x: x[0], audit_logs))
 
+    # asserts
     assert result[0][0] == str(FINAL_RESULT) \
            and set(QUERY_LIST).issubset(set(executed_queries))
-
