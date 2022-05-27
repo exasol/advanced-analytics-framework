@@ -1,7 +1,6 @@
 import json
 import textwrap
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from tests.test_package.test_event_handlers.event_handler_test import \
     FINAL_RESULT, QUERY_LIST
 
@@ -10,7 +9,8 @@ QUERY_AUDIT_LOGS = """
 SELECT START_TIME, SQL_TEXT 
 FROM EXA_STATISTICS.EXA_DBA_AUDIT_SQL
 WHERE 
-    COMMAND_NAME = 'SELECT' 
+    session_id = CURRENT_SESSION
+    AND COMMAND_NAME = 'SELECT' 
     AND START_TIME > '{start_time}'
 ORDER BY START_TIME DESC;
 """
@@ -38,7 +38,7 @@ def test_event_loop_integration_with_two_iteration(
         setup_database, pyexasol_connection, upload_language_container):
 
     # get audit logs before executing event loop
-    latest_stmt = datetime.utcnow()
+    latest_stmt = datetime.utcnow() - timedelta(hours=26)  # the largest timezone difference
     logs_before_execution = pyexasol_connection.execute(
         textwrap.dedent(QUERY_AUDIT_LOGS.format(start_time=latest_stmt))
     ).fetchmany(N_FETCHED_ROWS)
@@ -61,7 +61,7 @@ def test_event_loop_integration_with_two_iteration(
     pyexasol_connection.execute(QUERY_FLUSH_STATS)
     logs_after_execution = pyexasol_connection.execute(
         textwrap.dedent(QUERY_AUDIT_LOGS.format(start_time=latest_stmt))
-    ).fetchmany(50)
+    ).fetchmany(N_FETCHED_ROWS)
     executed_queries = list(map(lambda x: x[1], logs_after_execution))
 
     assert result[0][0] == str(FINAL_RESULT) \
