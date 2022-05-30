@@ -1,6 +1,4 @@
-from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory
-import pytest
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
@@ -8,7 +6,7 @@ from exasol_udf_mock_python.group import Group
 from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
-from tests.udf_framework import mock_event_handlers
+from tests.unit_tests.udf_framework import mock_event_handlers
 
 
 def _udf_wrapper():
@@ -55,7 +53,7 @@ def test_event_handler_udf_with_one_iteration():
             0,
             "bucketfs_connection",
             "MockEventHandlerWithOneIteration",
-            "tests.udf_framework.mock_event_handlers",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
@@ -82,7 +80,7 @@ def test_event_handler_udf_with_two_iteration():
             0,
             "bucketfs_connection",
             "MockEventHandlerWithTwoIterations",
-            "tests.udf_framework.mock_event_handlers",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
@@ -98,7 +96,9 @@ def test_event_handler_udf_with_two_iteration():
                                      "table2 WHERE table1.b=table2.b;" \
                    and query_return == "SELECT \"TEST_SCHEMA\"." \
                                        "\"AAF_EVENT_HANDLER_UDF\"(1," \
-                                       "'bucketfs_connection',\"a\",\"b\") " \
+                                       "'bucketfs_connection'," \
+                                       "'MockEventHandlerWithTwoIterations'," \
+                                       "\"a\",\"b\") " \
                                        "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";" \
                    and set(mock_event_handlers.QUERY_LIST) == set(
                             list(map(lambda x: x[0], result_row[4+i:])))

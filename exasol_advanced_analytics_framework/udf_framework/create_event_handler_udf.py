@@ -77,12 +77,14 @@ class CreateEventHandlerUDF:
             return_query_view, return_query = self._wrap_return_query(
                 iter_num + 1,
                 bucketfs_connection,
+                event_handler_class,
                 self.exa.meta.script_schema,
                 result.return_query)
 
-        # remove previous state
-        self._remove_previous_state(
-            iter_num, event_handler_class)
+        # remove previous state if exist
+        if iter_num > 0:
+            self._remove_previous_state(
+                iter_num, event_handler_class)
 
         # emits
         ctx.emit(return_query_view)
@@ -169,8 +171,8 @@ class CreateEventHandlerUDF:
 
     @staticmethod
     def _wrap_return_query(
-            iter_num: int, bucketfs_conn: str, schema: str,
-            return_query: EventHandlerReturnQuery) \
+            iter_num: int, bucketfs_conn: str, event_handler_class: str,
+            schema: str, return_query: EventHandlerReturnQuery) \
             -> Tuple[str, str]:
         tmp_view_name = TableName(
             table_name="TMP_VIEW",
@@ -186,7 +188,8 @@ class CreateEventHandlerUDF:
         columns_str = "," + columns_str if columns_str else columns_str
         query_event_handler = \
             f"SELECT {event_handler_udf_name}" \
-            f"({iter_num},'{bucketfs_conn}'{columns_str}) " \
+            f"({iter_num},'{bucketfs_conn}'," \
+            f"'{event_handler_class}'{columns_str}) " \
             f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
 

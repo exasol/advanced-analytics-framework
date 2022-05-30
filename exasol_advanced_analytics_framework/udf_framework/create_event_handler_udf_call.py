@@ -1,4 +1,4 @@
-from exasol_advanced_analytics_framework.interface.create_event_handler_udf \
+from exasol_advanced_analytics_framework.udf_framework.create_event_handler_udf \
     import CreateEventHandlerUDF
 
 udf = CreateEventHandlerUDF(exa)

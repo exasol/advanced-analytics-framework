@@ -1,4 +1,4 @@
-CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str)  AS
+CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str) RETURNS TABLE AS
     table.insert(_G.package.searchers,
         function (module_name)
             local loader = package.preload[module_name]
@@ -12,7 +12,7 @@ CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str)  AS
 
 {{ bundled_script }}
 
-main(json_str)
+return main(json_str)
 
 /
 

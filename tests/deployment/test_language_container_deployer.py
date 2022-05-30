@@ -2,9 +2,9 @@ import textwrap
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_advanced_analytics_framework.deployment.language_container_deployer \
     import LanguageContainerDeployer
+from tests.utils.parameters import bucketfs_params
 from tests.utils.revert_language_settings import revert_language_settings
 from tests.utils.db_queries import DBQueries
-from tests.utils.parameters import bucketfs_params
 from pathlib import Path
 
 
@@ -18,7 +18,8 @@ def _call_deploy_language_container_deployer(
     bucket_fs_factory = BucketFSFactory()
     bucketfs_location = bucket_fs_factory.create_bucketfs_location(
         url=f"http://{bucketfs_params.host}:{bucketfs_params.port}/"
-            f"{bucketfs_params.bucket}/{language_alias};{bucketfs_params.name}",
+            f"{bucketfs_params.bucket}/{bucketfs_params.path_in_bucket};"
+            f"{bucketfs_params.name}",
         user=f"{bucketfs_params.user}",
         pwd=f"{bucketfs_params.password}",
         base_path=None)

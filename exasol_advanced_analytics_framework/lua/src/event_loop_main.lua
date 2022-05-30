@@ -9,10 +9,6 @@ local exaerror = require("exaerror")
 local event_loop = require("event_loop")
 local json = require('cjson')
 
-_G.global_env = {
-    error = error
-}
-
 
 ---
 -- Parse a given arguments in json string format.
@@ -65,8 +61,10 @@ end
 function main(json_str)
     local args = _parse_arguments(json_str)
     local init_query = _prepare_init_query(args)
-
     local result = event_loop.init(init_query)
-    return result
+
+    local return_result = {}
+	return_result[#return_result+1] = {result}
+    return return_result, "result_column varchar(1000000)"
 end
 

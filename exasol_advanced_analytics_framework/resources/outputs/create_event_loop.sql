@@ -1,4 +1,4 @@
-CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str)  AS
+CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str) RETURNS TABLE AS
     table.insert(_G.package.searchers,
         function (module_name)
             local loader = package.preload[module_name]
@@ -19,7 +19,9 @@ package.preload[ "event_loop" ] = function( ... ) local arg = _G.arg;
 -- This module processes only the state transitions by executing queries returned by the Event Handler
 --
 
-local M = {}
+local M = {
+    string_to_boolean = { ["True"]=true, ["False"]=false }
+}
 local exa_error = require("exaerror")
 
 _G.global_env = {
@@ -30,27 +32,27 @@ _G.global_env = {
 ---
 -- Executes the given set of queries.
 --
--- @queries lua table including queries
--- @from_index the index where the queries in the lua table start
+-- @param   queries lua table including queries
+-- @param   from_index the index where the queries in the lua table start
 --
--- @return True if all queries ran successfully.
+-- @return  the result of the latest query
 --
 function M._run_queries(queries, from_index)
-    local all_success = true
     for i=from_index, #queries do
-        local success, result = _G.global_env.pquery(queries[i][1])
-        all_success = all_success and success
-        if not success then
-            local error_obj = exa_error.create(
-                    "E-AAF-3",
-                    "Error occurred in executing the query: "
-                            .. queries[i][1]
-                            .. " error message: "
-                            .. result.error_message)
-            _G.global_env.error(tostring(error_obj))
+        if queries[i][1] ~= nil then
+            success, result = _G.global_env.pquery(queries[i][1])
+            if not success then
+                local error_obj = exa_error.create(
+                        "E-AAF-3",
+                        "Error occurred in executing the query: "
+                                .. queries[i][1]
+                                .. " error message: "
+                                .. result.error_message)
+                _G.global_env.error(tostring(error_obj))
+            end
         end
     end
-    return all_success
+    return result
 end
 
 ---
@@ -59,22 +61,23 @@ end
 -- @param query string that calls the event handler
 --
 function M.init(query_to_event_handler)
-    local status = "started"
-
+    local is_finished = false
+    local final_result = nil
+    local query_to_create_view = nil
     repeat
-        local success, result = _G.global_env.pquery(query_to_event_handler)
-        if not success then
-            local error_obj = exa_error.create(
-                    "E-AAF-2",
-                    "Error occurred in calling Event Handler: " .. result.error_message)
-            _G.global_env.error(tostring(error_obj))
-        end
-        query_to_event_handler = result[1][1]
-        status = result[2][1]
-        M._run_queries(result, 3)
-    until (status == 'completed')
+        -- call EventHandlerUDF return queries
+        local return_queries = {{query_to_create_view}, {query_to_event_handler}}
+        local result = M._run_queries(return_queries, 1)
 
-    return status -- TODO return
+        -- handle EventHandlerUDF return
+        query_to_create_view = result[1][1]
+        query_to_event_handler = result[2][1]
+        is_finished = M.string_to_boolean[result[3][1]]
+        final_result = result[4][1]
+        M._run_queries(result, 5)
+    until (is_finished)
+
+    return final_result
 end
 
 
@@ -502,10 +505,6 @@ local exaerror = require("exaerror")
 local event_loop = require("event_loop")
 local json = require('cjson')
 
-_G.global_env = {
-    error = error
-}
-
 
 ---
 -- Parse a given arguments in json string format.
@@ -529,18 +528,23 @@ end
 ---
 -- Prepare the initial query that initiates the Event Loop and calls Event Handler
 --
--- @param args  lua table including parameters
+-- @param args      lua table including parameters
+-- @param udf_name  name of the udf that calls event handler
 --
 -- @return query string that calls the event handler
 --
 function _prepare_init_query(args)
-    local udf_name = args['udf_name']
-    local params = args['parameters']
+    local iter_num = 0
+    local udf_name = string.upper("AAF_EVENT_HANDLER_UDF")
     local schema = args['schema']
     local bfs_conn = args['bucketfs_connection']
+    local cls_module = args['event_handler_module']
+    local cls_name = args['event_handler_class']
+    local params = args['event_handler_parameters']
 
     local _udf_name = string.format("%s.%s", schema, udf_name)
-    local _udf_args = string.format("('%s','%s')", params, bfs_conn)
+    local _udf_args = string.format("(%d,'%s','%s','%s','%s')",
+            iter_num, bfs_conn, cls_name, cls_module, params)
     local query = string.format("SELECT %s%s", _udf_name, _udf_args)
     return query
 end
@@ -554,11 +558,14 @@ function main(json_str)
     local args = _parse_arguments(json_str)
     local init_query = _prepare_init_query(args)
     local result = event_loop.init(init_query)
-    return result
+
+    local return_result = {}
+	return_result[#return_result+1] = {result}
+    return return_result, "result_column varchar(1000000)"
 end
 
 
 
-main(json_str)
+return main(json_str)
 
 /

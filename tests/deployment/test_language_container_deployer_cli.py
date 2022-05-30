@@ -2,9 +2,9 @@ import textwrap
 import pyexasol
 from click.testing import CliRunner
 from exasol_advanced_analytics_framework import deploy
+from tests.utils.parameters import bucketfs_params, db_params
 from tests.utils.revert_language_settings import revert_language_settings
 from tests.utils.db_queries import DBQueries
-from tests.utils.parameters import bucketfs_params, db_params
 from pathlib import Path
 
 
