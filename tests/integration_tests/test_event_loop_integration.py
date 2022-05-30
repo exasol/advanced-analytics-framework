@@ -35,7 +35,7 @@ def test_event_loop_integration_with_one_iteration(
 def test_event_loop_integration_with_two_iteration(
         setup_database, upload_language_container):
 
-    # start a new db session
+    # start a new db session, to isolate the EXECUTE SCRIPT and the EventHandler queries into its own session for easer retrieval 
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
