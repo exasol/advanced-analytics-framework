@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from exasol_advanced_analytics_framework.event_handler.event_handler_context \
-    import EventHandlerContext
-from exasol_advanced_analytics_framework.event_handler.event_handler_result \
-    import EventHandlerResultBase
 from exasol_advanced_analytics_framework.event_context.event_context_base \
     import EventContextBase
+from exasol_advanced_analytics_framework.event_handler.context.scope_event_handler_context import \
+    ScopeEventHandlerContext
+from exasol_advanced_analytics_framework.event_handler.event_handler_result \
+    import EventHandlerResultBase
 
 
 class EventHandlerBase(ABC):
@@ -17,11 +17,9 @@ class EventHandlerBase(ABC):
     def handle_event(
             self,
             exa_context: EventContextBase,
-            event_handler_context: EventHandlerContext) \
+            event_handler_context: ScopeEventHandlerContext) \
             -> EventHandlerResultBase:
         raise NotImplementedError
 
     def cleanup(self):
         pass
-
-

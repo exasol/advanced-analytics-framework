@@ -16,7 +16,7 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.table_name \
     import TableName
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
-from exasol_advanced_analytics_framework.event_handler.event_handler_context \
+from exasol_advanced_analytics_framework.event_handler.context.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
     import EventHandlerReturnQuery, EventHandlerResultBase, \

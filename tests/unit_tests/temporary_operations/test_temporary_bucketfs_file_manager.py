@@ -2,7 +2,7 @@ from pathlib import PurePosixPath
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from exasol_udf_mock_python.connection import Connection
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
-from exasol_advanced_analytics_framework.event_handler.event_handler_context import \
+from exasol_advanced_analytics_framework.event_handler.context.event_handler_context import \
     EventHandlerContext
 
 
