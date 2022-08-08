@@ -25,15 +25,7 @@ class ScopeEventHandlerContext(EventHandlerContext):
     def _invalidate(self):
         pass
 
-
-class ChildEventHandlerContext(ScopeEventHandlerContext):
-
-    @property
-    @abstractmethod
-    def _parent(self) -> ScopeEventHandlerContext:
-        pass
-
     @abstractmethod
     def transfer_object_to(self, object_proxy: ObjectProxy,
-                           child_event_handler_context: "ChildEventHandlerContext"):
+                           scope_event_handler_context: "ScopeEventHandlerContext"):
         pass

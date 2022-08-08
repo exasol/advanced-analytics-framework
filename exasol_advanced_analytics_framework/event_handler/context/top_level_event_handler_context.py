@@ -9,7 +9,7 @@ from exasol_advanced_analytics_framework.event_handler.context.proxy.object_prox
 from exasol_advanced_analytics_framework.event_handler.context.proxy.table_proxy import TableProxy
 from exasol_advanced_analytics_framework.event_handler.context.proxy.view_proxy import ViewProxy
 from exasol_advanced_analytics_framework.event_handler.context.scope_event_handler_context import \
-    ScopeEventHandlerContext, ChildEventHandlerContext
+    ScopeEventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.query.query import Query
 
 
@@ -21,8 +21,9 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._temporary_name_prefix = temporary_name_prefix
         self._valid_object_proxies: Set[ObjectProxy] = set()
         self._invalid_object_proxies: Set[ObjectProxy] = set()
+        self._owned_object_proxies: Set[ObjectProxy] = set()
         self._counter = 0
-        self._sub_event_handler_conext_list: List[ChildEventHandlerContext] = []
+        self._child_event_handler_context_list: List[_ChildEventHandlerContext] = []
         self._is_valid = True
 
     def release(self):
@@ -36,32 +37,56 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._counter += 1
         return f"{self._temporary_name_prefix}_{self._counter}"
 
+    def _add_object(self, object_proxy: ObjectProxy):
+        self._register_object(object_proxy)
+        self._owned_object_proxies.add(object_proxy)
+
     def get_temporary_table(self) -> TableProxy:
         self._check_if_valid()
         temporary_name = self._get_temporary_name()
         object_proxy = TableProxy(temporary_name)
-        self._register_object(object_proxy)
+        self._add_object(object_proxy)
         return object_proxy
 
     def get_temporary_view(self) -> ViewProxy:
         self._check_if_valid()
         temporary_name = self._get_temporary_name()
         object_proxy = ViewProxy(temporary_name)
-        self._register_object(object_proxy)
+        self._add_object(object_proxy)
         return object_proxy
 
     def get_temporary_bucketfs_file(self) -> BucketFSFileProxy:
         self._check_if_valid()
         raise NotImplementedError()
 
-    def get_child_event_handler_context(self) -> ChildEventHandlerContext:
+    def get_child_event_handler_context(self) -> ScopeEventHandlerContext:
         self._check_if_valid()
-        sub_event_handler_conext = _ChildEventHandlerContext(
+        child_event_handler_conext = _ChildEventHandlerContext(
             self,
             self._temporary_bucketfs_location,
             self._get_temporary_name())
-        self._sub_event_handler_conext_list.append(sub_event_handler_conext)
-        return sub_event_handler_conext
+        self._child_event_handler_context_list.append(child_event_handler_conext)
+        return child_event_handler_conext
+
+    def _is_child(self, scope_event_handler_context: ScopeEventHandlerContext):
+        result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
+                 scope_event_handler_context._parent == self
+        return result
+
+    def _transfer_object_to(self, object_proxy: ObjectProxy,
+                            scope_event_handler_conext: ScopeEventHandlerContext):
+        self._check_if_valid()
+        if object_proxy in self._owned_object_proxies:
+            scope_event_handler_conext._register_object(object_proxy)
+            if not self._is_child(scope_event_handler_conext):
+                self._remove_object(object_proxy)
+        else:
+            raise RuntimeError("Object not owned by this ScopeEventHandlerContext.")
+
+    def _remove_object(self, object_proxy: ObjectProxy):
+        self._valid_object_proxies.remove(object_proxy)
+        for child_event_handler_conext in self._child_event_handler_context_list:
+            child_event_handler_conext._remove_object(object_proxy)
 
     def _check_if_valid(self):
         if not self._is_valid:
@@ -71,9 +96,10 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._check_if_valid()
         self._invalid_object_proxies = self._invalid_object_proxies.union(self._valid_object_proxies)
         self._valid_object_proxies = set()
+        self._owned_object_proxies = set()
         self._is_valid = False
-        for sub_event_handler_conext in self._sub_event_handler_conext_list:
-            sub_event_handler_conext._invalidate()
+        for child_event_handler_conext in self._child_event_handler_context_list:
+            child_event_handler_conext._invalidate()
 
 
 class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
@@ -85,6 +111,8 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
     def _release_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()
         self._valid_object_proxies.remove(object_proxy)
+        if object_proxy in self._owned_object_proxies:
+            self._owned_object_proxies.remove(object_proxy)
         self._invalid_object_proxies.add(object_proxy)
         object_proxy._invalidate()
 
@@ -106,8 +134,15 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
     def _remove_bucketfs_objects(self, bucketfs_objects: List[BucketFSFileProxy]):
         pass
 
+    def transfer_object_to(self, object_proxy: ObjectProxy,
+                           scope_event_handler_context: ScopeEventHandlerContext):
+        if self._is_child(scope_event_handler_context):
+            self._transfer_object_to(object_proxy, scope_event_handler_context)
+        else:
+            raise RuntimeError("Given ScopeEventHandlerContext not a child.")
 
-class _ChildEventHandlerContext(_ScopeEventHandlerContextBase, ChildEventHandlerContext):
+
+class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self, parent: ScopeEventHandlerContext,
                  temporary_bucketfs_location: BucketFSLocation,
                  temporary_name_prefix: str = None):
@@ -117,17 +152,6 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase, ChildEventHandler
     @property
     def _parent(self) -> ScopeEventHandlerContext:
         return self.__parent
-
-    def transfer_object_to(self, object_proxy: ObjectProxy,
-                           scoped_event_handler_conext: "ChildEventHandlerContext"):
-        self._check_if_valid()
-        if self._parent != scoped_event_handler_conext._parent:
-            raise RuntimeError("Not the same lavel")
-        if object_proxy in self._valid_object_proxies:
-            scoped_event_handler_conext._register_object(object_proxy)
-            self._valid_object_proxies.remove(object_proxy)
-        else:
-            raise RuntimeError("Object not valid or not registered")
 
     def _release_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()
@@ -139,3 +163,21 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase, ChildEventHandler
         self._check_if_valid()
         self._valid_object_proxies.add(object_proxy)
         self._parent._register_object(object_proxy)
+
+    def _is_parent(self, scope_event_handler_context: ScopeEventHandlerContext):
+        result = self._parent == scope_event_handler_context
+        return result
+
+    def _is_sibling(self, scope_event_handler_context: ScopeEventHandlerContext):
+        result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
+                 scope_event_handler_context._parent == self._parent
+        return result
+
+    def transfer_object_to(self, object_proxy: ObjectProxy,
+                           scope_event_handler_context: ScopeEventHandlerContext):
+        if self._is_child(scope_event_handler_context) or \
+                self._is_parent(scope_event_handler_context) or \
+                self._is_sibling(scope_event_handler_context):
+            self._transfer_object_to(object_proxy, scope_event_handler_context)
+        else:
+            raise RuntimeError("Given ScopeEventHandlerContext not a child, parent or sibling.")

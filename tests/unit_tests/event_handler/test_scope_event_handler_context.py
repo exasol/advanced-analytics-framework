@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import pytest
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 
@@ -57,3 +59,83 @@ def test_use_view_proxy_after_relase_fails(scope_event_handler_context: ScopeEve
     scope_event_handler_context.release()
     with pytest.raises(RuntimeError, match="ViewProxy.* already released."):
         proxy_name = proxy.name()
+
+
+@contextmanager
+def not_raises(exception):
+    try:
+        yield
+    except exception:
+        raise pytest.fail("DID RAISE {0}".format(exception))
+
+
+def test_transfer_between_siblings(scope_event_handler_context: ScopeEventHandlerContext):
+    child1 = scope_event_handler_context.get_child_event_handler_context()
+    child2 = scope_event_handler_context.get_child_event_handler_context()
+    object_proxy1 = child1.get_temporary_table()
+    object_proxy2 = child1.get_temporary_table()
+    child1.transfer_object_to(object_proxy1, child2)
+    child1.release()
+
+    with not_raises(Exception):
+        object_proxy1.name()
+    with pytest.raises(RuntimeError, match="TableProxy.* already released."):
+        object_proxy2.name()
+
+
+def test_transfer_between_siblings_object_from_different_context(
+        scope_event_handler_context: ScopeEventHandlerContext):
+    child1 = scope_event_handler_context.get_child_event_handler_context()
+    child2 = scope_event_handler_context.get_child_event_handler_context()
+    grand_child1 = child1.get_child_event_handler_context()
+    object_proxy = grand_child1.get_temporary_table()
+    with pytest.raises(RuntimeError,
+                       match="Object not owned by this ScopeEventHandlerContext."):
+        child1.transfer_object_to(object_proxy, child2)
+
+
+def test_transfer_between_child_and_parent(scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    object_proxy1 = child.get_temporary_table()
+    object_proxy2 = child.get_temporary_table()
+    child.transfer_object_to(object_proxy1, parent)
+    child.release()
+
+    with not_raises(Exception):
+        object_proxy1.name()
+    with pytest.raises(RuntimeError, match="TableProxy.* already released."):
+        object_proxy2.name()
+
+
+def test_transfer_between_parent_and_child(scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    object_proxy = parent.get_temporary_table()
+    parent.transfer_object_to(object_proxy, child)
+    child.release()
+
+    with pytest.raises(RuntimeError, match="TableProxy.* already released."):
+        object_proxy.name()
+
+
+def test_illegal_transfer_between_grand_child_and_parent(
+        scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    grand_child = child.get_child_event_handler_context()
+    object_proxy = grand_child.get_temporary_table()
+    with pytest.raises(RuntimeError, match="Given ScopeEventHandlerContext not a child, parent or sibling."):
+        grand_child.transfer_object_to(object_proxy, parent)
+
+
+def test_illegal_transfer_between_parent_and_grand_child(
+        scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    grand_child = child.get_child_event_handler_context()
+    object_proxy = parent.get_temporary_table()
+    with pytest.raises(RuntimeError,
+                       match="Given ScopeEventHandlerContext not a child, parent or sibling.|"
+                             "Given ScopeEventHandlerContext not a child."):
+        parent.transfer_object_to(object_proxy, grand_child)
