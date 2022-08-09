@@ -90,7 +90,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def _check_if_valid(self):
         if not self._is_valid:
-            raise RuntimeError("Not valid")
+            raise RuntimeError("Context already released.")
 
     def _invalidate(self):
         self._check_if_valid()

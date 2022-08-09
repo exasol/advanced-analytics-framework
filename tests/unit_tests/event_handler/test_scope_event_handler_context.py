@@ -47,18 +47,43 @@ def test_two_temporary_bucketfs_files_are_not_equal(scope_event_handler_context:
     assert path1 != path2
 
 
-def test_use_table_proxy_after_relase_fails(scope_event_handler_context: ScopeEventHandlerContext):
+def test_use_table_proxy_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
     proxy = scope_event_handler_context.get_temporary_table()
     scope_event_handler_context.release()
     with pytest.raises(RuntimeError, match="TableProxy.* already released."):
         proxy_name = proxy.name()
 
 
-def test_use_view_proxy_after_relase_fails(scope_event_handler_context: ScopeEventHandlerContext):
+def test_use_view_proxy_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
     proxy = scope_event_handler_context.get_temporary_view()
     scope_event_handler_context.release()
     with pytest.raises(RuntimeError, match="ViewProxy.* already released."):
         proxy_name = proxy.name()
+
+
+def test_get_temporary_view_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
+    scope_event_handler_context.release()
+    with pytest.raises(RuntimeError, match="Context already released."):
+        proxy = scope_event_handler_context.get_temporary_view()
+
+
+def test_get_temporary_table_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
+    scope_event_handler_context.release()
+    with pytest.raises(RuntimeError, match="Context already released."):
+        proxy = scope_event_handler_context.get_temporary_table()
+
+
+def test_get_temporary_bucketfs_file_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
+    scope_event_handler_context.release()
+    with pytest.raises(RuntimeError, match="Context already released."):
+        proxy = scope_event_handler_context.get_temporary_bucketfs_file()
+
+
+def test_use_child_context_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
+    child = scope_event_handler_context.get_child_event_handler_context()
+    scope_event_handler_context.release()
+    with pytest.raises(RuntimeError, match="Context already released."):
+        proxy = child.get_temporary_view()
 
 
 @contextmanager
