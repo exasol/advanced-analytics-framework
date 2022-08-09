@@ -22,6 +22,10 @@ class ScopeEventHandlerContext(EventHandlerContext):
         pass
 
     @abstractmethod
+    def _own_object(self, object_proxy: ObjectProxy):
+        pass
+
+    @abstractmethod
     def _invalidate(self):
         pass
 

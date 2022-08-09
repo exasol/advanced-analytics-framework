@@ -1,4 +1,5 @@
 import pytest
+from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
 from exasol_udf_mock_python.connection import Connection
@@ -17,7 +18,7 @@ def prefix() -> str:
 
 
 @pytest.fixture
-def bucketfs_location(tmp_path) -> BucketFSLocation:
+def bucketfs_location(tmp_path) -> AbstractBucketFSLocation:
     model_connection = Connection(address=f"file://{tmp_path}/data")
     bucketfs_location = BucketFSFactory().create_bucketfs_location(
         url=model_connection.address,

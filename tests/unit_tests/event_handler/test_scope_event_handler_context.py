@@ -22,9 +22,9 @@ def test_temporary_view_prefix_in_name(scope_event_handler_context: ScopeEventHa
 def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: BucketFSLocation,
                                                 scope_event_handler_context: ScopeEventHandlerContext):
     proxy = scope_event_handler_context.get_temporary_bucketfs_file()
-    actual_path = proxy.bucketfs_location().get_complete_file_path_in_bucket(None)
-    expected_prefix_path = bucketfs_location.get_complete_file_path_in_bucket(None)
-    assert expected_prefix_path in actual_path
+    actual_path = proxy.bucketfs_location().get_complete_file_path_in_bucket()
+    expected_prefix_path = bucketfs_location.get_complete_file_path_in_bucket()
+    assert actual_path.startswith(expected_prefix_path)
 
 
 def test_two_temporary_table_are_not_equal(scope_event_handler_context: ScopeEventHandlerContext):
@@ -42,8 +42,8 @@ def test_two_temporary_view_are_not_equal(scope_event_handler_context: ScopeEven
 def test_two_temporary_bucketfs_files_are_not_equal(scope_event_handler_context: ScopeEventHandlerContext):
     proxy1 = scope_event_handler_context.get_temporary_bucketfs_file()
     proxy2 = scope_event_handler_context.get_temporary_bucketfs_file()
-    path1 = proxy1.bucketfs_location().get_complete_file_path_in_bucket(None)
-    path2 = proxy2.bucketfs_location().get_complete_file_path_in_bucket(None)
+    path1 = proxy1.bucketfs_location().get_complete_file_path_in_bucket()
+    path2 = proxy2.bucketfs_location().get_complete_file_path_in_bucket()
     assert path1 != path2
 
 
@@ -106,6 +106,32 @@ def test_transfer_between_siblings(scope_event_handler_context: ScopeEventHandle
         object_proxy1.name()
     with pytest.raises(RuntimeError, match="TableProxy.* already released."):
         object_proxy2.name()
+
+
+def test_transfer_check_ownership_transfer_to_target(scope_event_handler_context: ScopeEventHandlerContext):
+    child1 = scope_event_handler_context.get_child_event_handler_context()
+    child2 = scope_event_handler_context.get_child_event_handler_context()
+    object_proxy1 = child1.get_temporary_table()
+    object_proxy2 = child2.get_temporary_table()
+    child1.transfer_object_to(object_proxy1, child2)
+    child2.transfer_object_to(object_proxy1, child1)
+    child2.release()
+
+    with not_raises(Exception):
+        object_proxy1.name()
+    with pytest.raises(RuntimeError, match="TableProxy.* already released."):
+        object_proxy2.name()
+
+
+def test_transfer_checK_losing_ownership(scope_event_handler_context: ScopeEventHandlerContext):
+    child1 = scope_event_handler_context.get_child_event_handler_context()
+    child2 = scope_event_handler_context.get_child_event_handler_context()
+    child3 = scope_event_handler_context.get_child_event_handler_context()
+    object_proxy1 = child1.get_temporary_table()
+    child1.transfer_object_to(object_proxy1, child2)
+
+    with pytest.raises(RuntimeError, match="Object not owned by this ScopeEventHandlerContext."):
+        child1.transfer_object_to(object_proxy1, child3)
 
 
 def test_transfer_between_siblings_object_from_different_context(

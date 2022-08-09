@@ -109,7 +109,7 @@ typeguard = ">=2.11.1"
 type = "git"
 url = "https://github.com/exasol/bucketfs-utils-python.git"
 reference = "main"
-resolved_reference = "01f0905f144574e6c421c9151a016bd26e74aa23"
+resolved_reference = "6035833661de135f2d60bfff25f6820600720369"
 
 [[package]]
 name = "exasol-data-science-utils-python"

@@ -1,9 +1,10 @@
 from abc import ABC
 from typing import Set, List
 
-from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
-from exasol_advanced_analytics_framework.event_handler.context.proxy.bucketfs_file_proxy import BucketFSFileProxy
+from exasol_advanced_analytics_framework.event_handler.context.proxy.bucketfs_location_proxy import \
+    BucketFSLocationProxy
 from exasol_advanced_analytics_framework.event_handler.context.proxy.db_object_proxy import DBObjectProxy
 from exasol_advanced_analytics_framework.event_handler.context.proxy.object_proxy import ObjectProxy
 from exasol_advanced_analytics_framework.event_handler.context.proxy.table_proxy import TableProxy
@@ -15,7 +16,7 @@ from exasol_advanced_analytics_framework.event_handler.query.query import Query
 
 class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
     def __init__(self,
-                 temporary_bucketfs_location: BucketFSLocation,
+                 temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_name_prefix: str):
         self._temporary_bucketfs_location = temporary_bucketfs_location
         self._temporary_name_prefix = temporary_name_prefix
@@ -37,7 +38,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._counter += 1
         return f"{self._temporary_name_prefix}_{self._counter}"
 
-    def _add_object(self, object_proxy: ObjectProxy):
+    def _own_object(self, object_proxy: ObjectProxy):
         self._register_object(object_proxy)
         self._owned_object_proxies.add(object_proxy)
 
@@ -45,19 +46,23 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._check_if_valid()
         temporary_name = self._get_temporary_name()
         object_proxy = TableProxy(temporary_name)
-        self._add_object(object_proxy)
+        self._own_object(object_proxy)
         return object_proxy
 
     def get_temporary_view(self) -> ViewProxy:
         self._check_if_valid()
         temporary_name = self._get_temporary_name()
         object_proxy = ViewProxy(temporary_name)
-        self._add_object(object_proxy)
+        self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_bucketfs_file(self) -> BucketFSFileProxy:
+    def get_temporary_bucketfs_file(self) -> BucketFSLocationProxy:
         self._check_if_valid()
-        raise NotImplementedError()
+        temporary_path = self._get_temporary_name()
+        child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
+        object_proxy = BucketFSLocationProxy(child_bucketfs_location)
+        self._own_object(object_proxy)
+        return object_proxy
 
     def get_child_event_handler_context(self) -> ScopeEventHandlerContext:
         self._check_if_valid()
@@ -77,7 +82,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
                             scope_event_handler_conext: ScopeEventHandlerContext):
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
-            scope_event_handler_conext._register_object(object_proxy)
+            scope_event_handler_conext._own_object(object_proxy)
             if not self._is_child(scope_event_handler_conext):
                 self._remove_object(object_proxy)
         else:
@@ -85,8 +90,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def _remove_object(self, object_proxy: ObjectProxy):
         self._valid_object_proxies.remove(object_proxy)
-        for child_event_handler_conext in self._child_event_handler_context_list:
-            child_event_handler_conext._remove_object(object_proxy)
+        self._owned_object_proxies.remove(object_proxy)
 
     def _check_if_valid(self):
         if not self._is_valid:
@@ -104,7 +108,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
 class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self,
-                 temporary_bucketfs_location: BucketFSLocation,
+                 temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_name_prefix: str = None):
         super().__init__(temporary_bucketfs_location, temporary_name_prefix)
 
@@ -124,15 +128,16 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
         db_objects: List[DBObjectProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies
              if isinstance(object_proxy, DBObjectProxy)]
-        bucketfs_objects: List[BucketFSFileProxy] = \
+        bucketfs_objects: List[BucketFSLocationProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies
-             if isinstance(object_proxy, BucketFSFileProxy)]
+             if isinstance(object_proxy, BucketFSLocationProxy)]
         self._invalid_object_proxies = set()
         self._remove_bucketfs_objects(bucketfs_objects)
         return [object_proxy.get_cleanup_query() for object_proxy in db_objects]
 
-    def _remove_bucketfs_objects(self, bucketfs_objects: List[BucketFSFileProxy]):
-        pass
+    def _remove_bucketfs_objects(self, bucketfs_object_proxies: List[BucketFSLocationProxy]):
+        for object_proxy in bucketfs_object_proxies:
+            object_proxy.cleanup()
 
     def transfer_object_to(self, object_proxy: ObjectProxy,
                            scope_event_handler_context: ScopeEventHandlerContext):
@@ -144,7 +149,7 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
 
 class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self, parent: ScopeEventHandlerContext,
-                 temporary_bucketfs_location: BucketFSLocation,
+                 temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_name_prefix: str = None):
         super().__init__(temporary_bucketfs_location, temporary_name_prefix)
         self.__parent = parent
