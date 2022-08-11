@@ -72,80 +72,83 @@ def test_event_handler_udf_with_one_iteration():
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
             result_row = group.rows
-            print(result_row)
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
+            # TODO improve assert
             assert len(result_row) == 4 \
                    and is_finished == "True" \
                    and final_result == str(mock_event_handlers.FINAL_RESULT)
 
 
-def test_event_handler_udf_with_two_iteration():
+def test_event_handler_udf_with_two_iteration(tmp_path):
     executor = UDFMockExecutor()
     meta = create_mock_data()
 
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/event_handler")
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
+    bucketfs_connection = Connection(address=f"file://{tmp_path}/event_handler")
+    exa = MockExaEnvironment(
+        metadata=meta,
+        connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
 
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "MockEventHandlerWithTwoIterations",
-            "tests.unit_tests.udf_framework.mock_event_handlers",
-            "{}"
-        )
-        result = executor.run([Group([input_data])], exa)
-        for i, group in enumerate(result):
-            result_row = group.rows
-            query_view = result_row[0][0]
-            query_return = result_row[1][0]
-            is_finished = result_row[2][0]
-            assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST) \
-                   and is_finished == "False" \
-                   and query_view == "Create view \"temp_schema\".\"TMP_VIEW\" " \
-                                     "as SELECT a, table1.b, c FROM table1, " \
-                                     "table2 WHERE table1.b=table2.b;" \
-                   and query_return == "SELECT \"TEST_SCHEMA\"." \
-                                       "\"AAF_EVENT_HANDLER_UDF\"(1," \
-                                       "'bucketfs_connection'," \
-                                       "'directory'," \
-                                       "'temporary_name_prefix'," \
-                                       "\"a\",\"b\") " \
-                                       "FROM \"temp_schema\".\"TMP_VIEW\";" \
-                   and set(mock_event_handlers.QUERY_LIST) == set(
-                list(map(lambda x: x[0], result_row[4 + i:])))
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "MockEventHandlerWithTwoIterations",
+        "tests.unit_tests.udf_framework.mock_event_handlers",
+        "{}"
+    )
+    result = executor.run([Group([input_data])], exa)
+    for i, group in enumerate(result):
+        result_row = group.rows
+        query_view = result_row[0][0]
+        query_return = result_row[1][0]
+        is_finished = result_row[2][0]
+        assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST) \
+               and is_finished == "False" \
+               and query_view == 'CREATE VIEW "temp_schema"."temporary_name_prefix_2_1" AS ' \
+                                 'SELECT a, table1.b, c ' \
+                                 'FROM table1, table2 ' \
+                                 'WHERE table1.b=table2.b;' \
+               and query_return == 'SELECT "TEST_SCHEMA"."AAF_EVENT_HANDLER_UDF"(' \
+                                   '1,' \
+                                   "'bucketfs_connection'," \
+                                   "'directory'," \
+                                   "'temporary_name_prefix'," \
+                                   '"a","b") ' \
+                                   'FROM "temp_schema"."temporary_name_prefix_2_1";' \
+               and set(mock_event_handlers.QUERY_LIST) == set(
+            list(map(lambda x: x[0], result_row[4 + i:])))
 
-        prev_state_exist = _is_state_exist(
-            0, bucketfs_connection)
-        current_state_exist = _is_state_exist(
-            1, bucketfs_connection)
-        assert not prev_state_exist and current_state_exist
+    prev_state_exist = _is_state_exist(
+        0, bucketfs_connection)
+    current_state_exist = _is_state_exist(
+        1, bucketfs_connection)
+    assert not prev_state_exist and current_state_exist
 
-        input_data = (
-            1,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            None,
-            None,
-            None
-        )
-        result = executor.run([Group([input_data])], exa)
-        for i, group in enumerate(result):
-            result_row = group.rows
-            is_finished = result_row[2][0]
-            final_result = result_row[3][0]
-            assert len(result_row) == 4 \
-                   and is_finished == "True" \
-                   and final_result == str(mock_event_handlers.FINAL_RESULT)
+    input_data = (
+        1,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        None,
+        None,
+        None
+    )
+    result = executor.run([Group([input_data])], exa)
+    for i, group in enumerate(result):
+        result_row = group.rows
+        print(result_row)
+        is_finished = result_row[2][0]
+        final_result = result_row[3][0]
+        # TODO improve assert
+        assert len(result_row) == 5 \
+               and is_finished == "True" \
+               and final_result == str(mock_event_handlers.FINAL_RESULT)
 
+# TODO add test for temporary tables
 
 def _is_state_exist(
         iter_num: int,
@@ -154,7 +157,7 @@ def _is_state_exist(
         url=model_connection.address,
         user=model_connection.user,
         pwd=model_connection.password)
-    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state/{str(iter_num)}.pkl"
-
-    files = bucketfs_location.list_files_in_bucketfs("")
-    return bucketfs_path in files
+    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state/"
+    state_file = f"{str(iter_num)}.pkl"
+    files = bucketfs_location.list_files_in_bucketfs(bucketfs_path)
+    return state_file in files

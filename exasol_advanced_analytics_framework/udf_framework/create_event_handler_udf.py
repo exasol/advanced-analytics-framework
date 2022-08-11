@@ -19,6 +19,8 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.table_name \
 
 from exasol_advanced_analytics_framework.event_context.udf_event_context \
     import UDFEventContext
+from exasol_advanced_analytics_framework.event_handler.context.scope_event_handler_context import \
+    ScopeEventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.context.top_level_event_handler_context import \
     TopLevelEventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
@@ -45,6 +47,7 @@ class UDFResult:
     return_query: Optional[str] = None
     final_result = {}
     query_list = []
+    cleanup_query_list = []
     is_finished = False
 
 
@@ -62,34 +65,55 @@ class CreateEventHandlerUDF:
         udf_event_context = self._create_udf_event_context(ctx, current_state.query_columns)
 
         event_handler_result = current_state.event_handler.handle_event(
-            udf_event_context, current_state.event_handler_context)
+            udf_event_context, current_state.top_level_event_handler_context)
 
-        udf_result = self.create_udf_result(event_handler_result)
+        udf_result = self.handle_event_handler_result(event_handler_result, current_state)
         if isinstance(event_handler_result, EventHandlerResultContinue):
-            self._save_current_state(current_state, event_handler_result.return_query)
+            self._save_current_state(current_state)
         if self.parameter.iter_num > 0:
             self._remove_previous_state()
         self.emit_udf_result(ctx, udf_result)
 
-    def create_udf_result(self, event_handler_result: EventHandlerResultBase):
-        udf_result = UDFResult()
+    def handle_event_handler_result(self,
+                                    event_handler_result: EventHandlerResultBase,
+                                    current_state: EventHandlerState):
         if isinstance(event_handler_result, EventHandlerResultFinished):
-            udf_result.final_result = event_handler_result.final_result
-            udf_result.is_finished = True
+            udf_result = self.handle_event_handler_result_finished(current_state, event_handler_result)
         elif isinstance(event_handler_result, EventHandlerResultContinue):
-            udf_result.is_finished = False
-            udf_result.query_list = event_handler_result.query_list
-            udf_result.return_query_view, udf_result.return_query = \
-                self._wrap_return_query(event_handler_result.return_query)
+            udf_result = self.handle_event_handler_result_continue(current_state, event_handler_result)
+        else:
+            raise RuntimeError(f"Unknown event_handler_result {event_handler_result}")
+        udf_result.cleanup_query_list = \
+            current_state.top_level_event_handler_context.cleanup_released_object_proxies()
         return udf_result
 
-    def emit_udf_result(self, ctx, udf_result: UDFResult):
-        ctx.emit(udf_result.return_query_view)
-        ctx.emit(udf_result.return_query)
-        ctx.emit(str(udf_result.is_finished))
-        ctx.emit(str(udf_result.final_result))
-        for query in udf_result.query_list:
-            ctx.emit(query)
+    def handle_event_handler_result_finished(self,
+                                             current_state: EventHandlerState,
+                                             event_handler_result: EventHandlerResultFinished):
+        udf_result = UDFResult()
+        udf_result.final_result = event_handler_result.final_result
+        udf_result.is_finished = True
+        current_state.top_level_event_handler_context.release()
+        return udf_result
+
+    def handle_event_handler_result_continue(self,
+                                             current_state: EventHandlerState,
+                                             event_handler_result: EventHandlerResultContinue):
+        udf_result = UDFResult()
+        udf_result.is_finished = False
+        udf_result.query_list = event_handler_result.query_list
+        current_state.query_columns = event_handler_result.return_query.query_columns
+        self.release_and_create_new_return_query_event_handler_context(current_state)
+        udf_result.return_query_view, udf_result.return_query = \
+            self._wrap_return_query(current_state.return_query_event_handler_context,
+                                    event_handler_result.return_query)
+        return udf_result
+
+    def release_and_create_new_return_query_event_handler_context(self, current_state):
+        if current_state.return_query_event_handler_context is not None:
+            current_state.return_query_event_handler_context.release()
+        current_state.return_query_event_handler_context = \
+            current_state.top_level_event_handler_context.get_child_event_handler_context()
 
     def _get_parameter(self, ctx):
         iter_num = ctx[0]
@@ -117,7 +141,7 @@ class CreateEventHandlerUDF:
             user=bucketfs_connection_obj.user,
             pwd=bucketfs_connection_obj.password)
         self.bucketfs_location = bucketfs_location_from_con \
-            .joinpath(self.parameter.temporary_bfs_location_directory)\
+            .joinpath(self.parameter.temporary_bfs_location_directory) \
             .joinpath(self.parameter.temporary_name_prefix)
 
     def _create_state_or_load_latest_state(self) -> EventHandlerState:
@@ -135,7 +159,9 @@ class CreateEventHandlerUDF:
         event_handler_class = getattr(module, self.parameter.python_class_name)
         event_handler_obj = event_handler_class(self.parameter.parameters)
         event_handler_state = EventHandlerState(
-            context, event_handler_obj, self._get_query_columns())
+            top_level_event_handler_context=context,
+            event_handler=event_handler_obj,
+            query_columns=self._get_query_columns())
         return event_handler_state
 
     def _load_latest_state(self):
@@ -143,15 +169,8 @@ class CreateEventHandlerUDF:
         event_handler_state = self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
         return event_handler_state
 
-    def _save_current_state(
-            self,
-            current_state: EventHandlerState,
-            return_query: EventHandlerReturnQuery) -> None:
+    def _save_current_state(self, current_state: EventHandlerState) -> None:
         next_state_file_bucketfs_path = self._generate_state_file_bucketfs_path(1)
-        current_state = EventHandlerState(
-            current_state.event_handler_context,
-            current_state.event_handler,
-            return_query.query_columns)
         self.bucketfs_location.upload_object_to_bucketfs_via_joblib(
             current_state, str(next_state_file_bucketfs_path))
 
@@ -167,17 +186,17 @@ class CreateEventHandlerUDF:
             for index, column in enumerate(query_columns)])
         return UDFEventContext(ctx, self.exa, column_mapping=column_mapping)
 
-    def _wrap_return_query(self, return_query: EventHandlerReturnQuery) \
+    def _wrap_return_query(self,
+                           event_handler_context: ScopeEventHandlerContext,
+                           return_query: EventHandlerReturnQuery) \
             -> Tuple[str, str]:
-        tmp_view_name = TableName(
-            table_name="TMP_VIEW",
-            schema=SchemaName(self.parameter.temporary_schema_name)).fully_qualified()
+        temporary_view = event_handler_context.get_temporary_view()
         # TODO don't misuse TableName
         event_handler_udf_name = TableName(
             table_name="AAF_EVENT_HANDLER_UDF",
             schema=SchemaName(self.exa.meta.script_schema)).fully_qualified()
         query_create_view = \
-            f"Create view {tmp_view_name} as {return_query.query};"
+            f"CREATE VIEW {temporary_view.name().fully_qualified()} AS {return_query.query};"
         full_qualified_columns = [col.name.fully_qualified()
                                   for col in return_query.query_columns]
         call_columns = [
@@ -187,10 +206,9 @@ class CreateEventHandlerUDF:
             f"'{self.parameter.temporary_name_prefix}'",
         ]
         columns_str = ",".join(call_columns + full_qualified_columns)
-        print(columns_str)
         query_event_handler = \
             f"SELECT {event_handler_udf_name}({columns_str}) " \
-            f"FROM {tmp_view_name};"
+            f"FROM {temporary_view.name().fully_qualified()};"
         return query_create_view, query_event_handler
 
     def _get_query_columns(self):
@@ -205,3 +223,14 @@ class CreateEventHandlerUDF:
     def _generate_state_file_bucketfs_path(self, iter_offset: int = 0) -> PurePosixPath:
         num_iter = self.parameter.iter_num + iter_offset
         return PurePosixPath(f"state/{str(num_iter)}.pkl")
+
+    @staticmethod
+    def emit_udf_result(ctx, udf_result: UDFResult):
+        ctx.emit(udf_result.return_query_view)
+        ctx.emit(udf_result.return_query)
+        ctx.emit(str(udf_result.is_finished))
+        ctx.emit(str(udf_result.final_result))
+        for query in udf_result.cleanup_query_list:
+            ctx.emit(query.get_query_str())
+        for query in udf_result.query_list:
+            ctx.emit(query)

@@ -10,13 +10,25 @@ from exasol_advanced_analytics_framework.event_handler.context.scope_event_handl
 def test_temporary_table_prefix_in_name(scope_event_handler_context: ScopeEventHandlerContext,
                                         prefix: str):
     proxy = scope_event_handler_context.get_temporary_table()
-    assert proxy.name().startswith(prefix)
+    assert proxy.name().name.startswith(prefix)
+
+
+def test_temporary_table_temporary_schema(scope_event_handler_context: ScopeEventHandlerContext,
+                                          schema: str):
+    proxy = scope_event_handler_context.get_temporary_table()
+    assert proxy.name().schema_name.name == schema
 
 
 def test_temporary_view_prefix_in_name(scope_event_handler_context: ScopeEventHandlerContext,
                                        prefix: str):
     proxy = scope_event_handler_context.get_temporary_view()
-    assert proxy.name().startswith(prefix)
+    assert proxy.name().name.startswith(prefix)
+
+
+def test_temporary_view_temporary_schema(scope_event_handler_context: ScopeEventHandlerContext,
+                                         schema: str):
+    proxy = scope_event_handler_context.get_temporary_view()
+    assert proxy.name().schema_name.name == schema
 
 
 def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: BucketFSLocation,

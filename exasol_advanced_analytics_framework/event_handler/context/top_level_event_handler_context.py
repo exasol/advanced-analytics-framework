@@ -2,6 +2,8 @@ from abc import ABC
 from typing import Set, List
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
+from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import SchemaName
+from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import TableName
 
 from exasol_advanced_analytics_framework.event_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
@@ -40,9 +42,16 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self.__counter += 1
         return self.__counter
 
-    def _get_temporary_db_object_name(self) -> str:
+    def _get_temporary_table_name(self) -> TableName:
         self._check_if_valid()
-        return f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
+        temporary_name = self._get_temporary_db_object_name()
+        temporary_table_name = TableName(table_name=temporary_name,
+                                         schema=SchemaName(schema_name=self._temporary_schema_name))
+        return temporary_table_name
+
+    def _get_temporary_db_object_name(self) -> str:
+        temporary_name = f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
+        return temporary_name
 
     def _own_object(self, object_proxy: ObjectProxy):
         self._register_object(object_proxy)
@@ -50,15 +59,15 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def get_temporary_table(self) -> TableProxy:
         self._check_if_valid()
-        temporary_name = self._get_temporary_db_object_name()
-        object_proxy = TableProxy(temporary_name)
+        temporary_table_name = self._get_temporary_table_name()
+        object_proxy = TableProxy(temporary_table_name)
         self._own_object(object_proxy)
         return object_proxy
 
     def get_temporary_view(self) -> ViewProxy:
         self._check_if_valid()
-        temporary_name = self._get_temporary_db_object_name()
-        object_proxy = ViewProxy(temporary_name)
+        temporary_table_name = self._get_temporary_table_name()
+        object_proxy = ViewProxy(temporary_table_name)
         self._own_object(object_proxy)
         return object_proxy
 
@@ -141,7 +150,7 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
         self._check_if_valid()
         self._valid_object_proxies.add(object_proxy)
 
-    def cleanup_invalid_object_proxies(self) -> List[Query]:
+    def cleanup_released_object_proxies(self) -> List[Query]:
         db_objects: List[DBObjectProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies
              if isinstance(object_proxy, DBObjectProxy)]

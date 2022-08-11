@@ -5,4 +5,4 @@ from exasol_advanced_analytics_framework.event_handler.query.query import Query
 
 class TableProxy(TableLikeProxy):
     def get_cleanup_query(self) -> Query:
-        return DropTableQuery(self._name)
+        return DropTableQuery(self._table_name)

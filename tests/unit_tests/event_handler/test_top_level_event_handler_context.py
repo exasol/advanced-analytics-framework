@@ -10,9 +10,9 @@ def test_cleanup_invalid_db_object_proxies_after_release(
     proxy = top_level_event_handler_context.get_temporary_table()
     proxy_name = proxy.name()
     top_level_event_handler_context.release()
-    queries = top_level_event_handler_context.cleanup_invalid_object_proxies()
+    queries = top_level_event_handler_context.cleanup_released_object_proxies()
     assert len(queries) == 1 and isinstance(queries[0], DropTableQuery) \
-           and queries[0].get_query_str() == f"DROP TABLE {proxy_name};"
+           and queries[0].get_query_str() == f"DROP TABLE IF EXISTS {proxy_name.fully_qualified()};"
 
 
 def test_cleanup_invalid_bucketfs_object_proxies_after_release(
@@ -23,6 +23,6 @@ def test_cleanup_invalid_bucketfs_object_proxies_after_release(
     bucket_file_name = "test_file.txt"
     proxy.bucketfs_location().upload_string_to_bucketfs(bucket_file_name, "test")
     top_level_event_handler_context.release()
-    top_level_event_handler_context.cleanup_invalid_object_proxies()
+    top_level_event_handler_context.cleanup_released_object_proxies()
     file_list = bucketfs_location.list_files_in_bucketfs("")
     assert file_list == []
