@@ -4,6 +4,7 @@ from collections import OrderedDict
 from pathlib import PurePosixPath
 from typing import Tuple, List, Optional
 
+from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
@@ -28,11 +29,14 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_state \
 
 @dataclasses.dataclass
 class UDFParameter:
-    bucketfs_connection_name: str
-    event_handler_class_name: str
     iter_num: int
-    event_handler_module_name: str = None
-    parameters: str = None
+    temporary_bfs_location_conn: str
+    temporary_bfs_location_directory: str
+    temporary_name_prefix: str
+    temporary_schema_name: Optional[str] = None
+    python_class_name: Optional[str] = None
+    python_class_module: Optional[str] = None
+    parameters: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -48,8 +52,8 @@ class CreateEventHandlerUDF:
 
     def __init__(self, exa):
         self.exa = exa
-        self.bucketfs_location = None
-        self.parameter = None
+        self.bucketfs_location: Optional[AbstractBucketFSLocation] = None
+        self.parameter: Optional[UDFParameter] = None
 
     def run(self, ctx) -> None:
         self._get_parameter(ctx)
@@ -76,8 +80,7 @@ class CreateEventHandlerUDF:
             udf_result.is_finished = False
             udf_result.query_list = event_handler_result.query_list
             udf_result.return_query_view, udf_result.return_query = \
-                self._wrap_return_query(
-                    self.exa.meta.script_schema, event_handler_result.return_query)
+                self._wrap_return_query(event_handler_result.return_query)
         return udf_result
 
     def emit_udf_result(self, ctx, udf_result: UDFResult):
@@ -91,22 +94,31 @@ class CreateEventHandlerUDF:
     def _get_parameter(self, ctx):
         iter_num = ctx[0]
         if iter_num == 0:
-            self.parameter = UDFParameter(bucketfs_connection_name=ctx[1],
-                                          event_handler_class_name=ctx[2],
-                                          iter_num=iter_num,
-                                          event_handler_module_name=ctx[3],
-                                          parameters=ctx[4])
+            self.parameter = UDFParameter(
+                iter_num=iter_num,
+                temporary_bfs_location_conn=ctx[1],
+                temporary_bfs_location_directory=ctx[2],
+                temporary_name_prefix=ctx[3],
+                temporary_schema_name=ctx[4],
+                python_class_name=ctx[5],
+                python_class_module=ctx[6],
+                parameters=ctx[7])
         else:
-            self.parameter = UDFParameter(bucketfs_connection_name=ctx[1],
-                                          event_handler_class_name=ctx[2],
-                                          iter_num=iter_num)
+            self.parameter = UDFParameter(
+                iter_num=iter_num,
+                temporary_bfs_location_conn=ctx[1],
+                temporary_bfs_location_directory=ctx[2],
+                temporary_name_prefix=ctx[3])
 
     def _create_bucketfs_location(self):
-        bucketfs_connection_obj = self.exa.get_connection(self.parameter.bucketfs_connection_name)
-        self.bucketfs_location = BucketFSFactory().create_bucketfs_location(
+        bucketfs_connection_obj = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
+        bucketfs_location_from_con = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection_obj.address,
             user=bucketfs_connection_obj.user,
             pwd=bucketfs_connection_obj.password)
+        self.bucketfs_location = bucketfs_location_from_con \
+            .joinpath(self.parameter.temporary_bfs_location_directory)\
+            .joinpath(self.parameter.temporary_name_prefix)
 
     def _create_state_or_load_latest_state(self) -> EventHandlerState:
         if self.parameter.iter_num > 0:
@@ -116,12 +128,11 @@ class CreateEventHandlerUDF:
         return event_handler_state
 
     def _create_state(self):
-        # TODO sub path for local_bucketfs_location
-        local_bucketfs_location = self.bucketfs_location
-        # TODO temporary_schema
-        context = TopLevelEventHandlerContext(local_bucketfs_location)
-        module = importlib.import_module(self.parameter.event_handler_module_name)
-        event_handler_class = getattr(module, self.parameter.event_handler_class_name)
+        context = TopLevelEventHandlerContext(self.bucketfs_location,
+                                              self.parameter.temporary_name_prefix,
+                                              self.parameter.temporary_schema_name)
+        module = importlib.import_module(self.parameter.python_class_module)
+        event_handler_class = getattr(module, self.parameter.python_class_name)
         event_handler_obj = event_handler_class(self.parameter.parameters)
         event_handler_state = EventHandlerState(
             context, event_handler_obj, self._get_query_columns())
@@ -156,28 +167,29 @@ class CreateEventHandlerUDF:
             for index, column in enumerate(query_columns)])
         return UDFEventContext(ctx, self.exa, column_mapping=column_mapping)
 
-    def _wrap_return_query(self, schema: str, return_query: EventHandlerReturnQuery) \
+    def _wrap_return_query(self, return_query: EventHandlerReturnQuery) \
             -> Tuple[str, str]:
-        # TODO use tmp schema
         tmp_view_name = TableName(
             table_name="TMP_VIEW",
-            schema=SchemaName(schema)).fully_qualified()
+            schema=SchemaName(self.parameter.temporary_schema_name)).fully_qualified()
         # TODO don't misuse TableName
         event_handler_udf_name = TableName(
             table_name="AAF_EVENT_HANDLER_UDF",
-            schema=SchemaName(schema)).fully_qualified()
+            schema=SchemaName(self.exa.meta.script_schema)).fully_qualified()
         query_create_view = \
             f"Create view {tmp_view_name} as {return_query.query};"
-        columns_str = \
-            ",".join([col.name.fully_qualified()
-                      for col in return_query.query_columns])
-        columns_str = "," + columns_str if columns_str else columns_str
+        full_qualified_columns = [col.name.fully_qualified()
+                                  for col in return_query.query_columns]
+        call_columns = [
+            f"{self.parameter.iter_num + 1}",
+            f"'{self.parameter.temporary_bfs_location_conn}'",
+            f"'{self.parameter.temporary_bfs_location_directory}'",
+            f"'{self.parameter.temporary_name_prefix}'",
+        ]
+        columns_str = ",".join(call_columns + full_qualified_columns)
+        print(columns_str)
         query_event_handler = \
-            f"SELECT {event_handler_udf_name}(" \
-            f"{self.parameter.iter_num + 1}," \
-            f"'{self.parameter.bucketfs_connection_name}'," \
-            f"'{self.parameter.event_handler_class_name}'" \
-            f"{columns_str}) " \
+            f"SELECT {event_handler_udf_name}({columns_str}) " \
             f"FROM {tmp_view_name};"
         return query_create_view, query_event_handler
 
@@ -192,4 +204,4 @@ class CreateEventHandlerUDF:
 
     def _generate_state_file_bucketfs_path(self, iter_offset: int = 0) -> PurePosixPath:
         num_iter = self.parameter.iter_num + iter_offset
-        return PurePosixPath(f"{self.parameter.event_handler_class_name}_{str(num_iter)}.pkl")
+        return PurePosixPath(f"state/{str(num_iter)}.pkl")

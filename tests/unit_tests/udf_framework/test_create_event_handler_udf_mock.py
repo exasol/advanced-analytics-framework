@@ -8,13 +8,20 @@ from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 from tests.unit_tests.udf_framework import mock_event_handlers
 
+TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
+
+BUCKETFS_DIRECTORY = "directory"
+
+BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
+
 
 def _udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
-    from exasol_advanced_analytics_framework.udf_framework.\
+    from exasol_advanced_analytics_framework.udf_framework. \
         create_event_handler_udf import CreateEventHandlerUDF
 
     udf = CreateEventHandlerUDF(exa)
+
     def run(ctx: UDFContext):
         udf.run(ctx)
 
@@ -25,11 +32,14 @@ def create_mock_data():
         input_type="SET",
         input_columns=[
             Column("1", int, "INTEGER"),  # iter_num
-            Column("2", str, "VARCHAR(2000000)"),  # bucketfs_connection_name
-            Column("3", str, "VARCHAR(2000000)"),  # event_handler_class_name
-            Column("4", str, "VARCHAR(2000000)"),  # event_handler_module
-            Column("5", str, "VARCHAR(2000000)"),  # event_handler_parameters
-         ],
+            Column("2", str, "VARCHAR(2000000)"),  # temporary_bfs_location_conn
+            Column("3", str, "VARCHAR(2000000)"),  # temporary_bfs_location_directory
+            Column("4", str, "VARCHAR(2000000)"),  # temporary_name_prefix
+            Column("5", str, "VARCHAR(2000000)"),  # temporary_schema_name
+            Column("6", str, "VARCHAR(2000000)"),  # python_class_name
+            Column("7", str, "VARCHAR(2000000)"),  # python_class_module
+            Column("8", str, "VARCHAR(2000000)"),  # parameters
+        ],
         output_type="EMITS",
         output_columns=[
             Column("outputs", str, "VARCHAR(2000000)")
@@ -51,7 +61,10 @@ def test_event_handler_udf_with_one_iteration():
 
         input_data = (
             0,
-            "bucketfs_connection",
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
             "MockEventHandlerWithOneIteration",
             "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
@@ -59,6 +72,7 @@ def test_event_handler_udf_with_one_iteration():
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
             result_row = group.rows
+            print(result_row)
             is_finished = result_row[2][0]
             final_result = result_row[3][0]
             assert len(result_row) == 4 \
@@ -74,11 +88,14 @@ def test_event_handler_udf_with_two_iteration():
         bucketfs_connection = Connection(address=f"file://{path}/event_handler")
         exa = MockExaEnvironment(
             metadata=meta,
-            connections={"bucketfs_connection": bucketfs_connection})
+            connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
 
         input_data = (
             0,
-            "bucketfs_connection",
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
             "MockEventHandlerWithTwoIterations",
             "tests.unit_tests.udf_framework.mock_event_handlers",
             "{}"
@@ -91,30 +108,34 @@ def test_event_handler_udf_with_two_iteration():
             is_finished = result_row[2][0]
             assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST) \
                    and is_finished == "False" \
-                   and query_view == "Create view \"TEST_SCHEMA\".\"TMP_VIEW\" " \
+                   and query_view == "Create view \"temp_schema\".\"TMP_VIEW\" " \
                                      "as SELECT a, table1.b, c FROM table1, " \
                                      "table2 WHERE table1.b=table2.b;" \
                    and query_return == "SELECT \"TEST_SCHEMA\"." \
                                        "\"AAF_EVENT_HANDLER_UDF\"(1," \
                                        "'bucketfs_connection'," \
-                                       "'MockEventHandlerWithTwoIterations'," \
+                                       "'directory'," \
+                                       "'temporary_name_prefix'," \
                                        "\"a\",\"b\") " \
-                                       "FROM \"TEST_SCHEMA\".\"TMP_VIEW\";" \
+                                       "FROM \"temp_schema\".\"TMP_VIEW\";" \
                    and set(mock_event_handlers.QUERY_LIST) == set(
-                            list(map(lambda x: x[0], result_row[4+i:])))
+                list(map(lambda x: x[0], result_row[4 + i:])))
 
         prev_state_exist = _is_state_exist(
-            0, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+            0, bucketfs_connection)
         current_state_exist = _is_state_exist(
-            1, "MockEventHandlerWithTwoIterations", bucketfs_connection)
+            1, bucketfs_connection)
         assert not prev_state_exist and current_state_exist
 
         input_data = (
             1,
-            "bucketfs_connection",
-            "MockEventHandlerWithTwoIterations",
-            "",
-            ""
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
+            None,
+            None,
+            None
         )
         result = executor.run([Group([input_data])], exa)
         for i, group in enumerate(result):
@@ -127,15 +148,13 @@ def test_event_handler_udf_with_two_iteration():
 
 
 def _is_state_exist(
-        iter_num: int, event_handler_class: str,
+        iter_num: int,
         model_connection: Connection) -> bool:
     bucketfs_location = BucketFSFactory().create_bucketfs_location(
         url=model_connection.address,
         user=model_connection.user,
         pwd=model_connection.password)
-    bucketfs_path = f"{event_handler_class}_{str(iter_num)}.pkl"
+    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state/{str(iter_num)}.pkl"
 
     files = bucketfs_location.list_files_in_bucketfs("")
     return bucketfs_path in files
-
-

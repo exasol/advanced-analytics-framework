@@ -11,10 +11,17 @@ from exasol_advanced_analytics_framework.event_handler.context.top_level_event_h
 
 PREFIX = "PREFIX"
 
+SCHEMA = "TEMP_SCHEMA"
+
 
 @pytest.fixture
 def prefix() -> str:
     return PREFIX
+
+
+@pytest.fixture
+def schema() -> str:
+    return SCHEMA
 
 
 @pytest.fixture
@@ -29,10 +36,12 @@ def bucketfs_location(tmp_path) -> AbstractBucketFSLocation:
 
 @pytest.fixture
 def top_level_event_handler_context(
-        bucketfs_location: BucketFSLocation, prefix: str, ) -> TopLevelEventHandlerContext:
+        bucketfs_location: BucketFSLocation, prefix: str, schema: str) -> TopLevelEventHandlerContext:
     event_handler_context = TopLevelEventHandlerContext(
         temporary_bucketfs_location=bucketfs_location,
-        temporary_name_prefix=prefix)
+        temporary_db_object_name_prefix=prefix,
+        temporary_schema_name=schema
+    )
     return event_handler_context
 
 

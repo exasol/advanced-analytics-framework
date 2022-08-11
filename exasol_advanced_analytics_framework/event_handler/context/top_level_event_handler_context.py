@@ -17,13 +17,15 @@ from exasol_advanced_analytics_framework.event_handler.query.query import Query
 class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
-                 temporary_name_prefix: str):
+                 temporary_db_object_name_prefix: str,
+                 temporary_schema_name: str):
+        self._temporary_schema_name = temporary_schema_name
         self._temporary_bucketfs_location = temporary_bucketfs_location
-        self._temporary_name_prefix = temporary_name_prefix
+        self._temporary_db_object_name_prefix = temporary_db_object_name_prefix
         self._valid_object_proxies: Set[ObjectProxy] = set()
         self._invalid_object_proxies: Set[ObjectProxy] = set()
         self._owned_object_proxies: Set[ObjectProxy] = set()
-        self._counter = 0
+        self.__counter = 0
         self._child_event_handler_context_list: List[_ChildEventHandlerContext] = []
         self._is_valid = True
 
@@ -33,10 +35,14 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
             self._release_object(object_proxy)
         self._invalidate()
 
-    def _get_temporary_name(self) -> str:
+    def _get_counter_value(self) -> int:
         self._check_if_valid()
-        self._counter += 1
-        return f"{self._temporary_name_prefix}_{self._counter}"
+        self.__counter += 1
+        return self.__counter
+
+    def _get_temporary_db_object_name(self) -> str:
+        self._check_if_valid()
+        return f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
 
     def _own_object(self, object_proxy: ObjectProxy):
         self._register_object(object_proxy)
@@ -44,32 +50,40 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def get_temporary_table(self) -> TableProxy:
         self._check_if_valid()
-        temporary_name = self._get_temporary_name()
+        temporary_name = self._get_temporary_db_object_name()
         object_proxy = TableProxy(temporary_name)
         self._own_object(object_proxy)
         return object_proxy
 
     def get_temporary_view(self) -> ViewProxy:
         self._check_if_valid()
-        temporary_name = self._get_temporary_name()
+        temporary_name = self._get_temporary_db_object_name()
         object_proxy = ViewProxy(temporary_name)
         self._own_object(object_proxy)
         return object_proxy
 
     def get_temporary_bucketfs_file(self) -> BucketFSLocationProxy:
         self._check_if_valid()
-        temporary_path = self._get_temporary_name()
+        temporary_path = self.get_temporary_path()
         child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         object_proxy = BucketFSLocationProxy(child_bucketfs_location)
         self._own_object(object_proxy)
         return object_proxy
 
+    def get_temporary_path(self):
+        temporary_path = f"{self._get_counter_value()}"
+        return temporary_path
+
     def get_child_event_handler_context(self) -> ScopeEventHandlerContext:
         self._check_if_valid()
+        temporary_path = self.get_temporary_path()
+        new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         child_event_handler_conext = _ChildEventHandlerContext(
             self,
-            self._temporary_bucketfs_location,
-            self._get_temporary_name())
+            new_temporary_bucketfs_location,
+            self._get_temporary_db_object_name(),
+            self._temporary_schema_name
+        )
         self._child_event_handler_context_list.append(child_event_handler_conext)
         return child_event_handler_conext
 
@@ -109,8 +123,11 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
-                 temporary_name_prefix: str = None):
-        super().__init__(temporary_bucketfs_location, temporary_name_prefix)
+                 temporary_db_object_name_prefix: str,
+                 temporary_schema_name: str):
+        super().__init__(temporary_bucketfs_location,
+                         temporary_db_object_name_prefix,
+                         temporary_schema_name)
 
     def _release_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()
@@ -150,8 +167,11 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
 class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self, parent: ScopeEventHandlerContext,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
-                 temporary_name_prefix: str = None):
-        super().__init__(temporary_bucketfs_location, temporary_name_prefix)
+                 temporary_db_object_name_prefix: str,
+                 temporary_schema_name: str):
+        super().__init__(temporary_bucketfs_location,
+                         temporary_db_object_name_prefix,
+                         temporary_schema_name)
         self.__parent = parent
 
     @property
