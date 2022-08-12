@@ -70,14 +70,36 @@ def test_event_handler_udf_with_one_iteration():
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
-        for i, group in enumerate(result):
-            result_row = group.rows
-            is_finished = result_row[2][0]
-            final_result = result_row[3][0]
-            # TODO improve assert
-            assert len(result_row) == 4 \
-                   and is_finished == "True" \
-                   and final_result == str(mock_event_handlers.FINAL_RESULT)
+        rows = [row[0] for row in result[0].rows]
+        expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT)]
+        assert rows == expected_rows
+
+
+def test_event_handler_udf_with_one_iteration_and_temp_table():
+    executor = UDFMockExecutor()
+    meta = create_mock_data()
+
+    with TemporaryDirectory() as path:
+        bucketfs_connection = Connection(address=f"file://{path}/event_handler")
+        exa = MockExaEnvironment(
+            metadata=meta,
+            connections={"bucketfs_connection": bucketfs_connection})
+
+        input_data = (
+            0,
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
+            "EventHandlerTestWithOneIterationAndTempTable",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
+            "{}"
+        )
+        result = executor.run([Group([input_data])], exa)
+        rows = [row[0] for row in result[0].rows]
+        table_cleanup_query = 'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_1";'
+        expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT), table_cleanup_query]
+        assert rows == expected_rows
 
 
 def test_event_handler_udf_with_two_iteration(tmp_path):
@@ -100,32 +122,23 @@ def test_event_handler_udf_with_two_iteration(tmp_path):
         "{}"
     )
     result = executor.run([Group([input_data])], exa)
-    for i, group in enumerate(result):
-        result_row = group.rows
-        query_view = result_row[0][0]
-        query_return = result_row[1][0]
-        is_finished = result_row[2][0]
-        assert len(result_row) == 4 + len(mock_event_handlers.QUERY_LIST) \
-               and is_finished == "False" \
-               and query_view == 'CREATE VIEW "temp_schema"."temporary_name_prefix_2_1" AS ' \
+    rows = [row[0] for row in result[0].rows]
+    expected_return_query_view = 'CREATE VIEW "temp_schema"."temporary_name_prefix_2_1" AS ' \
                                  'SELECT a, table1.b, c ' \
                                  'FROM table1, table2 ' \
-                                 'WHERE table1.b=table2.b;' \
-               and query_return == 'SELECT "TEST_SCHEMA"."AAF_EVENT_HANDLER_UDF"(' \
-                                   '1,' \
-                                   "'bucketfs_connection'," \
-                                   "'directory'," \
-                                   "'temporary_name_prefix'," \
-                                   '"a","b") ' \
-                                   'FROM "temp_schema"."temporary_name_prefix_2_1";' \
-               and set(mock_event_handlers.QUERY_LIST) == set(
-            list(map(lambda x: x[0], result_row[4 + i:])))
+                                 'WHERE table1.b=table2.b;'
+    return_query = 'SELECT "TEST_SCHEMA"."AAF_EVENT_HANDLER_UDF"(' \
+                   '1,' \
+                   "'bucketfs_connection','directory','temporary_name_prefix'," \
+                   '"a","b") ' \
+                   'FROM "temp_schema"."temporary_name_prefix_2_1";'
+    expected_rows = [expected_return_query_view, return_query, "False", "{}"] + \
+                    mock_event_handlers.QUERY_LIST
+    assert rows == expected_rows
 
-    prev_state_exist = _is_state_exist(
-        0, bucketfs_connection)
-    current_state_exist = _is_state_exist(
-        1, bucketfs_connection)
-    assert not prev_state_exist and current_state_exist
+    prev_state_exist = _is_state_exist(0, bucketfs_connection)
+    current_state_exist = _is_state_exist(1, bucketfs_connection)
+    assert prev_state_exist == False and current_state_exist == True
 
     input_data = (
         1,
@@ -138,15 +151,11 @@ def test_event_handler_udf_with_two_iteration(tmp_path):
         None
     )
     result = executor.run([Group([input_data])], exa)
-    for i, group in enumerate(result):
-        result_row = group.rows
-        print(result_row)
-        is_finished = result_row[2][0]
-        final_result = result_row[3][0]
-        # TODO improve assert
-        assert len(result_row) == 5 \
-               and is_finished == "True" \
-               and final_result == str(mock_event_handlers.FINAL_RESULT)
+    rows = [row[0] for row in result[0].rows]
+    cleanup_return_query_view = 'DROP VIEW IF EXISTS "temp_schema"."temporary_name_prefix_2_1";'
+    expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT), cleanup_return_query_view]
+    assert rows == expected_rows
+
 
 # TODO add test for temporary tables
 

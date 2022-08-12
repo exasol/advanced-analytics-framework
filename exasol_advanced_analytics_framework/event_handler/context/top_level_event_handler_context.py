@@ -150,6 +150,8 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
         self._check_if_valid()
         self._valid_object_proxies.add(object_proxy)
 
+    # TODO generate the cleanup query in the opposite order then they wete created
+    #  to make sure we remove first view which depend on other temporary things
     def cleanup_released_object_proxies(self) -> List[Query]:
         db_objects: List[DBObjectProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies

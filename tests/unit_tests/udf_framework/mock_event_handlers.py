@@ -17,7 +17,6 @@ from exasol_advanced_analytics_framework.event_handler.event_handler_result \
     import EventHandlerResultBase, EventHandlerResultFinished, \
     EventHandlerReturnQuery, EventHandlerResultContinue
 
-
 FINAL_RESULT = {"a": "1"}
 QUERY_LIST = ["SELECT 1 FROM DUAL", "SELECT 2 FROM DUAL"]
 
@@ -57,3 +56,12 @@ class MockEventHandlerWithTwoIterations(EventHandlerBase):
                 return_query=event_handler_return_query)
         self.iter += 1
         return event_handler_result
+
+
+class EventHandlerTestWithOneIterationAndTempTable(EventHandlerBase):
+    def handle_event(self,
+                     exa_context: EventContextBase,
+                     event_handler_context: EventHandlerContext) \
+            -> EventHandlerResultBase:
+        event_handler_context.get_temporary_table()
+        return EventHandlerResultFinished(final_result=FINAL_RESULT)
