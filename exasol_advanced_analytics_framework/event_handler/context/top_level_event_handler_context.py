@@ -31,7 +31,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._child_event_handler_context_list: List[_ChildEventHandlerContext] = []
         self._is_valid = True
 
-    def release(self):
+    def release(self) -> None:
         self._check_if_valid()
         for object_proxy in list(self._valid_object_proxies):
             self._release_object(object_proxy)
@@ -96,13 +96,13 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._child_event_handler_context_list.append(child_event_handler_conext)
         return child_event_handler_conext
 
-    def _is_child(self, scope_event_handler_context: ScopeEventHandlerContext):
+    def _is_child(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
         result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
                  scope_event_handler_context._parent == self
         return result
 
     def _transfer_object_to(self, object_proxy: ObjectProxy,
-                            scope_event_handler_conext: ScopeEventHandlerContext):
+                            scope_event_handler_conext: ScopeEventHandlerContext) -> None:
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
             scope_event_handler_conext._own_object(object_proxy)
@@ -111,7 +111,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         else:
             raise RuntimeError("Object not owned by this ScopeEventHandlerContext.")
 
-    def _remove_object(self, object_proxy: ObjectProxy):
+    def _remove_object(self, object_proxy: ObjectProxy) -> None:
         self._valid_object_proxies.remove(object_proxy)
         self._owned_object_proxies.remove(object_proxy)
 
@@ -200,11 +200,11 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
         self._valid_object_proxies.add(object_proxy)
         self._parent._register_object(object_proxy)
 
-    def _is_parent(self, scope_event_handler_context: ScopeEventHandlerContext):
+    def _is_parent(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
         result = self._parent == scope_event_handler_context
         return result
 
-    def _is_sibling(self, scope_event_handler_context: ScopeEventHandlerContext):
+    def _is_sibling(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
         result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
                  scope_event_handler_context._parent == self._parent
         return result
