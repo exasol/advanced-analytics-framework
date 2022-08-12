@@ -8,13 +8,11 @@ GITHOOKS_PATH="$REPO_DIR/githooks"
 pushd "$REPO_DIR"
 bash "$GITHOOKS_PATH/prohibit_commit_to_main.sh"
 bash "$GITHOOKS_PATH/update_setup_py.sh"
-popd
 
 
 SRC_PATH="$REPO_DIR/exasol_advanced_analytics_framework"
-pushd "$SRC_PATH/deployment"
-python "regenerate_scripts.py"
-popd
+PYTHONPATH=. poetry run python3 "$SRC_PATH/deployment/regenerate_scripts.py"
 
 git add "$SRC_PATH/resources/outputs/"
+popd
 exit
