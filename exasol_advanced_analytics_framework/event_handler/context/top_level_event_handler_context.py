@@ -33,7 +33,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def release(self) -> None:
         self._check_if_valid()
-        for object_proxy in list(self._valid_object_proxies):
+        for object_proxy in self._valid_object_proxies:
             self._release_object(object_proxy)
         self._invalidate()
 
@@ -128,6 +128,10 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         for child_event_handler_conext in self._child_event_handler_context_list:
             child_event_handler_conext._invalidate()
 
+    def _register_object(self, object_proxy: ObjectProxy):
+        self._check_if_valid()
+        self._valid_object_proxies.add(object_proxy)
+
 
 class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
     def __init__(self,
@@ -145,10 +149,6 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
             self._owned_object_proxies.remove(object_proxy)
         self._invalid_object_proxies.add(object_proxy)
         object_proxy._invalidate()
-
-    def _register_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.add(object_proxy)
 
     # TODO generate the cleanup query in the opposite order then they wete created
     #  to make sure we remove first view which depend on other temporary things
@@ -196,8 +196,7 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
         self._parent._release_object(object_proxy)
 
     def _register_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.add(object_proxy)
+        super()._register_object(object_proxy)
         self._parent._register_object(object_proxy)
 
     def _is_parent(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
