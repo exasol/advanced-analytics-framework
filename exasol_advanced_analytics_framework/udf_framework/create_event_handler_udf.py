@@ -161,7 +161,7 @@ class CreateEventHandlerUDF:
         event_handler_state = EventHandlerState(
             top_level_event_handler_context=context,
             event_handler=event_handler_obj,
-            query_columns=self._get_query_columns())
+            query_columns=dict())
         return event_handler_state
 
     def _load_latest_state(self):
@@ -180,9 +180,9 @@ class CreateEventHandlerUDF:
 
     def _create_udf_event_context(
             self, ctx, query_columns: List[Column]) -> UDFEventContext:
-        colum_start_ix = 5 if self.parameter.iter_num == 0 else 3
+        colum_start_ix = 8 if self.parameter.iter_num == 0 else 4
         column_mapping = OrderedDict([
-            (str(colum_start_ix + index), column.name.fully_qualified())
+            (str(colum_start_ix + index), column.name.name)
             for index, column in enumerate(query_columns)])
         return UDFEventContext(ctx, self.exa, column_mapping=column_mapping)
 

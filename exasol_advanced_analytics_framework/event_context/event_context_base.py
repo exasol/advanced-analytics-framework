@@ -1,15 +1,31 @@
 from abc import ABC, abstractmethod
-from typing import Union, List
+from typing import Union, List, Any, Tuple, Iterator
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
 
+Row = Tuple[Any, ...]
 
-class EventContextBase(ABC):
-    def __init__(self, ctx):
-        self.__ctx = ctx
+
+class EventContext(ABC):
 
     @abstractmethod
-    def __next__(self):
+    def __getattr__(self, name: str) -> Any:
+        pass
+
+    @abstractmethod
+    def __getitem__(self, item: Any) -> Any:
+        pass
+
+    @abstractmethod
+    def next(self) -> bool:
+        pass
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[Row]:
+        pass
+
+    @abstractmethod
+    def __next__(self) -> Row:
         pass
 
     @abstractmethod
@@ -18,7 +34,7 @@ class EventContextBase(ABC):
 
     @abstractmethod
     def fetch_as_dataframe(
-            self,  num_rows: Union[str, int], start_col: int = 0):
+            self, num_rows: Union[str, int], start_col: int = 0):
         pass
 
     @abstractmethod
