@@ -120,9 +120,13 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
                             scope_event_handler_conext: ScopeEventHandlerContext) -> None:
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
-            scope_event_handler_conext._own_object(object_proxy)
-            if not self._is_child(scope_event_handler_conext):
-                self._remove_object(object_proxy)
+            if isinstance(scope_event_handler_conext, _ScopeEventHandlerContextBase):
+                scope_event_handler_conext._own_object(object_proxy)
+                if not self._is_child(scope_event_handler_conext):
+                    self._remove_object(object_proxy)
+            else:
+                raise ValueError(f"{scope_event_handler_conext.__class__} not allowed, "
+                                 f"use a context created with get_child_event_handler_context")
         else:
             raise RuntimeError("Object not owned by this ScopeEventHandlerContext.")
 
@@ -192,7 +196,8 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
                            for object_proxy in reverse_sorted_db_objects]
         return cleanup_queries
 
-    def _remove_bucketfs_objects(self, bucketfs_object_proxies: List[BucketFSLocationProxy]):
+    @staticmethod
+    def _remove_bucketfs_objects(bucketfs_object_proxies: List[BucketFSLocationProxy]):
         for object_proxy in bucketfs_object_proxies:
             object_proxy.cleanup()
 
@@ -205,7 +210,7 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
 
 
 class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
-    def __init__(self, parent: ScopeEventHandlerContext,
+    def __init__(self, parent: _ScopeEventHandlerContextBase,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
@@ -217,7 +222,7 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
         self.__parent = parent
 
     @property
-    def _parent(self) -> ScopeEventHandlerContext:
+    def _parent(self) -> _ScopeEventHandlerContextBase:
         return self.__parent
 
     def _release_object(self, object_proxy: ObjectProxy):
