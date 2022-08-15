@@ -12,7 +12,7 @@ CREATE OR REPLACE LUA SCRIPT "AAF_EVENT_LOOP"(json_str) RETURNS TABLE AS
 
 {{ bundled_script }}
 
-return main(json_str)
+return main(json_str, exa.meta)
 
 /
 

@@ -12,17 +12,15 @@ class EventHandlerReturnQuery:
 
 @dataclass()
 class EventHandlerResultBase:
-    is_finished: bool
+    pass
 
 
 @dataclass()
 class EventHandlerResultContinue(EventHandlerResultBase):
     query_list: List[str]
     return_query: Optional[EventHandlerReturnQuery]
-    is_finished: bool = field(default="False", init=False)
 
 
 @dataclass()
 class EventHandlerResultFinished(EventHandlerResultBase):
     final_result: Dict[str, Any]
-    is_finished: bool = field(default="True", init=False)

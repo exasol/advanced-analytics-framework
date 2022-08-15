@@ -9,7 +9,7 @@ from exasol_advanced_analytics_framework.event_context.event_context_base \
     import EventContextBase
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
-from exasol_advanced_analytics_framework.event_handler.event_handler_context \
+from exasol_advanced_analytics_framework.event_handler.context.event_handler_context \
     import EventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_result \
     import EventHandlerResultBase, EventHandlerResultFinished, \
