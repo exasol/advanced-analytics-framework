@@ -5,8 +5,8 @@ from exasol_advanced_analytics_framework.event_handler.context.proxy.db_object_p
 
 class TableLikeProxy(DBObjectProxy):
 
-    def __init__(self, table_name: TableName):
-        super().__init__()
+    def __init__(self, table_name: TableName, global_counter_value: int):
+        super().__init__(global_counter_value)
         self._table_name = table_name
 
     def name(self) -> TableName:

@@ -156,9 +156,6 @@ def test_event_handler_udf_with_two_iteration(tmp_path):
     expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT), cleanup_return_query_view]
     assert rows == expected_rows
 
-
-# TODO add test for temporary tables
-
 def _is_state_exist(
         iter_num: int,
         model_connection: Connection) -> bool:
