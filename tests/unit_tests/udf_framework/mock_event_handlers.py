@@ -60,7 +60,7 @@ class MockEventHandlerWithTwoIterations(EventHandlerBase):
 
 class EventHandlerTestWithOneIterationAndTempTable(EventHandlerBase):
     def handle_event(self,
-                     exa_context: EventContextBase,
+                     exa_context: EventContext,
                      event_handler_context: EventHandlerContext) \
             -> EventHandlerResultBase:
         event_handler_context.get_temporary_table()
