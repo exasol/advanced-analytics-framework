@@ -41,5 +41,9 @@ class ScopeEventHandlerContext(EventHandlerContext):
         instread it will be released if the ohter context is released.
         However, object can be only transferred to the parent, child or sibling context.
         The first owner is always the context where one of the get_*_object function was called.
+        Transferring the object from one context to another can be used in conjunction with
+        nested event handlers where you want to cleanup after one event handler finished,
+        but want to exchange some temporary objects between the event handlers. For the transfer,
+        is always the parent event handler responsible
         """
         pass
