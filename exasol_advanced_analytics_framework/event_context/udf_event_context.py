@@ -19,6 +19,7 @@ class UDFEventContext(EventContext):
         self._start_col = start_col
         self._ctx = ctx
         self._has_next = True
+        print("column_mapping", column_mapping)
         self._reverse_column_mapping = \
             collections.OrderedDict(
                 [(value, key) for key, value in column_mapping.items()])
