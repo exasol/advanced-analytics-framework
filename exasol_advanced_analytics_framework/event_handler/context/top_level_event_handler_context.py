@@ -33,7 +33,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def release(self) -> None:
         self._check_if_valid()
-        for object_proxy in self._valid_object_proxies:
+        for object_proxy in list(self._valid_object_proxies):
             self._release_object(object_proxy)
         self._invalidate()
 
