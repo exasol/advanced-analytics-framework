@@ -1,5 +1,5 @@
-from collections import OrderedDict
-from typing import Union, Mapping, List
+import collections
+from typing import Union, List, Any, OrderedDict, Iterator
 
 from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
     Column
@@ -9,61 +9,70 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column_type impor
     ColumnType
 
 from exasol_advanced_analytics_framework.event_context.event_context_base \
-    import EventContextBase
+    import EventContext, Row
 
 
-class UDFEventContext(EventContextBase):
-    def __init__(self, ctx, exa, column_mapping: Mapping[str, str],
+class UDFEventContext(EventContext):
+
+    def __init__(self, ctx, exa, column_mapping: OrderedDict[str, str],
                  start_col: int = 0):
-        super().__init__(ctx)
-        self.start_col = start_col
-        if not isinstance(column_mapping, OrderedDict):
-            raise ValueError(
-                f"column_mapping needs to be a OrderedDict, "
-                f"got {type(column_mapping)}")
-        self.column_mapping = column_mapping
-        self.original_columns = list(self.column_mapping.keys())
-        self.new_columns = list(self.column_mapping.values())
-        self.__ctx = ctx
-        self.exa = exa
-
-    def _get_mapped_column(self, original_name: str) -> str:
-        if original_name in self.column_mapping:
-            return self.column_mapping[original_name]
-        raise ValueError(
-            f"Column {original_name} does not exists "
-            f"in mapping {self.column_mapping}")
+        self._start_col = start_col
+        self._ctx = ctx
+        self._has_next = True
+        self._reverse_column_mapping = \
+            collections.OrderedDict(
+                [(value, key) for key, value in column_mapping.items()])
+        self._columns = self._compute_columns(exa)
+        self._initialized = False
 
     def __getattr__(self, name):
-        return self.__ctx[self._get_mapped_column(name)]
+        if name in self._reverse_column_mapping:
+            return self._ctx[self._reverse_column_mapping[name]]
+        else:
+            raise AttributeError(f"Attribute {name} not found.")
 
-    def __next__(self):
-        return self.__ctx.next()
+    def __getitem__(self, item: Any) -> Any:
+        return self._ctx[self._reverse_column_mapping[item]]
+
+    def next(self) -> bool:
+        self._initialized = True
+        return self._ctx.next()
+
+    def __iter__(self) -> Iterator[Row]:
+        return self
+
+    def __next__(self) -> Row:
+        if self._initialized:
+            if not self._ctx.next():
+                raise StopIteration()
+        else:
+            self._initialized = True
+        row = tuple(self._ctx[value] for value in self._reverse_column_mapping.values())
+        return row
 
     def rowcount(self) -> int:
-        return self.__ctx.size()
+        return self._ctx.size()
 
-    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0):
-        df = self.__ctx.get_dataframe(num_rows, start_col=self.start_col)
-        filtered_df = df[self.original_columns]
-        filtered_df.columns = [self._get_mapped_column(column)
-                               for column in filtered_df.columns]
-        filtered_df_from_start_col = filtered_df.iloc[:, start_col:]
-        return filtered_df_from_start_col
+    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0) -> "pandas.DataFrame":
+        df = self._ctx.get_dataframe(num_rows, start_col=self._start_col)
+        self._initialized = True
+        if df is None:
+            return None
+        else:
+            filtered_df = df[self._reverse_column_mapping.values()]
+            filtered_df.columns = list(self._reverse_column_mapping.keys())
+            filtered_df_from_start_col = filtered_df.iloc[:, start_col:]
+            return filtered_df_from_start_col
 
     def columns(self) -> List[Column]:
-        query_columns: List[Column] = []
-        for i in range(len(self.exa.meta.input_columns)):
-            col_name = self.exa.meta.input_columns[i].name
-            col_type = self.exa.meta.input_columns[i].sql_type
-            query_columns.append(
-                Column(ColumnName(col_name), ColumnType(col_type)))
-        return query_columns
+        return list(self._columns)
+
+    def _compute_columns(self, exa) -> List[Column]:
+        column_dict = {column.name: column.sql_type
+                       for column in exa.meta.input_columns}
+        columns = [Column(ColumnName(key), ColumnType(column_dict[value]))
+                   for key, value in self._reverse_column_mapping.items()]
+        return columns
 
     def column_names(self) -> List[str]:
-        column_names: List[str] = []
-        for i in range(len(self.exa.meta.input_columns)):
-            column_names.append(self.exa.meta.input_columns[i].name)
-        return column_names
-
-
+        return list(self._reverse_column_mapping.keys())

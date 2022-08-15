@@ -8,7 +8,7 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column_type impor
     ColumnType
 
 from exasol_advanced_analytics_framework.event_context.event_context_base \
-    import EventContextBase
+    import EventContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
 from exasol_advanced_analytics_framework.event_handler.context.event_handler_context \
@@ -23,7 +23,7 @@ QUERY_LIST = ["SELECT 1 FROM DUAL", "SELECT 2 FROM DUAL"]
 
 class MockEventHandlerWithOneIteration(EventHandlerBase):
     def handle_event(self,
-                     exa_context: EventContextBase,
+                     exa_context: EventContext,
                      event_handler_context: EventHandlerContext) -> \
             EventHandlerResultBase:
         return EventHandlerResultFinished(final_result=FINAL_RESULT)
@@ -35,7 +35,7 @@ class MockEventHandlerWithTwoIterations(EventHandlerBase):
         self.iter = 0
 
     def handle_event(self,
-                     exa_context: EventContextBase,
+                     exa_context: EventContext,
                      event_handler_context: EventHandlerContext) -> \
             EventHandlerResultBase:
 
