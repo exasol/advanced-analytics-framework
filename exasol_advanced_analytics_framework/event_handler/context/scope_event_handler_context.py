@@ -7,6 +7,9 @@ from exasol_advanced_analytics_framework.event_handler.context.proxy.object_prox
 class ScopeEventHandlerContext(EventHandlerContext):
     @abstractmethod
     def release(self):
+        """
+        This function release all temporary objects registered with context or any of it descendants.
+        """
         pass
 
     @abstractmethod
@@ -32,4 +35,11 @@ class ScopeEventHandlerContext(EventHandlerContext):
     @abstractmethod
     def transfer_object_to(self, object_proxy: ObjectProxy,
                            scope_event_handler_context: "ScopeEventHandlerContext"):
+        """
+        This function transfers the ownershio if the object to a different context.
+        That means, that the object isn't released if this context is released,
+        instread it will be released if the ohter context is released.
+        However, object can be only transferred to the parent, child or sibling context.
+        The first owner is always the context where one of the get_*_object function was called.
+        """
         pass
