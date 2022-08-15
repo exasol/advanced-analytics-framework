@@ -11,7 +11,7 @@ class EventHandlerContext(ABC):
     def get_temporary_table(self) -> TableProxy:
         """
         This function registers a new temporary table without creating it.
-        After the release of this context the framworkf will issue a cleanup query.
+        After the release of this context the framework will issue a cleanup query.
         """
         pass
 
@@ -19,7 +19,7 @@ class EventHandlerContext(ABC):
     def get_temporary_view(self) -> ViewProxy:
         """
         This function registers a new temporary view without creating it.
-        After the release of this context the framworkf will issue a cleanup query.
+        After the release of this context the framework will issue a cleanup query.
         """
 
         pass
@@ -28,7 +28,7 @@ class EventHandlerContext(ABC):
     def get_temporary_bucketfs_file(self) -> BucketFSLocationProxy:
         """
         This function registers a new temporary bucketfs file without creating it.
-        After the release of this context the framworkf will remove it.
+        After the release of this context the framework will remove it.
         """
         pass
 

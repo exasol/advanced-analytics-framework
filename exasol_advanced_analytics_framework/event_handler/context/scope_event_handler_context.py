@@ -36,14 +36,14 @@ class ScopeEventHandlerContext(EventHandlerContext):
     def transfer_object_to(self, object_proxy: ObjectProxy,
                            scope_event_handler_context: "ScopeEventHandlerContext"):
         """
-        This function transfers the ownershio if the object to a different context.
+        This function transfers the ownership of the object to a different context.
         That means, that the object isn't released if this context is released,
-        instread it will be released if the ohter context is released.
-        However, object can be only transferred to the parent, child or sibling context.
+        instead it will be released if the other context, it was transferred to, is released.
+        However, the object can be only transferred to the parent, child or sibling context.
         The first owner is always the context where one of the get_*_object function was called.
         Transferring the object from one context to another can be used in conjunction with
         nested event handlers where you want to cleanup after one event handler finished,
-        but want to exchange some temporary objects between the event handlers. For the transfer,
-        is always the parent event handler responsible
+        but want to exchange some temporary objects between the event handlers. The parent event 
+        handler is always responsible for the transfer.
         """
         pass
