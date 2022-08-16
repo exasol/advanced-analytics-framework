@@ -16,6 +16,8 @@
   - #29: Fixed interface of EventContext and adapted implementation of UDFEventContext
   - #30: Sort cleanup queries in reverse order of their creation to ensure that temporary objects that depend on other are removed first
   - #34: Added MockEventContext
+  - #35: Clean up after EventHandler exceptions and throw exceptions when a parent EventHandlerContext encounters an unreleased child during release 
+
 ### Bug Fixes
 
   - #8: Renamed master branch to main
