@@ -105,15 +105,15 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._check_if_valid()
         temporary_path = self.get_temporary_path()
         new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
-        child_event_handler_conext = _ChildEventHandlerContext(
+        child_event_handler_context = _ChildEventHandlerContext(
             self,
             new_temporary_bucketfs_location,
             self._get_temporary_db_object_name(),
             self._temporary_schema_name,
             self._global_temporary_object_counter
         )
-        self._child_event_handler_context_list.append(child_event_handler_conext)
-        return child_event_handler_conext
+        self._child_event_handler_context_list.append(child_event_handler_context)
+        return child_event_handler_context
 
     def _is_child(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
         result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
@@ -121,7 +121,7 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         return result
 
     def _transfer_object_to(self, object_proxy: ObjectProxy,
-                            scope_event_handler_conext: ScopeEventHandlerContext) -> None:
+                            scope_event_handler_context: ScopeEventHandlerContext) -> None:
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
             if isinstance(scope_event_handler_context, _ScopeEventHandlerContextBase):
@@ -149,10 +149,10 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._owned_object_proxies = set()
         self._is_valid = False
         child_context_were_not_released = False
-        for child_event_handler_conext in self._child_event_handler_context_list:
-            if child_event_handler_conext._is_valid:
+        for child_event_handler_context in self._child_event_handler_context_list:
+            if child_event_handler_context._is_valid:
                 child_context_were_not_released = True
-                child_event_handler_conext._invalidate()
+                child_event_handler_context._invalidate()
         if child_context_were_not_released:
             raise RuntimeError("Child contexts are not released.")
 
