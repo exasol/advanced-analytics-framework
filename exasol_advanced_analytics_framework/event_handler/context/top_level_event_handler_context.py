@@ -124,12 +124,12 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
                             scope_event_handler_conext: ScopeEventHandlerContext) -> None:
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
-            if isinstance(scope_event_handler_conext, _ScopeEventHandlerContextBase):
-                scope_event_handler_conext._own_object(object_proxy)
-                if not self._is_child(scope_event_handler_conext):
+            if isinstance(scope_event_handler_context, _ScopeEventHandlerContextBase):
+                scope_event_handler_context._own_object(object_proxy)
+                if not self._is_child(scope_event_handler_context):
                     self._remove_object(object_proxy)
             else:
-                raise ValueError(f"{scope_event_handler_conext.__class__} not allowed, "
+                raise ValueError(f"{scope_event_handler_context.__class__} not allowed, "
                                  f"use a context created with get_child_event_handler_context")
         else:
             raise RuntimeError("Object not owned by this ScopeEventHandlerContext.")
