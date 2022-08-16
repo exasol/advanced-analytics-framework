@@ -5,7 +5,6 @@
 --
 
 local M = {
-    string_to_boolean = { ["True"]=true, ["False"]=false }
 }
 local exa_error = require("exaerror")
 
@@ -23,14 +22,16 @@ _G.global_env = {
 -- @return  the result of the latest query
 --
 function M._run_queries(queries, from_index)
-    for i=from_index, #queries do
-        if queries[i][1] ~= nil then
-            success, result = _G.global_env.pquery(queries[i][1])
+    for i = from_index, #queries do
+        local query = queries[i][1]
+        if query ~= nil then
+            success, result = _G.global_env.pquery(query)
             if not success then
+                -- TODO cleanup after query error
                 local error_obj = exa_error.create(
                         "E-AAF-3",
                         "Error occurred in executing the query: "
-                                .. queries[i][1]
+                                .. query
                                 .. " error message: "
                                 .. result.error_message)
                 _G.global_env.error(tostring(error_obj))
@@ -46,24 +47,29 @@ end
 -- @param query string that calls the event handler
 --
 function M.init(query_to_event_handler)
-    local is_finished = false
-    local final_result = nil
+    local status = false
+    local final_result_or_error = nil
     local query_to_create_view = nil
     repeat
         -- call EventHandlerUDF return queries
-        local return_queries = {{query_to_create_view}, {query_to_event_handler}}
+        local return_queries = { { query_to_create_view }, { query_to_event_handler } }
         local result = M._run_queries(return_queries, 1)
 
         -- handle EventHandlerUDF return
         query_to_create_view = result[1][1]
         query_to_event_handler = result[2][1]
-        is_finished = M.string_to_boolean[result[3][1]]
-        final_result = result[4][1]
+        status = result[3][1]
+        final_result_or_error = result[4][1]
         M._run_queries(result, 5)
-    until (is_finished)
-
-    return final_result
+    until (status ~= 'CONTINUE')
+    if status == 'ERROR' then
+        local error_obj = exa_error.create(
+                "E-AAF-4",
+                "Error occurred during running the EventHandlerUDF: "
+                        .. final_result_or_error)
+        _G.global_env.error(tostring(error_obj))
+    end
+    return final_result_or_error
 end
-
 
 return M;

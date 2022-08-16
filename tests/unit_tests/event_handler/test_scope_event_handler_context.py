@@ -93,7 +93,10 @@ def test_get_temporary_bucketfs_file_after_release_fails(scope_event_handler_con
 
 def test_use_child_context_after_release_fails(scope_event_handler_context: ScopeEventHandlerContext):
     child = scope_event_handler_context.get_child_event_handler_context()
-    scope_event_handler_context.release()
+    try:
+        scope_event_handler_context.release()
+    except:
+        pass
     with pytest.raises(RuntimeError, match="Context already released."):
         proxy = child.get_temporary_view()
 
@@ -202,3 +205,16 @@ def test_illegal_transfer_between_parent_and_grand_child(
                        match="Given ScopeEventHandlerContext not a child, parent or sibling.|"
                              "Given ScopeEventHandlerContext not a child."):
         parent.transfer_object_to(object_proxy, grand_child)
+
+def test_release_parent_before_child_with_temporary_object_expect_exception(scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    proxy = child.get_temporary_table()
+    with pytest.raises(RuntimeError,match=f"Child contexts are not released."):
+        parent.release()
+
+def test_release_parent_before_child_without_temporary_object_expect_exception(scope_event_handler_context: ScopeEventHandlerContext):
+    parent = scope_event_handler_context
+    child = scope_event_handler_context.get_child_event_handler_context()
+    with pytest.raises(RuntimeError,match=f"Child contexts are not released."):
+        parent.release()

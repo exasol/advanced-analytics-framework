@@ -1,6 +1,9 @@
 import dataclasses
 import importlib
+import logging
+import traceback
 from collections import OrderedDict
+from enum import Enum, auto
 from pathlib import PurePosixPath
 from typing import Tuple, List, Optional
 
@@ -41,6 +44,12 @@ class UDFParameter:
     parameters: Optional[str] = None
 
 
+class EventHandlerStatus(Enum):
+    CONTINUE = auto()
+    FINISHED = auto()
+    ERROR = auto()
+
+
 @dataclasses.dataclass
 class UDFResult:
     return_query_view: Optional[str] = None
@@ -48,7 +57,7 @@ class UDFResult:
     final_result = {}
     query_list = []
     cleanup_query_list = []
-    is_finished = False
+    status: EventHandlerStatus = EventHandlerStatus.CONTINUE
 
 
 class CreateEventHandlerUDF:
@@ -62,16 +71,35 @@ class CreateEventHandlerUDF:
         self._get_parameter(ctx)
         self._create_bucketfs_location()
         current_state = self._create_state_or_load_latest_state()
-        udf_event_context = self._create_udf_event_context(ctx, current_state.query_columns)
+        try:
+            udf_event_context = self._create_udf_event_context(ctx, current_state.query_columns)
 
-        event_handler_result = current_state.event_handler.handle_event(
-            udf_event_context, current_state.top_level_event_handler_context)
+            event_handler_result = current_state.event_handler.handle_event(
+                udf_event_context, current_state.top_level_event_handler_context)
 
-        udf_result = self.handle_event_handler_result(event_handler_result, current_state)
-        if isinstance(event_handler_result, EventHandlerResultContinue):
-            self._save_current_state(current_state)
-        if self.parameter.iter_num > 0:
-            self._remove_previous_state()
+            udf_result = self.handle_event_handler_result(event_handler_result, current_state)
+            if isinstance(event_handler_result, EventHandlerResultContinue):
+                self._save_current_state(current_state)
+            if self.parameter.iter_num > 0:
+                self._remove_previous_state()
+            self.emit_udf_result(ctx, udf_result)
+        except Exception as e:
+            self.handle_exception(ctx, current_state, e)
+
+    def handle_exception(self, ctx,
+                         current_state: EventHandlerState,
+                         exception: Exception):
+        stacktrace = traceback.format_exc()
+        logging.exception("Catched exception, starting cleanup.")
+        try:
+            self.release_event_handler_context(current_state)
+        except:
+            logging.exception("Catched exception during handling cleanup of another exception")
+        cleanup_queries = current_state.top_level_event_handler_context.cleanup_released_object_proxies()
+        udf_result = UDFResult()
+        udf_result.cleanup_query_list = cleanup_queries
+        udf_result.final_result = stacktrace
+        udf_result.status = EventHandlerStatus.ERROR
         self.emit_udf_result(ctx, udf_result)
 
     def handle_event_handler_result(self,
@@ -87,20 +115,27 @@ class CreateEventHandlerUDF:
             current_state.top_level_event_handler_context.cleanup_released_object_proxies()
         return udf_result
 
-    def handle_event_handler_result_finished(self,
-                                             current_state: EventHandlerState,
-                                             event_handler_result: EventHandlerResultFinished):
+    def handle_event_handler_result_finished(
+            self,
+            current_state: EventHandlerState,
+            event_handler_result: EventHandlerResultFinished):
         udf_result = UDFResult()
         udf_result.final_result = event_handler_result.final_result
-        udf_result.is_finished = True
-        current_state.top_level_event_handler_context.release()
+        udf_result.status = EventHandlerStatus.FINISHED
+        self.release_event_handler_context(current_state)
         return udf_result
+
+    @staticmethod
+    def release_event_handler_context(current_state):
+        if current_state.return_query_event_handler_context is not None:
+            current_state.return_query_event_handler_context.release()
+        current_state.top_level_event_handler_context.release()
 
     def handle_event_handler_result_continue(self,
                                              current_state: EventHandlerState,
                                              event_handler_result: EventHandlerResultContinue):
         udf_result = UDFResult()
-        udf_result.is_finished = False
+        udf_result.status = EventHandlerStatus.CONTINUE
         udf_result.query_list = event_handler_result.query_list
         current_state.query_columns = event_handler_result.return_query.query_columns
         self.release_and_create_new_return_query_event_handler_context(current_state)
@@ -109,7 +144,8 @@ class CreateEventHandlerUDF:
                                     event_handler_result.return_query)
         return udf_result
 
-    def release_and_create_new_return_query_event_handler_context(self, current_state):
+    @staticmethod
+    def release_and_create_new_return_query_event_handler_context(current_state):
         if current_state.return_query_event_handler_context is not None:
             current_state.return_query_event_handler_context.release()
         current_state.return_query_event_handler_context = \
@@ -228,7 +264,7 @@ class CreateEventHandlerUDF:
     def emit_udf_result(ctx, udf_result: UDFResult):
         ctx.emit(udf_result.return_query_view)
         ctx.emit(udf_result.return_query)
-        ctx.emit(str(udf_result.is_finished))
+        ctx.emit(str(udf_result.status.name))
         ctx.emit(str(udf_result.final_result))
         for query in udf_result.cleanup_query_list:
             ctx.emit(query.get_query_str())

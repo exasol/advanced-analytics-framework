@@ -45,8 +45,12 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def release(self) -> None:
         self._check_if_valid()
-        for object_proxy in list(self._valid_object_proxies):
+        for object_proxy in list(self._owned_object_proxies):
             self._release_object(object_proxy)
+        if len(self._valid_object_proxies) > 0:
+            for object_proxy in list(self._valid_object_proxies):
+                self._release_object(object_proxy)
+            raise RuntimeError("Child contexts are not released.")
         self._invalidate()
 
     def _get_counter_value(self) -> int:
@@ -144,9 +148,13 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._valid_object_proxies = set()
         self._owned_object_proxies = set()
         self._is_valid = False
+        child_context_were_not_released = False
         for child_event_handler_conext in self._child_event_handler_context_list:
             if child_event_handler_conext._is_valid:
+                child_context_were_not_released = True
                 child_event_handler_conext._invalidate()
+        if child_context_were_not_released:
+            raise RuntimeError("Child contexts are not released.")
 
     def _register_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()

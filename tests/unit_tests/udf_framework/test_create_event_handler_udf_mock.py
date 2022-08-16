@@ -1,3 +1,4 @@
+import re
 from tempfile import TemporaryDirectory
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
@@ -6,7 +7,10 @@ from exasol_udf_mock_python.group import Group
 from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
+
+from exasol_advanced_analytics_framework.udf_framework.create_event_handler_udf import EventHandlerStatus
 from tests.unit_tests.udf_framework import mock_event_handlers
+from tests.utils.test_utils import pytest_regex
 
 TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
 
@@ -71,7 +75,66 @@ def test_event_handler_udf_with_one_iteration():
         )
         result = executor.run([Group([input_data])], exa)
         rows = [row[0] for row in result[0].rows]
-        expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT)]
+        expected_rows = [None, None, EventHandlerStatus.FINISHED.name, str(mock_event_handlers.FINAL_RESULT)]
+        assert rows == expected_rows
+
+
+def test_event_handler_udf_with_one_iteration_with_not_released_child_event_handler_context():
+    executor = UDFMockExecutor()
+    meta = create_mock_data()
+
+    with TemporaryDirectory() as path:
+        bucketfs_connection = Connection(address=f"file://{path}/event_handler")
+        exa = MockExaEnvironment(
+            metadata=meta,
+            connections={"bucketfs_connection": bucketfs_connection})
+
+        input_data = (
+            0,
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
+            "MockEventHandlerWithOneIterationWithNotReleasedChildEventHandlerContext",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
+            "{}"
+        )
+        result = executor.run([Group([input_data])], exa)
+        rows = [row[0] for row in result[0].rows]
+        expected_rows = [None,
+                         None,
+                         EventHandlerStatus.ERROR.name,
+                         pytest_regex(r".*RuntimeError: Child contexts are not released.*", re.DOTALL)]
+        assert rows == expected_rows
+
+
+def test_event_handler_udf_with_one_iteration_with_not_released_temporary_object():
+    executor = UDFMockExecutor()
+    meta = create_mock_data()
+
+    with TemporaryDirectory() as path:
+        bucketfs_connection = Connection(address=f"file://{path}/event_handler")
+        exa = MockExaEnvironment(
+            metadata=meta,
+            connections={"bucketfs_connection": bucketfs_connection})
+
+        input_data = (
+            0,
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
+            "MockEventHandlerWithOneIterationWithNotReleasedTemporaryObject",
+            "tests.unit_tests.udf_framework.mock_event_handlers",
+            "{}"
+        )
+        result = executor.run([Group([input_data])], exa)
+        rows = [row[0] for row in result[0].rows]
+        expected_rows = [None,
+                         None,
+                         EventHandlerStatus.ERROR.name,
+                         pytest_regex(r".*RuntimeError: Child contexts are not released.*", re.DOTALL),
+                         'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_2_1";']
         assert rows == expected_rows
 
 
@@ -98,7 +161,8 @@ def test_event_handler_udf_with_one_iteration_and_temp_table():
         result = executor.run([Group([input_data])], exa)
         rows = [row[0] for row in result[0].rows]
         table_cleanup_query = 'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_1";'
-        expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT), table_cleanup_query]
+        expected_rows = [None, None, EventHandlerStatus.FINISHED.name, str(mock_event_handlers.FINAL_RESULT),
+                         table_cleanup_query]
         assert rows == expected_rows
 
 
@@ -132,7 +196,7 @@ def test_event_handler_udf_with_two_iteration(tmp_path):
                    "'bucketfs_connection','directory','temporary_name_prefix'," \
                    '"a","b") ' \
                    'FROM "temp_schema"."temporary_name_prefix_2_1";'
-    expected_rows = [expected_return_query_view, return_query, "False", "{}"] + \
+    expected_rows = [expected_return_query_view, return_query, EventHandlerStatus.CONTINUE.name, "{}"] + \
                     mock_event_handlers.QUERY_LIST
     assert rows == expected_rows
 
@@ -153,8 +217,10 @@ def test_event_handler_udf_with_two_iteration(tmp_path):
     result = executor.run([Group([input_data])], exa)
     rows = [row[0] for row in result[0].rows]
     cleanup_return_query_view = 'DROP VIEW IF EXISTS "temp_schema"."temporary_name_prefix_2_1";'
-    expected_rows = [None, None, "True", str(mock_event_handlers.FINAL_RESULT), cleanup_return_query_view]
+    expected_rows = [None, None, EventHandlerStatus.FINISHED.name, str(mock_event_handlers.FINAL_RESULT),
+                     cleanup_return_query_view]
     assert rows == expected_rows
+
 
 def _is_state_exist(
         iter_num: int,
