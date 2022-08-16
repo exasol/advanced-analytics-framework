@@ -31,14 +31,14 @@ def create_mock_data():
         script_code_wrapper_function=_udf_wrapper,
         input_type="SET",
         input_columns=[
-            Column("1", int, "INTEGER"),  # iter_num
-            Column("2", str, "VARCHAR(2000000)"),  # temporary_bfs_location_conn
-            Column("3", str, "VARCHAR(2000000)"),  # temporary_bfs_location_directory
-            Column("4", str, "VARCHAR(2000000)"),  # temporary_name_prefix
-            Column("5", str, "VARCHAR(2000000)"),  # temporary_schema_name
-            Column("6", str, "VARCHAR(2000000)"),  # python_class_name
-            Column("7", str, "VARCHAR(2000000)"),  # python_class_module
-            Column("8", str, "VARCHAR(2000000)"),  # parameters
+            Column("0", int, "INTEGER"),  # iter_num
+            Column("1", str, "VARCHAR(2000000)"),  # temporary_bfs_location_conn
+            Column("2", str, "VARCHAR(2000000)"),  # temporary_bfs_location_directory
+            Column("3", str, "VARCHAR(2000000)"),  # temporary_name_prefix
+            Column("4", str, "VARCHAR(2000000)"),  # temporary_schema_name
+            Column("5", str, "VARCHAR(2000000)"),  # python_class_name
+            Column("6", str, "VARCHAR(2000000)"),  # python_class_module
+            Column("7", str, "VARCHAR(2000000)"),  # parameters
         ],
         output_type="EMITS",
         output_columns=[
