@@ -12,6 +12,9 @@
   - #7: Added Lua event loop
   - #6: Added Python event handler
   - #24: Added integrations test for event loop
+  - #28: Extended the EventHandlerContext to a scope-based system for handling temporary objects
+  - #29: Fixed interface of EventContext and adapted implementation of UDFEventContext
+  - #30: Sort cleanup queries in reverse order of their creation to ensure that temporary objects that depend on other are removed first
   
 ### Bug Fixes
 
