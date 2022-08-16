@@ -15,7 +15,7 @@
   - #28: Extended the EventHandlerContext to a scope-based system for handling temporary objects
   - #29: Fixed interface of EventContext and adapted implementation of UDFEventContext
   - #30: Sort cleanup queries in reverse order of their creation to ensure that temporary objects that depend on other are removed first
-  
+  - #34: Added MockEventContext
 ### Bug Fixes
 
   - #8: Renamed master branch to main
