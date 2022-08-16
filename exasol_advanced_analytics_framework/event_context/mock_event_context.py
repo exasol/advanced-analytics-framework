@@ -1,4 +1,9 @@
-from exasol_advanced_analytics_framework.event_context.event_context_base import EventContext
+from typing import List, Tuple, Any, Union, Optional, Iterator
+
+import pandas as pd
+from exasol_udf_mock_python.column import Column
+
+from exasol_advanced_analytics_framework.event_context.event_context_base import EventContext, Row
 
 
 class MockEventContext(EventContext):
@@ -54,7 +59,8 @@ class MockEventContext(EventContext):
                 break
         self._next()
         if len(batch_list) > 0:
-            df = pd.DataFrame(data=batch_list, columns=[column.name.name for column in self._columns])  # TODO dtype
+            df = pd.DataFrame(data=batch_list,
+                              columns=[column.name.name for column in self._columns])  # TODO dtype
             df = df.iloc[:, start_col:]
             return df
         else:
@@ -63,5 +69,5 @@ class MockEventContext(EventContext):
     def _next(self):
         try:
             self._current_row = next(self._iter)
-        except StopIteration as e:
+        except StopIteration:
             self._current_row = None
