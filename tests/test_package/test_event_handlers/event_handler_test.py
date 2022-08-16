@@ -7,6 +7,8 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column_type \
     import ColumnType
 from exasol_advanced_analytics_framework.event_context.event_context_base \
     import EventContext
+from exasol_advanced_analytics_framework.event_handler.context.scope_event_handler_context import \
+    ScopeEventHandlerContext
 from exasol_advanced_analytics_framework.event_handler.event_handler_base \
     import EventHandlerBase
 from exasol_advanced_analytics_framework.event_handler.context.event_handler_context \
@@ -53,3 +55,20 @@ class EventHandlerTestWithTwoIteration(EventHandlerBase):
                 return_query=event_handler_return_query)
         self.iter += 1
         return event_handler_result
+
+class EventHandlerWithOneIterationWithNotReleasedChildEventHandlerContext(EventHandlerBase):
+    def handle_event(self,
+                     exa_context: EventContext,
+                     event_handler_context: ScopeEventHandlerContext) -> \
+            EventHandlerResultBase:
+        self.child = event_handler_context.get_child_event_handler_context()
+        return EventHandlerResultFinished(final_result=FINAL_RESULT)
+
+class EventHandlerWithOneIterationWithNotReleasedTemporaryObject(EventHandlerBase):
+    def handle_event(self,
+                     exa_context: EventContext,
+                     event_handler_context: ScopeEventHandlerContext) -> \
+            EventHandlerResultBase:
+        self.child = event_handler_context.get_child_event_handler_context()
+        self.proxy = self.child.get_temporary_table()
+        return EventHandlerResultFinished(final_result=FINAL_RESULT)

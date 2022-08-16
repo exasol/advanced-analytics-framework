@@ -8,28 +8,13 @@ class ScopeEventHandlerContext(EventHandlerContext):
     @abstractmethod
     def release(self):
         """
-        This function release all temporary objects registered with context or any of it descendants.
+        This function release all temporary objects registered with this context or any of its descendants.
+        However, it throws also an exception when you didn't release the children's.
         """
         pass
 
     @abstractmethod
-    def get_child_event_handler_context(self) -> "ChildEventHandlerContext":
-        pass
-
-    @abstractmethod
-    def _release_object(self, object_proxy: ObjectProxy):
-        pass
-
-    @abstractmethod
-    def _register_object(self, object_proxy: ObjectProxy):
-        pass
-
-    @abstractmethod
-    def _own_object(self, object_proxy: ObjectProxy):
-        pass
-
-    @abstractmethod
-    def _invalidate(self):
+    def get_child_event_handler_context(self) -> "ScopeEventHandlerContext":
         pass
 
     @abstractmethod

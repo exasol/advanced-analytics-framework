@@ -45,8 +45,12 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
 
     def release(self) -> None:
         self._check_if_valid()
-        for object_proxy in list(self._valid_object_proxies):
+        for object_proxy in list(self._owned_object_proxies):
             self._release_object(object_proxy)
+        if len(self._valid_object_proxies) > 0:
+            for object_proxy in list(self._valid_object_proxies):
+                self._release_object(object_proxy)
+            raise RuntimeError("Child contexts are not released.")
         self._invalidate()
 
     def _get_counter_value(self) -> int:
@@ -101,15 +105,15 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._check_if_valid()
         temporary_path = self.get_temporary_path()
         new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
-        child_event_handler_conext = _ChildEventHandlerContext(
+        child_event_handler_context = _ChildEventHandlerContext(
             self,
             new_temporary_bucketfs_location,
             self._get_temporary_db_object_name(),
             self._temporary_schema_name,
             self._global_temporary_object_counter
         )
-        self._child_event_handler_context_list.append(child_event_handler_conext)
-        return child_event_handler_conext
+        self._child_event_handler_context_list.append(child_event_handler_context)
+        return child_event_handler_context
 
     def _is_child(self, scope_event_handler_context: ScopeEventHandlerContext) -> bool:
         result = isinstance(scope_event_handler_context, _ChildEventHandlerContext) and \
@@ -117,12 +121,16 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         return result
 
     def _transfer_object_to(self, object_proxy: ObjectProxy,
-                            scope_event_handler_conext: ScopeEventHandlerContext) -> None:
+                            scope_event_handler_context: ScopeEventHandlerContext) -> None:
         self._check_if_valid()
         if object_proxy in self._owned_object_proxies:
-            scope_event_handler_conext._own_object(object_proxy)
-            if not self._is_child(scope_event_handler_conext):
-                self._remove_object(object_proxy)
+            if isinstance(scope_event_handler_context, _ScopeEventHandlerContextBase):
+                scope_event_handler_context._own_object(object_proxy)
+                if not self._is_child(scope_event_handler_context):
+                    self._remove_object(object_proxy)
+            else:
+                raise ValueError(f"{scope_event_handler_context.__class__} not allowed, "
+                                 f"use a context created with get_child_event_handler_context")
         else:
             raise RuntimeError("Object not owned by this ScopeEventHandlerContext.")
 
@@ -140,9 +148,13 @@ class _ScopeEventHandlerContextBase(ScopeEventHandlerContext, ABC):
         self._valid_object_proxies = set()
         self._owned_object_proxies = set()
         self._is_valid = False
-        for child_event_handler_conext in self._child_event_handler_context_list:
-            if child_event_handler_conext._is_valid:
-                child_event_handler_conext._invalidate()
+        child_context_were_not_released = False
+        for child_event_handler_context in self._child_event_handler_context_list:
+            if child_event_handler_context._is_valid:
+                child_context_were_not_released = True
+                child_event_handler_context._invalidate()
+        if child_context_were_not_released:
+            raise RuntimeError("Child contexts are not released.")
 
     def _register_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()
@@ -192,7 +204,8 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
                            for object_proxy in reverse_sorted_db_objects]
         return cleanup_queries
 
-    def _remove_bucketfs_objects(self, bucketfs_object_proxies: List[BucketFSLocationProxy]):
+    @staticmethod
+    def _remove_bucketfs_objects(bucketfs_object_proxies: List[BucketFSLocationProxy]):
         for object_proxy in bucketfs_object_proxies:
             object_proxy.cleanup()
 
@@ -205,7 +218,7 @@ class TopLevelEventHandlerContext(_ScopeEventHandlerContextBase):
 
 
 class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
-    def __init__(self, parent: ScopeEventHandlerContext,
+    def __init__(self, parent: _ScopeEventHandlerContextBase,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
@@ -217,7 +230,7 @@ class _ChildEventHandlerContext(_ScopeEventHandlerContextBase):
         self.__parent = parent
 
     @property
-    def _parent(self) -> ScopeEventHandlerContext:
+    def _parent(self) -> _ScopeEventHandlerContextBase:
         return self.__parent
 
     def _release_object(self, object_proxy: ObjectProxy):
