@@ -3,6 +3,8 @@ from abc import abstractmethod
 
 
 class Query(abc.ABC):
+
+    @property
     @abstractmethod
-    def get_query_str(self) -> str:
+    def query_string(self) -> str:
         pass

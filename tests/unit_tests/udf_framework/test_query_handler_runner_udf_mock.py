@@ -1,5 +1,6 @@
 import re
 from tempfile import TemporaryDirectory
+
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
@@ -22,9 +23,9 @@ BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
 def _udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
     from exasol_advanced_analytics_framework.udf_framework. \
-        query_handler_runner_udf import CreateQueryHandlerUDF
+        query_handler_runner_udf import QueryHandlerRunnerUDF
 
-    udf = CreateQueryHandlerUDF(exa)
+    udf = QueryHandlerRunnerUDF(exa)
 
     def run(ctx: UDFContext):
         udf.run(ctx)
@@ -197,7 +198,7 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
                    '"a","b") ' \
                    'FROM "temp_schema"."temporary_name_prefix_2_1";'
     expected_rows = [expected_return_query_view, return_query, QueryHandlerStatus.CONTINUE.name, "{}"] + \
-                    mock_query_handlers.QUERY_LIST
+                    [query.query_string for query in mock_query_handlers.QUERY_LIST]
     assert rows == expected_rows
 
     prev_state_exist = _is_state_exist(0, bucketfs_connection)

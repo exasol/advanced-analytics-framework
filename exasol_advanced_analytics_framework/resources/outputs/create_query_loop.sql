@@ -472,8 +472,8 @@ end
 --
 function M.init(query_to_query_handler)
     local status = false
-    local final_result_or_error = nil
-    local query_to_create_view = nil
+    local final_result_or_error
+    local query_to_create_view
     repeat
         -- call QueryHandlerUDF return queries
         local return_queries = { { query_to_create_view }, { query_to_query_handler } }
