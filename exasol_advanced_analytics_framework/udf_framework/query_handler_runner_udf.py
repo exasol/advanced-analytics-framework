@@ -29,7 +29,7 @@ from exasol_advanced_analytics_framework.query_handler.context.top_level_query_h
     TopLevelQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.result \
     import Finish, Continue, Result
-from exasol_advanced_analytics_framework.udf_framework.query_handler_udf_state \
+from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 
 
