@@ -19,11 +19,11 @@ class BundleLuaScripts:
             "exasol_advanced_analytics_framework")
         self.lua_src_dir = self.base_dir.joinpath("lua/src")
         self.lua_source_list = [
-            "event_loop_main.lua",
-            "event_loop.lua"]
+            "query_loop_main.lua",
+            "query_loop.lua"]
         self.modules = [
-            "event_loop_main.lua",
-            "event_loop",
+            "query_loop_main.lua",
+            "query_loop",
             "exaerror",
             "message_expander"]
 

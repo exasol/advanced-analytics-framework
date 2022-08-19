@@ -4,11 +4,11 @@ from setuptools import setup
 packages = \
 ['exasol_advanced_analytics_framework',
  'exasol_advanced_analytics_framework.deployment',
- 'exasol_advanced_analytics_framework.event_context',
- 'exasol_advanced_analytics_framework.event_handler',
- 'exasol_advanced_analytics_framework.event_handler.context',
- 'exasol_advanced_analytics_framework.event_handler.context.proxy',
- 'exasol_advanced_analytics_framework.event_handler.query',
+ 'exasol_advanced_analytics_framework.query_handler',
+ 'exasol_advanced_analytics_framework.query_handler.context',
+ 'exasol_advanced_analytics_framework.query_handler.context.proxy',
+ 'exasol_advanced_analytics_framework.query_handler.query',
+ 'exasol_advanced_analytics_framework.query_result',
  'exasol_advanced_analytics_framework.udf_framework']
 
 package_data = \

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "test_event_handlers"
+name = "test_query_handlers"
 version = "0.1.0"
 description = ""
 authors = ["Umit Buyuksahin <umit.buyuksahin@exasol.com>"]
 
-include = ["../test_event_handlers/*"]
+include = ["../test_query_handlers/*"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
