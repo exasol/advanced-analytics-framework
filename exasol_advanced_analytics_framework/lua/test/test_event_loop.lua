@@ -1,6 +1,6 @@
 local luaunit = require("luaunit")
 local mockagne = require("mockagne")
-local event_loop = require("event_loop")
+local query_loop = require("query_loop")
 
 local function mock_error_return_nil(exa_mock)
     mockagne.when(exa_mock.error()).thenAnswer(nil)
@@ -37,15 +37,15 @@ function concat_list(list1, list2)
     return result
 end
 
-test_event_loop = {}
+test_query_loop = {}
 
-function test_event_loop.setUp()
+function test_query_loop.setUp()
     exa_mock = mockagne.getMock()
     _G.global_env = exa_mock
     mock_error_return_nil(exa_mock)
 end
 
-function test_event_loop.test_run_queries_without_skip()
+function test_query_loop.test_run_queries_without_skip()
     local query_list = {
         "SELECT QUERY1()",
         "SELECT QUERY2()",
@@ -53,12 +53,12 @@ function test_event_loop.test_run_queries_without_skip()
     }
     mock_pquery_add_queries(exa_mock, query_list)
     local query_table = make_query_table(query_list)
-    local result = event_loop._run_queries(query_table, 1)
+    local result = query_loop._run_queries(query_table, 1)
     mock_pquery_verify_queries(exa_mock, query_list)
     luaunit.assertEquals(result, nil)
 end
 
-function test_event_loop.test_run_queries_with_skip()
+function test_query_loop.test_run_queries_with_skip()
     local things_to_skip = {
         "DO NOT EXECUTE 1",
         "DO NOT EXECUTE 2"
@@ -71,13 +71,13 @@ function test_event_loop.test_run_queries_with_skip()
     mock_pquery_add_queries(exa_mock, query_list)
     local complete_query_list = concat_list(things_to_skip, query_list)
     local query_table = make_query_table(complete_query_list)
-    local result = event_loop._run_queries(query_table, 3)
+    local result = query_loop._run_queries(query_table, 3)
     mock_pquery_verify_queries(exa_mock, query_list)
     luaunit.assertEquals(result, nil)
 end
 
-function test_event_loop.test_init_single_iteration_finished_without_cleanup()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_single_iteration_finished_without_cleanup()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local init_query_result = {
         { nil },
         { nil },
@@ -85,13 +85,13 @@ function test_event_loop.test_init_single_iteration_finished_without_cleanup()
         { "final_result" }
     }
     mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    local result = event_loop.init(init_query)
+    local result = query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, { init_query })
     luaunit.assertEquals(result, "final_result")
 end
 
-function test_event_loop.test_init_single_iteration_finished_with_cleanup()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_single_iteration_finished_with_cleanup()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local init_query_result = {
         { nil },
@@ -102,17 +102,17 @@ function test_event_loop.test_init_single_iteration_finished_with_cleanup()
     }
     mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
     mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    local result = event_loop.init(init_query)
+    local result = query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, {
         init_query, cleanup_query
     })
     luaunit.assertEquals(result, "final_result")
 end
 
-function test_event_loop.test_init_two_iteration_finished_without_cleanup()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_two_iteration_finished_without_cleanup()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local return_query_view = "CREATE VIEW return_query_view"
-    local return_query = "SELECT AAF_EVENT_HANDLER_UDF(1) FROM return_query_view"
+    local return_query = "SELECT AAF_QUERY_HANDLER_UDF(1) FROM return_query_view"
     local query_list_returned_by_init_query = {
         "SELECT QUERY1()",
         "SELECT QUERY2()",
@@ -136,17 +136,17 @@ function test_event_loop.test_init_two_iteration_finished_without_cleanup()
     mock_pquery_add_queries(exa_mock, query_list_returned_by_init_query)
     mockagne.when(exa_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
     mockagne.when(exa_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
-    local result = event_loop.init(init_query)
+    local result = query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, { init_query })
     mock_pquery_verify_queries(exa_mock, query_list_returned_by_init_query)
     mock_pquery_verify_queries(exa_mock, { return_query_view, return_query })
     luaunit.assertEquals(result, "final_result")
 end
 
-function test_event_loop.test_init_two_iteration_finished_with_cleanup()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_two_iteration_finished_with_cleanup()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local return_query_view = "CREATE VIEW return_query_view"
-    local return_query = "SELECT AAF_EVENT_HANDLER_UDF(1) FROM return_query_view"
+    local return_query = "SELECT AAF_QUERY_HANDLER_UDF(1) FROM return_query_view"
     local cleanup_query = "DROP TABLE test;"
     local query_list_returned_by_init_query = {
         "SELECT QUERY1()",
@@ -173,7 +173,7 @@ function test_event_loop.test_init_two_iteration_finished_with_cleanup()
     mockagne.when(exa_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
     mockagne.when(exa_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
     mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    local result = event_loop.init(init_query)
+    local result = query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, { init_query })
     mock_pquery_verify_queries(exa_mock, query_list_returned_by_init_query)
     mock_pquery_verify_queries(exa_mock, { return_query_view, return_query })
@@ -181,11 +181,11 @@ function test_event_loop.test_init_two_iteration_finished_with_cleanup()
     luaunit.assertEquals(result, "final_result")
 end
 
-function test_event_loop.test_init_single_iteration_error_with_cleanup()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_single_iteration_error_with_cleanup()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local error_message = "Error Message"
-    local expected_error = "E-AAF-4: Error occurred during running the EventHandlerUDF: " .. error_message
+    local expected_error = "E-AAF-4: Error occurred during running the QueryHandlerUDF: " .. error_message
     local init_query_result = {
         { nil },
         { nil },
@@ -195,18 +195,18 @@ function test_event_loop.test_init_single_iteration_error_with_cleanup()
     }
     mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
     mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    event_loop.init(init_query)
+    query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, {
         init_query, cleanup_query
     })
     mockagne.verify(exa_mock.error(expected_error, _))
 end
 
-function test_event_loop.test_init_single_iteration_query_error()
-    local init_query = "SELECT AAF_EVENT_HANDLER_UDF(0)"
+function test_query_loop.test_init_single_iteration_query_error()
+    local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local error_message = "Error Message"
     local expected_error = "E-AAF-3: Error occurred in executing the query: " ..
-            "SELECT AAF_EVENT_HANDLER_UDF(0) error message: " .. error_message
+            "SELECT AAF_QUERY_HANDLER_UDF(0) error message: " .. error_message
     local init_query_result = {
         { nil },
         { nil },
@@ -214,7 +214,7 @@ function test_event_loop.test_init_single_iteration_query_error()
         { "" },
         error_message = error_message }
     mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(false, init_query_result)
-    event_loop.init(init_query)
+    query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, { init_query })
     mockagne.verify(exa_mock.error(expected_error, _))
 end

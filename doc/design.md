@@ -47,34 +47,34 @@ Because Python UDF cannot be kept running and used as server, we have to call fo
 - The user code can't wait actively for the result of a query. The framework will execute it while the UDF is not running anymore.
     - The user code has to get called again, when the SQL queries are ready. 
     - The user code is a kind of callback, however a call back with state.
-    - To this type of execution, the model of an event handler fits best.
-    - This means the Lua Script is our event loop.
+    - To this type of execution, the model of an query handler fits best.
+    - This means the Lua Script is our query loop.
 
 ## System Design and Architecture
  
 ![System Design Diagram](./images/system_design_diagram.png "System Design Diagram")
 
 The designed event-driven framework consists of 3 
-main components: (1) Even Loop that handles only the state transitions, (2) 
-Event Handler Framework that defines a state machine and provide a framework to 
-the user code, (3) Event Handler, where the user implements their algorithm. 
-The Event Loop component is proposed to be implemented in Lua, because a Lua 
+main components: (1) Query Loop that handles only the state transitions, (2) 
+Query Handler Framework that defines a state machine and provide a framework to 
+the user code, (3) Query Handler, where the user implements their algorithm. 
+The Query Loop component is proposed to be implemented in Lua, because a Lua 
 script is the only way to run the dynamic SQL queries in the same transactions. 
-On the other hand, the Event Handler is implemented in Python script, since 
+On the other hand, the Query Handler is implemented in Python script, since 
 Python simplifies the development of data analysis methods by offering a wide 
 variety of data processing tools.
 
 
-## Event Loop
-The Event Loop processes only the state transitions by executing queries returned 
-by the Event Handler. This loop provides the new state transition by calling 
-the Event Handler until the Event Handler returns the stop signal with a result 
+## Query Loop
+The Query Loop processes only the state transitions by executing queries returned 
+by the Query Handler. This loop provides the new state transition by calling 
+the Query Handler until the Query Handler returns the stop signal with a result 
 or an error.
 
-### Initiating Event Loop
-`dsn~initiating-event-loop~1`
+### Initiating Query Loop
+`dsn~initiating-query-loop~1`
 
-The Event Loop is responsible for getting the parameters of the Event Handler 
+The Query Loop is responsible for getting the parameters of the Query Handler 
 that will be called in the loop and forward them to it.
 
 Covers:
@@ -86,9 +86,9 @@ Needs: impl, utest, itest
 ### Iterating over Loop
 `dsn~handling-states~1`
 
-The output of the called Event Handler query can include SQL queries to 
-complete its computation. In that case the Event Loop runs them on each iteration, 
-until the Event Handler returns the status as complete.
+The output of the called Query Handler query can include SQL queries to 
+complete its computation. In that case the Query Loop runs them on each iteration, 
+until the Query Handler returns the status as complete.
 
 Covers:
 
@@ -101,7 +101,7 @@ Needs: impl, utest, itest
 ### Returning JSON Result
 `dsn~returning-json-result~1`
 
-The Event Loop returns its result in json format.
+The Query Loop returns its result in json format.
 
 Covers:
 
@@ -111,37 +111,37 @@ Needs: impl, utest, itest
 
 
 
-## Event Handler
-The Event Handler is a framework whose logic is implemented by the users. It reacts 
-to the query results of the Event Loop and generates SQL queries of the next 
+## Query Handler
+The Query Handler is a framework whose logic is implemented by the users. It reacts 
+to the query results of the Query Loop and generates SQL queries of the next 
 state. It stores the states in BucketFS.
 
 
 ### Python UDF Framework 
 `dsn~python-udf-framework~1`
 
-An Event Handler designed as Python UDF instead of a Lua script allows users to have an easy-to-use and 
+An Query Handler designed as Python UDF instead of a Lua script allows users to have an easy-to-use and 
 better tooling framework to build their algorithm on top of. The user can develop 
 the algorithm as a Python UDF script in which the framework is imported. Some 
 details of this framework interface are listed below:
 
-- The event handler is implemented as a class and states are kept as attributes 
+- The query handler is implemented as a class and states are kept as attributes 
 of a class to facilitate the states operations.
 - The user code should implement a method `handle_event` where the logic of the 
 code is placed.
-- The first time the framework calls the event handler, it calls its constructor with a config __init__(config:Dict[str,Any]), the config is given to the event loop and the Python UDF in JSON format and deserialized to a Dict
-- The event handler is called by getting the following inputs: The results of 
+- The first time the framework calls the query handler, it calls its constructor with a config __init__(config:Dict[str,Any]), the config is given to the query loop and the Python UDF in JSON format and deserialized to a Dict
+- The query handler is called by getting the following inputs: The results of 
 the return query, the ExasolDB context object. 
-- Upon completion of the algorithm, the Event Handler calls methods itself to 
+- Upon completion of the algorithm, the Query Handler calls methods itself to 
 remove temporary records.
-- In case of an error caught in the Event Loop, If the keep option is not set, 
-the cleanup event is called for the Event Handler and the temporary records are 
+- In case of an error caught in the Query Loop, If the keep option is not set, 
+the cleanup event is called for the Query Handler and the temporary records are 
 deleted. Otherwise, they are kept and can be used for further investigations such as debugging.
 
 
 Below you can find the code snippet that simply indicates the Python framework 
 interface. Please note that the `return_query` is wrapped into the next call to 
-event handler UDF.
+query handler UDF.
 
 ```python
 class Result:
@@ -170,7 +170,7 @@ Needs: impl, utest, itest
 `dsn~storing-states-in-bucketfs~1`
 
 The framework keeps states during iterations by storing them in BucketFS.
-The states include the event handler class of the user and the context state for managing temporary tables or bucketfs files
+The states include the query handler class of the user and the context state for managing temporary tables or bucketfs files
 
 Covers:
 
@@ -182,7 +182,7 @@ Needs: impl, utest, itest
 ### Returning Queries
 `dsn~returning-queries~1`
 
-The Event Handler returns a list of SQL queries to execute and the return query 
+The Query Handler returns a list of SQL queries to execute and the return query 
 which will be called again as the next state action so that the new  state 
 transition is performed.
 
@@ -195,7 +195,7 @@ Needs: impl, utest, itest
 ### Managing Temporary BucketFS Files
 `dsn~managing-temporary-bucketfs-files~1`
 
-The Event Handler create temporary BucketFS files that will be  kept as result. 
+The Query Handler create temporary BucketFS files that will be  kept as result. 
 These temporary files are placed in the same directory in the BucketFS.   
 
 Covers:
@@ -208,7 +208,7 @@ Needs: impl, utest, itest
 ### Managing Temporary Tables
 `dsn~managing-temporary-tables~1`
 
-The Event Handler uses temporary tables to store large intermediate results. 
+The Query Handler uses temporary tables to store large intermediate results. 
 
 Covers:
 

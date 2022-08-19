@@ -1,8 +1,8 @@
 from typing import List
 
 deployed_script_list = [
-    "AAF_EVENT_HANDLER_UDF",
-    "AAF_EVENT_LOOP"
+    "AAF_QUERY_HANDLER_UDF",
+    "AAF_QUERY_LOOP"
 ]
 
 

@@ -23,7 +23,7 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ["exasol_advanced_analytics_framework.lua.src.event_loop"] = "exasol_advanced_analytics_framework/lua/src/event_loop.lua",
+      ["exasol_advanced_analytics_framework.lua.src.query_loop"] = "exasol_advanced_analytics_framework/lua/src/query_loop.lua",
       ["exasol_advanced_analytics_framework.lua.src.main"] = "exasol_advanced_analytics_framework/lua/src/main.lua"
    },
    copy_directories = {
