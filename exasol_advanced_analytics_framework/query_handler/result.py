@@ -5,22 +5,22 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
 
 
 @dataclass()
-class QueryHandlerReturnQuery:
+class ReturnQuery:
     query: str
     query_columns: List[Column]
 
 
 @dataclass()
-class QueryHandlerResultBase:
+class Result:
     pass
 
 
 @dataclass()
-class QueryHandlerResultContinue(QueryHandlerResultBase):
+class Continue(Result):
     query_list: List[str]
-    return_query: Optional[QueryHandlerReturnQuery]
+    return_query: Optional[ReturnQuery]
 
 
 @dataclass()
-class QueryHandlerResultFinished(QueryHandlerResultBase):
+class Finished(Result):
     final_result: Dict[str, Any]

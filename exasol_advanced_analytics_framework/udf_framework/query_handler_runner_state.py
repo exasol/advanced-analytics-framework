@@ -8,13 +8,13 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query_handler_base \
-    import QueryHandlerBase
+from exasol_advanced_analytics_framework.query_handler.query_handler \
+    import QueryHandler
 
 
 @dataclass()
-class QueryHandlerState:
+class QueryHandlerRunnerState:
     top_level_query_handler_context: TopLevelQueryHandlerContext
-    query_handler: QueryHandlerBase
+    query_handler: QueryHandler
     query_columns: List[Column]
     return_query_query_handler_context: Optional[ScopeQueryHandlerContext] = None

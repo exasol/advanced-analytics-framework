@@ -8,7 +8,7 @@ from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
-from exasol_advanced_analytics_framework.udf_framework.create_query_handler_udf import QueryHandlerStatus
+from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf import QueryHandlerStatus
 from tests.unit_tests.udf_framework import mock_query_handlers
 from tests.utils.test_utils import pytest_regex
 
@@ -22,7 +22,7 @@ BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
 def _udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
     from exasol_advanced_analytics_framework.udf_framework. \
-        create_query_handler_udf import CreateQueryHandlerUDF
+        query_handler_runner_udf import CreateQueryHandlerUDF
 
     udf = CreateQueryHandlerUDF(exa)
 

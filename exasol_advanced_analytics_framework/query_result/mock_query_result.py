@@ -3,7 +3,7 @@ from typing import List, Tuple, Any, Union, Optional, Iterator
 import pandas as pd
 from exasol_udf_mock_python.column import Column
 
-from exasol_advanced_analytics_framework.query_result.query_result_base import QueryResult, Row
+from exasol_advanced_analytics_framework.query_result.query_result import QueryResult, Row
 
 
 class MockQueryResult(QueryResult):

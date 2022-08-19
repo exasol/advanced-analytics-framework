@@ -7,7 +7,7 @@ OUTPUTS_DIR = pathlib.Path("resources", "outputs")
 SOURCE_DIR = files(f"{BASE_DIR}.udf_framework")
 
 UDF_CALL_TEMPLATES = {
-    "create_query_handler_udf_call.py": "create_query_handler.jinja.sql"
+    "query_handler_runner_udf_call.py": "create_query_handler.jinja.sql"
 }
 LUA_SCRIPT_TEMPLATE = "create_query_loop.jinja.sql"
 LUA_SCRIPT_OUTPUT = pathlib.Path(BASE_DIR, OUTPUTS_DIR, "create_query_loop.sql")

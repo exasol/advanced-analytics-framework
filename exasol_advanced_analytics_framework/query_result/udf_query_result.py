@@ -8,7 +8,7 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.column_name impor
 from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
     ColumnType
 
-from exasol_advanced_analytics_framework.query_result.query_result_base \
+from exasol_advanced_analytics_framework.query_result.query_result \
     import QueryResult, Row
 
 

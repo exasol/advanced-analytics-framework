@@ -26,10 +26,10 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query_handler_result \
-    import QueryHandlerReturnQuery, QueryHandlerResultFinished, QueryHandlerResultContinue, QueryHandlerResultBase
-from exasol_advanced_analytics_framework.query_handler.query_handler_state \
-    import QueryHandlerState
+from exasol_advanced_analytics_framework.query_handler.result \
+    import ReturnQuery, Finished, Continue, Result
+from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
+    import QueryHandlerRunnerState
 
 
 @dataclasses.dataclass
@@ -78,7 +78,7 @@ class CreateQueryHandlerUDF:
                 udf_query_result, current_state.top_level_query_handler_context)
 
             udf_result = self.handle_query_handler_result(query_handler_result, current_state)
-            if isinstance(query_handler_result, QueryHandlerResultContinue):
+            if isinstance(query_handler_result, Continue):
                 self._save_current_state(current_state)
             if self.parameter.iter_num > 0:
                 self._remove_previous_state()
@@ -87,7 +87,7 @@ class CreateQueryHandlerUDF:
             self.handle_exception(ctx, current_state, e)
 
     def handle_exception(self, ctx,
-                         current_state: QueryHandlerState,
+                         current_state: QueryHandlerRunnerState,
                          exception: Exception):
         stacktrace = traceback.format_exc()
         logging.exception("Catched exception, starting cleanup.")
@@ -103,11 +103,11 @@ class CreateQueryHandlerUDF:
         self.emit_udf_result(ctx, udf_result)
 
     def handle_query_handler_result(self,
-                                    query_handler_result: QueryHandlerResultBase,
-                                    current_state: QueryHandlerState):
-        if isinstance(query_handler_result, QueryHandlerResultFinished):
+                                    query_handler_result: Result,
+                                    current_state: QueryHandlerRunnerState):
+        if isinstance(query_handler_result, Finished):
             udf_result = self.handle_query_handler_result_finished(current_state, query_handler_result)
-        elif isinstance(query_handler_result, QueryHandlerResultContinue):
+        elif isinstance(query_handler_result, Continue):
             udf_result = self.handle_query_handler_result_continue(current_state, query_handler_result)
         else:
             raise RuntimeError(f"Unknown query_handler_result {query_handler_result}")
@@ -117,8 +117,8 @@ class CreateQueryHandlerUDF:
 
     def handle_query_handler_result_finished(
             self,
-            current_state: QueryHandlerState,
-            query_handler_result: QueryHandlerResultFinished):
+            current_state: QueryHandlerRunnerState,
+            query_handler_result: Finished):
         udf_result = UDFResult()
         udf_result.final_result = query_handler_result.final_result
         udf_result.status = QueryHandlerStatus.FINISHED
@@ -132,8 +132,8 @@ class CreateQueryHandlerUDF:
         current_state.top_level_query_handler_context.release()
 
     def handle_query_handler_result_continue(self,
-                                             current_state: QueryHandlerState,
-                                             query_handler_result: QueryHandlerResultContinue):
+                                             current_state: QueryHandlerRunnerState,
+                                             query_handler_result: Continue):
         udf_result = UDFResult()
         udf_result.status = QueryHandlerStatus.CONTINUE
         udf_result.query_list = query_handler_result.query_list
@@ -180,7 +180,7 @@ class CreateQueryHandlerUDF:
             .joinpath(self.parameter.temporary_bfs_location_directory) \
             .joinpath(self.parameter.temporary_name_prefix)
 
-    def _create_state_or_load_latest_state(self) -> QueryHandlerState:
+    def _create_state_or_load_latest_state(self) -> QueryHandlerRunnerState:
         if self.parameter.iter_num > 0:
             query_handler_state = self._load_latest_state()
         else:
@@ -194,7 +194,7 @@ class CreateQueryHandlerUDF:
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_class = getattr(module, self.parameter.python_class_name)
         query_handler_obj = query_handler_class(self.parameter.parameters)
-        query_handler_state = QueryHandlerState(
+        query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
             query_handler=query_handler_obj,
             query_columns=dict())
@@ -205,7 +205,7 @@ class CreateQueryHandlerUDF:
         query_handler_state = self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
         return query_handler_state
 
-    def _save_current_state(self, current_state: QueryHandlerState) -> None:
+    def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:
         next_state_file_bucketfs_path = self._generate_state_file_bucketfs_path(1)
         self.bucketfs_location.upload_object_to_bucketfs_via_joblib(
             current_state, str(next_state_file_bucketfs_path))
@@ -224,7 +224,7 @@ class CreateQueryHandlerUDF:
 
     def _wrap_return_query(self,
                            query_handler_context: ScopeQueryHandlerContext,
-                           return_query: QueryHandlerReturnQuery) \
+                           return_query: ReturnQuery) \
             -> Tuple[str, str]:
         temporary_view = query_handler_context.get_temporary_view()
         # TODO don't misuse TableName
