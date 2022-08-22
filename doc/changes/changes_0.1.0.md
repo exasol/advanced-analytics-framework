@@ -21,6 +21,10 @@
 ### Bug Fixes
 
   - #8: Renamed master branch to main
+
+### Refactoring
+
+ - #42: Updated dependencies
   
 ### Documentation
 
