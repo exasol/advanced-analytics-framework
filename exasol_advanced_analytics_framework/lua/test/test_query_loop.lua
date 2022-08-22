@@ -37,7 +37,79 @@ function concat_list(list1, list2)
     return result
 end
 
-test_query_loop = {}
+test_query_loop = {
+    correct_with_udf = {
+        args = {
+            temporary_output = {
+                bucketfs_location = {
+                    connection_name = "bfs_conn",
+                    directory = "directory"
+                },
+                schema_name = "temp_schema"
+            },
+            query_handler = {
+                class = {
+                    name = "cls_name",
+                    module = "package.module"
+                },
+                udf = {
+                    schema = "UDF_SCHEMA",
+                    name = "UDF_NAME"
+                },
+                parameters = "params"
+            },
+        },
+        query = "SELECT UDF_SCHEMA.UDF_NAME(" ..
+                "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
+                "'cls_name','package.module','params')"
+    },
+    correct_without_udf = {
+        args = {
+            temporary_output = {
+                bucketfs_location = {
+                    connection_name = "bfs_conn",
+                    directory = "directory"
+                },
+                schema_name = "temp_schema"
+            },
+            query_handler = {
+                class = {
+                    name = "cls_name",
+                    module = "package.module"
+                },
+                parameters = "params"
+            },
+        },
+        query = "SELECT script_schema.AAF_QUERY_HANDLER_UDF(" ..
+                "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
+                "'cls_name','package.module','params')"
+    },
+    incorrect_without_class = {
+        args = {
+            query_handler = {
+                class = {
+                    name = "cls_name",
+                    module = "package.module"
+                },
+                parameters = "params"
+            },
+        },
+    },
+    incorrect_without_temporary_output = {
+        args = {
+            temporary_output = {
+                bucketfs_location = {
+                    connection_name = "bfs_conn",
+                    directory = "directory"
+                },
+                schema_name = "temp_schema"
+            },
+            query_handler = {
+                parameters = "params"
+            },
+        },
+    }
+}
 
 function test_query_loop.setUp()
     exa_mock = mockagne.getMock()
@@ -217,6 +289,48 @@ function test_query_loop.test_init_single_iteration_query_error()
     query_loop.init(init_query)
     mock_pquery_verify_queries(exa_mock, { init_query })
     mockagne.verify(exa_mock.error(expected_error, _))
+end
+
+function test_query_loop.test_prepare_init_query_correct_with_udf()
+    local meta = {
+        database_name = "db_name",
+        session_id = "1122334455",
+        statement_id = "1"
+    }
+    local query = query_loop.prepare_init_query(test_query_loop.correct_with_udf.args, meta)
+    luaunit.assertEquals(query, test_query_loop.correct_with_udf.query)
+end
+
+
+function test_query_loop.test_prepare_init_query_correct_without_udf()
+    local meta = {
+        database_name = "db_name",
+        session_id = "1122334455",
+        statement_id = "1",
+        script_schema = "script_schema"
+    }
+    local query = query_loop.prepare_init_query(test_query_loop.correct_without_udf.args, meta)
+    luaunit.assertEquals(query, test_query_loop.correct_without_udf.query)
+end
+
+function test_query_loop.test_prepare_init_query_incorrect_without_class()
+    local meta = {
+        database_name = "db_name",
+        session_id = "1122334455",
+        statement_id = "1",
+        script_schema = "script_schema"
+    }
+    luaunit.assertError(query_loop.prepare_init_query, test_query_loop.incorrect_without_class.args, meta)
+end
+
+function test_query_loop.test_prepare_init_query_incorrect_without_temporary_output()
+    local meta = {
+        database_name = "db_name",
+        session_id = "1122334455",
+        statement_id = "1",
+        script_schema = "script_schema"
+    }
+    luaunit.assertError(query_loop.prepare_init_query, test_query_loop.incorrect_without_temporary_output.args, meta)
 end
 
 os.exit(luaunit.LuaUnit.run())

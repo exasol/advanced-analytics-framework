@@ -1,9 +1,10 @@
-import pyexasol
 import logging
-from jinja2 import Environment, PackageLoader, select_autoescape
+
+import pyexasol
+
 from exasol_advanced_analytics_framework.deployment import constants, utils
-from exasol_advanced_analytics_framework.deployment.bundle_lua_scripts import \
-    BundleLuaScripts
+from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
+    save_aaf_query_loop_lua_script
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class ScriptsDeployer:
             schema: str, language_alias: str, develop: bool):
 
         if develop:
-            BundleLuaScripts.save_statement()
+            save_aaf_query_loop_lua_script()
 
         pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
         scripts_deployer = cls(language_alias, schema, pyexasol_conn)
