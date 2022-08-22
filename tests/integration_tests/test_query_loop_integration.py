@@ -176,12 +176,13 @@ def test_query_loop_integration_with_two_iteration(
     executed_queries = [row[0] for row in audit_logs]
     view_cleanup_query = [query for query in executed_queries if
                           query.startswith(f'DROP VIEW IF EXISTS "{schema_name}"."DB1_')]
+    expected_query_list = {query.query_string for query in QUERY_LIST}
     select_queries_from_query_handler = {query for query in executed_queries
-                                         if query in QUERY_LIST}
+                                         if query in expected_query_list}
     # TODO build an assert which can find a list of regex as a subsequence of a list of strings,
     #  see https://kalnytskyi.com/posts/assert-str-matches-regex-in-pytest/
     # asserts
     assert result[0][0] == str(FINAL_RESULT) \
-           and select_queries_from_query_handler == set(QUERY_LIST) \
+           and select_queries_from_query_handler == expected_query_list \
            and view_cleanup_query, \
         f"Not all required queries where executed {executed_queries}"

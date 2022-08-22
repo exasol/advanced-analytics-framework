@@ -20,6 +20,7 @@ from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name \
 from exasol_data_science_utils_python.preprocessing.sql.schema.table_name \
     import TableName
 
+from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_result.udf_query_result \
     import UDFQueryResult
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
@@ -27,7 +28,7 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.result \
-    import ReturnQuery, Finished, Continue, Result
+    import Finish, Continue, Result
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 
@@ -52,15 +53,15 @@ class QueryHandlerStatus(Enum):
 
 @dataclasses.dataclass
 class UDFResult:
-    return_query_view: Optional[str] = None
-    return_query: Optional[str] = None
+    input_query_view: Optional[str] = None
+    input_query: Optional[str] = None
     final_result = {}
     query_list = []
     cleanup_query_list = []
     status: QueryHandlerStatus = QueryHandlerStatus.CONTINUE
 
 
-class CreateQueryHandlerUDF:
+class QueryHandlerRunnerUDF:
 
     def __init__(self, exa):
         self.exa = exa
@@ -72,10 +73,11 @@ class CreateQueryHandlerUDF:
         self._create_bucketfs_location()
         current_state = self._create_state_or_load_latest_state()
         try:
-            udf_query_result = self._create_udf_query_result(ctx, current_state.query_columns)
-
-            query_handler_result = current_state.query_handler.handle_event(
-                udf_query_result, current_state.top_level_query_handler_context)
+            if self.parameter.iter_num == 0:
+                query_handler_result = current_state.query_handler.start()
+            else:
+                query_result = self._create_udf_query_result(ctx, current_state.input_query_output_columns)
+                query_handler_result = current_state.query_handler.handle_query_result(query_result)
 
             udf_result = self.handle_query_handler_result(query_handler_result, current_state)
             if isinstance(query_handler_result, Continue):
@@ -84,11 +86,10 @@ class CreateQueryHandlerUDF:
                 self._remove_previous_state()
             self.emit_udf_result(ctx, udf_result)
         except Exception as e:
-            self.handle_exception(ctx, current_state, e)
+            self.handle_exception(ctx, current_state)
 
     def handle_exception(self, ctx,
-                         current_state: QueryHandlerRunnerState,
-                         exception: Exception):
+                         current_state: QueryHandlerRunnerState):
         stacktrace = traceback.format_exc()
         logging.exception("Catched exception, starting cleanup.")
         try:
@@ -105,7 +106,7 @@ class CreateQueryHandlerUDF:
     def handle_query_handler_result(self,
                                     query_handler_result: Result,
                                     current_state: QueryHandlerRunnerState):
-        if isinstance(query_handler_result, Finished):
+        if isinstance(query_handler_result, Finish):
             udf_result = self.handle_query_handler_result_finished(current_state, query_handler_result)
         elif isinstance(query_handler_result, Continue):
             udf_result = self.handle_query_handler_result_continue(current_state, query_handler_result)
@@ -118,17 +119,17 @@ class CreateQueryHandlerUDF:
     def handle_query_handler_result_finished(
             self,
             current_state: QueryHandlerRunnerState,
-            query_handler_result: Finished):
+            query_handler_result: Finish):
         udf_result = UDFResult()
-        udf_result.final_result = query_handler_result.final_result
+        udf_result.final_result = query_handler_result.result
         udf_result.status = QueryHandlerStatus.FINISHED
         self.release_query_handler_context(current_state)
         return udf_result
 
     @staticmethod
-    def release_query_handler_context(current_state):
-        if current_state.return_query_query_handler_context is not None:
-            current_state.return_query_query_handler_context.release()
+    def release_query_handler_context(current_state: QueryHandlerRunnerState):
+        if current_state.input_query_query_handler_context is not None:
+            current_state.input_query_query_handler_context.release()
         current_state.top_level_query_handler_context.release()
 
     def handle_query_handler_result_continue(self,
@@ -137,18 +138,18 @@ class CreateQueryHandlerUDF:
         udf_result = UDFResult()
         udf_result.status = QueryHandlerStatus.CONTINUE
         udf_result.query_list = query_handler_result.query_list
-        current_state.query_columns = query_handler_result.return_query.query_columns
+        current_state.input_query_output_columns = query_handler_result.input_query.output_columns
         self.release_and_create_new_return_query_query_handler_context(current_state)
-        udf_result.return_query_view, udf_result.return_query = \
-            self._wrap_return_query(current_state.return_query_query_handler_context,
-                                    query_handler_result.return_query)
+        udf_result.input_query_view, udf_result.input_query = \
+            self._wrap_return_query(current_state.input_query_query_handler_context,
+                                    query_handler_result.input_query)
         return udf_result
 
     @staticmethod
-    def release_and_create_new_return_query_query_handler_context(current_state):
-        if current_state.return_query_query_handler_context is not None:
-            current_state.return_query_query_handler_context.release()
-        current_state.return_query_query_handler_context = \
+    def release_and_create_new_return_query_query_handler_context(current_state: QueryHandlerRunnerState):
+        if current_state.input_query_query_handler_context is not None:
+            current_state.input_query_query_handler_context.release()
+        current_state.input_query_query_handler_context = \
             current_state.top_level_query_handler_context.get_child_query_handler_context()
 
     def _get_parameter(self, ctx):
@@ -193,11 +194,10 @@ class CreateQueryHandlerUDF:
                                               self.parameter.temporary_schema_name)
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_class = getattr(module, self.parameter.python_class_name)
-        query_handler_obj = query_handler_class(self.parameter.parameters)
+        query_handler_obj = query_handler_class(self.parameter.parameters, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
-            query_handler=query_handler_obj,
-            query_columns=dict())
+            query_handler=query_handler_obj)
         return query_handler_state
 
     def _load_latest_state(self):
@@ -224,7 +224,7 @@ class CreateQueryHandlerUDF:
 
     def _wrap_return_query(self,
                            query_handler_context: ScopeQueryHandlerContext,
-                           return_query: ReturnQuery) \
+                           input_query: SelectQueryWithColumnDefinition) \
             -> Tuple[str, str]:
         temporary_view = query_handler_context.get_temporary_view()
         # TODO don't misuse TableName
@@ -232,9 +232,9 @@ class CreateQueryHandlerUDF:
             table_name="AAF_QUERY_HANDLER_UDF",
             schema=SchemaName(self.exa.meta.script_schema)).fully_qualified()
         query_create_view = \
-            f"CREATE VIEW {temporary_view.name().fully_qualified()} AS {return_query.query};"
+            f"CREATE VIEW {temporary_view.name().fully_qualified()} AS {input_query.query_string};"
         full_qualified_columns = [col.name.fully_qualified()
-                                  for col in return_query.query_columns]
+                                  for col in input_query.output_columns]
         call_columns = [
             f"{self.parameter.iter_num + 1}",
             f"'{self.parameter.temporary_bfs_location_conn}'",
@@ -262,11 +262,11 @@ class CreateQueryHandlerUDF:
 
     @staticmethod
     def emit_udf_result(ctx, udf_result: UDFResult):
-        ctx.emit(udf_result.return_query_view)
-        ctx.emit(udf_result.return_query)
+        ctx.emit(udf_result.input_query_view)
+        ctx.emit(udf_result.input_query)
         ctx.emit(str(udf_result.status.name))
         ctx.emit(str(udf_result.final_result))
         for query in udf_result.cleanup_query_list:
-            ctx.emit(query.get_query_str())
+            ctx.emit(query.query_string)
         for query in udf_result.query_list:
-            ctx.emit(query)
+            ctx.emit(query.query_string)

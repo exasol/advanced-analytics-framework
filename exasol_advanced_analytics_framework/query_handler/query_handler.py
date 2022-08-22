@@ -1,24 +1,28 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, TypeVar, Generic, Union
 
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.result \
-    import Result
+    import Result, Continue, Finish
+
+ResultType = TypeVar("ResultType")
+ParameterType = TypeVar("ParameterType")
 
 
-class QueryHandler(ABC):
-    def __init__(self, parameters: Dict[str, Any]):
-        self.parameters = parameters
+class QueryHandler(ABC, Generic[ParameterType, ResultType]):
+
+    def __init__(self,
+                 parameter: ParameterType,
+                 query_handler_context: ScopeQueryHandlerContext):
+        self._query_handler_context = query_handler_context
 
     @abstractmethod
-    def handle_event(
-            self,
-            query_result: QueryResult,
-            query_handler_context: ScopeQueryHandlerContext) \
-            -> Result:
-        raise NotImplementedError
+    def start(self) -> Union[Continue, Finish[ResultType]]:
+        raise NotImplementedError()
 
-    def cleanup(self):
-        pass
+    @abstractmethod
+    def handle_query_result(self, query_result: QueryResult) \
+            -> Union[Continue, Finish[ResultType]]:
+        raise NotImplementedError()

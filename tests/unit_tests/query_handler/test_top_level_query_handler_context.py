@@ -13,7 +13,7 @@ def test_cleanup_invalid_temporary_table_proxies_after_release(
     top_level_query_handler_context.release()
     queries = top_level_query_handler_context.cleanup_released_object_proxies()
     assert len(queries) == 1 and isinstance(queries[0], DropTableQuery) \
-           and queries[0].get_query_str() == f"DROP TABLE IF EXISTS {proxy_name.fully_qualified()};"
+           and queries[0].query_string == f"DROP TABLE IF EXISTS {proxy_name.fully_qualified()};"
 
 
 def test_cleanup_invalid_temporary_view_proxies_after_release(
@@ -23,7 +23,7 @@ def test_cleanup_invalid_temporary_view_proxies_after_release(
     top_level_query_handler_context.release()
     queries = top_level_query_handler_context.cleanup_released_object_proxies()
     assert len(queries) == 1 and isinstance(queries[0], DropViewQuery) \
-           and queries[0].get_query_str() == f"DROP VIEW IF EXISTS {proxy_name.fully_qualified()};"
+           and queries[0].query_string == f"DROP VIEW IF EXISTS {proxy_name.fully_qualified()};"
 
 
 def test_cleanup_invalid_bucketfs_object_proxies_after_release(
@@ -47,7 +47,7 @@ def test_cleanup_release_in_reverse_order_at_top_level(
     table_names = [proxy.name() for proxy in proxies]
     top_level_query_handler_context.release()
     query_objects = top_level_query_handler_context.cleanup_released_object_proxies()
-    actual_queries = [query.get_query_str() for query in query_objects]
+    actual_queries = [query.query_string for query in query_objects]
     expected_queries = [f"DROP TABLE IF EXISTS {table_name.fully_qualified()};"
                         for table_name in reversed(table_names)]
     assert expected_queries == actual_queries
@@ -64,7 +64,7 @@ def test_cleanup_release_in_reverse_order_at_child(
     child_table_names = [proxy.name() for proxy in child_proxies]
     child.release()
     child_query_objects = top_level_query_handler_context.cleanup_released_object_proxies()
-    child_actual_queries = [query.get_query_str() for query in child_query_objects]
+    child_actual_queries = [query.query_string for query in child_query_objects]
     child_expected_queries = [f"DROP TABLE IF EXISTS {table_name.fully_qualified()};"
                               for table_name in reversed(child_table_names)]
 
@@ -72,7 +72,7 @@ def test_cleanup_release_in_reverse_order_at_child(
     parent_table_names = [proxy.name() for proxy in parent_proxies]
     top_level_query_handler_context.release()
     parent_query_objects = top_level_query_handler_context.cleanup_released_object_proxies()
-    parent_actual_queries = [query.get_query_str() for query in parent_query_objects]
+    parent_actual_queries = [query.query_string for query in parent_query_objects]
     parent_expected_queries = [f"DROP TABLE IF EXISTS {table_name.fully_qualified()};"
                                for table_name in reversed(parent_table_names)]
     assert child_expected_queries == child_actual_queries and \

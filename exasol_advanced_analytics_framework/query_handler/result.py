@@ -1,13 +1,8 @@
-from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
-    Column
+from dataclasses import dataclass
+from typing import List, Generic, TypeVar
 
-
-@dataclass()
-class ReturnQuery:
-    query: str
-    query_columns: List[Column]
+from exasol_advanced_analytics_framework.query_handler.query.query import Query
+from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 
 
 @dataclass()
@@ -17,10 +12,13 @@ class Result:
 
 @dataclass()
 class Continue(Result):
-    query_list: List[str]
-    return_query: Optional[ReturnQuery]
+    query_list: List[Query]
+    input_query: SelectQueryWithColumnDefinition
+
+
+T = TypeVar("T")
 
 
 @dataclass()
-class Finished(Result):
-    final_result: Dict[str, Any]
+class Finish(Generic[T], Result):
+    result: T
