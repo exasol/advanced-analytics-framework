@@ -28,13 +28,13 @@ class LuaScriptBundle:
             self.copy_lua_source_files(tmp_dir)
             self.run_lua_amlg(tmp_dir, output_buffer)
 
+import shutil
+
     def copy_lua_source_files(self, tmp_dir: Path):
-        for lua_src_file in self.lua_source_files + [self.lua_main_file]:
-            src_data = lua_src_file.read_text()
-            target_file = tmp_dir / lua_src_file.name
-            with open(target_file, "w") as file:
-                file.write(src_data)
-                logger.debug(f"Copy {lua_src_file} to {tmp_dir}")
+        for src in self.lua_source_files + [self.lua_main_file]:
+            dst = tmp_dir / src.name
+            logger.debug(f"Copy {src} to {tmp_dir}")
+            shutil.copy(src, dst)
 
     def run_lua_amlg(self, tmp_dir: Path, output_buffer: IO):
         output_file = tmp_dir / f"bundle_{time.time()}.lua"
