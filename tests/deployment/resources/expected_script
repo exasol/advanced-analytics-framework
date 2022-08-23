@@ -1,0 +1,26 @@
+CREATE OR REPLACE LUA SCRIPT "TEST"(json_str) RETURNS TABLE AS
+
+do
+local _ENV = _ENV
+package.preload[ "test_module_1" ] = function( ... ) local arg = _G.arg;
+local M = {
+}
+
+function M.run()
+    return "TEST_OUTPUT"
+end
+
+return M;
+end
+end
+
+local test_module_1 = require("test_module_1")
+
+function main()
+    local return_result = test_module_1.run()
+    return return_result
+end
+
+print(main())
+
+/

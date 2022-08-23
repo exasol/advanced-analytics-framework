@@ -1,6 +1,9 @@
 import logging
-from exasol_advanced_analytics_framework.deployment.bundle_lua_scripts import \
-    BundleLuaScripts
+
+from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
+    save_aaf_query_loop_lua_script
+from exasol_advanced_analytics_framework.deployment.lua_script_bundle import \
+    LuaScriptBundle
 
 
 def generate_scripts():
@@ -11,7 +14,7 @@ def generate_scripts():
         format='%(asctime)s - %(module)s  - %(message)s',
         level=logging.DEBUG)
 
-    BundleLuaScripts.save_statement()
+    save_aaf_query_loop_lua_script()
 
 
 if __name__ == "__main__":
