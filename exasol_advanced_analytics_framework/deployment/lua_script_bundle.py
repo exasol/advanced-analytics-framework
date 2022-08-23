@@ -28,8 +28,6 @@ class LuaScriptBundle:
             self.copy_lua_source_files(tmp_dir)
             self.run_lua_amlg(tmp_dir, output_buffer)
 
-import shutil
-
     def copy_lua_source_files(self, tmp_dir: Path):
         for src in self.lua_source_files + [self.lua_main_file]:
             dst = tmp_dir / src.name
