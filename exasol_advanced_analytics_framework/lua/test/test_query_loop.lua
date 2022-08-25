@@ -275,7 +275,10 @@ function test_query_loop.test_init_single_iteration_error_with_cleanup()
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local error_message = "Error Message"
-    local expected_error = [[E-AAF-4: Error occurred during running the QueryHandlerUDF: 'Error Message']]
+    local expected_error = [[E-AAF-4: Error occurred while calling the query handler.
+Call-Query: 'SELECT AAF_QUERY_HANDLER_UDF(0)'
+Input-View: 'Not used'
+Error Message: 'Error Message']]
     local init_query_result = {
         { nil },
         { nil },

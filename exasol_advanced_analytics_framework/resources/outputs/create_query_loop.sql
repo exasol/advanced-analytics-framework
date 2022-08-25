@@ -520,6 +520,25 @@ function M.prepare_init_query(arguments, meta)
     return query
 end
 
+local FIRST_COLUMN_INDEX <const> = 1
+
+function _handle_query_error(query, result, exa_env)
+    -- TODO cleanup after query error
+    local error_obj <const> = ExaError:new(
+            "E-AAF-3",
+            "Error occurred while executing the query {{query}}, got error message {{error_message}}",
+            {
+                query = { value = query, description = "Query which failed" },
+                error_message = { value = result.error_message,
+                                  description = "Error message received from the database" }
+            },
+            {
+                "Check the query for syntax errors.",
+                "Check if the referenced database objects exist."
+            }
+    )
+    exa_env.functions.error(tostring(error_obj))
+end
 
 ---
 -- Executes the given set of queries.
@@ -533,29 +552,79 @@ function M._run_queries(queries, from_index, exa_env)
     local success
     local result
     for i = from_index, #queries do
-        local query = queries[i][1]
+        local query = queries[i][FIRST_COLUMN_INDEX]
         if query ~= nil then
             success, result = exa_env.functions.pquery(query)
             if not success then
-                -- TODO cleanup after query error
-                local error_obj <const> = ExaError:new(
-                        "E-AAF-3",
-                        "Error occurred while executing the query {{query}}, got error message {{error_message}}",
-                        {
-                            query = { value = query, description = "Query which failed" },
-                            error_message = { value = result.error_message,
-                                              description = "Error message received from the database" }
-                        },
-                        {
-                            "Check the query for syntax errors.",
-                            "Check if the referenced database objects exist."
-                        }
-                )
-                exa_env.functions.error(tostring(error_obj))
+                _handle_query_error(query, result, exa_env)
             end
         end
     end
     return result
+end
+
+function _call_query_handler(input_view_query, call_query, exa_env)
+    local start_row_index <const> = 1
+    local call_queries <const> = {
+        { input_view_query },
+        { call_query }
+    }
+    local result <const> = M._run_queries(
+            call_queries,
+            start_row_index,
+            exa_env)
+    return result
+end
+
+function _handle_query_handler_call_result(call_result, exa_env)
+    local input_view_query_row_index <const> = 1
+    local call_query_row_index <const> = 2
+    local status_row_index <const> = 3
+    local final_result_or_error_row_index <const> = 4
+    local returned_queries_start_row_index <const> = 5
+    local input_view_query <const> = call_result[input_view_query_row_index][FIRST_COLUMN_INDEX]
+    local call_query <const> = call_result[call_query_row_index][FIRST_COLUMN_INDEX]
+    local status <const> = call_result[status_row_index][FIRST_COLUMN_INDEX]
+    local final_result_or_error <const> = call_result[final_result_or_error_row_index][FIRST_COLUMN_INDEX]
+    M._run_queries(call_result, returned_queries_start_row_index, exa_env)
+    local state <const> = {
+        input_view_query = input_view_query,
+        call_query = call_query,
+        status = status,
+        final_result_or_error = final_result_or_error
+    }
+    return state
+end
+
+function _run_query_handler_iteration(old_state, exa_env)
+    local call_result <const> = _call_query_handler(
+            old_state.input_view_query,
+            old_state.call_query,
+            exa_env)
+    local new_state <const> = _handle_query_handler_call_result(call_result, exa_env)
+    return new_state
+end
+
+function _handle_query_handler_error(new_state, old_state, exa_env)
+    local input_view = old_state.input_view_query
+    if old_state.input_view_query == nil then
+        input_view = "Not used"
+    end
+    local error_obj <const> = ExaError:new(
+            "E-AAF-4",
+            [[Error occurred while calling the query handler.
+Call-Query: {{call_query}}
+Input-View: {{input_view}}
+Error Message: {{error_message}}]],
+            {
+                call_query = { value = old_state.call_query,
+                               description = "Query which was used to call the QueryHandler" },
+                input_view = { value = input_view,
+                               description = "View used as input for the Call-Query" },
+                error_message = { value = new_state.final_result_or_error,
+                                  description = "Error message returned by the QueryHandlerUDF" } }
+    )
+    exa_env.functions.error(tostring(error_obj))
 end
 
 ---
@@ -563,32 +632,20 @@ end
 --
 -- @param query string that calls the query handler
 --
-function M.run(query_to_query_handler, exa_env)
-    local status = false
-    local final_result_or_error
-    local query_to_create_view
+function M.run(init_call_query, exa_env)
+    local new_state = {
+        input_view_query = nil,
+        call_query = init_call_query
+    }
+    local old_state = new_state
     repeat
-        -- call QueryHandlerUDF return queries
-        local return_queries = { { query_to_create_view }, { query_to_query_handler } }
-        local result = M._run_queries(return_queries, 1, exa_env)
-
-        -- handle QueryHandlerUDF return
-        query_to_create_view = result[1][1]
-        query_to_query_handler = result[2][1]
-        status = result[3][1]
-        final_result_or_error = result[4][1]
-        M._run_queries(result, 5, exa_env)
-    until (status ~= 'CONTINUE')
-    if status == 'ERROR' then
-        local error_obj <const> = ExaError:new(
-                "E-AAF-4",
-                "Error occurred during running the QueryHandlerUDF: {{error_message}}",
-                { error_message = { value = final_result_or_error,
-                                    description = "Error message returned by the QueryHandlerUDF" } }
-        )
-        exa_env.functions.error(tostring(error_obj))
+        old_state = new_state
+        new_state = _run_query_handler_iteration(old_state, exa_env)
+    until (new_state.status ~= 'CONTINUE')
+    if new_state.status == 'ERROR' then
+        _handle_query_handler_error(new_state, old_state, exa_env)
     end
-    return final_result_or_error
+    return new_state.final_result_or_error
 end
 
 return M;
