@@ -56,18 +56,18 @@ function test_query_handler_runner.test_query_handler_runner()
             }
         }
     end
-    exa = {
+    local exa = {
         meta = {
-            script_schema_name = "test_schema",
+            script_schema = "test_schema",
             database_name = "db_name",
             session_id = "1122334455",
             statement_id = "1"
         }
     }
-    json_str = json.encode(test_query_handler_runner.correct_with_udf.args)
-    actual_result, actual_column_definition = query_handler_runner.run(json_str, exa)
-    expected_result = { { test_query_handler_runner.correct_with_udf.query_handler_result } }
-    expected_column_definition = "result_column VARCHAR(2000000)"
+    local json_str = json.encode(test_query_handler_runner.correct_with_udf.args)
+    local actual_result, actual_column_definition = query_handler_runner.run(json_str, exa)
+    local expected_result = { { test_query_handler_runner.correct_with_udf.query_handler_result } }
+    local expected_column_definition = "result_column VARCHAR(2000000)"
     luaunit.assertEquals(actual_result, expected_result)
     luaunit.assertEquals(actual_column_definition, expected_column_definition)
 end

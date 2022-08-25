@@ -79,10 +79,12 @@ end
 -- @return  the result of the latest query
 --
 function M._run_queries(queries, from_index, exa_env)
+    local success
+    local result
     for i = from_index, #queries do
         local query = queries[i][1]
         if query ~= nil then
-            success, actual_result = exa_env.functions.pquery(query)
+            success, result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
                 local error_obj = exa_error.create(
@@ -90,12 +92,12 @@ function M._run_queries(queries, from_index, exa_env)
                         "Error occurred in executing the query: "
                                 .. query
                                 .. " error message: "
-                                .. actual_result.error_message)
+                                .. result.error_message)
                 exa_env.functions.error(tostring(error_obj))
             end
         end
     end
-    return actual_result
+    return result
 end
 
 ---

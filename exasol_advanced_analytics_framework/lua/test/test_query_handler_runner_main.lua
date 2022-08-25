@@ -14,7 +14,6 @@ function test_query_handler_runner_main.test_query_handler_runner()
     actual_result = query_handler_runner_main(json_str, exa)
     mockagne.verify(query_handler_runner.run(json_str, exa))
     luaunit.assertEquals(actual_result, expected_result)
-
 end
 
 os.exit(luaunit.LuaUnit.run())
