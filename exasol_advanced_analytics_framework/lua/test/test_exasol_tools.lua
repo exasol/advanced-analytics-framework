@@ -1,4 +1,4 @@
-local json = require('cjson')
+local json = require("cjson")
 local luaunit = require("luaunit")
 local exasol_script_tools = require("exasol_script_tools")
 local mockagne = require("mockagne")
