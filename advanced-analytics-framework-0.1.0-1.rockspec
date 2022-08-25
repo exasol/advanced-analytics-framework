@@ -23,8 +23,10 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
+      ["exasol_advanced_analytics_framework.lua.src.exasol_script_tools"] = "exasol_advanced_analytics_framework/lua/src/exasol_script_tools.lua",
       ["exasol_advanced_analytics_framework.lua.src.query_loop"] = "exasol_advanced_analytics_framework/lua/src/query_loop.lua",
-      ["exasol_advanced_analytics_framework.lua.src.main"] = "exasol_advanced_analytics_framework/lua/src/main.lua"
+      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner_main"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner_main.lua"
+      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner.lua"
    },
    copy_directories = {
       "doc",

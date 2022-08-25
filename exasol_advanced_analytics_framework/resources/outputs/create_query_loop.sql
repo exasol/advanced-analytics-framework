@@ -1,4 +1,4 @@
-CREATE OR REPLACE LUA SCRIPT "AAF_QUERY_LOOP"(json_str) RETURNS TABLE AS
+CREATE OR REPLACE LUA SCRIPT "AAF_RUN_QUERY_HANDLER"(json_str) RETURNS TABLE AS
     table.insert(_G.package.searchers,
         function (module_name)
             local loader = package.preload[module_name]
@@ -236,6 +236,68 @@ end
 
 do
 local _ENV = _ENV
+package.preload[ "exasol_script_tools" ] = function( ... ) local arg = _G.arg;
+---
+-- @module exa_script_tools
+--
+-- This module contains utilities for Lua Scripts in Exasol
+--
+
+local M = {
+}
+
+local exaerror = require("exaerror")
+local json = require('cjson')
+
+---
+-- Extend exa-object with the global functions available in Lua Scripts
+--
+-- @param exa exa-object available inside of Lua Scripts
+--
+-- @return lua table including meta and functions
+--
+function M.create_exa_env(exa)
+    local exa_env = {
+        meta = exa.meta,
+        functions = {
+            pquery = pquery,
+            query = query,
+            error = error
+        }
+    }
+    return exa_env
+end
+
+---
+-- Parse a given arguments in json string format.
+--
+-- @param json_str input parameters as json string
+--
+-- @return lua table including parameters
+--
+function M.parse_arguments(json_str, exa_env)
+    local success, args = pcall(json.decode, json_str)
+    if not success then
+        local error_obj = exaerror.create(
+                "E-AAF-1",
+                "It could not be converted to json object"
+        )                         :add_mitigations("Check syntax of the input string json is correct")
+        exa_env.functions.error(tostring(error_obj))
+    end
+    return args
+end
+
+function M.wrap_result(result)
+    local return_result = { { result } }
+    return return_result, "result_column VARCHAR(2000000)"
+end
+
+return M
+end
+end
+
+do
+local _ENV = _ENV
 package.preload[ "message_expander" ] = function( ... ) local arg = _G.arg;
 ---
 -- This module provides a parser for messages with named parameters and can expand the message using the parameter
@@ -421,6 +483,32 @@ end
 
 do
 local _ENV = _ENV
+package.preload[ "query_handler_runner" ] = function( ... ) local arg = _G.arg;
+---
+-- @module query_handler_runner
+--
+-- This modules includes the run function of the Query Loop
+--
+
+M = {
+    _query_loop = require("query_loop"),
+    _exasol_script_tools = require("exasol_script_tools")
+}
+
+function M.run(json_str, exa)
+    local exa_env = M._exasol_script_tools.create_exa_env(exa)
+    local args = M._exasol_script_tools.parse_arguments(json_str)
+    local init_query = M._query_loop.prepare_init_query(args, exa_env.meta)
+    local result = M._query_loop.run(init_query, exa_env)
+    return M._exasol_script_tools.wrap_result(result)
+end
+
+return M
+end
+end
+
+do
+local _ENV = _ENV
 package.preload[ "query_loop" ] = function( ... ) local arg = _G.arg;
 ---
 -- @module query_loop
@@ -431,11 +519,6 @@ package.preload[ "query_loop" ] = function( ... ) local arg = _G.arg;
 local M = {
 }
 local exa_error = require("exaerror")
-
-_G.global_env = {
-    pquery = pquery,
-    error = error
-}
 
 function _handle_default_arguments(args, meta)
     local query_handler = args["query_handler"]
@@ -507,11 +590,11 @@ end
 --
 -- @return  the result of the latest query
 --
-function M._run_queries(queries, from_index)
+function M._run_queries(queries, from_index, exa_env)
     for i = from_index, #queries do
         local query = queries[i][1]
         if query ~= nil then
-            success, result = _G.global_env.pquery(query)
+            success, actual_result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
                 local error_obj = exa_error.create(
@@ -519,12 +602,12 @@ function M._run_queries(queries, from_index)
                         "Error occurred in executing the query: "
                                 .. query
                                 .. " error message: "
-                                .. result.error_message)
-                _G.global_env.error(tostring(error_obj))
+                                .. actual_result.error_message)
+                exa_env.functions.error(tostring(error_obj))
             end
         end
     end
-    return result
+    return actual_result
 end
 
 ---
@@ -532,28 +615,28 @@ end
 --
 -- @param query string that calls the query handler
 --
-function M.init(query_to_query_handler)
+function M.run(query_to_query_handler, exa_env)
     local status = false
     local final_result_or_error
     local query_to_create_view
     repeat
         -- call QueryHandlerUDF return queries
         local return_queries = { { query_to_create_view }, { query_to_query_handler } }
-        local result = M._run_queries(return_queries, 1)
+        local result = M._run_queries(return_queries, 1, exa_env)
 
         -- handle QueryHandlerUDF return
         query_to_create_view = result[1][1]
         query_to_query_handler = result[2][1]
         status = result[3][1]
         final_result_or_error = result[4][1]
-        M._run_queries(result, 5)
+        M._run_queries(result, 5, exa_env)
     until (status ~= 'CONTINUE')
     if status == 'ERROR' then
         local error_obj = exa_error.create(
                 "E-AAF-4",
                 "Error occurred during running the QueryHandlerUDF: "
                         .. final_result_or_error)
-        _G.global_env.error(tostring(error_obj))
+        exa_env.functions.error(tostring(error_obj))
     end
     return final_result_or_error
 end
@@ -568,48 +651,19 @@ end
 -- This script includes the main function of the Query Loop
 --
 
-
-local exaerror = require("exaerror")
-local query_loop = require("query_loop")
-local json = require('cjson')
-
-
----
--- Parse a given arguments in json string format.
---
--- @param json_str input parameters as json string
---
--- @return lua table including parameters
---
-function _parse_arguments(json_str)
-    local success, args = pcall(json.decode, json_str)
-    if not success then
-        local error_obj = exaerror.create(
-                "E-AAF-1",
-                "It could not be converted to json object"
-        )                         :add_mitigations("Check syntax of the input string json is correct")
-        _G.global_env.error(tostring(error_obj))
-    end
-    return args
-end
-
+query_handler_runner = require("query_handler_runner")
 ---
 -- This is the main function of the Query Loop
 --
 -- @param json_str	input parameters as json string
+-- @param exa	the exa object of the Lua script
 --
-function main(json_str, meta)
-    local args = _parse_arguments(json_str)
-    local init_query = query_loop.prepare_init_query(args, meta)
-    local result = query_loop.init(init_query)
-
-    local return_result = {}
-    return_result[#return_result + 1] = { result }
-    return return_result, "result_column varchar(1000000)"
+function query_handler_runner_main(json_str, exa)
+    return query_handler_runner.run(json_str, exa)
 end
 
 
 
-return main(json_str, exa.meta)
+return query_handler_runner_main(json_str, exa)
 
 /

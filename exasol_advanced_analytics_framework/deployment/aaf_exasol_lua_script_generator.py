@@ -11,12 +11,16 @@ def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
         constants.BASE_DIR)
     lua_src_dir = base_dir.joinpath("lua/src")
     lua_source_files = [
-        lua_src_dir.joinpath("query_loop_main.lua"),
-        lua_src_dir.joinpath("query_loop.lua")
+        lua_src_dir.joinpath("query_handler_runner_main.lua"),
+        lua_src_dir.joinpath("query_handler_runner.lua"),
+        lua_src_dir.joinpath("query_loop.lua"),
+        lua_src_dir.joinpath("exasol_script_tools.lua")
     ]
-    lua_main_file = lua_src_dir.joinpath("query_loop_main.lua")
+    lua_main_file = lua_src_dir.joinpath("query_handler_runner_main.lua")
     lua_modules = [
         "query_loop",
+        "query_handler_runner",
+        "exasol_script_tools",
         "exaerror",
         "message_expander"
     ]
