@@ -6,7 +6,7 @@
 
 local M = {
 }
-local exa_error = require("exaerror")
+local exaerror = require("exaerror")
 
 function _handle_default_arguments(args, meta)
     local query_handler = args["query_handler"]
@@ -87,12 +87,19 @@ function M._run_queries(queries, from_index, exa_env)
             success, result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
-                local error_obj = exa_error.create(
-                        "E-AAF-3",
-                        "Error occurred in executing the query: "
-                                .. query
-                                .. " error message: "
-                                .. result.error_message)
+                local error_obj = exaerror:new({
+                    code = "E-AAF-3",
+                    message = "Error occurred while executing the query {{query}}, got error message {{error_message}}",
+                    parameters = {
+                        query = { value = query, description = "Query which failed" },
+                        error_message = { value = result.error_message,
+                                          description = "Error message received from the database" }
+                    },
+                    mitigations = {
+                        "Check the query for syntax errors.",
+                        "Check if the referenced database objects exist."
+                    }
+                })
                 exa_env.functions.error(tostring(error_obj))
             end
         end
@@ -122,10 +129,12 @@ function M.run(query_to_query_handler, exa_env)
         M._run_queries(result, 5, exa_env)
     until (status ~= 'CONTINUE')
     if status == 'ERROR' then
-        local error_obj = exa_error.create(
-                "E-AAF-4",
-                "Error occurred during running the QueryHandlerUDF: "
-                        .. final_result_or_error)
+        local error_obj = exaerror:new({
+            code = "E-AAF-4",
+            message = "Error occurred during running the QueryHandlerUDF: {{error_message}}",
+            parameters = { error_message = { value = final_result_or_error,
+                                             description = "Error message returned by the QueryHandlerUDF" } }
+        })
         exa_env.functions.error(tostring(error_obj))
     end
     return final_result_or_error

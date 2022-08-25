@@ -12,6 +12,9 @@ local json = require("cjson")
 
 ---
 -- Extend `exa-object` with the global functions available in Lua Scripts.
+-- See Exasol Scripting: https://docs.exasol.com/db/latest/database_concepts/scripting/db_interaction.htm
+-- We provide this function such that implementers of a main function can encapsulate the global objects
+-- and properly inject them into modules.
 --
 -- @param exa exa-object available inside of Lua Scripts
 --
@@ -20,6 +23,7 @@ local json = require("cjson")
 function M.create_exa_env(exa)
     local exa_env = {
         meta = exa.meta,
+        -- We put the global functions into a subtable, such that we can replace the subtable with a mock
         functions = {
             pquery = pquery,
             query = query,
@@ -39,15 +43,24 @@ end
 function M.parse_arguments(json_str, exa_env)
     local success, args = pcall(json.decode, json_str)
     if not success then
-        local error_obj = exaerror.create("E-AAF-1",
-                "Arguments could not be converted from JSON object to Lua table: {{raw-json}}")
-                         :parameters("raw-json", json_str, "raw JSON object")
-                         :add_mitigations("Check syntax of the input string JSON is correct")
-        exa_env.functions.error(error_obj)
+        local error_obj = exaerror:new({
+            code = "E-AAF-1",
+            message = "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
+            parameters = { raw_json = { value = json_str, description = "raw JSON object" } },
+            mitigations = { "Check syntax of the input string JSON is correct" }
+        })
+        exa_env.functions.error(tostring(error_obj))
     end
     return args
 end
 
+---
+-- Encapsulates the result of a QueryHandler such that it can be returns from a Exasol Lua Script
+--
+-- @param result A string containing the result of the QueryHandler
+--
+-- @return A tuple of a table with a single row and one column and the SQL column definition for it
+--
 function M.wrap_result(result)
     local return_result = { { result } }
     return return_result, "result_column VARCHAR(2000000)"

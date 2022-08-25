@@ -275,7 +275,7 @@ function test_query_loop.test_init_single_iteration_error_with_cleanup()
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local error_message = "Error Message"
-    local expected_error = "E-AAF-4: Error occurred during running the QueryHandlerUDF: " .. error_message
+    local expected_error = [[E-AAF-4: Error occurred during running the QueryHandlerUDF: 'Error Message']]
     local init_query_result = {
         { nil },
         { nil },
@@ -299,8 +299,13 @@ function test_query_loop.test_init_single_iteration_query_error()
     }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local error_message = "Error Message"
-    local expected_error = "E-AAF-3: Error occurred in executing the query: " ..
-            "SELECT AAF_QUERY_HANDLER_UDF(0) error message: " .. error_message
+    local expected_error =
+[[E-AAF-3: Error occurred while executing the query 'SELECT AAF_QUERY_HANDLER_UDF(0)', got error message 'Error Message'
+
+Mitigations:
+
+* Check the query for syntax errors.
+* Check if the referenced database objects exist.]]
     local init_query_result = {
         { nil },
         { nil },

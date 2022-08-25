@@ -43,11 +43,12 @@ function test_exasol_script_tools.test_parse_arguments_query_incorrect_json()
     }
     local json_str = [[{ "abc ": "bc", "cde"}]]
     exasol_script_tools.parse_arguments(json_str, exa_env)
-    local expected_error = [[E-AAF-1: It could not be converted to json object
+    local expected_error =
+    [[E-AAF-1: Arguments could not be converted from JSON object to Lua table: '{ "abc ": "bc", "cde"}'
 
 Mitigations:
 
-* Check syntax of the input string json is correct]]
+* Check syntax of the input string JSON is correct]]
     mockagne.verify(functions_mock.error(expected_error))
 end
 
@@ -59,6 +60,5 @@ function test_exasol_script_tools.test_wrap_result()
     luaunit.assertEquals(actual_result, expected_result)
     luaunit.assertEquals(actual_column_definition, expected_column_definition)
 end
-
 
 os.exit(luaunit.LuaUnit.run())
