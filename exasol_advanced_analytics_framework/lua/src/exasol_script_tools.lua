@@ -21,7 +21,7 @@ local json = require("cjson")
 -- @return lua table including meta and functions
 --
 function M.create_exa_env(exa)
-    local exa_env = {
+    local exa_env <const> = {
         meta = exa.meta,
         -- We put the global functions into a subtable, such that we can replace the subtable with a mock
         functions = {
@@ -43,7 +43,7 @@ end
 function M.parse_arguments(json_str, exa_env)
     local success, args = pcall(json.decode, json_str)
     if not success then
-        local error_obj = ExaError:new(
+        local error_obj <const> = ExaError:new(
                 "E-AAF-1",
                 "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
                 { raw_json = { value = json_str, description = "raw JSON object" } },
@@ -62,7 +62,7 @@ end
 -- @return A tuple of a table with a single row and one column and the SQL column definition for it
 --
 function M.wrap_result(result)
-    local return_result = { { result } }
+    local return_result <const> = { { result } }
     return return_result, "result_column VARCHAR(2000000)"
 end
 

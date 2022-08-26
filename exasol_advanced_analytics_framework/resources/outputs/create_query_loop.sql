@@ -369,7 +369,7 @@ local json = require("cjson")
 -- @return lua table including meta and functions
 --
 function M.create_exa_env(exa)
-    local exa_env = {
+    local exa_env <const> = {
         meta = exa.meta,
         -- We put the global functions into a subtable, such that we can replace the subtable with a mock
         functions = {
@@ -391,7 +391,7 @@ end
 function M.parse_arguments(json_str, exa_env)
     local success, args = pcall(json.decode, json_str)
     if not success then
-        local error_obj = ExaError:new(
+        local error_obj <const> = ExaError:new(
                 "E-AAF-1",
                 "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
                 { raw_json = { value = json_str, description = "raw JSON object" } },
@@ -410,7 +410,7 @@ end
 -- @return A tuple of a table with a single row and one column and the SQL column definition for it
 --
 function M.wrap_result(result)
-    local return_result = { { result } }
+    local return_result <const> = { { result } }
     return return_result, "result_column VARCHAR(2000000)"
 end
 
@@ -433,10 +433,10 @@ M = {
 }
 
 function M.run(json_str, exa)
-    local exa_env = M._exasol_script_tools.create_exa_env(exa)
-    local args = M._exasol_script_tools.parse_arguments(json_str)
-    local init_query = M._query_loop.prepare_init_query(args, exa_env.meta)
-    local result = M._query_loop.run(init_query, exa_env)
+    local exa_env <const> = M._exasol_script_tools.create_exa_env(exa)
+    local args <const> = M._exasol_script_tools.parse_arguments(json_str)
+    local init_query <const> = M._query_loop.prepare_init_query(args, exa_env.meta)
+    local result <const> = M._query_loop.run(init_query, exa_env)
     return M._exasol_script_tools.wrap_result(result)
 end
 
@@ -457,20 +457,20 @@ local M = {
 }
 local ExaError = require("ExaError")
 
-function _handle_default_arguments(args, meta)
-    local query_handler = args["query_handler"]
+function _handle_default_arguments(arguments, meta)
+    local query_handler = arguments["query_handler"]
     if query_handler['udf'] == nil then
-        local script_schema = meta.script_schema
+        local script_schema <const> = meta.script_schema
         query_handler['udf'] = { schema = script_schema, name = 'AAF_QUERY_HANDLER_UDF' }
     end
-    return args
+    return arguments
 end
 
 function _generate_temporary_name_prefix(meta)
-    local database_name = meta.database_name
-    local session_id = tostring(meta.session_id)
-    local statement_id = tostring(meta.statement_id)
-    local temporary_name = database_name .. '_' .. session_id .. '_' .. statement_id
+    local database_name <const> = meta.database_name
+    local session_id <const> = tostring(meta.session_id)
+    local statement_id <const> = tostring(meta.statement_id)
+    local temporary_name <const> = database_name .. '_' .. session_id .. '_' .. statement_id
     return temporary_name
 end
 
@@ -482,30 +482,30 @@ end
 --
 -- @return query string that calls the query handler
 --
-function M.prepare_init_query(args, meta)
-    args = _handle_default_arguments(args, meta)
+function M.prepare_init_query(arguments, meta)
+    local arguments_with_defaults <const> = _handle_default_arguments(arguments, meta)
 
-    local iter_num = 0
+    local iter_num <const> = 0
 
-    local temporary_output = args['temporary_output']
-    local temporary_bucketfs_location = temporary_output['bucketfs_location']
-    local temporary_bfs_location_conn = temporary_bucketfs_location['connection_name']
-    local temporary_bfs_location_directory = temporary_bucketfs_location['directory']
-    local temporary_schema_name = temporary_output['schema_name']
-    local temporary_name_prefix = _generate_temporary_name_prefix(meta)
+    local temporary_output <const> = arguments_with_defaults['temporary_output']
+    local temporary_bucketfs_location <const> = temporary_output['bucketfs_location']
+    local temporary_bfs_location_conn <const> = temporary_bucketfs_location['connection_name']
+    local temporary_bfs_location_directory <const> = temporary_bucketfs_location['directory']
+    local temporary_schema_name <const> = temporary_output['schema_name']
+    local temporary_name_prefix <const> = _generate_temporary_name_prefix(meta)
 
-    local query_handler = args['query_handler']
-    local params = query_handler['parameters']
-    local python_class = query_handler["class"]
-    local python_class_module = python_class['module']
-    local python_class_name = python_class['name']
+    local query_handler <const> = arguments_with_defaults['query_handler']
+    local params <const> = query_handler['parameters']
+    local python_class <const> = query_handler["class"]
+    local python_class_module <const> = python_class['module']
+    local python_class_name <const> = python_class['name']
 
-    local udf = query_handler['udf']
-    local udf_schema = udf['schema']
-    local udf_name = udf['name']
+    local udf <const> = query_handler['udf']
+    local udf_schema <const> = udf['schema']
+    local udf_name <const> = udf['name']
 
-    local full_qualified_udf_name = string.format("%s.%s", udf_schema, udf_name)
-    local udf_args = string.format("(%d,'%s','%s','%s','%s','%s','%s','%s')",
+    local full_qualified_udf_name <const> = string.format("%s.%s", udf_schema, udf_name)
+    local udf_args <const> = string.format("(%d,'%s','%s','%s','%s','%s','%s','%s')",
             iter_num,
             temporary_bfs_location_conn,
             temporary_bfs_location_directory,
@@ -514,7 +514,7 @@ function M.prepare_init_query(args, meta)
             python_class_name,
             python_class_module,
             params)
-    local query = string.format("SELECT %s%s", full_qualified_udf_name, udf_args)
+    local query <const> = string.format("SELECT %s%s", full_qualified_udf_name, udf_args)
     return query
 end
 
@@ -536,7 +536,7 @@ function M._run_queries(queries, from_index, exa_env)
             success, result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
-                local error_obj = ExaError:new(
+                local error_obj <const> = ExaError:new(
                         "E-AAF-3",
                         "Error occurred while executing the query {{query}}, got error message {{error_message}}",
                         {
