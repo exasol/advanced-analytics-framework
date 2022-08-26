@@ -27,7 +27,7 @@ jobs:
       run: ./scripts/install_lua_environment.sh
 
     - name: Run packaging update
-      run: ./scripts/run_in_conda.sh githooks/pre-commit
+      run: bash ./githooks/pre-commit
 
     - name: Show changes on working copy
       run: git status --porcelain=v1 -uno

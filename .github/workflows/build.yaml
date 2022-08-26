@@ -28,7 +28,7 @@ jobs:
         run: ./scripts/install_lua_environment.sh
 
       - name: Run Lua unit tests and static code analyzer
-        run: ./scripts/run_in_conda.sh ./scripts/lua-tests.sh
+        run: ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
 
       - name: Build language container
         run: ./build_language_container.sh
