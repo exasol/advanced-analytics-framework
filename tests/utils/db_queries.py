@@ -2,7 +2,7 @@ from typing import List
 
 deployed_script_list = [
     "AAF_QUERY_HANDLER_UDF",
-    "AAF_QUERY_LOOP"
+    "AAF_RUN_QUERY_HANDLER"
 ]
 
 

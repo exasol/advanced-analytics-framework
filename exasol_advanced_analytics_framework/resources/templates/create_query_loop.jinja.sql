@@ -1,4 +1,4 @@
-CREATE OR REPLACE LUA SCRIPT "AAF_QUERY_LOOP"(json_str) RETURNS TABLE AS
+CREATE OR REPLACE LUA SCRIPT "AAF_RUN_QUERY_HANDLER"(json_str) RETURNS TABLE AS
     table.insert(_G.package.searchers,
         function (module_name)
             local loader = package.preload[module_name]
@@ -12,7 +12,7 @@ CREATE OR REPLACE LUA SCRIPT "AAF_QUERY_LOOP"(json_str) RETURNS TABLE AS
 
 {{ bundled_script }}
 
-return main(json_str, exa.meta)
+return query_handler_runner_main(json_str, exa)
 
 /
 

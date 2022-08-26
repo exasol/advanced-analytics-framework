@@ -6,12 +6,7 @@
 
 local M = {
 }
-local exa_error = require("exaerror")
-
-_G.global_env = {
-    pquery = pquery,
-    error = error
-}
+local exaerror = require("exaerror")
 
 function _handle_default_arguments(args, meta)
     local query_handler = args["query_handler"]
@@ -83,20 +78,29 @@ end
 --
 -- @return  the result of the latest query
 --
-function M._run_queries(queries, from_index)
+function M._run_queries(queries, from_index, exa_env)
+    local success
+    local result
     for i = from_index, #queries do
         local query = queries[i][1]
         if query ~= nil then
-            success, result = _G.global_env.pquery(query)
+            success, result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
-                local error_obj = exa_error.create(
-                        "E-AAF-3",
-                        "Error occurred in executing the query: "
-                                .. query
-                                .. " error message: "
-                                .. result.error_message)
-                _G.global_env.error(tostring(error_obj))
+                local error_obj = exaerror:new({
+                    code = "E-AAF-3",
+                    message = "Error occurred while executing the query {{query}}, got error message {{error_message}}",
+                    parameters = {
+                        query = { value = query, description = "Query which failed" },
+                        error_message = { value = result.error_message,
+                                          description = "Error message received from the database" }
+                    },
+                    mitigations = {
+                        "Check the query for syntax errors.",
+                        "Check if the referenced database objects exist."
+                    }
+                })
+                exa_env.functions.error(tostring(error_obj))
             end
         end
     end
@@ -108,28 +112,30 @@ end
 --
 -- @param query string that calls the query handler
 --
-function M.init(query_to_query_handler)
+function M.run(query_to_query_handler, exa_env)
     local status = false
     local final_result_or_error
     local query_to_create_view
     repeat
         -- call QueryHandlerUDF return queries
         local return_queries = { { query_to_create_view }, { query_to_query_handler } }
-        local result = M._run_queries(return_queries, 1)
+        local result = M._run_queries(return_queries, 1, exa_env)
 
         -- handle QueryHandlerUDF return
         query_to_create_view = result[1][1]
         query_to_query_handler = result[2][1]
         status = result[3][1]
         final_result_or_error = result[4][1]
-        M._run_queries(result, 5)
+        M._run_queries(result, 5, exa_env)
     until (status ~= 'CONTINUE')
     if status == 'ERROR' then
-        local error_obj = exa_error.create(
-                "E-AAF-4",
-                "Error occurred during running the QueryHandlerUDF: "
-                        .. final_result_or_error)
-        _G.global_env.error(tostring(error_obj))
+        local error_obj = exaerror:new({
+            code = "E-AAF-4",
+            message = "Error occurred during running the QueryHandlerUDF: {{error_message}}",
+            parameters = { error_message = { value = final_result_or_error,
+                                             description = "Error message returned by the QueryHandlerUDF" } }
+        })
+        exa_env.functions.error(tostring(error_obj))
     end
     return final_result_or_error
 end

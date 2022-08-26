@@ -2,10 +2,6 @@ local luaunit = require("luaunit")
 local mockagne = require("mockagne")
 local query_loop = require("query_loop")
 
-local function mock_error_return_nil(exa_mock)
-    mockagne.when(exa_mock.error()).thenAnswer(nil)
-end
-
 local function mock_pquery_add_queries(exa_mock, query_list)
     for i = 1, #query_list do
         mockagne.when(exa_mock.pquery(query_list[i], _)).thenAnswer(true, nil)
@@ -111,26 +107,28 @@ test_query_loop = {
     }
 }
 
-function test_query_loop.setUp()
-    exa_mock = mockagne.getMock()
-    _G.global_env = exa_mock
-    mock_error_return_nil(exa_mock)
-end
-
 function test_query_loop.test_run_queries_without_skip()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local query_list = {
         "SELECT QUERY1()",
         "SELECT QUERY2()",
         "SELECT QUERY3()",
     }
-    mock_pquery_add_queries(exa_mock, query_list)
+    mock_pquery_add_queries(functions_mock, query_list)
     local query_table = make_query_table(query_list)
-    local result = query_loop._run_queries(query_table, 1)
-    mock_pquery_verify_queries(exa_mock, query_list)
+    local result = query_loop._run_queries(query_table, 1, exa_env)
+    mock_pquery_verify_queries(functions_mock, query_list)
     luaunit.assertEquals(result, nil)
 end
 
 function test_query_loop.test_run_queries_with_skip()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local things_to_skip = {
         "DO NOT EXECUTE 1",
         "DO NOT EXECUTE 2"
@@ -140,15 +138,19 @@ function test_query_loop.test_run_queries_with_skip()
         "SELECT QUERY2()",
         "SELECT QUERY3()",
     }
-    mock_pquery_add_queries(exa_mock, query_list)
+    mock_pquery_add_queries(functions_mock, query_list)
     local complete_query_list = concat_list(things_to_skip, query_list)
     local query_table = make_query_table(complete_query_list)
-    local result = query_loop._run_queries(query_table, 3)
-    mock_pquery_verify_queries(exa_mock, query_list)
+    local result = query_loop._run_queries(query_table, 3, exa_env)
+    mock_pquery_verify_queries(functions_mock, query_list)
     luaunit.assertEquals(result, nil)
 end
 
 function test_query_loop.test_init_single_iteration_finished_without_cleanup()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local init_query_result = {
         { nil },
@@ -156,13 +158,17 @@ function test_query_loop.test_init_single_iteration_finished_without_cleanup()
         { "FINISHED" },
         { "final_result" }
     }
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    local result = query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, { init_query })
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
+    local result = query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, { init_query })
     luaunit.assertEquals(result, "final_result")
 end
 
 function test_query_loop.test_init_single_iteration_finished_with_cleanup()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local init_query_result = {
@@ -172,16 +178,20 @@ function test_query_loop.test_init_single_iteration_finished_with_cleanup()
         { "final_result" },
         { cleanup_query }
     }
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    local result = query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, {
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
+    mockagne.when(functions_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
+    local result = query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, {
         init_query, cleanup_query
     })
     luaunit.assertEquals(result, "final_result")
 end
 
 function test_query_loop.test_init_two_iteration_finished_without_cleanup()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local return_query_view = "CREATE VIEW return_query_view"
     local return_query = "SELECT AAF_QUERY_HANDLER_UDF(1) FROM return_query_view"
@@ -204,18 +214,22 @@ function test_query_loop.test_init_two_iteration_finished_without_cleanup()
     }
     query_table_returned_by_init_query = make_query_table(query_list_returned_by_init_query)
     local init_query_result = concat_list(init_query_result_begin, query_table_returned_by_init_query)
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    mock_pquery_add_queries(exa_mock, query_list_returned_by_init_query)
-    mockagne.when(exa_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
-    mockagne.when(exa_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
-    local result = query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, { init_query })
-    mock_pquery_verify_queries(exa_mock, query_list_returned_by_init_query)
-    mock_pquery_verify_queries(exa_mock, { return_query_view, return_query })
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
+    mock_pquery_add_queries(functions_mock, query_list_returned_by_init_query)
+    mockagne.when(functions_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
+    mockagne.when(functions_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
+    local result = query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, { init_query })
+    mock_pquery_verify_queries(functions_mock, query_list_returned_by_init_query)
+    mock_pquery_verify_queries(functions_mock, { return_query_view, return_query })
     luaunit.assertEquals(result, "final_result")
 end
 
 function test_query_loop.test_init_two_iteration_finished_with_cleanup()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local return_query_view = "CREATE VIEW return_query_view"
     local return_query = "SELECT AAF_QUERY_HANDLER_UDF(1) FROM return_query_view"
@@ -240,24 +254,28 @@ function test_query_loop.test_init_two_iteration_finished_with_cleanup()
     }
     query_table_returned_by_init_query = make_query_table(query_list_returned_by_init_query)
     local init_query_result = concat_list(init_query_result_begin, query_table_returned_by_init_query)
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    mock_pquery_add_queries(exa_mock, query_list_returned_by_init_query)
-    mockagne.when(exa_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
-    mockagne.when(exa_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
-    mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    local result = query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, { init_query })
-    mock_pquery_verify_queries(exa_mock, query_list_returned_by_init_query)
-    mock_pquery_verify_queries(exa_mock, { return_query_view, return_query })
-    mock_pquery_verify_queries(exa_mock, { cleanup_query })
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
+    mock_pquery_add_queries(functions_mock, query_list_returned_by_init_query)
+    mockagne.when(functions_mock.pquery(return_query_view, _)).thenAnswer(true, nil)
+    mockagne.when(functions_mock.pquery(return_query, _)).thenAnswer(true, return_query_result)
+    mockagne.when(functions_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
+    local result = query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, { init_query })
+    mock_pquery_verify_queries(functions_mock, query_list_returned_by_init_query)
+    mock_pquery_verify_queries(functions_mock, { return_query_view, return_query })
+    mock_pquery_verify_queries(functions_mock, { cleanup_query })
     luaunit.assertEquals(result, "final_result")
 end
 
 function test_query_loop.test_init_single_iteration_error_with_cleanup()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local cleanup_query = "DROP TABLE test;"
     local error_message = "Error Message"
-    local expected_error = "E-AAF-4: Error occurred during running the QueryHandlerUDF: " .. error_message
+    local expected_error = [[E-AAF-4: Error occurred during running the QueryHandlerUDF: 'Error Message']]
     local init_query_result = {
         { nil },
         { nil },
@@ -265,30 +283,39 @@ function test_query_loop.test_init_single_iteration_error_with_cleanup()
         { error_message },
         { cleanup_query }
     }
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
-    mockagne.when(exa_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
-    query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, {
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(true, init_query_result)
+    mockagne.when(functions_mock.pquery(cleanup_query, _)).thenAnswer(true, nil)
+    query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, {
         init_query, cleanup_query
     })
-    mockagne.verify(exa_mock.error(expected_error, _))
+    mockagne.verify(functions_mock.error(expected_error, _))
 end
 
 function test_query_loop.test_init_single_iteration_query_error()
+    local functions_mock = mockagne.getMock()
+    local exa_env = {
+        functions = functions_mock
+    }
     local init_query = "SELECT AAF_QUERY_HANDLER_UDF(0)"
     local error_message = "Error Message"
-    local expected_error = "E-AAF-3: Error occurred in executing the query: " ..
-            "SELECT AAF_QUERY_HANDLER_UDF(0) error message: " .. error_message
+    local expected_error =
+[[E-AAF-3: Error occurred while executing the query 'SELECT AAF_QUERY_HANDLER_UDF(0)', got error message 'Error Message'
+
+Mitigations:
+
+* Check the query for syntax errors.
+* Check if the referenced database objects exist.]]
     local init_query_result = {
         { nil },
         { nil },
         { "FINISHED" },
         { "" },
         error_message = error_message }
-    mockagne.when(exa_mock.pquery(init_query, _)).thenAnswer(false, init_query_result)
-    query_loop.init(init_query)
-    mock_pquery_verify_queries(exa_mock, { init_query })
-    mockagne.verify(exa_mock.error(expected_error, _))
+    mockagne.when(functions_mock.pquery(init_query, _)).thenAnswer(false, init_query_result)
+    query_loop.run(init_query, exa_env)
+    mock_pquery_verify_queries(functions_mock, { init_query })
+    mockagne.verify(functions_mock.error(expected_error, _))
 end
 
 function test_query_loop.test_prepare_init_query_correct_with_udf()
@@ -300,7 +327,6 @@ function test_query_loop.test_prepare_init_query_correct_with_udf()
     local query = query_loop.prepare_init_query(test_query_loop.correct_with_udf.args, meta)
     luaunit.assertEquals(query, test_query_loop.correct_with_udf.query)
 end
-
 
 function test_query_loop.test_prepare_init_query_correct_without_udf()
     local meta = {

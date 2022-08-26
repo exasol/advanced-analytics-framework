@@ -14,7 +14,7 @@ dependencies = {
     "lua-cjson >= 2.1.0.6-1",
     "luaunit == 3.3.-1",
     "mockagne >= 1.0-2",
-    "exaerror >= 1.1.0-1, <= 1.2.1-1",
+    "exaerror <= 1.2.1-1",
     "luacheck >= 0.25.0-1",
     "luacov >= 0.15.0-1",
     "luacov-coveralls >= 0.2.3-1",
@@ -23,8 +23,10 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
+      ["exasol_advanced_analytics_framework.lua.src.exasol_script_tools"] = "exasol_advanced_analytics_framework/lua/src/exasol_script_tools.lua",
       ["exasol_advanced_analytics_framework.lua.src.query_loop"] = "exasol_advanced_analytics_framework/lua/src/query_loop.lua",
-      ["exasol_advanced_analytics_framework.lua.src.main"] = "exasol_advanced_analytics_framework/lua/src/main.lua"
+      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner_main"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner_main.lua",
+      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner.lua"
    },
    copy_directories = {
       "doc",
