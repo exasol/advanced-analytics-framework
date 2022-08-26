@@ -24,7 +24,7 @@ jobs:
       run: ./scripts/install_lua_environment.sh
 
     - name: Poetry install
-      run: ./scripts/run_in_conda.sh poetry install
+      run: ./scripts/run_in_dev_env.sh poetry install
 
     - name: Run packaging update
       run: bash ./githooks/pre-commit

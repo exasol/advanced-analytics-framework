@@ -12,7 +12,7 @@ bash "$GITHOOKS_PATH/update_setup_py.sh"
 
 SRC_PATH="$REPO_DIR/exasol_advanced_analytics_framework"
 export PYTHONPATH=.
-"$REPO_DIR"/scripts/run_in_conda.sh poetry run python3 "$SRC_PATH/deployment/regenerate_scripts.py"
+"$REPO_DIR"/scripts/run_in_dev_env.sh poetry run python3 "$SRC_PATH/deployment/regenerate_scripts.py"
 
 git add "$SRC_PATH/resources/outputs/"
 popd

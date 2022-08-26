@@ -25,10 +25,10 @@ jobs:
         run: ./scripts/install_lua_environment.sh
 
       - name: Poetry install
-        run: ./scripts/run_in_conda.sh poetry install
+        run: ./scripts/run_in_dev_env.sh poetry install
 
       - name: Run Lua unit tests and static code analyzer
-        run: ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
+        run: ./scripts/run_in_dev_env.sh ./scripts/lua_tests.sh
 
       - name: Build language container
         run: ./build_language_container.sh
@@ -37,4 +37,4 @@ jobs:
         run: bash ./scripts/start_integration_test_environment.sh
 
       - name: Run Python tests
-        run: ./scripts/run_in_conda.sh poetry run pytest tests
+        run: ./scripts/run_in_dev_env.sh poetry run pytest tests
