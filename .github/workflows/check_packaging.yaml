@@ -24,9 +24,6 @@ jobs:
       run: ./scripts/install_lua_environment.sh
 
     - name: Poetry install
-      run: ./scripts/run_in_conda.sh poetry env use python3.8
-
-    - name: Poetry install
       run: ./scripts/run_in_conda.sh poetry install
 
     - name: Run packaging update
