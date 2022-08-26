@@ -38,7 +38,6 @@ function run_tests {
     do
         ((test_suites++))
 
-        source "$script_dir"/export_lua_path.sh
         export LUA_PATH="$src_module_path/?.lua;$LUA_PATH"
         if lua -lluacov "$testcase" -o junit -n "$reports_dir/$testcase"
         then
@@ -109,7 +108,7 @@ function run_static_code_analysis {
 # Remove target directories including coverage reports
 #
 function remove_target_directories {
-  if [ ]"$1" == "" ]; then
+  if [ "$1" == "" ]; then
     echo
     echo "remove coverage output directories"
     echo

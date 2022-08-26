@@ -41,4 +41,4 @@ jobs:
         [ -z "$(git status --porcelain=v1 -uno 2>/dev/null)" ]
 
     - name: Check if setup.py works
-      run: python3 setup.py install
+      run: pip install .

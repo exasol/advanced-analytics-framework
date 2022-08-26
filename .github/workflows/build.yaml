@@ -12,29 +12,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: 1.1.4
-      - name: Install Poetry
-        run: poetry install
 
-      - name: Build Poetry
-        run: poetry build
+    - name: Install Lua environment
+      run: ./scripts/install_lua_environment.sh
 
-      - name: Install Lua environment
-        run: ./scripts/install_lua_environment.sh
+    - name: Poetry install
+      run: ./scripts/run_in_conda.sh poetry env use python3.8
 
-      - name: Run Lua unit tests and static code analyzer
-        run: ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
+    - name: Poetry install
+      run: ./scripts/run_in_conda.sh poetry install
 
-      - name: Build language container
-        run: ./build_language_container.sh
+    - name: Run Lua unit tests and static code analyzer
+      run: |
+        source ./scripts/lua_tests.sh
+        ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
 
-      - name: Start test environment
-        run: bash ./scripts/start_integration_test_environment.sh
+    - name: Build language container
+      run: ./build_language_container.sh
 
-      - name: Run Python tests
-        run: ./scripts/run_in_conda.sh poetry run pytest tests
+    - name: Start test environment
+      run: bash ./scripts/start_integration_test_environment.sh
+
+    - name: Run Python tests
+      run: ./scripts/run_in_conda.sh poetry run pytest tests
