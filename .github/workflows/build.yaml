@@ -34,7 +34,7 @@ jobs:
         run: bash ./scripts/start_integration_test_environment.sh
 
       - name: Run Lua unit tests and static code analyzer
-        run: poetry run poe lua-tests
+        run: bash ./scripts/run_in_conda.sh  ./scripts/lua-tests.sh
 
       - name: Run Python tests
-        run: poetry run pytest tests
+        run: ./scripts/run_in_conda.sh poetry run pytest tests
