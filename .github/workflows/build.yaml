@@ -21,20 +21,20 @@ jobs:
         with:
           poetry-version: 1.1.4
 
-    - name: Install Lua environment
-      run: ./scripts/install_lua_environment.sh
+      - name: Install Lua environment
+        run: ./scripts/install_lua_environment.sh
 
-    - name: Poetry install
-      run: ./scripts/run_in_conda.sh poetry install
+      - name: Poetry install
+        run: ./scripts/run_in_conda.sh poetry install
 
-    - name: Run Lua unit tests and static code analyzer
-      run: ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
+      - name: Run Lua unit tests and static code analyzer
+        run: ./scripts/run_in_conda.sh ./scripts/lua_tests.sh
 
-    - name: Build language container
-      run: ./build_language_container.sh
+      - name: Build language container
+        run: ./build_language_container.sh
 
-    - name: Start test environment
-      run: bash ./scripts/start_integration_test_environment.sh
+      - name: Start test environment
+        run: bash ./scripts/start_integration_test_environment.sh
 
-    - name: Run Python tests
-      run: ./scripts/run_in_conda.sh poetry run pytest tests
+      - name: Run Python tests
+        run: ./scripts/run_in_conda.sh poetry run pytest tests
