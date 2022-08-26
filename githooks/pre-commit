@@ -11,6 +11,7 @@ bash "$GITHOOKS_PATH/update_setup_py.sh"
 
 
 SRC_PATH="$REPO_DIR/exasol_advanced_analytics_framework"
+source "$REPO_DIR"/scripts/export_lua_path.sh
 PYTHONPATH=. poetry run python3 "$SRC_PATH/deployment/regenerate_scripts.py"
 
 git add "$SRC_PATH/resources/outputs/"

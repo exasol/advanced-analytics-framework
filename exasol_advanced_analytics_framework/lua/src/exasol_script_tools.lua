@@ -7,7 +7,7 @@
 local M = {
 }
 
-local exaerror = require("exaerror")
+local ExaError = require("ExaError")
 local json = require("cjson")
 
 ---
@@ -43,12 +43,12 @@ end
 function M.parse_arguments(json_str, exa_env)
     local success, args = pcall(json.decode, json_str)
     if not success then
-        local error_obj = exaerror:new({
-            code = "E-AAF-1",
-            message = "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
-            parameters = { raw_json = { value = json_str, description = "raw JSON object" } },
-            mitigations = { "Check syntax of the input string JSON is correct" }
-        })
+        local error_obj = ExaError:new(
+                "E-AAF-1",
+                "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
+                { raw_json = { value = json_str, description = "raw JSON object" } },
+                { "Check syntax of the input string JSON is correct" }
+        )
         exa_env.functions.error(tostring(error_obj))
     end
     return args

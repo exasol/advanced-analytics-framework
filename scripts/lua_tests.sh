@@ -38,8 +38,9 @@ function run_tests {
     do
         ((test_suites++))
 
-        if LUA_PATH="$src_module_path/?.lua;$(luarocks path --lr-path)" \
-            lua -lluacov "$testcase" -o junit -n "$reports_dir/$testcase"
+        source "$script_dir"/export_lua_path.sh
+        export LUA_PATH="$src_module_path/?.lua;$LUA_PATH"
+        if lua -lluacov "$testcase" -o junit -n "$reports_dir/$testcase"
         then
             ((successes++))
         else

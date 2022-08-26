@@ -20,14 +20,12 @@ jobs:
           poetry-version: 1.1.4
       - name: Install Poetry
         run: poetry install
+
       - name: Build Poetry
         run: poetry build
-      - name: Install project whl
-        run: pip install dist/*.whl
-      - name: Install Lua dependencies
-        run: |
-          sudo apt-get install luarocks
-          sudo luarocks install --only-deps *.rockspec
+
+      - name: Install Lua environment
+        run: ./scripts/install_lua_environment.sh
 
       - name: Build language container
         run: ./build_language_container.sh

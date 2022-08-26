@@ -21,8 +21,8 @@ def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
         "query_loop",
         "query_handler_runner",
         "exasol_script_tools",
-        "exaerror",
-        "message_expander"
+        "query_handler_runner",
+        "ExaError",
     ]
     jinja_template_location = JinjaTemplateLocation(
         package_name=constants.BASE_DIR,
