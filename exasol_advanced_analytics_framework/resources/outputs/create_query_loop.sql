@@ -247,10 +247,13 @@ local M = {
 }
 
 local exaerror = require("exaerror")
-local json = require('cjson')
+local json = require("cjson")
 
 ---
--- Extend exa-object with the global functions available in Lua Scripts
+-- Extend `exa-object` with the global functions available in Lua Scripts.
+-- See Exasol Scripting: https://docs.exasol.com/db/latest/database_concepts/scripting/db_interaction.htm
+-- We provide this function such that implementers of a main function can encapsulate the global objects
+-- and properly inject them into modules.
 --
 -- @param exa exa-object available inside of Lua Scripts
 --
@@ -259,6 +262,7 @@ local json = require('cjson')
 function M.create_exa_env(exa)
     local exa_env = {
         meta = exa.meta,
+        -- We put the global functions into a subtable, such that we can replace the subtable with a mock
         functions = {
             pquery = pquery,
             query = query,
@@ -269,24 +273,33 @@ function M.create_exa_env(exa)
 end
 
 ---
--- Parse a given arguments in json string format.
+-- Parse a given arguments in JSON string format.
 --
--- @param json_str input parameters as json string
+-- @param json_str input parameters as JSON string
 --
--- @return lua table including parameters
+-- @return Lua table containing the parameters
 --
 function M.parse_arguments(json_str, exa_env)
     local success, args = pcall(json.decode, json_str)
     if not success then
-        local error_obj = exaerror.create(
-                "E-AAF-1",
-                "It could not be converted to json object"
-        )                         :add_mitigations("Check syntax of the input string json is correct")
+        local error_obj = exaerror:new({
+            code = "E-AAF-1",
+            message = "Arguments could not be converted from JSON object to Lua table: {{raw_json}}",
+            parameters = { raw_json = { value = json_str, description = "raw JSON object" } },
+            mitigations = { "Check syntax of the input string JSON is correct" }
+        })
         exa_env.functions.error(tostring(error_obj))
     end
     return args
 end
 
+---
+-- Encapsulates the result of a QueryHandler such that it can be returns from a Exasol Lua Script.
+--
+-- @param result A string containing the result of the QueryHandler
+--
+-- @return A tuple of a table with a single row and one column and the SQL column definition for it
+--
 function M.wrap_result(result)
     local return_result = { { result } }
     return return_result, "result_column VARCHAR(2000000)"
@@ -518,7 +531,7 @@ package.preload[ "query_loop" ] = function( ... ) local arg = _G.arg;
 
 local M = {
 }
-local exa_error = require("exaerror")
+local exaerror = require("exaerror")
 
 function _handle_default_arguments(args, meta)
     local query_handler = args["query_handler"]
@@ -591,23 +604,32 @@ end
 -- @return  the result of the latest query
 --
 function M._run_queries(queries, from_index, exa_env)
+    local success
+    local result
     for i = from_index, #queries do
         local query = queries[i][1]
         if query ~= nil then
-            success, actual_result = exa_env.functions.pquery(query)
+            success, result = exa_env.functions.pquery(query)
             if not success then
                 -- TODO cleanup after query error
-                local error_obj = exa_error.create(
-                        "E-AAF-3",
-                        "Error occurred in executing the query: "
-                                .. query
-                                .. " error message: "
-                                .. actual_result.error_message)
+                local error_obj = exaerror:new({
+                    code = "E-AAF-3",
+                    message = "Error occurred while executing the query {{query}}, got error message {{error_message}}",
+                    parameters = {
+                        query = { value = query, description = "Query which failed" },
+                        error_message = { value = result.error_message,
+                                          description = "Error message received from the database" }
+                    },
+                    mitigations = {
+                        "Check the query for syntax errors.",
+                        "Check if the referenced database objects exist."
+                    }
+                })
                 exa_env.functions.error(tostring(error_obj))
             end
         end
     end
-    return actual_result
+    return result
 end
 
 ---
@@ -632,10 +654,12 @@ function M.run(query_to_query_handler, exa_env)
         M._run_queries(result, 5, exa_env)
     until (status ~= 'CONTINUE')
     if status == 'ERROR' then
-        local error_obj = exa_error.create(
-                "E-AAF-4",
-                "Error occurred during running the QueryHandlerUDF: "
-                        .. final_result_or_error)
+        local error_obj = exaerror:new({
+            code = "E-AAF-4",
+            message = "Error occurred during running the QueryHandlerUDF: {{error_message}}",
+            parameters = { error_message = { value = final_result_or_error,
+                                             description = "Error message returned by the QueryHandlerUDF" } }
+        })
         exa_env.functions.error(tostring(error_obj))
     end
     return final_result_or_error
@@ -648,15 +672,15 @@ end
 ---
 -- @module query_loop_main
 --
--- This script includes the main function of the Query Loop
+-- This script contains the main function of the Query Loop.
 --
 
 query_handler_runner = require("query_handler_runner")
 ---
--- This is the main function of the Query Loop
+-- This is the main function of the Query Loop.
 --
--- @param json_str	input parameters as json string
--- @param exa	the exa object of the Lua script
+-- @param json_str	input parameters as JSON string
+-- @param exa	the database context (`exa`) of the Lua script
 --
 function query_handler_runner_main(json_str, exa)
     return query_handler_runner.run(json_str, exa)

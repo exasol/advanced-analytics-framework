@@ -55,7 +55,7 @@ function M.parse_arguments(json_str, exa_env)
 end
 
 ---
--- Encapsulates the result of a QueryHandler such that it can be returns from a Exasol Lua Script
+-- Encapsulates the result of a QueryHandler such that it can be returns from a Exasol Lua Script.
 --
 -- @param result A string containing the result of the QueryHandler
 --

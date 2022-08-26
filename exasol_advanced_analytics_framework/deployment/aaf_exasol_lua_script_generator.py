@@ -9,7 +9,7 @@ from exasol_advanced_analytics_framework.deployment.lua_script_bundle import Lua
 def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
     base_dir = importlib_resources.files(
         constants.BASE_DIR)
-    lua_src_dir = base_dir.joinpath("lua/src")
+    lua_src_dir = base_dir / "lua" / "src"
     lua_source_files = [
         lua_src_dir.joinpath("query_handler_runner_main.lua"),
         lua_src_dir.joinpath("query_handler_runner.lua"),
