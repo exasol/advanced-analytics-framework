@@ -12,22 +12,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: 1.1.4
-      - name: Install Poetry
-        run: poetry install
-      - name: Build Poetry
-        run: poetry build
-      - name: Install project whl
-        run: pip install dist/*.whl
-      - name: Install Lua dependencies
-        run: |
-          sudo apt-get install luarocks
-          sudo luarocks install --only-deps *.rockspec
+
+      - name: Install Lua environment
+        run: ./scripts/install_lua_environment.sh
+
+      - name: Poetry install
+        run: ./scripts/run_in_dev_env.sh poetry install
+
+      - name: Run Lua unit tests and static code analyzer
+        run: ./scripts/run_in_dev_env.sh ./scripts/lua_tests.sh
 
       - name: Build language container
         run: ./build_language_container.sh
@@ -35,8 +36,5 @@ jobs:
       - name: Start test environment
         run: bash ./scripts/start_integration_test_environment.sh
 
-      - name: Run Lua unit tests and static code analyzer
-        run: poetry run poe lua-tests
-
       - name: Run Python tests
-        run: poetry run pytest tests
+        run: ./scripts/run_in_dev_env.sh poetry run pytest tests

@@ -1,0 +1,8 @@
+name: advanced-analytics-framework
+channels:
+  - conda-forge
+  - anaconda
+dependencies:
+  - lua==5.4.*
+  - luarocks
+  - python==3.8.*

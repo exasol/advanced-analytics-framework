@@ -139,3 +139,11 @@ doc/_build
 
 #Vagrant
 .vagrant
+
+#Conda
+
+.conda_env
+
+# Luarocks
+
+.luarocks
