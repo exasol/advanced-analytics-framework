@@ -133,7 +133,10 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+                                                      [Column(ColumnName("a"),
+                                                              ColumnType(name="DECIMAL",
+                                                                         precision=1,
+                                                                         scale=0))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -221,7 +224,10 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+                                                      [Column(ColumnName("a"),
+                                                              ColumnType(name="DECIMAL",
+                                                                         precision=1,
+                                                                         scale=0))])
         query_list = [SelectQuery(query_string="SELECT 1")]
         return Continue(query_list=query_list, input_query=input_query)
 
@@ -274,7 +280,10 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+                                                      [Column(ColumnName("a"),
+                                                              ColumnType(name="DECIMAL",
+                                                                         precision=1,
+                                                                         scale=0))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -323,7 +332,10 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+                                                      [Column(ColumnName("a"),
+                                                              ColumnType(name="DECIMAL",
+                                                                         precision=1,
+                                                                         scale=0))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -331,7 +343,10 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
             self._iter += 1
             column_name = ColumnName("b")
             input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                          [Column(column_name, ColumnType("INTEGER"))])
+                                                          [Column(ColumnName("b"),
+                                                                  ColumnType(name="DECIMAL",
+                                                                             precision=1,
+                                                                             scale=0))])
             return Continue(query_list=[], input_query=input_query)
         else:
             return Finish[TestOutput](TestOutput(self._parameter))
@@ -388,7 +403,10 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
         self._table = self._child_query_handler_conntext.get_temporary_table()
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+                                                      [Column(ColumnName("a"),
+                                                              ColumnType(name="DECIMAL",
+                                                                         precision=1,
+                                                                         scale=0))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -397,7 +415,10 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
             self._iter += 1
             column_name = ColumnName("b")
             input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                          [Column(column_name, ColumnType("INTEGER"))])
+                                                          [Column(ColumnName("b"),
+                                                                  ColumnType(name="DECIMAL",
+                                                                             precision=1,
+                                                                             scale=0))])
             return Continue(query_list=[], input_query=input_query)
         else:
             return Finish[TestOutput](TestOutput(self._parameter))

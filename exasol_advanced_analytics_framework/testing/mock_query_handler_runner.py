@@ -65,7 +65,7 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
         input_query_result_set = self._sql_executor.execute(input_query)
         if input_query_result_set.columns() != result.input_query.output_columns:
             raise RuntimeError(f"Specified columns {result.input_query.output_columns} of the input query "
-                               f"are equal to the actual received coluns {input_query_result_set.columns()}")
+                               f"are equal to the actual received columns {input_query_result_set.columns()}")
         input_query_result_table = input_query_result_set.fetchall()
         input_query_result = MockQueryResult(data=input_query_result_table,
                                              columns=result.input_query.output_columns)
