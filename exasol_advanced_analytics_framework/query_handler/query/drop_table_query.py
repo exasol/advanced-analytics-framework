@@ -1,4 +1,4 @@
-from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.table_name import TableName
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
 class DropQuery(Query):

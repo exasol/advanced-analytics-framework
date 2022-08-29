@@ -3,9 +3,11 @@ from typing import Union
 
 import pytest
 from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import ColumnType
+from exasol_data_science_utils_python.schema.column import Column
+from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.column_type import ColumnType
+from exasol_data_science_utils_python.udf_utils.testing.mock_result_set import MockResultSet
+from exasol_data_science_utils_python.udf_utils.testing.mock_sql_executor import MockSQLExecutor
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
@@ -17,8 +19,7 @@ from exasol_advanced_analytics_framework.query_handler.query_handler import Quer
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import MockQueryHandlerRunner
-from exasol_advanced_analytics_framework.testing.mock_result_set import MockResultSet
-from exasol_advanced_analytics_framework.testing.mock_sql_executor import MockSQLExecutor
+
 
 
 @pytest.fixture()

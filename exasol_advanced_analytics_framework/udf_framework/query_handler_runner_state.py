@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+from exasol_data_science_utils_python.schema.column import \
     Column
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import ScopeQueryHandlerContext
