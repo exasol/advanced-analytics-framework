@@ -459,7 +459,7 @@ local M = {
 }
 local ExaError = require("ExaError")
 
-function _handle_default_arguments(arguments, meta)
+local function _handle_default_arguments(arguments, meta)
     local query_handler = arguments["query_handler"]
     if query_handler['udf'] == nil then
         local script_schema <const> = meta.script_schema
@@ -468,7 +468,7 @@ function _handle_default_arguments(arguments, meta)
     return arguments
 end
 
-function _generate_temporary_name_prefix(meta)
+local function _generate_temporary_name_prefix(meta)
     local database_name <const> = meta.database_name
     local session_id <const> = tostring(meta.session_id)
     local statement_id <const> = tostring(meta.statement_id)
@@ -522,7 +522,7 @@ end
 
 local FIRST_COLUMN_INDEX <const> = 1
 
-function _handle_query_error(query, result, exa_env)
+local function _handle_query_error(query, result, exa_env)
     -- TODO cleanup after query error
     local error_obj <const> = ExaError:new(
             "E-AAF-3",
@@ -563,7 +563,7 @@ function M._run_queries(queries, from_index, exa_env)
     return result
 end
 
-function _call_query_handler(input_view_query, call_query, exa_env)
+local function _call_query_handler(input_view_query, call_query, exa_env)
     local start_row_index <const> = 1
     local call_queries <const> = {
         { input_view_query },
@@ -576,7 +576,7 @@ function _call_query_handler(input_view_query, call_query, exa_env)
     return result
 end
 
-function _handle_query_handler_call_result(call_result, exa_env)
+local function _handle_query_handler_call_result(call_result, exa_env)
     local input_view_query_row_index <const> = 1
     local call_query_row_index <const> = 2
     local status_row_index <const> = 3
@@ -596,7 +596,7 @@ function _handle_query_handler_call_result(call_result, exa_env)
     return state
 end
 
-function _run_query_handler_iteration(old_state, exa_env)
+local function _run_query_handler_iteration(old_state, exa_env)
     local call_result <const> = _call_query_handler(
             old_state.input_view_query,
             old_state.call_query,
@@ -605,7 +605,7 @@ function _run_query_handler_iteration(old_state, exa_env)
     return new_state
 end
 
-function _handle_query_handler_error(new_state, old_state, exa_env)
+local function _handle_query_handler_error(new_state, old_state, exa_env)
     local input_view = old_state.input_view_query
     if old_state.input_view_query == nil then
         input_view = "Not used"
