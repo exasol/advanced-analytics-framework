@@ -21,7 +21,6 @@ def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
         "query_loop",
         "query_handler_runner",
         "exasol_script_tools",
-        "query_handler_runner",
         "ExaError",
         "MessageExpander"
     ]

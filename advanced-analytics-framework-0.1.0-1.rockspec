@@ -1,7 +1,7 @@
 package = "advanced-analytics-framework"
 version = "0.1.0-1"
 source = {
-   url = "git://github.com/exasol/advanced-analytics-framework"
+   url = "git://github.com/exasol/advanced-analytics-framework",
 }
 description = {
    detailed = "Framework for building complex data analysis algorithms with Exasol",
@@ -23,10 +23,10 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ["exasol_advanced_analytics_framework.lua.src.exasol_script_tools"] = "exasol_advanced_analytics_framework/lua/src/exasol_script_tools.lua",
-      ["exasol_advanced_analytics_framework.lua.src.query_loop"] = "exasol_advanced_analytics_framework/lua/src/query_loop.lua",
-      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner_main"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner_main.lua",
-      ["exasol_advanced_analytics_framework.lua.src.query_handler_runner"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner.lua"
+      ["exasol.advanced_analytics_framework.exasol_script_tools"] = "exasol_advanced_analytics_framework/lua/src/exasol_script_tools.lua",
+      ["exasol.advanced_analytics_framework.query_loop"] = "exasol_advanced_analytics_framework/lua/src/query_loop.lua",
+      ["exasol.advanced_analytics_framework.query_handler_runner_main"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner_main.lua",
+      ["exasol.advanced_analytics_framework.query_handler_runner"] = "exasol_advanced_analytics_framework/lua/src/query_handler_runner.lua"
    },
    copy_directories = {
       "doc",

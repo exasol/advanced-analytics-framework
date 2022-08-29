@@ -84,7 +84,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
     with pytest.raises(pyexasol.ExaQueryError) as caught_exception:
         query = f"EXECUTE SCRIPT {schema_name}.AAF_RUN_QUERY_HANDLER('{args}')"
         result = conn.execute(textwrap.dedent(query)).fetchall()
-    assert "E-AAF-4: Error occurred during running the QueryHandlerUDF" in caught_exception.value.message and \
+    assert "E-AAF-4: Error occurred while calling the query handler." in caught_exception.value.message and \
            "RuntimeError: Child contexts are not released" in caught_exception.value.message
 
 
@@ -122,7 +122,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
     with pytest.raises(pyexasol.ExaQueryError) as caught_exception:
         query = f"EXECUTE SCRIPT {schema_name}.AAF_RUN_QUERY_HANDLER('{args}')"
         result = conn.execute(textwrap.dedent(query)).fetchall()
-    assert "E-AAF-4: Error occurred during running the QueryHandlerUDF" in caught_exception.value.message and \
+    assert "E-AAF-4: Error occurred while calling the query handler." in caught_exception.value.message and \
            "RuntimeError: Child contexts are not released" in caught_exception.value.message
 
     # get audit logs after executing query loop
