@@ -21,7 +21,6 @@ from exasol_advanced_analytics_framework.query_result.query_result import QueryR
 from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import MockQueryHandlerRunner
 
 
-
 @pytest.fixture()
 def temporary_schema_name():
     temporary_schema_name = "temp_schema_name"
@@ -145,7 +144,10 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
 def test_continue_finish(temporary_schema_name, top_level_query_handler_context):
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
+    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                        ColumnType(name="DECIMAL",
+                                                                                   precision=1,
+                                                                                   scale=0))])
     drop_input_query_view_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
         result_sets=[
@@ -169,6 +171,48 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
            ]
 
 
+class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
+    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameter, query_handler_context)
+        self._parameter = parameter
+
+    def start(self) -> Union[Continue, Finish[TestOutput]]:
+        column_name = ColumnName("a")
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+                                                      [Column(column_name, ColumnType("INTEGER"))])
+        return Continue(query_list=[], input_query=input_query)
+
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+        if query_result.a != 1:
+            raise AssertionError(f"query_result.a != 1, got {query_result.a}")
+        return Finish[TestOutput](TestOutput(self._parameter))
+
+
+def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_context):
+    input_query_create_view_result_set = MockResultSet()
+    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
+                                                                        ColumnType(name="DECIMAL",
+                                                                                   precision=1,
+                                                                                   scale=0))])
+    drop_input_query_view_result_set = MockResultSet()
+    sql_executor = MockSQLExecutor(
+        result_sets=[
+            input_query_create_view_result_set,
+            input_query_result_set,
+            drop_input_query_view_result_set
+        ])
+    test_input = TestInput()
+    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+        sql_executor=sql_executor,
+        top_level_query_handler_context=top_level_query_handler_context,
+        parameter=test_input,
+        query_handler_factory=ContinueWrongColumnsTestQueryHandler
+    )
+    with pytest.raises(RuntimeError) as exception:
+        test_output = query_handler_runner.run()
+    assert "Specified columns" in exception.value.__cause__.args[0]
+
+
 class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
     def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
@@ -189,9 +233,15 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
 def test_continue_query_list(temporary_schema_name, top_level_query_handler_context):
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
+    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                        ColumnType(name="DECIMAL",
+                                                                                   precision=1,
+                                                                                   scale=0))])
     drop_input_query_view_result_set = MockResultSet()
-    query_list_result_set = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
+    query_list_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                       ColumnType(name="DECIMAL",
+                                                                                  precision=1,
+                                                                                  scale=0))])
     sql_executor = MockSQLExecutor(
         result_sets=[
             input_query_create_view_result_set,
@@ -234,7 +284,10 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
 
 def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
+    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                        ColumnType(name="DECIMAL",
+                                                                                   precision=1,
+                                                                                   scale=0))])
     drop_table_result_set = MockResultSet()
     drop_input_query_view_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
@@ -286,8 +339,14 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
 
 def test_continue_continue_finish(temporary_schema_name, top_level_query_handler_context):
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set1 = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
-    input_query_result_set2 = MockResultSet(rows=[(1,)], columns={"b": {"type": "INTEGER"}})
+    input_query_result_set1 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                         ColumnType(name="DECIMAL",
+                                                                                    precision=1,
+                                                                                    scale=0))])
+    input_query_result_set2 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
+                                                                         ColumnType(name="DECIMAL",
+                                                                                    precision=1,
+                                                                                    scale=0))])
     drop_input_query_view_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
         result_sets=[
@@ -346,8 +405,14 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
 
 def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query_handler_context):
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set1 = MockResultSet(rows=[(1,)], columns={"a": {"type": "INTEGER"}})
-    input_query_result_set2 = MockResultSet(rows=[(1,)], columns={"b": {"type": "INTEGER"}})
+    input_query_result_set1 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
+                                                                         ColumnType(name="DECIMAL",
+                                                                                    precision=1,
+                                                                                    scale=0))])
+    input_query_result_set2 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
+                                                                         ColumnType(name="DECIMAL",
+                                                                                    precision=1,
+                                                                                    scale=0))])
     drop_input_query_view_result_set = MockResultSet()
     drop_table_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
