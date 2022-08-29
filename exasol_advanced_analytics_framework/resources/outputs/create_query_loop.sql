@@ -578,7 +578,7 @@ function M.run(query_to_query_handler, exa_env)
         M._run_queries(result, 5, exa_env)
     until (status ~= 'CONTINUE')
     if status == 'ERROR' then
-        local error_obj = ExaError:new(
+        local error_obj <const> = ExaError:new(
                 "E-AAF-4",
                 "Error occurred during running the QueryHandlerUDF: {{error_message}}",
                 { error_message = { value = final_result_or_error,
