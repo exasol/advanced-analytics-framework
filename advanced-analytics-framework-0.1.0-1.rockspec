@@ -2,7 +2,6 @@ package = "advanced-analytics-framework"
 version = "0.1.0-1"
 source = {
    url = "git://github.com/exasol/advanced-analytics-framework",
-   branch = "refactoring/49_split_functions_in_query_loop"
 }
 description = {
    detailed = "Framework for building complex data analysis algorithms with Exasol",
