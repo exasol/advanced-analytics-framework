@@ -58,6 +58,10 @@ class StartFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
 
 def test_start_finish(top_level_query_handler_context):
+    """
+    This tests runs a query handler which returns a Finish result from the start method.
+    We expect no queries to be executed and result of the Finish object returned.
+    """
     sql_executor = MockSQLExecutor(result_sets=[])
     test_input = TestInput()
     query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
@@ -71,6 +75,7 @@ def test_start_finish(top_level_query_handler_context):
 
 
 class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
+
     def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
@@ -84,6 +89,11 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
 
 
 def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which registers a temporary table in the start method
+    and then directly returns a Finish result. We expect a cleanup query for the temporary
+    table to be executed and result of the Finish object returned.
+    """
     sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
     test_input = TestInput()
     query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
@@ -111,6 +121,11 @@ class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutpu
 
 
 def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which registers a temporary table in the start method
+    and then directly raise an exception. We expect a cleanup query for the temporary
+    table to be executed and the exception to be forwarded.
+    """
     sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
     test_input = TestInput()
     query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
@@ -119,9 +134,10 @@ def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_hand
         parameter=test_input,
         query_handler_factory=StartErrorCleanupQueriesTestQueryHandler
     )
-    with pytest.raises(Exception, match="Execution of query handler .* failed."):
+    with pytest.raises(Exception, match="Execution of query handler .* failed.") as ex:
         test_output = query_handler_runner.run()
-    assert sql_executor.queries == [f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";"""]
+    assert sql_executor.queries == [f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";"""] and \
+           ex.value.__cause__.args[0] == "Start failed"
 
 
 class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -145,11 +161,18 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
 
 def test_continue_finish(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which returns Continue result from the start method
+    and expect to be handle_query_result to be called. Further, it expects that
+    handle_query_result can access the columns in the resultset which where defined
+    in the input_query.
+    """
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                        ColumnType(name="DECIMAL",
-                                                                                   precision=1,
-                                                                                   scale=0))])
+    input_query_result_set = MockResultSet(rows=[(1,)],
+                                           columns=[Column(ColumnName("a"),
+                                                           ColumnType(name="DECIMAL",
+                                                                      precision=1,
+                                                                      scale=0))])
     drop_input_query_view_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
         result_sets=[
@@ -179,18 +202,20 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(column_name, ColumnType("INTEGER"))])
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {ColumnName("b").quoted_name()}""",
+                                                      [Column(ColumnName("a"), ColumnType("INTEGER"))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
-        if query_result.a != 1:
-            raise AssertionError(f"query_result.a != 1, got {query_result.a}")
-        return Finish[TestOutput](TestOutput(self._parameter))
+        raise AssertionError("handle_query_result shouldn't be called")
 
 
 def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which returns Continue result with mismatching column definition
+    between the input query and its column definition. We expect the query handler runner to raise
+    an Exception.
+    """
     input_query_create_view_result_set = MockResultSet()
     input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
                                                                         ColumnType(name="DECIMAL",
@@ -231,22 +256,27 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         return Continue(query_list=query_list, input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
-        if query_result.a != 1:
-            raise AssertionError(f"query_result.a != 1, got {query_result.a}")
         return Finish[TestOutput](TestOutput(self._parameter))
 
 
 def test_continue_query_list(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which returns Continue result from the start method
+    which contains a query list. We expect to be handle_query_result to be called and
+    the queries in the query list to be executed.
+    """
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                        ColumnType(name="DECIMAL",
-                                                                                   precision=1,
-                                                                                   scale=0))])
+    input_query_result_set = MockResultSet(rows=[(1,)],
+                                           columns=[Column(ColumnName("a"),
+                                                           ColumnType(name="DECIMAL",
+                                                                      precision=1,
+                                                                      scale=0))])
     drop_input_query_view_result_set = MockResultSet()
-    query_list_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                       ColumnType(name="DECIMAL",
-                                                                                  precision=1,
-                                                                                  scale=0))])
+    query_list_result_set = MockResultSet(rows=[(1,)],
+                                          columns=[Column(ColumnName("a"),
+                                                          ColumnType(name="DECIMAL",
+                                                                     precision=1,
+                                                                     scale=0))])
     sql_executor = MockSQLExecutor(
         result_sets=[
             input_query_create_view_result_set,
@@ -291,6 +321,11 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
 
 
 def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which registers a temporary table in the handle_query_result method
+    and then directly raise an exception. We expect a cleanup query for the temporary
+    table to be executed and the exception to be forwarded.
+    """
     input_query_create_view_result_set = MockResultSet()
     input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
                                                                         ColumnType(name="DECIMAL",
@@ -323,6 +358,7 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
 
 
 class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
+
     def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
@@ -330,37 +366,46 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                      [Column(ColumnName("a"),
-                                                              ColumnType(name="DECIMAL",
-                                                                         precision=1,
-                                                                         scale=0))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {column_name.quoted_name()}""",
+            [Column(ColumnName("a"),
+                    ColumnType(name="DECIMAL",
+                               precision=1,
+                               scale=0))])
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
         if self._iter == 0:
             self._iter += 1
             column_name = ColumnName("b")
-            input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
-                                                          [Column(ColumnName("b"),
-                                                                  ColumnType(name="DECIMAL",
-                                                                             precision=1,
-                                                                             scale=0))])
+            input_query = SelectQueryWithColumnDefinition(
+                f"""SELECT 1 as {column_name.quoted_name()}""",
+                [Column(ColumnName("b"),
+                        ColumnType(name="DECIMAL",
+                                   precision=1,
+                                   scale=0))])
             return Continue(query_list=[], input_query=input_query)
         else:
             return Finish[TestOutput](TestOutput(self._parameter))
 
 
 def test_continue_continue_finish(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which returns Continue from the first call to handle_query_result method
+    and the second time it returns Finish. We expect two input queries to be executed one per Continue and
+    in the end the result should be returned.
+    """
     input_query_create_view_result_set = MockResultSet()
-    input_query_result_set1 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                         ColumnType(name="DECIMAL",
-                                                                                    precision=1,
-                                                                                    scale=0))])
-    input_query_result_set2 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
-                                                                         ColumnType(name="DECIMAL",
-                                                                                    precision=1,
-                                                                                    scale=0))])
+    input_query_result_set1 = MockResultSet(rows=[(1,)],
+                                            columns=[Column(ColumnName("a"),
+                                                            ColumnType(name="DECIMAL",
+                                                                       precision=1,
+                                                                       scale=0))])
+    input_query_result_set2 = MockResultSet(rows=[(1,)],
+                                            columns=[Column(ColumnName("b"),
+                                                            ColumnType(name="DECIMAL",
+                                                                       precision=1,
+                                                                       scale=0))])
     drop_input_query_view_result_set = MockResultSet()
     sql_executor = MockSQLExecutor(
         result_sets=[
@@ -424,6 +469,13 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
 
 
 def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query_handler_context):
+    """
+    This tests runs a query handler which creates the temporary table of a child query context manager.
+    Then it returns a Continue results, such that handle_query_result will be called. During the call to
+    handle_query_result we release child query context manager and returns a Continue results such that
+    handle_query_result get called again to return a Finish result.
+    We expect that the cleanup of the temporary happens between the first and second call to handle_query_result.
+    """
     input_query_create_view_result_set = MockResultSet()
     input_query_result_set1 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
                                                                          ColumnType(name="DECIMAL",
