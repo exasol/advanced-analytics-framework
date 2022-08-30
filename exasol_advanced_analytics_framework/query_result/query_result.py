@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Union, List, Any, Tuple, Iterator
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+from exasol_data_science_utils_python.schema.column import \
     Column
 
 Row = Tuple[Any, ...]

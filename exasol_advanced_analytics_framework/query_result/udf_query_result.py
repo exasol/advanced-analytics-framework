@@ -1,11 +1,11 @@
 import collections
 from typing import Union, List, Any, OrderedDict, Iterator
 
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+from exasol_data_science_utils_python.schema.column import \
     Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name import \
+from exasol_data_science_utils_python.schema.column_name import \
     ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type import \
+from exasol_data_science_utils_python.schema.column_type import \
     ColumnType
 
 from exasol_advanced_analytics_framework.query_result.query_result \

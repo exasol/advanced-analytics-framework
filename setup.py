@@ -9,6 +9,7 @@ packages = \
  'exasol_advanced_analytics_framework.query_handler.context.proxy',
  'exasol_advanced_analytics_framework.query_handler.query',
  'exasol_advanced_analytics_framework.query_result',
+ 'exasol_advanced_analytics_framework.testing',
  'exasol_advanced_analytics_framework.udf_framework']
 
 package_data = \

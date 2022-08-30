@@ -2,8 +2,8 @@ from abc import ABC
 from typing import Set, List
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.preprocessing.sql.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
+from exasol_data_science_utils_python.schema.table_name import TableName
 
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy

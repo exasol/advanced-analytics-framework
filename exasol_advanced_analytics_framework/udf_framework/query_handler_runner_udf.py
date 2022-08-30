@@ -9,15 +9,15 @@ from typing import Tuple, List, Optional
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import \
+from exasol_data_science_utils_python.schema.column import \
     Column
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_name \
+from exasol_data_science_utils_python.schema.column_name \
     import ColumnName
-from exasol_data_science_utils_python.preprocessing.sql.schema.column_type \
+from exasol_data_science_utils_python.schema.column_type \
     import ColumnType
-from exasol_data_science_utils_python.preprocessing.sql.schema.schema_name \
+from exasol_data_science_utils_python.schema.schema_name \
     import SchemaName
-from exasol_data_science_utils_python.preprocessing.sql.schema.table_name \
+from exasol_data_science_utils_python.schema.table_name \
     import TableName
 
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition

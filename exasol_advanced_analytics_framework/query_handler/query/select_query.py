@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List
 
-from exasol_data_science_utils_python.preprocessing.sql.schema.column import Column
+from exasol_data_science_utils_python.schema.column import Column
 
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
