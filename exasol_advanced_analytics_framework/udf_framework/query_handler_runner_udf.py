@@ -1,5 +1,6 @@
 import dataclasses
 import importlib
+import json
 import logging
 import traceback
 from collections import OrderedDict
@@ -20,15 +21,15 @@ from exasol_data_science_utils_python.schema.schema_name \
 from exasol_data_science_utils_python.schema.table_name \
     import TableName
 
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_result.udf_query_result \
-    import UDFQueryResult
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
+from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.result \
     import Finish, Continue, Result
+from exasol_advanced_analytics_framework.query_result.udf_query_result \
+    import UDFQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 
@@ -105,7 +106,7 @@ class QueryHandlerRunnerUDF:
 
     def handle_query_handler_result(self,
                                     query_handler_result: Result,
-                                    current_state: QueryHandlerRunnerState):
+                                    current_state: QueryHandlerRunnerState) -> UDFResult:
         if isinstance(query_handler_result, Finish):
             udf_result = self.handle_query_handler_result_finished(current_state, query_handler_result)
         elif isinstance(query_handler_result, Continue):
@@ -119,7 +120,7 @@ class QueryHandlerRunnerUDF:
     def handle_query_handler_result_finished(
             self,
             current_state: QueryHandlerRunnerState,
-            query_handler_result: Finish):
+            query_handler_result: Finish) -> UDFResult:
         udf_result = UDFResult()
         udf_result.final_result = query_handler_result.result
         udf_result.status = QueryHandlerStatus.FINISHED
@@ -134,19 +135,19 @@ class QueryHandlerRunnerUDF:
 
     def handle_query_handler_result_continue(self,
                                              current_state: QueryHandlerRunnerState,
-                                             query_handler_result: Continue):
+                                             query_handler_result: Continue) -> UDFResult:
         udf_result = UDFResult()
         udf_result.status = QueryHandlerStatus.CONTINUE
         udf_result.query_list = query_handler_result.query_list
         current_state.input_query_output_columns = query_handler_result.input_query.output_columns
-        self.release_and_create_new_return_query_query_handler_context(current_state)
+        self.release_and_create_query_handler_context_if_input_query(current_state)
         udf_result.input_query_view, udf_result.input_query = \
             self._wrap_return_query(current_state.input_query_query_handler_context,
                                     query_handler_result.input_query)
         return udf_result
 
     @staticmethod
-    def release_and_create_new_return_query_query_handler_context(current_state: QueryHandlerRunnerState):
+    def release_and_create_query_handler_context_if_input_query(current_state: QueryHandlerRunnerState):
         if current_state.input_query_query_handler_context is not None:
             current_state.input_query_query_handler_context.release()
         current_state.input_query_query_handler_context = \
@@ -193,8 +194,9 @@ class QueryHandlerRunnerUDF:
                                               self.parameter.temporary_name_prefix,
                                               self.parameter.temporary_schema_name)
         module = importlib.import_module(self.parameter.python_class_module)
-        query_handler_class = getattr(module, self.parameter.python_class_name)
-        query_handler_obj = query_handler_class(self.parameter.parameters, context)
+        query_handler_factory_class = getattr(module, self.parameter.python_class_name)
+        deserialized_parameter = json.loads(self.parameter.parameters)
+        query_handler_obj = query_handler_factory_class().create(deserialized_parameter, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
             query_handler=query_handler_obj)

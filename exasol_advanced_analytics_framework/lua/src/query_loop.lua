@@ -47,9 +47,9 @@ function M.prepare_init_query(arguments, meta)
 
     local query_handler <const> = arguments_with_defaults['query_handler']
     local params <const> = query_handler['parameters']
-    local python_class <const> = query_handler["class"]
-    local python_class_module <const> = python_class['module']
-    local python_class_name <const> = python_class['name']
+    local factory_class <const> = query_handler["factory_class"]
+    local factory_class_module <const> = factory_class['module']
+    local factory_class_name <const> = factory_class['name']
 
     local udf <const> = query_handler['udf']
     local udf_schema <const> = udf['schema']
@@ -62,8 +62,8 @@ function M.prepare_init_query(arguments, meta)
             temporary_bfs_location_directory,
             temporary_name_prefix,
             temporary_schema_name,
-            python_class_name,
-            python_class_module,
+            factory_class_name,
+            factory_class_module,
             params)
     local query <const> = string.format("SELECT %s%s", full_qualified_udf_name, udf_args)
     return query

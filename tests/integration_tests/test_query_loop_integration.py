@@ -25,8 +25,8 @@ def test_query_loop_integration_with_one_iteration(
     args = json.dumps(
         {
             "query_handler": {
-                "class": {
-                    "name": "QueryHandlerTestWithOneIteration",
+                "factory_class": {
+                    "name": "QueryHandlerTestWithOneIterationFactory",
                     "module": "test_query_handlers.query_handler_test"
                 },
                 "udf": {
@@ -47,12 +47,13 @@ def test_query_loop_integration_with_one_iteration(
     query = f"EXECUTE SCRIPT {schema_name}.AAF_RUN_QUERY_HANDLER('{args}')"
     result = pyexasol_connection.execute(textwrap.dedent(query)).fetchall()
 
-    assert result[0][0] == str(FINAL_RESULT)
+    assert result[0][0] == FINAL_RESULT
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_child_query_handler_context(
         setup_database, upload_language_container):
-    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries into its own session for easer retrieval
+    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
+    # into its own session for easer retrieval
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
@@ -63,8 +64,8 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
     args = json.dumps(
         {
             "query_handler": {
-                "class": {
-                    "name": "QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext",
+                "factory_class": {
+                    "name": "QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory",
                     "module": "test_query_handlers.query_handler_test"
                 },
                 "udf": {
@@ -90,7 +91,8 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
 
 def test_query_loop_integration_with_one_iteration_with_not_released_temporary_object(
         setup_database, upload_language_container):
-    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries into its own session for easer retrieval
+    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
+    # into its own session for easer retrieval of the audit log
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
@@ -101,8 +103,8 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
     args = json.dumps(
         {
             "query_handler": {
-                "class": {
-                    "name": "QueryHandlerWithOneIterationWithNotReleasedTemporaryObject",
+                "factory_class": {
+                    "name": "QueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory",
                     "module": "test_query_handlers.query_handler_test"
                 },
                 "udf": {
@@ -132,12 +134,15 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
     executed_queries = [row[0] for row in audit_logs]
     table_cleanup_query = [query for query in executed_queries if
                            query.startswith(f'DROP TABLE IF EXISTS "{schema_name}"."DB1_')]
+    for query in executed_queries:
+        print("executed_query: ", query)
     assert table_cleanup_query
 
 
 def test_query_loop_integration_with_two_iteration(
         setup_database, upload_language_container):
-    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries into its own session for easer retrieval
+    # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
+    # into its own session for easer retrieval of the audit log
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
@@ -148,8 +153,8 @@ def test_query_loop_integration_with_two_iteration(
     args = json.dumps(
         {
             "query_handler": {
-                "class": {
-                    "name": "QueryHandlerTestWithTwoIteration",
+                "factory_class": {
+                    "name": "QueryHandlerTestWithTwoIterationFactory",
                     "module": "test_query_handlers.query_handler_test"
                 },
                 "udf": {
@@ -182,7 +187,9 @@ def test_query_loop_integration_with_two_iteration(
     # TODO build an assert which can find a list of regex as a subsequence of a list of strings,
     #  see https://kalnytskyi.com/posts/assert-str-matches-regex-in-pytest/
     # asserts
-    assert result[0][0] == str(FINAL_RESULT) \
+    for query in executed_queries:
+        print("executed_query: ", query)
+    assert result[0][0] == FINAL_RESULT \
            and select_queries_from_query_handler == expected_query_list \
            and view_cleanup_query, \
         f"Not all required queries where executed {executed_queries}"
