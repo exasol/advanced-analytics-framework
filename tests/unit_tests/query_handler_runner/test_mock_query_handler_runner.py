@@ -23,8 +23,7 @@ from exasol_advanced_analytics_framework.testing.mock_query_handler_runner impor
 
 @pytest.fixture()
 def temporary_schema_name():
-    temporary_schema_name = "temp_schema_name"
-    return temporary_schema_name
+    return "temp_schema_name"
 
 
 @pytest.fixture()
