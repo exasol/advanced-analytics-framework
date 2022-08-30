@@ -163,7 +163,7 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 def test_continue_finish(temporary_schema_name, top_level_query_handler_context):
     """
     This tests runs a query handler which returns Continue result from the start method
-    and expect to be handle_query_result to be called. Further, it expects that
+    and expect handle_query_result to be called. Further, it expects that
     handle_query_result can access the columns in the resultset which where defined
     in the input_query.
     """
@@ -392,7 +392,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
 def test_continue_continue_finish(temporary_schema_name, top_level_query_handler_context):
     """
     This tests runs a query handler which returns Continue from the first call to handle_query_result method
-    and the second time it returns Finish. We expect two input queries to be executed one per Continue and
+    and the second time it returns Finish. We expect two input queries to be executed; one per Continue and
     in the end the result should be returned.
     """
     input_query_create_view_result_set = MockResultSet()
@@ -471,9 +471,9 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
 def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query_handler_context):
     """
     This tests runs a query handler which creates the temporary table of a child query context manager.
-    Then it returns a Continue results, such that handle_query_result will be called. During the call to
-    handle_query_result we release child query context manager and returns a Continue results such that
-    handle_query_result get called again to return a Finish result.
+    Then it returns a Continue result, such that handle_query_result will be called. During the call to
+    handle_query_result we release child query context manager and return a Continue result such that
+    handle_query_result gets called again, which then returns a Finish result.
     We expect that the cleanup of the temporary happens between the first and second call to handle_query_result.
     """
     input_query_create_view_result_set = MockResultSet()
