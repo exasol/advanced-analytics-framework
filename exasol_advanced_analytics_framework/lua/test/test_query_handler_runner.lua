@@ -13,7 +13,7 @@ test_query_handler_runner = {
                 schema_name = "temp_schema"
             },
             query_handler = {
-                class = {
+                factory_class = {
                     name = "cls_name",
                     module = "package.module"
                 },

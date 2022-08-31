@@ -1,4 +1,4 @@
-from typing import Dict, Any, Union
+from typing import Union
 
 from exasol_data_science_utils_python.schema.column import \
     Column
@@ -17,29 +17,37 @@ from exasol_advanced_analytics_framework.query_handler.result \
     import Finish, Continue
 from exasol_advanced_analytics_framework.query_result.query_result \
     import QueryResult
+from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
+from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
 
-FINAL_RESULT = {"result": 1}
+FINAL_RESULT = '{"result": 1}'
 QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL")]
 
 
-class QueryHandlerTestWithOneIteration(QueryHandler):
+class QueryHandlerTestWithOneIteration(UDFQueryHandler):
 
-    def __init__(self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext):
+    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[ResultType]]:
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         pass
 
 
-class QueryHandlerTestWithTwoIteration(QueryHandler):
+class QueryHandlerTestWithOneIterationFactory(UDFQueryHandlerFactory):
 
-    def __init__(self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext):
+    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerTestWithOneIteration(parameter, query_handler_context)
+
+
+class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
+
+    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def start(self) -> Union[Continue, Finish[str]]:
         return_query = "SELECT 1 AS COL1, 2 AS COL2 FROM DUAL"
         return_query_columns = [
             Column(ColumnName("COL1"), ColumnType("INTEGER")),
@@ -52,34 +60,51 @@ class QueryHandlerTestWithTwoIteration(QueryHandler):
             input_query=query_handler_return_query)
         return query_handler_result
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         return Finish(result=FINAL_RESULT)
 
 
-class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(QueryHandler):
-    def __init__(self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext):
+class QueryHandlerTestWithTwoIterationFactory(UDFQueryHandlerFactory):
+
+    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerTestWithTwoIteration(parameter, query_handler_context)
+
+
+class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(UDFQueryHandler):
+    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def start(self) -> Union[Continue, Finish[str]]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         pass
 
 
-class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(QueryHandler):
+class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory(UDFQueryHandlerFactory):
 
-    def __init__(self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext):
+    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(parameter, query_handler_context)
+
+
+class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler):
+
+    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.proxy = None
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def start(self) -> Union[Continue, Finish[str]]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         self.proxy = self.child.get_temporary_table()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[Dict[str, Any]]]:
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         pass
+
+class QueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory(UDFQueryHandlerFactory):
+
+    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameter, query_handler_context)

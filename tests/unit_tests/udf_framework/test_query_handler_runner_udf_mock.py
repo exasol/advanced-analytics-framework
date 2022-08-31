@@ -70,13 +70,13 @@ def test_query_handler_udf_with_one_iteration():
             BUCKETFS_DIRECTORY,
             TEMPORARY_NAME_PREFIX,
             "temp_schema",
-            "MockQueryHandlerWithOneIteration",
+            "MockQueryHandlerWithOneIterationFactory",
             "tests.unit_tests.udf_framework.mock_query_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
         rows = [row[0] for row in result[0].rows]
-        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, str(mock_query_handlers.FINAL_RESULT)]
+        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT]
         assert rows == expected_rows
 
 
@@ -96,7 +96,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_child_query_hand
             BUCKETFS_DIRECTORY,
             TEMPORARY_NAME_PREFIX,
             "temp_schema",
-            "MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext",
+            "MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory",
             "tests.unit_tests.udf_framework.mock_query_handlers",
             "{}"
         )
@@ -125,7 +125,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object
             BUCKETFS_DIRECTORY,
             TEMPORARY_NAME_PREFIX,
             "temp_schema",
-            "MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject",
+            "MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory",
             "tests.unit_tests.udf_framework.mock_query_handlers",
             "{}"
         )
@@ -155,14 +155,14 @@ def test_query_handler_udf_with_one_iteration_and_temp_table():
             BUCKETFS_DIRECTORY,
             TEMPORARY_NAME_PREFIX,
             "temp_schema",
-            "QueryHandlerTestWithOneIterationAndTempTable",
+            "QueryHandlerTestWithOneIterationAndTempTableFactory",
             "tests.unit_tests.udf_framework.mock_query_handlers",
             "{}"
         )
         result = executor.run([Group([input_data])], exa)
         rows = [row[0] for row in result[0].rows]
         table_cleanup_query = 'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_1";'
-        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, str(mock_query_handlers.FINAL_RESULT),
+        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT,
                          table_cleanup_query]
         assert rows == expected_rows
 
@@ -182,7 +182,7 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
         BUCKETFS_DIRECTORY,
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
-        "MockQueryHandlerWithTwoIterations",
+        "MockQueryHandlerWithTwoIterationsFactory",
         "tests.unit_tests.udf_framework.mock_query_handlers",
         "{}"
     )
@@ -218,7 +218,7 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
     result = executor.run([Group([input_data])], exa)
     rows = [row[0] for row in result[0].rows]
     cleanup_return_query_view = 'DROP VIEW IF EXISTS "temp_schema"."temporary_name_prefix_2_1";'
-    expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, str(mock_query_handlers.FINAL_RESULT),
+    expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT,
                      cleanup_return_query_view]
     assert rows == expected_rows
 
