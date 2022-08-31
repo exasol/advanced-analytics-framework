@@ -44,7 +44,7 @@ test_query_loop = {
                 schema_name = "temp_schema"
             },
             query_handler = {
-                class = {
+                factory_class = {
                     name = "cls_name",
                     module = "package.module"
                 },
@@ -69,7 +69,7 @@ test_query_loop = {
                 schema_name = "temp_schema"
             },
             query_handler = {
-                class = {
+                factory_class = {
                     name = "cls_name",
                     module = "package.module"
                 },
@@ -80,10 +80,10 @@ test_query_loop = {
                 "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
                 "'cls_name','package.module','params')"
     },
-    incorrect_without_class = {
+    incorrect_without_udf = {
         args = {
             query_handler = {
-                class = {
+                factory_class = {
                     name = "cls_name",
                     module = "package.module"
                 },
@@ -349,7 +349,7 @@ function test_query_loop.test_prepare_init_query_incorrect_without_class()
         statement_id = "1",
         script_schema = "script_schema"
     }
-    luaunit.assertError(query_loop.prepare_init_query, test_query_loop.incorrect_without_class.args, meta)
+    luaunit.assertError(query_loop.prepare_init_query, test_query_loop.incorrect_without_udf.args, meta)
 end
 
 function test_query_loop.test_prepare_init_query_incorrect_without_temporary_output()
