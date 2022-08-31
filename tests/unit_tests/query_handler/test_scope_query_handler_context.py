@@ -61,18 +61,66 @@ def test_two_temporary_bucketfs_files_are_not_equal(scope_query_handler_context:
     assert path1 != path2
 
 
-def test_use_table_proxy_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):
+def test_temporary_table_name_proxy_use_name_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):
     proxy = scope_query_handler_context.get_temporary_table_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
         proxy_name = proxy.name
 
 
-def test_use_view_proxy_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):
+def test_temporary_view_name_proxy_use_name_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):
     proxy = scope_query_handler_context.get_temporary_view_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
         proxy_name = proxy.name
+
+
+def test_temporary_table_name_proxy_use_schema_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_table_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
+        proxy_name = proxy.schema_name
+
+
+def test_temporary_view_name_proxy_use_schema_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_view_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
+        proxy_name = proxy.schema_name
+
+
+def test_temporary_table_name_proxy_use_quoted_name_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_table_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
+        proxy_name = proxy.quoted_name()
+
+
+def test_temporary_view_name_proxy_use_quoted_name_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_view_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
+        proxy_name = proxy.quoted_name()
+
+
+def test_temporary_table_name_proxy_use_fully_qualified_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_table_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
+        proxy_name = proxy.fully_qualified()
+
+
+def test_temporary_view_name_proxy_use_fully_qualified_after_release_fails(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    proxy = scope_query_handler_context.get_temporary_view_name()
+    scope_query_handler_context.release()
+    with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
+        proxy_name = proxy.fully_qualified()
 
 
 def test_get_temporary_view_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):
@@ -230,6 +278,7 @@ def test_using_table_name_proxy_in_table(scope_query_handler_context: ScopeQuery
     table_name = scope_query_handler_context.get_temporary_table_name()
     table = Table(table_name, columns=[])
     assert table.name is not None
+
 
 def test_using_view_name_proxy_in_view(scope_query_handler_context: ScopeQueryHandlerContext):
     view_name = scope_query_handler_context.get_temporary_view_name()

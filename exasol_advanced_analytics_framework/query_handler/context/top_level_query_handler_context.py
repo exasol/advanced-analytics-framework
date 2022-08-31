@@ -4,9 +4,9 @@ from typing import Set, List
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.table_name import TableName
-from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
+from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
 from exasol_data_science_utils_python.schema.view_name import ViewName
-from exasol_data_science_utils_python.schema.view_name_impl import ViewNameImpl
+from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
@@ -64,15 +64,17 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def _get_temporary_table_name(self) -> TableName:
         self._check_if_valid()
         temporary_name = self._get_temporary_db_object_name()
-        temporary_table_name = TableNameImpl(table_name=temporary_name,
-                                             schema=SchemaName(schema_name=self._temporary_schema_name))
+        temporary_table_name = TableNameBuilder.create(
+            name=temporary_name,
+            schema=SchemaName(schema_name=self._temporary_schema_name))
         return temporary_table_name
 
     def _get_temporary_view_name(self) -> ViewName:
         self._check_if_valid()
         temporary_name = self._get_temporary_db_object_name()
-        temporary_view_name = ViewNameImpl(view_name=temporary_name,
-                                           schema=SchemaName(schema_name=self._temporary_schema_name))
+        temporary_view_name = ViewNameBuilder.create(
+            name=temporary_name,
+            schema=SchemaName(schema_name=self._temporary_schema_name))
         return temporary_view_name
 
     def _get_temporary_db_object_name(self) -> str:
@@ -83,7 +85,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._register_object(object_proxy)
         self._owned_object_proxies.add(object_proxy)
 
-    def get_temporary_table_name(self) -> TableNameProxy:
+    def get_temporary_table_name(self) -> TableName:
         self._check_if_valid()
         temporary_table_name = self._get_temporary_table_name()
         object_proxy = TableNameProxy(temporary_table_name,
@@ -91,7 +93,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_view_name(self) -> ViewNameProxy:
+    def get_temporary_view_name(self) -> ViewName:
         self._check_if_valid()
         temporary_view_name = self._get_temporary_view_name()
         object_proxy = ViewNameProxy(temporary_view_name,

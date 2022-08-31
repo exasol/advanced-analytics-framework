@@ -25,7 +25,7 @@ install_requires = \
  'exasol-bucketfs-utils-python @ '
  'git+https://github.com/exasol/bucketfs-utils-python.git@main',
  'exasol-data-science-utils-python @ '
- 'git+https://github.com/exasol/data-science-utils-python.git@refactoring/refactor_schema_classes',
+ 'git+https://github.com/exasol/data-science-utils-python.git@662684cf43bd59c72a1048d95372562fb95922f5',
  'importlib-resources>=5.4.0,<6.0.0',
  'pandas>=1.1.0,<2.0.0',
  'pyexasol>=0.25.0,<0.26.0']
@@ -37,8 +37,8 @@ setup_kwargs = {
     'long_description': '# Exasol Advanced Analytics Framework\n\n**This project is at an early development stage.**\n\nFramework for building complex data analysis algorithms with Exasol.\n\n\n## Information for Users\n\n- [User Guide](doc/user_guide/user_guide.md)\n- [System Requirements](doc/system_requirements.md)\n- [Design](doc/design.md)\n- [License](LICENSE)\n\n## Information for Developers\n\n- [Developers Guide](doc/developer_guide/developer_guide.md)\n\n',
     'author': 'Umit Buyuksahin',
     'author_email': 'umit.buyuksahin@exasol.com',
-    'maintainer': None,
-    'maintainer_email': None,
+    'maintainer': 'None',
+    'maintainer_email': 'None',
     'url': 'https://github.com/exasol/advanced-analytics-framework',
     'packages': packages,
     'package_data': package_data,

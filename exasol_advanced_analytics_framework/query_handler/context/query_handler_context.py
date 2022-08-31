@@ -1,14 +1,16 @@
 import abc
 from abc import ABC
 
-from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import BucketFSLocationProxy
-from exasol_advanced_analytics_framework.query_handler.context.proxy.table_name_proxy import TableNameProxy
-from exasol_advanced_analytics_framework.query_handler.context.proxy.view_name_proxy import ViewNameProxy
+from exasol_data_science_utils_python.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.view_name import ViewName
+
+from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
+    BucketFSLocationProxy
 
 
 class QueryHandlerContext(ABC):
     @abc.abstractmethod
-    def get_temporary_table_name(self) -> TableNameProxy:
+    def get_temporary_table_name(self) -> TableName:
         """
         This function registers a new temporary table without creating it.
         After the release of this context the framework will issue a cleanup query.
@@ -16,7 +18,7 @@ class QueryHandlerContext(ABC):
         pass
 
     @abc.abstractmethod
-    def get_temporary_view_name(self) -> ViewNameProxy:
+    def get_temporary_view_name(self) -> ViewName:
         """
         This function registers a new temporary view without creating it.
         After the release of this context the framework will issue a cleanup query.
