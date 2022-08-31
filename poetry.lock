@@ -143,8 +143,8 @@ typeguard = "^2.11.1"
 [package.source]
 type = "git"
 url = "https://github.com/exasol/data-science-utils-python.git"
-reference = "main"
-resolved_reference = "446c9c3c3f7ebfcc8a7ab5bd80e1ef54f3526b59"
+reference = "refactoring/refactor_schema_classes"
+resolved_reference = "92a374d136e1b11ad3f9874d4af78f423f171f0e"
 
 [[package]]
 name = "exasol-udf-mock-python"
@@ -697,7 +697,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "3b158787297344789cc376bead8564c4ef1884a6e540e4546de50d6dc2b1cdec"
+content-hash = "77126094b80ec50cd9b095f68db6be8e75e6531d2f61c49417551562c78c6a76"
 
 [metadata.files]
 atomicwrites = []

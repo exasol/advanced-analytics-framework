@@ -17,18 +17,18 @@ from exasol_data_science_utils_python.schema.column_type \
     import ColumnType
 from exasol_data_science_utils_python.schema.schema_name \
     import SchemaName
-from exasol_data_science_utils_python.schema.table_name \
-    import TableName
+from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
+from exasol_data_science_utils_python.schema.udf_name_impl import UDFNameImpl
 
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_result.udf_query_result \
-    import UDFQueryResult
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
+from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.result \
     import Finish, Continue, Result
+from exasol_advanced_analytics_framework.query_result.udf_query_result \
+    import UDFQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 
@@ -226,13 +226,12 @@ class QueryHandlerRunnerUDF:
                            query_handler_context: ScopeQueryHandlerContext,
                            input_query: SelectQueryWithColumnDefinition) \
             -> Tuple[str, str]:
-        temporary_view = query_handler_context.get_temporary_view()
-        # TODO don't misuse TableName
-        query_handler_udf_name = TableName(
+        temporary_view = query_handler_context.get_temporary_view_name()
+        query_handler_udf_name = UDFNameImpl(
             table_name="AAF_QUERY_HANDLER_UDF",
             schema=SchemaName(self.exa.meta.script_schema)).fully_qualified()
         query_create_view = \
-            f"CREATE VIEW {temporary_view.name().fully_qualified()} AS {input_query.query_string};"
+            f"CREATE VIEW {temporary_view.fully_qualified()} AS {input_query.query_string};"
         full_qualified_columns = [col.name.fully_qualified()
                                   for col in input_query.output_columns]
         call_columns = [
@@ -244,7 +243,7 @@ class QueryHandlerRunnerUDF:
         columns_str = ",".join(call_columns + full_qualified_columns)
         query_query_handler = \
             f"SELECT {query_handler_udf_name}({columns_str}) " \
-            f"FROM {temporary_view.name().fully_qualified()};"
+            f"FROM {temporary_view.fully_qualified()};"
         return query_create_view, query_query_handler
 
     def _get_query_columns(self):
