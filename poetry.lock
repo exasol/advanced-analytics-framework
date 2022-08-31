@@ -165,8 +165,8 @@ typeguard = "^2.11.1"
 [package.source]
 type = "git"
 url = "https://github.com/exasol/data-science-utils-python.git"
-reference = "662684cf43bd59c72a1048d95372562fb95922f5"
-resolved_reference = "662684cf43bd59c72a1048d95372562fb95922f5"
+reference = "67c0921fe93954297a38c18389bb7a8b0b09ee69"
+resolved_reference = "67c0921fe93954297a38c18389bb7a8b0b09ee69"
 
 [[package]]
 name = "exasol-udf-mock-python"
@@ -742,7 +742,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "0e36519ace3f22c8bc0ee3094513363ce47eb6dfca29c87080555a1920fa9e87"
+content-hash = "779c8be46b2b56646206a93d205d36cce0d319cdf059179739946722fc0869e5"
 
 [metadata.files]
 atomicwrites = [

@@ -96,7 +96,7 @@ def test_temporary_table_name_proxy_use_quoted_name_after_release_fails(
     proxy = scope_query_handler_context.get_temporary_table_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        proxy_name = proxy.quoted_name()
+        proxy_name = proxy.quoted_name
 
 
 def test_temporary_view_name_proxy_use_quoted_name_after_release_fails(
@@ -104,7 +104,7 @@ def test_temporary_view_name_proxy_use_quoted_name_after_release_fails(
     proxy = scope_query_handler_context.get_temporary_view_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
-        proxy_name = proxy.quoted_name()
+        proxy_name = proxy.quoted_name
 
 
 def test_temporary_table_name_proxy_use_fully_qualified_after_release_fails(
@@ -112,7 +112,7 @@ def test_temporary_table_name_proxy_use_fully_qualified_after_release_fails(
     proxy = scope_query_handler_context.get_temporary_table_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        proxy_name = proxy.fully_qualified()
+        proxy_name = proxy.fully_qualified
 
 
 def test_temporary_view_name_proxy_use_fully_qualified_after_release_fails(
@@ -120,7 +120,7 @@ def test_temporary_view_name_proxy_use_fully_qualified_after_release_fails(
     proxy = scope_query_handler_context.get_temporary_view_name()
     scope_query_handler_context.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
-        proxy_name = proxy.fully_qualified()
+        proxy_name = proxy.fully_qualified
 
 
 def test_get_temporary_view_after_release_fails(scope_query_handler_context: ScopeQueryHandlerContext):

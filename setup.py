@@ -25,7 +25,7 @@ install_requires = \
  'exasol-bucketfs-utils-python @ '
  'git+https://github.com/exasol/bucketfs-utils-python.git@main',
  'exasol-data-science-utils-python @ '
- 'git+https://github.com/exasol/data-science-utils-python.git@662684cf43bd59c72a1048d95372562fb95922f5',
+ 'git+https://github.com/exasol/data-science-utils-python.git@67c0921fe93954297a38c18389bb7a8b0b09ee69',
  'importlib-resources>=5.4.0,<6.0.0',
  'pandas>=1.1.0,<2.0.0',
  'pyexasol>=0.25.0,<0.26.0']

@@ -11,7 +11,7 @@ class DropViewQuery(DropQuery):
 
     @property
     def query_string(self) -> str:
-        return f"DROP VIEW IF EXISTS {self._view_name.fully_qualified()};"
+        return f"DROP VIEW IF EXISTS {self._view_name.fully_qualified};"
 
     @property
     def view_name(self)-> TableName:

@@ -234,8 +234,8 @@ class QueryHandlerRunnerUDF:
                 schema=SchemaName(self.exa.meta.script_schema)
             )
         query_create_view = \
-            f"CREATE VIEW {temporary_view.fully_qualified()} AS {input_query.query_string};"
-        full_qualified_columns = [col.name.fully_qualified()
+            f"CREATE VIEW {temporary_view.fully_qualified} AS {input_query.query_string};"
+        full_qualified_columns = [col.name.fully_qualified
                                   for col in input_query.output_columns]
         call_columns = [
             f"{self.parameter.iter_num + 1}",
@@ -245,8 +245,8 @@ class QueryHandlerRunnerUDF:
         ]
         columns_str = ",".join(call_columns + full_qualified_columns)
         query_query_handler = \
-            f"SELECT {query_handler_udf_name.fully_qualified()}({columns_str}) " \
-            f"FROM {temporary_view.fully_qualified()};"
+            f"SELECT {query_handler_udf_name.fully_qualified}({columns_str}) " \
+            f"FROM {temporary_view.fully_qualified};"
         return query_create_view, query_query_handler
 
     def _get_query_columns(self):

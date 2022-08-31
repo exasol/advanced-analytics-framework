@@ -22,13 +22,15 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
         self._check_if_valid()
         return self._db_object_name.name
 
+    @property
     def quoted_name(self) -> str:
         self._check_if_valid()
-        return self._db_object_name.quoted_name()
+        return self._db_object_name.quoted_name
 
+    @property
     def fully_qualified(self) -> str:
         self._check_if_valid()
-        return self._db_object_name.fully_qualified()
+        return self._db_object_name.fully_qualified
 
     def __eq__(self, other):
         self._check_if_valid()
