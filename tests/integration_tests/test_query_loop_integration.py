@@ -53,7 +53,7 @@ def test_query_loop_integration_with_one_iteration(
 def test_query_loop_integration_with_one_iteration_with_not_released_child_query_handler_context(
         setup_database, upload_language_container):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
-    # into its own session for easer retrieval
+    # into its own session, for easier retrieval
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
@@ -92,7 +92,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
 def test_query_loop_integration_with_one_iteration_with_not_released_temporary_object(
         setup_database, upload_language_container):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
-    # into its own session for easer retrieval of the audit log
+    # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
@@ -142,7 +142,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
 def test_query_loop_integration_with_two_iteration(
         setup_database, upload_language_container):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
-    # into its own session for easer retrieval of the audit log
+    # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(
         dsn=db_params.address(),
         user=db_params.user,
