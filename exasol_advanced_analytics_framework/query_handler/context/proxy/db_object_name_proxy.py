@@ -33,6 +33,13 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
         return self._db_object_name.fully_qualified
 
     def __eq__(self, other):
+        """
+        Compares the object id of this object and the others.
+        We use the object ids, because we actually don't want
+        to have two objects with the same name, because these
+        object represent temporary DBObject which should be distinct
+        from each other.
+        """
         self._check_if_valid()
         return id(self) == id(other)
 
@@ -44,5 +51,15 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
         pass
 
     def __hash__(self):
+        """
+        Returns the hash (object id) of this proxy.
+        We use the hash of the object id of this object,
+        because we actually don't want to have two objects
+        with the same name, because these object represent
+        temporary DBObject which should be distinct from each other.
+        Note: We need to implement this method,
+        because without it, we get the error "unhashable type".
+        The reason is likely the multiple inheritance of this object.
+        """
         self._check_if_valid()
-        return id(self)
+        return hash(id(self))
