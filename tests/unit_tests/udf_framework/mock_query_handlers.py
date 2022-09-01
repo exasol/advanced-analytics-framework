@@ -11,16 +11,15 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition, \
     SelectQuery
-from exasol_advanced_analytics_framework.query_handler.query_handler \
-    import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result \
-    import Result, Finish, Continue
+    import Finish, Continue
 from exasol_advanced_analytics_framework.query_result.query_result \
     import QueryResult
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
 
-FINAL_RESULT = '{"a": "1"}'
+TEST_INPUT = "<<TEST_INPUT>>"
+FINAL_RESULT = '<<FINAL_RESULT>>'
 QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL")]
 
 
@@ -28,6 +27,11 @@ class MockQueryHandlerWithOneIteration(UDFQueryHandler):
 
     def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
+        if not isinstance(parameter, str):
+            raise AssertionError(f"Expected parameter={parameter} to be a string.")
+        if parameter != TEST_INPUT:
+            raise AssertionError(f"Expected parameter={parameter} to be '{TEST_INPUT}'.")
+
 
     def start(self) -> Union[Continue, Finish[str]]:
         return Finish(result=FINAL_RESULT)
@@ -64,6 +68,15 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
         return query_handler_result
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[Dict[str, Any]]]:
+        a = query_result.a
+        if a != 1:
+            raise AssertionError(f"Expected query_result.a={a} to be 1.")
+        b = query_result.b
+        if b != 2:
+            raise AssertionError(f"Expected query_result.b={b} to be 2.")
+        has_next = query_result.next()
+        if has_next:
+            raise AssertionError(f"No next row expected")
         query_handler_result = Finish(result=FINAL_RESULT)
         return query_handler_result
 

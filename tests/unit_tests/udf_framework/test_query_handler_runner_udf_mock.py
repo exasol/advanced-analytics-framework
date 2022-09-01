@@ -72,7 +72,7 @@ def test_query_handler_udf_with_one_iteration():
             "temp_schema",
             "MockQueryHandlerWithOneIterationFactory",
             "tests.unit_tests.udf_framework.mock_query_handlers",
-            "{}"
+            mock_query_handlers.TEST_INPUT
         )
         result = executor.run([Group([input_data])], exa)
         rows = [row[0] for row in result[0].rows]
@@ -205,15 +205,31 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
     current_state_exist = _is_state_exist(1, bucketfs_connection)
     assert prev_state_exist == False and current_state_exist == True
 
+    exa = MockExaEnvironment(
+        metadata=MockMetaData(
+            script_code_wrapper_function=_udf_wrapper,
+            input_type="SET",
+            input_columns=[
+                Column("0", int, "INTEGER"),  # iter_num
+                Column("1", str, "VARCHAR(2000000)"),  # temporary_bfs_location_conn
+                Column("2", str, "VARCHAR(2000000)"),  # temporary_bfs_location_directory
+                Column("3", str, "VARCHAR(2000000)"),  # temporary_name_prefix
+                Column("4", int, "INTEGER"),  # column a of the input query
+                Column("5", int, "INTEGER"),  # column b of the input query
+            ], output_type="EMITS",
+            output_columns=[
+                Column("outputs", str, "VARCHAR(2000000)")
+            ],
+            is_variadic_input=True),
+        connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
+
     input_data = (
         1,
         BUCKETFS_CONNECTION_NAME,
         BUCKETFS_DIRECTORY,
         TEMPORARY_NAME_PREFIX,
-        "temp_schema",
-        None,
-        None,
-        None
+        1,
+        2
     )
     result = executor.run([Group([input_data])], exa)
     rows = [row[0] for row in result[0].rows]
