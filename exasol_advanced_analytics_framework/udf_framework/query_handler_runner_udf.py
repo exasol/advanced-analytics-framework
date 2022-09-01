@@ -227,7 +227,7 @@ class QueryHandlerRunnerUDF:
                            query_handler_context: ScopeQueryHandlerContext,
                            input_query: SelectQueryWithColumnDefinition) \
             -> Tuple[str, str]:
-        temporary_view = query_handler_context.get_temporary_view_name()
+        temporary_view_name = query_handler_context.get_temporary_view_name()
         query_handler_udf_name = \
             UDFNameBuilder.create(
                 name="AAF_QUERY_HANDLER_UDF",
