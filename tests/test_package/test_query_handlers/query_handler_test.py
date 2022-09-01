@@ -20,7 +20,8 @@ from exasol_advanced_analytics_framework.query_result.query_result \
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
 
-FINAL_RESULT = '{"result": 1}'
+TEST_INPUT = "<<TEST_INPUT>>"
+FINAL_RESULT = '<<FINAL_RESULT>>'
 QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL")]
 
 
@@ -28,6 +29,10 @@ class QueryHandlerTestWithOneIteration(UDFQueryHandler):
 
     def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
+        if not isinstance(parameter, str):
+            raise AssertionError(f"Expected parameter={parameter} to be a string.")
+        if parameter != TEST_INPUT:
+            raise AssertionError(f"Expected parameter={parameter} to be '{TEST_INPUT}'.")
 
     def start(self) -> Union[Continue, Finish[ResultType]]:
         return Finish(result=FINAL_RESULT)
@@ -48,10 +53,10 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
         super().__init__(parameter, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[str]]:
-        return_query = "SELECT 1 AS COL1, 2 AS COL2 FROM DUAL"
+        return_query = 'SELECT 1 AS "a", 2 AS "b" FROM DUAL'
         return_query_columns = [
-            Column(ColumnName("COL1"), ColumnType("INTEGER")),
-            Column(ColumnName("COL2"), ColumnType("INTEGER"))]
+            Column(ColumnName("a"), ColumnType("INTEGER")),
+            Column(ColumnName("b"), ColumnType("INTEGER"))]
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=return_query,
             output_columns=return_query_columns)
@@ -61,6 +66,15 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
         return query_handler_result
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
+        a = query_result.a
+        if a != 1:
+            raise AssertionError(f"Expected query_result.a={a} to be 1.")
+        b = query_result.b
+        if b != 2:
+            raise AssertionError(f"Expected query_result.b={b} to be 2.")
+        has_next = query_result.next()
+        if has_next:
+            raise AssertionError(f"No next row expected")
         return Finish(result=FINAL_RESULT)
 
 
@@ -103,6 +117,7 @@ class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         pass
+
 
 class QueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory(UDFQueryHandlerFactory):
 

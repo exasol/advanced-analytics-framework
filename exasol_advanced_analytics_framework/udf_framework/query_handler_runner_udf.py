@@ -1,6 +1,5 @@
 import dataclasses
 import importlib
-import json
 import logging
 import traceback
 from collections import OrderedDict
@@ -194,8 +193,7 @@ class QueryHandlerRunnerUDF:
                                               self.parameter.temporary_schema_name)
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_factory_class = getattr(module, self.parameter.python_class_name)
-        deserialized_parameter = json.loads(self.parameter.parameters)
-        query_handler_obj = query_handler_factory_class().create(deserialized_parameter, context)
+        query_handler_obj = query_handler_factory_class().create(self.parameter.parameters, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
             query_handler=query_handler_obj)

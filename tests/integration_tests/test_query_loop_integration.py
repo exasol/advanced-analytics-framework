@@ -6,7 +6,7 @@ import pyexasol
 import pytest
 
 from tests.test_package.test_query_handlers.query_handler_test import \
-    FINAL_RESULT, QUERY_LIST
+    FINAL_RESULT, QUERY_LIST, TEST_INPUT
 from tests.utils.parameters import db_params
 
 QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
@@ -33,7 +33,7 @@ def test_query_loop_integration_with_one_iteration(
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": "{}"
+                "parameters": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -72,7 +72,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": "{}"
+                "parameters": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -111,7 +111,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": "{}"
+                "parameters": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -161,7 +161,7 @@ def test_query_loop_integration_with_two_iteration(
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": "{}"
+                "parameters": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
