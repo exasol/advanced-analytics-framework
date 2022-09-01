@@ -91,11 +91,11 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def _wrap_return_query(self, input_query: SelectQueryWithColumnDefinition) -> Tuple[str, str]:
         temporary_view_name = self._state.input_query_query_handler_context.get_temporary_view_name()
         input_query_create_view_string = \
-            f"CREATE VIEW {temporary_view.fully_qualified} AS {input_query.query_string};"
+            f"CREATE VIEW {temporary_view_name.fully_qualified} AS {input_query.query_string};"
         full_qualified_columns = [col.name.fully_qualified
                                   for col in input_query.output_columns]
         columns_str = ",".join(full_qualified_columns)
         input_query_string = \
             f"SELECT {columns_str} " \
-            f"FROM {temporary_view.fully_qualified};"
+            f"FROM {temporary_view_name.fully_qualified};"
         return input_query_create_view_string, input_query_string
