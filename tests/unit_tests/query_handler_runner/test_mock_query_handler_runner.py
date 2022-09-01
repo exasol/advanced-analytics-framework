@@ -81,7 +81,7 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        self._query_handler_context.get_temporary_table()
+        self._query_handler_context.get_temporary_table_name()
         return Finish[TestOutput](TestOutput(self._parameter))
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -113,7 +113,7 @@ class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutpu
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        self._query_handler_context.get_temporary_table()
+        self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
@@ -147,7 +147,7 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
                                                       [Column(ColumnName("a"),
                                                               ColumnType(name="DECIMAL",
                                                                          precision=1,
@@ -202,7 +202,7 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {ColumnName("b").quoted_name()}""",
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {ColumnName("b").quoted_name}""",
                                                       [Column(ColumnName("a"), ColumnType("INTEGER"))])
         return Continue(query_list=[], input_query=input_query)
 
@@ -247,7 +247,7 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
                                                       [Column(ColumnName("a"),
                                                               ColumnType(name="DECIMAL",
                                                                          precision=1,
@@ -308,7 +308,7 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
                                                       [Column(ColumnName("a"),
                                                               ColumnType(name="DECIMAL",
                                                                          precision=1,
@@ -316,7 +316,7 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
         return Continue(query_list=[], input_query=input_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
-        self._query_handler_context.get_temporary_table()
+        self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
 
@@ -367,7 +367,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column_name.quoted_name()}""",
+            f"""SELECT 1 as {column_name.quoted_name}""",
             [Column(ColumnName("a"),
                     ColumnType(name="DECIMAL",
                                precision=1,
@@ -379,7 +379,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
             self._iter += 1
             column_name = ColumnName("b")
             input_query = SelectQueryWithColumnDefinition(
-                f"""SELECT 1 as {column_name.quoted_name()}""",
+                f"""SELECT 1 as {column_name.quoted_name}""",
                 [Column(ColumnName("b"),
                         ColumnType(name="DECIMAL",
                                    precision=1,
@@ -444,9 +444,9 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         self._child_query_handler_conntext = self._query_handler_context.get_child_query_handler_context()
-        self._table = self._child_query_handler_conntext.get_temporary_table()
+        self._table = self._child_query_handler_conntext.get_temporary_table_name()
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
                                                       [Column(ColumnName("a"),
                                                               ColumnType(name="DECIMAL",
                                                                          precision=1,
@@ -458,7 +458,7 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
             self._child_query_handler_conntext.release()
             self._iter += 1
             column_name = ColumnName("b")
-            input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name()}""",
+            input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
                                                           [Column(ColumnName("b"),
                                                                   ColumnType(name="DECIMAL",
                                                                              precision=1,

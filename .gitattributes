@@ -1,1 +1,3 @@
 exasol_advanced_analytics_framework/resources/outputs/create_query_loop.sql linguist-generated
+setup.py linguist-generated
+poetry.lock linguist-generated

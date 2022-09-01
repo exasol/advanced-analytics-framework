@@ -98,7 +98,7 @@ class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler
 
     def start(self) -> Union[Continue, Finish[str]]:
         self.child = self._query_handler_context.get_child_query_handler_context()
-        self.proxy = self.child.get_temporary_table()
+        self.proxy = self.child.get_temporary_table_name()
         return Finish(result=FINAL_RESULT)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:

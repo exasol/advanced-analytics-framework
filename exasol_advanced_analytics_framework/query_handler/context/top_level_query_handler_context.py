@@ -4,13 +4,16 @@ from typing import Set, List
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
+from exasol_data_science_utils_python.schema.view_name import ViewName
+from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
-from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_proxy import DBObjectProxy
+from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
-from exasol_advanced_analytics_framework.query_handler.context.proxy.table_proxy import TableProxy
-from exasol_advanced_analytics_framework.query_handler.context.proxy.view_proxy import ViewProxy
+from exasol_advanced_analytics_framework.query_handler.context.proxy.table_name_proxy import TableNameProxy
+from exasol_advanced_analytics_framework.query_handler.context.proxy.view_name_proxy import ViewNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
@@ -61,9 +64,18 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def _get_temporary_table_name(self) -> TableName:
         self._check_if_valid()
         temporary_name = self._get_temporary_db_object_name()
-        temporary_table_name = TableName(table_name=temporary_name,
-                                         schema=SchemaName(schema_name=self._temporary_schema_name))
+        temporary_table_name = TableNameBuilder.create(
+            name=temporary_name,
+            schema=SchemaName(schema_name=self._temporary_schema_name))
         return temporary_table_name
+
+    def _get_temporary_view_name(self) -> ViewName:
+        self._check_if_valid()
+        temporary_name = self._get_temporary_db_object_name()
+        temporary_view_name = ViewNameBuilder.create(
+            name=temporary_name,
+            schema=SchemaName(schema_name=self._temporary_schema_name))
+        return temporary_view_name
 
     def _get_temporary_db_object_name(self) -> str:
         temporary_name = f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
@@ -73,23 +85,23 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._register_object(object_proxy)
         self._owned_object_proxies.add(object_proxy)
 
-    def get_temporary_table(self) -> TableProxy:
+    def get_temporary_table_name(self) -> TableName:
         self._check_if_valid()
         temporary_table_name = self._get_temporary_table_name()
-        object_proxy = TableProxy(temporary_table_name,
-                                  self._global_temporary_object_counter.get_current_value())
+        object_proxy = TableNameProxy(temporary_table_name,
+                                      self._global_temporary_object_counter.get_current_value())
         self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_view(self) -> ViewProxy:
+    def get_temporary_view_name(self) -> ViewName:
         self._check_if_valid()
-        temporary_table_name = self._get_temporary_table_name()
-        object_proxy = ViewProxy(temporary_table_name,
-                                 self._global_temporary_object_counter.get_current_value())
+        temporary_view_name = self._get_temporary_view_name()
+        object_proxy = ViewNameProxy(temporary_view_name,
+                                     self._global_temporary_object_counter.get_current_value())
         self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_bucketfs_file(self) -> BucketFSLocationProxy:
+    def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
         self._check_if_valid()
         temporary_path = self.get_temporary_path()
         child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
@@ -191,9 +203,9 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         The clean up queries are sorted in reverse order of their creation,
         such that, we remove first objects that might depend on previous objects.
         """
-        db_objects: List[DBObjectProxy] = \
+        db_objects: List[DBObjectNameProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies
-             if isinstance(object_proxy, DBObjectProxy)]
+             if isinstance(object_proxy, DBObjectNameProxy)]
         bucketfs_objects: List[BucketFSLocationProxy] = \
             [object_proxy for object_proxy in self._invalid_object_proxies
              if isinstance(object_proxy, BucketFSLocationProxy)]

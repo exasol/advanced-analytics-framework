@@ -12,7 +12,7 @@ class DropTableQuery(DropQuery):
 
     @property
     def query_string(self) -> str:
-        return f"DROP TABLE IF EXISTS {self._table_name.fully_qualified()};"
+        return f"DROP TABLE IF EXISTS {self._table_name.fully_qualified};"
 
     @property
     def table_name(self)->TableName:
