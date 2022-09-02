@@ -138,6 +138,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         if object_proxy in self._owned_object_proxies:
             if isinstance(scope_query_handler_context, _ScopeQueryHandlerContextBase):
                 scope_query_handler_context._own_object(object_proxy)
+                self._un_own_object(object_proxy)
                 if not self._is_child(scope_query_handler_context):
                     self._remove_object(object_proxy)
             else:
@@ -148,6 +149,8 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
 
     def _remove_object(self, object_proxy: ObjectProxy) -> None:
         self._valid_object_proxies.remove(object_proxy)
+
+    def _un_own_object(self, object_proxy: ObjectProxy) -> None:
         self._owned_object_proxies.remove(object_proxy)
 
     def _check_if_valid(self):
