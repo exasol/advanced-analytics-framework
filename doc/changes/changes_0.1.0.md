@@ -22,7 +22,7 @@
 
   - #8: Renamed master branch to main
   - #62: Fix bug in ScopeQueryHandlerContext transfer_object_to
-
+  - #64: Remove _check_if_valid calls in __eq__ and __hash__ for DBObjectNameProxy
 ### Refactoring
 
  - #42: Updated dependencies
