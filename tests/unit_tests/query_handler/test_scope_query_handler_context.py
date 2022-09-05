@@ -173,7 +173,7 @@ def test_transfer_between_siblings(scope_query_handler_context: ScopeQueryHandle
         value = object_proxy2.name
 
 
-def test_transfer_check_ownership_transfer_to_target(scope_query_handler_context: ScopeQueryHandlerContext):
+def test_transfer_siblings_check_ownership_transfer_to_target(scope_query_handler_context: ScopeQueryHandlerContext):
     child1 = scope_query_handler_context.get_child_query_handler_context()
     child2 = scope_query_handler_context.get_child_query_handler_context()
     object_proxy1 = child1.get_temporary_table_name()
@@ -188,7 +188,29 @@ def test_transfer_check_ownership_transfer_to_target(scope_query_handler_context
         value = object_proxy2.name
 
 
-def test_transfer_checK_losing_ownership(scope_query_handler_context: ScopeQueryHandlerContext):
+def test_transfer_child_parent_check_ownership_transfer_to_target(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child1 = parent.get_child_query_handler_context()
+    child2 = parent.get_child_query_handler_context()
+    object_proxy1 = child1.get_temporary_table_name()
+    child1.transfer_object_to(object_proxy1, parent)
+    with pytest.raises(RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."):
+        child1.transfer_object_to(object_proxy1, child2)
+
+
+def test_transfer_parent_child_check_ownership_transfer_to_target(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child1 = parent.get_child_query_handler_context()
+    child2 = parent.get_child_query_handler_context()
+    object_proxy1 = parent.get_temporary_table_name()
+    parent.transfer_object_to(object_proxy1, child1)
+    with pytest.raises(RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."):
+        parent.transfer_object_to(object_proxy1, child2)
+
+
+def test_transfer_siblings_checK_losing_ownership(scope_query_handler_context: ScopeQueryHandlerContext):
     child1 = scope_query_handler_context.get_child_query_handler_context()
     child2 = scope_query_handler_context.get_child_query_handler_context()
     child3 = scope_query_handler_context.get_child_query_handler_context()

@@ -21,6 +21,7 @@
 ### Bug Fixes
 
   - #8: Renamed master branch to main
+  - #62: Fix bug in ScopeQueryHandlerContext transfer_object_to
 
 ### Refactoring
 
