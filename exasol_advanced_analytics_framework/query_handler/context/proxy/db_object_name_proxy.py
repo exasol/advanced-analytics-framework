@@ -38,9 +38,10 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
         We use the object ids, because we actually don't want
         to have two objects with the same name, because these
         object represent temporary DBObject which should be distinct
-        from each other.
+        from each other. We can't run check_if_valid, becase otherwise
+        we are not able to remove an object of this class from
+        collections  after they got invalid.
         """
-        self._check_if_valid()
         return id(self) == id(other)
 
     def __repr__(self):
@@ -60,6 +61,8 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
         Note: We need to implement this method,
         because without it, we get the error "unhashable type".
         The reason is likely the multiple inheritance of this object.
+        We can't run check_if_valid, becase otherwise we are not able
+        to remove an object of this class from collections after they
+        got invalid.
         """
-        self._check_if_valid()
         return hash(id(self))
