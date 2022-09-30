@@ -115,8 +115,8 @@ Parameters
  - `CLASS_NAME` : Name of the query handler class
  - `CLASS_MODULE`: Module name of the query handler class
  - `CLASS_PARAMETERS:` Parameters of the query handler class
- - `UDF_NAME` : Name of Python UDF script including user-implemented algorithm.
- - `UDF_SCHEMA_NAME`: Schema name where the UDF script is deployed.
+ - `UDF_NAME` (Optional): Name of Python UDF script including user-implemented algorithm.
+ - `UDF_SCHEMA_NAME` (Optional): Schema name where the UDF script is deployed.
  - `BUCKETFS_CONNECTION_NAME`: BucketFS connection name to keep temporary outputs
  - `BUCKETFS_DIRECTORY`: Directory in BucketFS where temporary outputs are kept
 
@@ -138,10 +138,34 @@ class CustomQueryHandler(UDFQueryHandler):
 
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
+        self.parameter = parameter
+        self.query_handler_context = query_handler_context
 
     def start(self) -> Union[Continue, Finish[ResultType]]:
-        pass
+        query_list = [
+          SelectQuery("SELECT 1 FROM DUAL"), 
+          SelectQuery("SELECT 2 FROM DUAL")]
+        query_handler_input_query = SelectQueryWithColumnDefinition(
+            query_string="SELECT 5 AS 'return_column' FROM DUAL",
+            output_columns=[
+              Column(ColumnName("return_column"), ColumnType("INTEGER"))])
+        
+        return Continue(
+            query_list=query_list,
+            input_query=query_handler_return_query)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
-        pass
+        return_value = query_result.return_column
+        result = 2 ** return_value
+        return Finish(result=f"Assertion of the final result: 32 == {result}")
 ```
+The figure below indicates a sample execution of this algorithm implemented in 
+`CustomQueryHandler` class. When this class is got started, it has two queries 
+to be executed and an `input_query` which will be called to obtained the next state.
+
+After the first iteration is completed, the framework calls the `handle_query_result` 
+method with the `query_result` of the `input_query` of the previous iteration. 
+In this example, the algorithm is finished at this state, presents the two to 
+the power of the return value as final result.
+
+![Sample Execution](../images/sample_execution.png "Sample Execution")
