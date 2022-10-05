@@ -7,6 +7,8 @@ from exasol_data_science_utils_python.schema.view import View
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
+from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
+    ChildContextNotReleasedError
 
 
 def test_temporary_table_prefix_in_name(scope_query_handler_context: ScopeQueryHandlerContext,
@@ -284,7 +286,7 @@ def test_release_parent_before_child_with_temporary_object_expect_exception(
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
     proxy = child.get_temporary_table_name()
-    with pytest.raises(RuntimeError, match=f"Child contexts are not released."):
+    with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
 
@@ -292,8 +294,42 @@ def test_release_parent_before_child_without_temporary_object_expect_exception(
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
-    with pytest.raises(RuntimeError, match=f"Child contexts are not released."):
+    with pytest.raises(ChildContextNotReleasedError):
         parent.release()
+
+
+def test_release_parent_before_grand_child_with_temporary_object_expect_exception(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child = scope_query_handler_context.get_child_query_handler_context()
+    grand_child = child.get_child_query_handler_context()
+    proxy = grand_child.get_temporary_table_name()
+    with pytest.raises(ChildContextNotReleasedError):
+        parent.release()
+
+
+def test_release_parent_before_grand_child_without_temporary_object_expect_exception(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child = scope_query_handler_context.get_child_query_handler_context()
+    grand_child = child.get_child_query_handler_context()
+    with pytest.raises(ChildContextNotReleasedError):
+        parent.release()
+
+
+def test_cleanup_parent_before_grand_child_without_temporary_objects(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    child1 = scope_query_handler_context.get_child_query_handler_context()
+    child2 = scope_query_handler_context.get_child_query_handler_context()
+    grand_child11 = child1.get_child_query_handler_context()
+    grand_child21 = child2.get_child_query_handler_context()
+    grand_child12 = child1.get_child_query_handler_context()
+    grand_child22 = child2.get_child_query_handler_context()
+    with pytest.raises(ChildContextNotReleasedError) as e:
+        scope_query_handler_context.release()
+
+    not_released_contexts = e.value.get_all_not_released_contexts()
+    assert len(not_released_contexts) == 6
 
 
 def test_using_table_name_proxy_in_table(scope_query_handler_context: ScopeQueryHandlerContext):
