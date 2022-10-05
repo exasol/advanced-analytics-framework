@@ -101,18 +101,3 @@ def test_cleanup_parent_before_grand_child_with_temporary_objects(
         top_level_query_handler_context.release()
     cleanup_queries = top_level_query_handler_context.cleanup_released_object_proxies()
     assert len(cleanup_queries) == 7
-
-
-def test_cleanup_parent_before_grand_child_without_temporary_objects(
-        top_level_query_handler_context: TopLevelQueryHandlerContext):
-    child1 = top_level_query_handler_context.get_child_query_handler_context()
-    child2 = top_level_query_handler_context.get_child_query_handler_context()
-    grand_child11 = child1.get_child_query_handler_context()
-    grand_child21 = child2.get_child_query_handler_context()
-    grand_child12 = child1.get_child_query_handler_context()
-    grand_child22 = child2.get_child_query_handler_context()
-    with pytest.raises(ChildContextNotReleasedError) as e:
-        top_level_query_handler_context.release()
-
-    not_released_contexts = e.value.get_all_not_released_contexts()
-    assert len(not_released_contexts) == 6
