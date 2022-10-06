@@ -34,6 +34,8 @@ class BucketFSLocationProxy(ObjectProxy):
         files = []
         try:
             files = self._bucketfs_location.list_files_in_bucketfs("")
+        except FileNotFoundError as e:
+            LOGGER.debug(f"File not found {self._bucketfs_location.get_complete_file_path_in_bucket()} during cleanup.")
         except Exception as e:
-            LOGGER.debug(f"Got exception during listing files in temporary BucketFSLocation", exc_info=True)
+            LOGGER.exception(f"Got exception during listing files in temporary BucketFSLocation")
         return files
