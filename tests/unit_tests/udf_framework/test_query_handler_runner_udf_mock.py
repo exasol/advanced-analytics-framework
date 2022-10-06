@@ -105,7 +105,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_child_query_hand
         expected_rows = [None,
                          None,
                          QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*Following child contexts were not released:*", re.DOTALL)]
+                         pytest_regex(r".*The following child contexts were not released:*", re.DOTALL)]
         assert rows == expected_rows
 
 
@@ -134,7 +134,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object
         expected_rows = [None,
                          None,
                          QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*Following child contexts were not released:.*", re.DOTALL),
+                         pytest_regex(r".*The following child contexts were not released.*", re.DOTALL),
                          'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_2_1";']
         assert rows == expected_rows
 

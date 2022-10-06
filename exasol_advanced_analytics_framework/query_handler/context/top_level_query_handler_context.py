@@ -40,7 +40,8 @@ class ChildContextNotReleasedError(Exception):
         self.not_released_child_contexts = not_released_child_contexts
         concatenated_contexts = "\n- ".join([str(c) for c in self.get_all_not_released_contexts()])
         self.message = \
-            f"Following child contexts were not released:\n" \
+            f"The following child contexts were not released,\n" \
+            f"please release all contexts to avoid ressource leakage:\n" \
             f"- {concatenated_contexts}\n"
         super(ChildContextNotReleasedError, self).__init__(self.message)
 
