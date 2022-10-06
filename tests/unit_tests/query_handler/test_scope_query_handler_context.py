@@ -173,9 +173,9 @@ def test_transfer_between_siblings(scope_query_handler_context: ScopeQueryHandle
     child1.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _2 = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_siblings_check_ownership_transfer_to_target(scope_query_handler_context: ScopeQueryHandlerContext):
@@ -188,9 +188,9 @@ def test_transfer_siblings_check_ownership_transfer_to_target(scope_query_handle
     child2.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _ = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_child_parent_check_ownership_transfer_to_target(
@@ -246,9 +246,9 @@ def test_transfer_between_child_and_parent(scope_query_handler_context: ScopeQue
     child.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _ = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_between_parent_and_child(scope_query_handler_context: ScopeQueryHandlerContext):
@@ -288,7 +288,7 @@ def test_release_parent_before_child_with_temporary_object_expect_exception(
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
-    proxy = child.get_temporary_table_name()
+    _ = child.get_temporary_table_name()
     with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
@@ -296,7 +296,7 @@ def test_release_parent_before_child_with_temporary_object_expect_exception(
 def test_release_parent_before_child_without_temporary_object_expect_exception(
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
-    child = scope_query_handler_context.get_child_query_handler_context()
+    _ = scope_query_handler_context.get_child_query_handler_context()
     with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
@@ -306,7 +306,7 @@ def test_release_parent_before_grand_child_with_temporary_object_expect_exceptio
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
     grand_child = child.get_child_query_handler_context()
-    proxy = grand_child.get_temporary_table_name()
+    _ = grand_child.get_temporary_table_name()
     with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
@@ -315,7 +315,7 @@ def test_release_parent_before_grand_child_without_temporary_object_expect_excep
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
-    grand_child = child.get_child_query_handler_context()
+    _ = child.get_child_query_handler_context()
     with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
@@ -324,10 +324,10 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
         scope_query_handler_context: ScopeQueryHandlerContext):
     child1 = scope_query_handler_context.get_child_query_handler_context()
     child2 = scope_query_handler_context.get_child_query_handler_context()
-    grand_child11 = child1.get_child_query_handler_context()
-    grand_child21 = child2.get_child_query_handler_context()
-    grand_child12 = child1.get_child_query_handler_context()
-    grand_child22 = child2.get_child_query_handler_context()
+    _ = child1.get_child_query_handler_context()
+    _ = child2.get_child_query_handler_context()
+    _ = child1.get_child_query_handler_context()
+    _ = child2.get_child_query_handler_context()
     with pytest.raises(ChildContextNotReleasedError) as e:
         scope_query_handler_context.release()
 

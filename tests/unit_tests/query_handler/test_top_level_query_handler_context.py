@@ -83,19 +83,19 @@ def test_cleanup_release_in_reverse_order_at_child(
 
 def test_cleanup_parent_before_grand_child_with_temporary_objects(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
-    parent_temporary_table = top_level_query_handler_context.get_temporary_table_name()
+    _ = top_level_query_handler_context.get_temporary_table_name()
     child1 = top_level_query_handler_context.get_child_query_handler_context()
-    child1_temporary_table = child1.get_temporary_table_name()
+    _ = child1.get_temporary_table_name()
     child2 = top_level_query_handler_context.get_child_query_handler_context()
-    child2_temporary_table = child2.get_temporary_table_name()
+    _ = child2.get_temporary_table_name()
     grand_child11 = child1.get_child_query_handler_context()
-    grant_child11_temporary_table = grand_child11.get_temporary_table_name()
+    _ = grand_child11.get_temporary_table_name()
     grand_child12 = child1.get_child_query_handler_context()
-    grant_child12_temporary_table = grand_child12.get_temporary_table_name()
+    _ = grand_child12.get_temporary_table_name()
     grand_child21 = child2.get_child_query_handler_context()
-    grant_child21_temporary_table = grand_child21.get_temporary_table_name()
+    _ = grand_child21.get_temporary_table_name()
     grand_child22 = child2.get_child_query_handler_context()
-    grant_child22_temporary_table = grand_child22.get_temporary_table_name()
+    _ = grand_child22.get_temporary_table_name()
 
     with pytest.raises(ChildContextNotReleasedError):
         top_level_query_handler_context.release()
