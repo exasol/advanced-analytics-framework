@@ -1,7 +1,8 @@
+import pytest
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
+    TopLevelQueryHandlerContext, ChildContextNotReleasedError
 from exasol_advanced_analytics_framework.query_handler.query.drop_table_query import DropTableQuery
 from exasol_advanced_analytics_framework.query_handler.query.drop_view_query import DropViewQuery
 
@@ -78,3 +79,25 @@ def test_cleanup_release_in_reverse_order_at_child(
                                for table_name in reversed(parent_table_names)]
     assert child_expected_queries == child_actual_queries and \
            parent_expected_queries == parent_actual_queries
+
+
+def test_cleanup_parent_before_grand_child_with_temporary_objects(
+        top_level_query_handler_context: TopLevelQueryHandlerContext):
+    _ = top_level_query_handler_context.get_temporary_table_name()
+    child1 = top_level_query_handler_context.get_child_query_handler_context()
+    _ = child1.get_temporary_table_name()
+    child2 = top_level_query_handler_context.get_child_query_handler_context()
+    _ = child2.get_temporary_table_name()
+    grand_child11 = child1.get_child_query_handler_context()
+    _ = grand_child11.get_temporary_table_name()
+    grand_child12 = child1.get_child_query_handler_context()
+    _ = grand_child12.get_temporary_table_name()
+    grand_child21 = child2.get_child_query_handler_context()
+    _ = grand_child21.get_temporary_table_name()
+    grand_child22 = child2.get_child_query_handler_context()
+    _ = grand_child22.get_temporary_table_name()
+
+    with pytest.raises(ChildContextNotReleasedError):
+        top_level_query_handler_context.release()
+    cleanup_queries = top_level_query_handler_context.cleanup_released_object_proxies()
+    assert len(cleanup_queries) == 7

@@ -86,7 +86,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
         query = f"EXECUTE SCRIPT {schema_name}.AAF_RUN_QUERY_HANDLER('{args}')"
         result = conn.execute(textwrap.dedent(query)).fetchall()
     assert "E-AAF-4: Error occurred while calling the query handler." in caught_exception.value.message and \
-           "RuntimeError: Child contexts are not released" in caught_exception.value.message
+           "The following child contexts were not released" in caught_exception.value.message
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_temporary_object(
@@ -125,7 +125,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
         query = f"EXECUTE SCRIPT {schema_name}.AAF_RUN_QUERY_HANDLER('{args}')"
         result = conn.execute(textwrap.dedent(query)).fetchall()
     assert "E-AAF-4: Error occurred while calling the query handler." in caught_exception.value.message and \
-           "RuntimeError: Child contexts are not released" in caught_exception.value.message
+           "The following child contexts were not released" in caught_exception.value.message
 
     # get audit logs after executing query loop
     conn.execute(QUERY_FLUSH_STATS)

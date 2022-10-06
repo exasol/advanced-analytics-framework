@@ -1,3 +1,5 @@
+import textwrap
+import traceback
 from abc import ABC
 from typing import Set, List
 
@@ -29,6 +31,32 @@ class TemporaryObjectCounter:
         return result
 
 
+class ChildContextNotReleasedError(Exception):
+
+    def __init__(self,
+                 not_released_child_contexts: List[ScopeQueryHandlerContext],
+                 exceptions_thrown_by_not_released_child_contexts: List["ChildContextNotReleasedError"]):
+        """
+        :param not_released_child_contexts: A list of child contexts which were not yet released
+        :param exceptions_thrown_by_not_released_child_contexts: A list of ChildContextNotReleasedError thrown by the
+                                                                 call to _invalidate of the child contexts
+        """
+        self.exceptions_thrown_by_not_released_child_contexts = exceptions_thrown_by_not_released_child_contexts
+        self.not_released_child_contexts = not_released_child_contexts
+        concatenated_contexts = "\n- ".join([str(c) for c in self.get_all_not_released_contexts()])
+        self.message = \
+            f"The following child contexts were not released,\n" \
+            f"please release all contexts to avoid ressource leakage:\n" \
+            f"- {concatenated_contexts}\n"
+        super(ChildContextNotReleasedError, self).__init__(self.message)
+
+    def get_all_not_released_contexts(self):
+        result = sum([e.get_all_not_released_contexts() for e in
+                      self.exceptions_thrown_by_not_released_child_contexts], [])
+        result = self.not_released_child_contexts + result
+        return result
+
+
 class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
@@ -53,7 +81,6 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         if len(self._valid_object_proxies) > 0:
             for object_proxy in list(self._valid_object_proxies):
                 self._release_object(object_proxy)
-            raise RuntimeError("Child contexts are not released.")
         self._invalidate()
 
     def _get_counter_value(self) -> int:
@@ -163,13 +190,20 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._valid_object_proxies = set()
         self._owned_object_proxies = set()
         self._is_valid = False
-        child_context_were_not_released = False
+        not_released_child_contexts = []
+        exceptions_from_not_released_child_contexts = []
         for child_query_handler_context in self._child_query_handler_context_list:
             if child_query_handler_context._is_valid:
-                child_context_were_not_released = True
-                child_query_handler_context._invalidate()
-        if child_context_were_not_released:
-            raise RuntimeError("Child contexts are not released.")
+                not_released_child_contexts.append(child_query_handler_context)
+                try:
+                    child_query_handler_context._invalidate()
+                except ChildContextNotReleasedError as e:
+                    exceptions_from_not_released_child_contexts.append(e)
+        if not_released_child_contexts:
+            raise ChildContextNotReleasedError(
+                not_released_child_contexts=not_released_child_contexts,
+                exceptions_thrown_by_not_released_child_contexts=exceptions_from_not_released_child_contexts
+            )
 
     def _register_object(self, object_proxy: ObjectProxy):
         self._check_if_valid()
