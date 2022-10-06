@@ -28,7 +28,7 @@ def test_cleanup_invalid_temporary_view_proxies_after_release(
            and queries[0].query_string == f"DROP VIEW IF EXISTS {proxy_fully_qualified};"
 
 
-def test_cleanup_invalid_bucketfs_object_proxies_after_release(
+def test_cleanup_invalid_bucketfs_object_with_uploaded_file_proxies_after_release(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
         bucketfs_location: AbstractBucketFSLocation,
         prefix: str):
@@ -39,6 +39,15 @@ def test_cleanup_invalid_bucketfs_object_proxies_after_release(
     top_level_query_handler_context.cleanup_released_object_proxies()
     file_list = bucketfs_location.list_files_in_bucketfs("")
     assert file_list == []
+
+
+def test_cleanup_invalid_bucketfs_object_without_uploaded_file_proxies_after_release(
+        top_level_query_handler_context: TopLevelQueryHandlerContext,
+        bucketfs_location: AbstractBucketFSLocation,
+        prefix: str):
+    _ = top_level_query_handler_context.get_temporary_bucketfs_location()
+    top_level_query_handler_context.release()
+    top_level_query_handler_context.cleanup_released_object_proxies()
 
 
 def test_cleanup_release_in_reverse_order_at_top_level(
