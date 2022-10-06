@@ -35,8 +35,13 @@ class ChildContextNotReleasedError(Exception):
 
     def __init__(self,
                  not_released_child_contexts: List[ScopeQueryHandlerContext],
-                 exceptions_from_not_released_child_contexts: List["ChildContextNotReleasedError"]):
-        self.exceptions_from_not_released_child_contexts = exceptions_from_not_released_child_contexts
+                 exceptions_thrown_by_not_released_child_contexts: List["ChildContextNotReleasedError"]):
+        """
+        :param not_released_child_contexts: A list of child contexts which were not yet released
+        :param exceptions_thrown_by_not_released_child_contexts: A list of ChildContextNotReleasedError thrown by the
+                                                                 call to _invalidate of the child contexts
+        """
+        self.exceptions_thrown_by_not_released_child_contexts = exceptions_thrown_by_not_released_child_contexts
         self.not_released_child_contexts = not_released_child_contexts
         concatenated_contexts = "\n- ".join([str(c) for c in self.get_all_not_released_contexts()])
         self.message = \
@@ -47,7 +52,7 @@ class ChildContextNotReleasedError(Exception):
 
     def get_all_not_released_contexts(self):
         result = sum([e.get_all_not_released_contexts() for e in
-                      self.exceptions_from_not_released_child_contexts], [])
+                      self.exceptions_thrown_by_not_released_child_contexts], [])
         result = self.not_released_child_contexts + result
         return result
 
@@ -197,7 +202,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         if not_released_child_contexts:
             raise ChildContextNotReleasedError(
                 not_released_child_contexts=not_released_child_contexts,
-                exceptions_from_not_released_child_contexts=exceptions_from_not_released_child_contexts
+                exceptions_thrown_by_not_released_child_contexts=exceptions_from_not_released_child_contexts
             )
 
     def _register_object(self, object_proxy: ObjectProxy):
