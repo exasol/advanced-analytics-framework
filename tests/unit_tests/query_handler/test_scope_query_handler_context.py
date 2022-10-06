@@ -2,6 +2,9 @@ from contextlib import contextmanager
 
 import pytest
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
+from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.column_type import ColumnType
 from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.view import View
 
@@ -334,11 +337,25 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
 
 def test_using_table_name_proxy_in_table(scope_query_handler_context: ScopeQueryHandlerContext):
     table_name = scope_query_handler_context.get_temporary_table_name()
-    table = Table(table_name, columns=[])
+    table = Table(table_name,
+                  columns=[
+                      (
+                          ColumnBuilder().
+                          with_name(ColumnName("COLUMN1"))
+                          .with_type(ColumnType("VARCHAR"))
+                          .build()
+                      )
+                  ])
     assert table.name is not None
 
 
 def test_using_view_name_proxy_in_view(scope_query_handler_context: ScopeQueryHandlerContext):
     view_name = scope_query_handler_context.get_temporary_view_name()
-    view = View(view_name, columns=[])
+    view = View(view_name, columns=[
+        (
+            ColumnBuilder().
+            with_name(ColumnName("COLUMN1"))
+            .with_type(ColumnType("VARCHAR"))
+            .build()
+        )])
     assert view.name is not None
