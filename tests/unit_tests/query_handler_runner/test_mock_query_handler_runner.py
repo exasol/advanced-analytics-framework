@@ -20,6 +20,8 @@ from exasol_advanced_analytics_framework.query_handler.result import Continue, F
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import MockQueryHandlerRunner
 
+EXPECTED_EXCEPTION = "ExpectedException"
+
 
 @pytest.fixture()
 def temporary_schema_name():
@@ -516,3 +518,34 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
                f"""SELECT "b" FROM "{temporary_schema_name}"."temp_db_object_6_1";""",
                f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_6_1";""",
            ]
+
+
+class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
+    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameter, query_handler_context)
+        self._parameter = parameter
+        self._iter = 0
+
+    def start(self) -> Union[Continue, Finish[TestOutput]]:
+        self._query_handler_context.get_child_query_handler_context()
+        raise Exception(EXPECTED_EXCEPTION)
+
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+        pass
+
+
+def test_fail_in_cleanup(temporary_schema_name, top_level_query_handler_context):
+    sql_executor = MockSQLExecutor()
+    temporary_schema_name = "temp_schema_name"
+    test_input = TestInput()
+    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+        sql_executor=sql_executor,
+        top_level_query_handler_context=top_level_query_handler_context,
+        parameter=test_input,
+        query_handler_factory=FailInCleanupAfterException
+    )
+
+    with pytest.raises(RuntimeError,match="Execution of query handler .* failed.") as e:
+        query_handler_runner.run()
+
+    assert e.value.__cause__.args[0] == EXPECTED_EXCEPTION

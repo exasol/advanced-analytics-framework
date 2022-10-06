@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, TypeVar, Generic, Tuple, Union, List
 
 from exasol_data_science_utils_python.udf_utils.sql_executor import SQLExecutor
@@ -12,6 +13,8 @@ from exasol_advanced_analytics_framework.query_handler.query_handler import Quer
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
 from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state import QueryHandlerRunnerState
+
+LOGGER = logging.getLogger(__file__)
 
 ResultType = TypeVar("ResultType")
 ParameterType = TypeVar("ParameterType")
@@ -44,7 +47,10 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
             else:
                 raise RuntimeError("Unknown Result")
         except Exception as e:
-            self.handle_finish()
+            try:
+                self.handle_finish()
+            except Exception as e1:
+                LOGGER.exception("Catched exeception during cleanup after an exception.")
             raise RuntimeError(f"Execution of query handler {self._state.query_handler} failed.") from e
 
     def handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
