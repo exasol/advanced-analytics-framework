@@ -6,7 +6,7 @@ from exasol_data_science_utils_python.udf_utils.sql_executor import SQLExecutor
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
+    TopLevelQueryHandlerContext, ConnectionLookup
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
@@ -33,7 +33,8 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
         query_handler = query_handler_factory(parameter, top_level_query_handler_context)
         self._state = QueryHandlerRunnerState(
             top_level_query_handler_context=top_level_query_handler_context,
-            query_handler=query_handler
+            query_handler=query_handler,
+            connection_lookup=None
         )
 
     def run(self) -> ResultType:

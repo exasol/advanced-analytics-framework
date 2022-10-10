@@ -29,10 +29,13 @@ def temporary_schema_name():
 
 
 @pytest.fixture()
-def top_level_query_handler_context(tmp_path, temporary_schema_name):
+def top_level_query_handler_context(tmp_path,
+                                    temporary_schema_name,
+                                    test_connection_lookup):
     top_level_query_handler_context = TopLevelQueryHandlerContext(
         temporary_bucketfs_location=LocalFSMockBucketFSLocation(base_path=PurePosixPath(tmp_path) / "bucketfs"),
         temporary_db_object_name_prefix="temp_db_object",
+        connection_lookup=test_connection_lookup,
         temporary_schema_name=temporary_schema_name,
     )
     return top_level_query_handler_context
@@ -545,7 +548,7 @@ def test_fail_in_cleanup(temporary_schema_name, top_level_query_handler_context)
         query_handler_factory=FailInCleanupAfterException
     )
 
-    with pytest.raises(RuntimeError,match="Execution of query handler .* failed.") as e:
+    with pytest.raises(RuntimeError, match="Execution of query handler .* failed.") as e:
         query_handler_runner.run()
 
     assert e.value.__cause__.args[0] == EXPECTED_EXCEPTION

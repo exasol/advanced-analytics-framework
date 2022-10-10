@@ -1,7 +1,7 @@
 import textwrap
 import traceback
 from abc import ABC
-from typing import Set, List
+from typing import Set, List, Callable
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
@@ -17,7 +17,7 @@ from exasol_advanced_analytics_framework.query_handler.context.proxy.object_prox
 from exasol_advanced_analytics_framework.query_handler.context.proxy.table_name_proxy import TableNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.view_name_proxy import ViewNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+    ScopeQueryHandlerContext, Connection
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
 
@@ -57,12 +57,17 @@ class ChildContextNotReleasedError(Exception):
         return result
 
 
+ConnectionLookup = Callable[[str], Connection]
+
+
 class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter):
+        self._connection_lookup = connection_lookup
         self._global_temporary_object_counter = global_temporary_object_counter
         self._temporary_schema_name = temporary_schema_name
         self._temporary_bucketfs_location = temporary_bucketfs_location
@@ -149,6 +154,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             new_temporary_bucketfs_location,
             self._get_temporary_db_object_name(),
             self._temporary_schema_name,
+            self._connection_lookup,
             self._global_temporary_object_counter
         )
         self._child_query_handler_context_list.append(child_query_handler_context)
@@ -216,16 +222,21 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             self._owned_object_proxies.remove(object_proxy)
         self._invalid_object_proxies.add(object_proxy)
 
+    def get_connection(self, name: str) -> Connection:
+        return self._connection_lookup(name)
+
 
 class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter = TemporaryObjectCounter()):
         super().__init__(temporary_bucketfs_location,
                          temporary_db_object_name_prefix,
                          temporary_schema_name,
+                         connection_lookup,
                          global_temporary_object_counter)
 
     def _release_object(self, object_proxy: ObjectProxy):
@@ -271,10 +282,12 @@ class _ChildQueryHandlerContext(_ScopeQueryHandlerContextBase):
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter):
         super().__init__(temporary_bucketfs_location,
                          temporary_db_object_name_prefix,
                          temporary_schema_name,
+                         connection_lookup,
                          global_temporary_object_counter)
         self.__parent = parent
 

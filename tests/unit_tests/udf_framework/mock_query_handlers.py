@@ -18,6 +18,8 @@ from exasol_advanced_analytics_framework.query_result.query_result \
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
 
+TEST_CONNECTION = "TEST_CONNECTION"
+
 TEST_INPUT = "<<TEST_INPUT>>"
 FINAL_RESULT = '<<FINAL_RESULT>>'
 QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL")]
@@ -31,7 +33,6 @@ class MockQueryHandlerWithOneIteration(UDFQueryHandler):
             raise AssertionError(f"Expected parameter={parameter} to be a string.")
         if parameter != TEST_INPUT:
             raise AssertionError(f"Expected parameter={parameter} to be '{TEST_INPUT}'.")
-
 
     def start(self) -> Union[Continue, Finish[str]]:
         return Finish(result=FINAL_RESULT)
@@ -146,3 +147,23 @@ class MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory(UDFQ
 
     def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
         return MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameter, query_handler_context)
+
+
+class MockQueryHandlerUsingConnection(UDFQueryHandler):
+
+    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameter, query_handler_context)
+
+    def start(self) -> Union[Continue, Finish[str]]:
+        connection = self._query_handler_context.get_connection(TEST_CONNECTION)
+        return Finish(
+            f"{connection.name},{connection.address},{connection.user},{connection.password}")
+
+    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
+        pass
+
+
+class MockQueryHandlerUsingConnectionFactory(UDFQueryHandlerFactory):
+
+    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerUsingConnection(parameter, query_handler_context)

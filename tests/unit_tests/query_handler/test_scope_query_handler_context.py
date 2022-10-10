@@ -9,7 +9,7 @@ from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.view import View
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+    ScopeQueryHandlerContext, Connection
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     ChildContextNotReleasedError
 
@@ -359,3 +359,17 @@ def test_using_view_name_proxy_in_view(scope_query_handler_context: ScopeQueryHa
             .build()
         )])
     assert view.name is not None
+
+
+def test_get_connection_existing_connection(
+        scope_query_handler_context: ScopeQueryHandlerContext,
+        test_connection: Connection
+):
+    connection = scope_query_handler_context.get_connection("existing")
+    assert connection == connection
+
+
+def test_get_connection_not_existing_connection(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    with pytest.raises(KeyError):
+        scope_query_handler_context.get_connection("not_existing")
