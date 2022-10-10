@@ -139,7 +139,7 @@ typeguard = ">=2.11.1"
 type = "git"
 url = "https://github.com/exasol/bucketfs-utils-python.git"
 reference = "main"
-resolved_reference = "6035833661de135f2d60bfff25f6820600720369"
+resolved_reference = "42e0f11d1490c5f9e5266ebca3e4ce00cad7576b"
 
 [[package]]
 name = "exasol-data-science-utils-python"
@@ -165,8 +165,8 @@ typeguard = "^2.11.1"
 [package.source]
 type = "git"
 url = "https://github.com/exasol/data-science-utils-python.git"
-reference = "67c0921fe93954297a38c18389bb7a8b0b09ee69"
-resolved_reference = "67c0921fe93954297a38c18389bb7a8b0b09ee69"
+reference = "main"
+resolved_reference = "3174062fd3813a792962f15f1937f5120327b2f0"
 
 [[package]]
 name = "exasol-udf-mock-python"
@@ -371,6 +371,14 @@ pytz = ">=2020.1"
 
 [package.extras]
 test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
+
+[[package]]
+name = "password"
+version = "0.2"
+description = "A password attribute that stores hashes"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "pastel"
@@ -742,7 +750,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "779c8be46b2b56646206a93d205d36cce0d319cdf059179739946722fc0869e5"
+content-hash = "67de65c12b30a25c8e7b3104fdd659cc6bc8bdb1ffb24086e257bf8e6a5ec599"
 
 [metadata.files]
 atomicwrites = [
@@ -1158,6 +1166,10 @@ pandas = [
     {file = "pandas-1.4.4-cp39-cp39-win32.whl", hash = "sha256:050aada67a5ec6699a7879e769825b510018a95fb9ac462bb1867483d0974a97"},
     {file = "pandas-1.4.4-cp39-cp39-win_amd64.whl", hash = "sha256:8d4d2fe2863ecddb0ba1979bdda26c8bc2ea138f5a979abe3ba80c0fa4015c91"},
     {file = "pandas-1.4.4.tar.gz", hash = "sha256:ab6c0d738617b675183e5f28db32b5148b694ad9bba0a40c3ea26d96b431db67"},
+]
+password = [
+    {file = "password-0.2.tar.bz2", hash = "sha256:9ad8ed238c0c3f929778bc82237ecfd333a1b7357b5864bce7d7b5cd2b039b19"},
+    {file = "password-0.2.zip", hash = "sha256:c1502353c1c5c0541c0625b4f71255eb1b06e72b8146963a08ea3aa340c0bf53"},
 ]
 pastel = [
     {file = "pastel-0.2.1-py2.py3-none-any.whl", hash = "sha256:4349225fcdf6c2bb34d483e523475de5bb04a5c10ef711263452cb37d7dd4364"},

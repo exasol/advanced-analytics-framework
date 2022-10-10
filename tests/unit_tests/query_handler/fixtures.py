@@ -2,12 +2,11 @@ import pytest
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
-from exasol_udf_mock_python.connection import Connection
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+    ScopeQueryHandlerContext, Connection
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
+    TopLevelQueryHandlerContext, ConnectionLookup
 
 PREFIX = "PREFIX"
 
@@ -24,22 +23,60 @@ def schema() -> str:
     return SCHEMA
 
 
+class TestConnection(Connection):
+
+    @property
+    def name(self) -> str:
+        return "existing"
+
+    @property
+    def address(self) -> str:
+        return "address"
+
+    @property
+    def user(self) -> str:
+        return "user"
+
+    @property
+    def password(self) -> str:
+        return "password"
+
+
+@pytest.fixture
+def test_connection() -> Connection:
+    return TestConnection()
+
+
+@pytest.fixture
+def test_connection_lookup(test_connection) -> ConnectionLookup:
+    def lookup(name: str) -> Connection:
+        if name == test_connection.name:
+            return test_connection
+        else:
+            raise KeyError()
+
+    return lookup
+
+
 @pytest.fixture
 def bucketfs_location(tmp_path) -> AbstractBucketFSLocation:
-    model_connection = Connection(address=f"file://{tmp_path}/data")
     bucketfs_location = BucketFSFactory().create_bucketfs_location(
-        url=model_connection.address,
-        user=model_connection.user,
-        pwd=model_connection.password)
+        url=f"file://{tmp_path}/data",
+        user=None,
+        pwd=None)
     return bucketfs_location
 
 
 @pytest.fixture
 def top_level_query_handler_context(
-        bucketfs_location: BucketFSLocation, prefix: str, schema: str) -> TopLevelQueryHandlerContext:
+        bucketfs_location: BucketFSLocation,
+        prefix: str,
+        schema: str,
+        test_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
         temporary_bucketfs_location=bucketfs_location,
         temporary_db_object_name_prefix=prefix,
+        connection_lookup=test_connection_lookup,
         temporary_schema_name=schema
     )
     return query_handler_context

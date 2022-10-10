@@ -28,6 +28,7 @@ install_requires = \
  'git+https://github.com/exasol/data-science-utils-python.git@main',
  'importlib-resources>=5.4.0,<6.0.0',
  'pandas>=1.1.0,<2.0.0',
+ 'password>=0.2,<0.3',
  'pyexasol>=0.25.0,<0.26.0']
 
 setup_kwargs = {

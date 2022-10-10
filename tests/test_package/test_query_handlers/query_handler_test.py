@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQuery, \
     SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.query_handler \
-    import QueryHandler, ResultType
+    import ResultType
 from exasol_advanced_analytics_framework.query_handler.result \
     import Finish, Continue
 from exasol_advanced_analytics_framework.query_result.query_result \
