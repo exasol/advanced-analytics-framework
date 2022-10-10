@@ -548,7 +548,7 @@ def test_fail_in_cleanup(temporary_schema_name, top_level_query_handler_context)
         query_handler_factory=FailInCleanupAfterException
     )
 
-    with pytest.raises(RuntimeError,match="Execution of query handler .* failed.") as e:
+    with pytest.raises(RuntimeError, match="Execution of query handler .* failed.") as e:
         query_handler_runner.run()
 
     assert e.value.__cause__.args[0] == EXPECTED_EXCEPTION

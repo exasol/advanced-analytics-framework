@@ -20,7 +20,7 @@ from exasol_data_science_utils_python.schema.schema_name \
 from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext, Connection
+    ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
@@ -30,6 +30,7 @@ from exasol_advanced_analytics_framework.query_result.udf_query_result \
     import UDFQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
+from exasol_advanced_analytics_framework.udf_framework.udf_connection_lookup import UDFConnectionLookup
 
 
 @dataclasses.dataclass
@@ -60,39 +61,12 @@ class UDFResult:
     status: QueryHandlerStatus = QueryHandlerStatus.CONTINUE
 
 
-class UDFConnection(Connection):
-
-    def __init__(self, name: str, udf_connection):
-        self._udf_connection = udf_connection
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def address(self) -> str:
-        return self._udf_connection.address
-
-    @property
-    def user(self) -> str:
-        return self._udf_connection.user
-
-    @property
-    def password(self) -> str:
-        return self._udf_connection.password
-
-
 class QueryHandlerRunnerUDF:
 
     def __init__(self, exa):
         self.exa = exa
         self.bucketfs_location: Optional[AbstractBucketFSLocation] = None
         self.parameter: Optional[UDFParameter] = None
-
-    def connection_lookup(self, name: str) -> Connection:
-        udf_connection = self.exa.get_connection(name)
-        return UDFConnection(name, udf_connection)
 
     def run(self, ctx) -> None:
         self._get_parameter(ctx)
@@ -214,24 +188,29 @@ class QueryHandlerRunnerUDF:
             query_handler_state = self._create_state()
         return query_handler_state
 
-    def _create_state(self):
+    def _create_state(self) -> QueryHandlerRunnerState:
+        connection_lookup = UDFConnectionLookup(self.exa)
         context = TopLevelQueryHandlerContext(
             self.bucketfs_location,
             self.parameter.temporary_name_prefix,
             self.parameter.temporary_schema_name,
-            self.connection_lookup
+            connection_lookup
         )
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_factory_class = getattr(module, self.parameter.python_class_name)
         query_handler_obj = query_handler_factory_class().create(self.parameter.parameters, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
-            query_handler=query_handler_obj)
+            query_handler=query_handler_obj,
+            connection_lookup=connection_lookup
+        )
         return query_handler_state
 
-    def _load_latest_state(self):
+    def _load_latest_state(self) -> QueryHandlerRunnerState:
         state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
-        query_handler_state = self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
+        query_handler_state: QueryHandlerRunnerState = \
+            self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
+        query_handler_state.connection_lookup.exa = self.exa
         return query_handler_state
 
     def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:
