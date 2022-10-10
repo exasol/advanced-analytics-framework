@@ -10,22 +10,22 @@ class Connection(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        pass
+        """Name of the connection object"""
 
     @property
     @abstractmethod
     def address(self) -> str:
-        pass
+        """Address of the connection object"""
 
     @property
     @abstractmethod
     def user(self) -> str:
-        pass
+        """User of the connection object"""
 
     @property
     @abstractmethod
     def password(self) -> str:
-        pass
+        """Password of the connection object"""
 
 
 class ScopeQueryHandlerContext(QueryHandlerContext):
