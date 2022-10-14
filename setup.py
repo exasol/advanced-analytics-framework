@@ -10,6 +10,7 @@ packages = \
  'exasol_advanced_analytics_framework.query_handler.query',
  'exasol_advanced_analytics_framework.query_result',
  'exasol_advanced_analytics_framework.testing',
+ 'exasol_advanced_analytics_framework.udf_communication',
  'exasol_advanced_analytics_framework.udf_framework']
 
 package_data = \
@@ -28,7 +29,9 @@ install_requires = \
  'git+https://github.com/exasol/data-science-utils-python.git@main',
  'importlib-resources>=5.4.0,<6.0.0',
  'pandas>=1.1.0,<2.0.0',
- 'pyexasol>=0.25.0,<0.26.0']
+ 'pydantic>=1.10.2,<2.0.0',
+ 'pyexasol>=0.25.0,<0.26.0',
+ 'pyzmq>=24.0.1,<25.0.0']
 
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',
