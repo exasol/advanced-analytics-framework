@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 class Peer:
 
     def __init__(self, context: zmq.Context, connection_info: ConnectionInfo):
-        self._connection_info = connection_info
+        self.connection_info = connection_info
         self._socket = context.socket(zmq.DEALER)
         self._socket.connect(f"{connection_info.ipaddress}:{connection_info.port}")
         self._pipe_socket = context.socket(zmq.PAIR)
@@ -18,62 +18,48 @@ class Peer:
         self._pipe_socket.bind(self.pipe_address)
 
     def send(self, message: bytes):
-        pass
+        self._socket.send(message)
 
     def recv(self, timeout=None) -> Optional[bytes]:
-        result = self._socket.poll(timeout=timeout)
+        result = self._pipe_socket.poll(timeout=timeout)
         if result == 0:
             return None
         else:
-            return self._socket.recv()
+            return self._pipe_socket.recv()
 
 
-class BackgroundListener:
+class BackgroundListenerRun:
 
-    def __init__(self, context: zmq.Context, listen_ip: IPAddress, group_identifier: str):
-        self._group_identifier = group_identifier
-        self._listen_ip = listen_ip
+    def __init__(self, context: zmq.Context, control_socket_address: str):
+        self._control_socket_address = control_socket_address
         self._context = context
-        self._control_socket = context.socket(zmq.PAIR)
-        self._control_socket_address = f"inproc://BackgroundListener{id(self)}"
-        self._control_socket.bind(self._control_socket)
-        self._my_connection_info: Optional[ConnectionInfo] = None
-        self._my_connection_info_ready_event = threading.Event()
-        self._thread = threading.Thread(target=self.run)
-        self._thread.start()
-
-    @property
-    def my_connection_info(self) -> ConnectionInfo:
-        self._my_connection_info_ready_event.wait()
-        return self._my_connection_info
-
-    def stop(self):
-        self._control_socket.send("STOP")
 
     def run(self):
-        control_socket = self._context.socket(zmq.PAIR)
-        control_socket.connect(self._control_socket)
-        listener_socket = self._context.socket(zmq.ROUTER)
-        port = listener_socket.bind_to_random_port(f"tcp://*")
+        self._control_socket = self._context.socket(zmq.PAIR)
+        self._control_socket.connect(self._control_socket_address)
+        self._listener_socket = self._context.socket(zmq.ROUTER)
+        port = self._listener_socket.bind_to_random_port(f"tcp://*")
         self._set_my_connection_info(port)
         stopped = False
         poller = zmq.Poller()
-        poller.register(control_socket, zmq.POLLIN)
-        poller.register(listener_socket, zmq.POLLIN)
+        poller.register(self._control_socket, zmq.POLLIN)
+        poller.register(self._listener_socket, zmq.POLLIN)
         while not stopped:
             socks = dict(poller.poll())
-            if control_socket in socks and socks[control_socket] == zmq.POLLIN:
-                message = control_socket.recv()
+            if self._control_socket in socks and socks[self._control_socket] == zmq.POLLIN:
+                message = self._control_socket.recv()
                 stopped = self._handle_control_message(message)
-            if listener_socket in socks and socks[listener_socket] == zmq.POLLIN:
-                message = listener_socket.recv()
+            if self._listener_socket in socks and socks[self._listener_socket] == zmq.POLLIN:
+                message = self._listener_socket.recv()
                 self._handle_listener_message(message)
 
     def _handle_control_message(self, message: bytes):
         if message == "STOP":
             pass
         elif message == "ADD_PEER":
-            pass
+            pipe_address = None
+            connection_info = None
+            self._add_pipe_socket_for_peer(pipe_address, connection_info)
         else:
             # ignore and log
             pass
@@ -87,16 +73,46 @@ class BackgroundListener:
             # ignore and log
             pass
 
-    def _set_my_connection_info(self, port):
+    def _set_my_connection_info(self, port: int):
+        self._control_socket.send(port)
+
+    def _add_pipe_socket_for_peer(self, pipe_address: str, connection_info: ConnectionInfo):
+        pass
+
+
+class BackgroundListener:
+
+    def __init__(self, context: zmq.Context, listen_ip: IPAddress, group_identifier: str):
+        self._group_identifier = group_identifier
+        self._listen_ip = listen_ip
+        self._control_socket = context.socket(zmq.PAIR)
+        control_socket_address = f"inproc://BackgroundListener{id(self)}"
+        self._control_socket.bind(control_socket_address)
+        self._my_connection_info: Optional[ConnectionInfo] = None
+        self._my_connection_info_ready_event = threading.Event()
+        self._background_listener_run = BackgroundListenerRun(context, control_socket_address)
+        self._thread = threading.Thread(target=self._background_listener_run.run)
+        self._thread.start()
+        self._set_my_connection_info()
+
+    def _set_my_connection_info(self):
+        port = self._control_socket.recv()
         self._my_connection_info = ConnectionInfo(
             ipaddress=self._listen_ip,
             port=Port(port=port),
             group_identifier=self._group_identifier
         )
-        self._my_connection_info_ready_event.set()
+
+    @property
+    def my_connection_info(self) -> ConnectionInfo:
+        self._my_connection_info_ready_event.wait()
+        return self._my_connection_info
+
+    def stop(self):
+        self._control_socket.send("STOP")
 
     def add_peer(self, peer: Peer):
-        self._control_socket.send(f"ADD_PEER:{peer.pipe_address}")
+        self._control_socket.send(f"ADD_PEER:{peer.pipe_address},{peer.connection_info}")
 
 
 class PeerCommunicator:
