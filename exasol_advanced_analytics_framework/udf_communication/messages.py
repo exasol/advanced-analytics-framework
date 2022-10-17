@@ -31,4 +31,4 @@ class PayloadMessage(BaseModel, frozen=True):
 
 
 class Message(BaseModel, frozen=True):
-    __root__: Union[PongMessage, PingMessage, RegisterPeerMessage, PongMessage, StopMessage]
+    __root__: Union[PongMessage, PingMessage, RegisterPeerMessage, StopMessage, PayloadMessage]
