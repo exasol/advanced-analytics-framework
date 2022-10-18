@@ -6,7 +6,7 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator, key_for_peer
-from tests.udf_communication.peer_communication.utils import BidirectionalQueue, TestThread
+from tests.udf_communication.peer_communication.utils import BidirectionalQueue, TestThread, TestProcess
 
 
 def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
@@ -28,19 +28,19 @@ def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
 
 def test():
     number_of_instances = 10
-    threads: Dict[int, TestThread] = {}
+    processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
-        threads[i] = TestThread(f"t{i}", number_of_instances, run=run)
-        threads[i].start()
-        connection_infos[i] = threads[i].get()
+        processes[i] = TestProcess(f"t{i}", number_of_instances, run=run)
+        processes[i].start()
+        connection_infos[i] = processes[i].get()
 
     for i in range(number_of_instances):
-        t = threads[i].put(connection_infos)
+        t = processes[i].put(connection_infos)
 
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
-        peers_of_threads[i] = threads[i].get()
+        peers_of_threads[i] = processes[i].get()
 
     expected_peers_of_threads = {
         i: sorted([
@@ -53,5 +53,5 @@ def test():
     assert expected_peers_of_threads == peers_of_threads
 
     for i in range(number_of_instances):
-        threads[i].join(timeout=10)
-        assert not threads[i].is_alive()
+        processes[i].join(timeout=10)
+        assert not processes[i].is_alive()

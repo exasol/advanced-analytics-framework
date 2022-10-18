@@ -1,3 +1,4 @@
+import time
 from typing import Optional, Dict, List, Set, cast
 
 import zmq
@@ -6,7 +7,8 @@ from sortedcontainers import SortedSet
 from exasol_advanced_analytics_framework.udf_communication.background_listener import BackgroundListener
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import PongMessage, PayloadMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import PongMessage, PayloadMessage, AckMessage, \
+    RegisterPeerMessage, ReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_sockets import PeerSockets
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
@@ -29,19 +31,47 @@ class PeerCommunicator:
 
         self._sorted_peers: Set[Peer] = cast(Set[Peer], SortedSet(key=key_for_peer))
 
-    def _update_peers(self):
-        for pong_message in self._background_listener.receive_pong_messages():
-            peer = Peer(connection_info=pong_message.connection_info)
-            self._register_peer(peer)
-            self._add_peer(peer)
+    def _handle_messages(self):
+        for message in self._background_listener.receive_messages():
+            if isinstance(message, PongMessage):
+                peer = Peer(connection_info=message.connection_info)
+                self._register_peer(peer)
+            elif isinstance(message, AckMessage):
+                wrapped_message = message.wrapped_message.__root__
+                if isinstance(wrapped_message, RegisterPeerMessage):
+                    self._send_pong_message(wrapped_message.peer)
+                    self._send_ready_to_receive_message(wrapped_message.peer)
+                else:
+                    print("Unknown wrapped message in ack in _handle_messages", wrapped_message)
+            elif isinstance(message, ReadyToReceiveMessage):
+                peer = Peer(connection_info=message.connection_info)
+                self._add_peer(peer)
+            else:
+                print("Unknown message in _handle_messages", message)
 
-    def wait_for_peers(self):
-        while not self.are_all_peers_connected():
+    def _send_pong_message(self, peer: Peer):
+        pong_message = PongMessage(connection_info=self.my_connection_info)
+        self._peer_sockets[peer].send_socket.send(serialize_message(pong_message))
+
+    def _send_ready_to_receive_message(self, peer: Peer):
+        message = ReadyToReceiveMessage(connection_info=self.my_connection_info)
+        self._peer_sockets[peer].send_socket.send(serialize_message(message))
+
+    def wait_for_peers(self, timeout_in_seconds: Optional[int] = None) -> bool:
+        start_time_ns = time.monotonic_ns()
+        while not self.are_all_peers_connected() and not self._is_timeout(start_time_ns, timeout_in_seconds):
             pass
+        return self.are_all_peers_connected()
 
-    def peers(self) -> List[Peer]:
-        self.wait_for_peers()
-        return list(self._sorted_peers)
+    def _is_timeout(self, start_time_ns: int, timeout_in_seconds: Optional[int]):
+        return timeout_in_seconds is not None and (time.monotonic_ns() - start_time_ns) > timeout_in_seconds * 10 ** 9
+
+    def peers(self, timeout_in_seconds: Optional[int] = None) -> Optional[List[Peer]]:
+        self.wait_for_peers(timeout_in_seconds)
+        if self.are_all_peers_connected():
+            return list(self._sorted_peers)
+        else:
+            return None
 
     def register_peer(self, peer_connection_info: ConnectionInfo):
         if (peer_connection_info.group_identifier == self._my_connection_info.group_identifier
@@ -54,13 +84,6 @@ class PeerCommunicator:
             peer_sockets = PeerSockets(self._context, peer)
             self._peer_sockets[peer] = peer_sockets
             self._background_listener.register_peer(peer)
-            # TODO: Here we can get a race condition, when the PongMessage arrives before the register_peer is completed
-            # We would need a way to wait for register_peer via an ack.
-            # To be able to ack control messages, we need two control sockets.
-            # With that we need a event loop also in PeerCommuincation which runs when ever it is used.
-            # It needs to handle more then only the PongMessages.
-            pong_message = PongMessage(connection_info=self.my_connection_info)
-            peer_sockets.send_socket.send(serialize_message(pong_message))
 
     def _add_peer(self, peer: Peer):
         self._sorted_peers.add(peer)
@@ -70,7 +93,7 @@ class PeerCommunicator:
         return self._my_connection_info
 
     def are_all_peers_connected(self) -> bool:
-        self._update_peers()
+        self._handle_messages()
         return len(self._sorted_peers) == self._number_of_peers - 1
 
     def send(self, peer: Peer, message: bytes):

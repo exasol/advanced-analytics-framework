@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal, Union, ForwardRef
 
 from pydantic import BaseModel
 
@@ -30,5 +30,32 @@ class PayloadMessage(BaseModel, frozen=True):
     connection_info: ConnectionInfo
 
 
+class AckMessage(BaseModel, frozen=True):
+    message_type: Literal["AckMessage"] = "AckMessage"
+    wrapped_message: ForwardRef('Message')
+
+
+class MyConnectionInfoMessage(BaseModel, frozen=True):
+    message_type: Literal["MyConnectionInfoMessage"] = "MyConnectionInfoMessage"
+    connection_info: ConnectionInfo
+
+
+class ReadyToReceiveMessage(BaseModel, frozen=True):
+    message_type: Literal["ReadyToReceiveMessage"] = "ReadyToReceiveMessage"
+    connection_info: ConnectionInfo
+
+
 class Message(BaseModel, frozen=True):
-    __root__: Union[PongMessage, PingMessage, RegisterPeerMessage, StopMessage, PayloadMessage]
+    __root__: Union[
+        PongMessage,
+        PingMessage,
+        RegisterPeerMessage,
+        StopMessage,
+        PayloadMessage,
+        AckMessage,
+        MyConnectionInfoMessage,
+        ReadyToReceiveMessage
+    ]
+
+
+AckMessage.update_forward_refs()

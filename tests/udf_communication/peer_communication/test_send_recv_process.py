@@ -5,7 +5,7 @@ from typing import Dict, Set
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from tests.udf_communication.peer_communication.utils import BidirectionalQueue, TestThread
+from tests.udf_communication.peer_communication.utils import BidirectionalQueue, TestProcess
 
 
 def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
@@ -17,7 +17,7 @@ def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():
         com.register_peer(connection_infos)
-        time.sleep(random.random()/10)
+        time.sleep(random.random() / 10)
     for peer in com.peers():
         com.send(peer, name.encode("utf8"))
     received_values: Set[str] = set()
@@ -29,24 +29,24 @@ def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
 
 def test():
     number_of_instances = 10
-    threads: Dict[int, TestThread] = {}
+    processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
-        threads[i] = TestThread(f"t{i}", number_of_instances, run=run)
-        threads[i].start()
-        connection_infos[i] = threads[i].get()
+        processes[i] = TestProcess(f"t{i}", number_of_instances, run=run)
+        processes[i].start()
+        connection_infos[i] = processes[i].get()
 
     for i in range(number_of_instances):
-        t = threads[i].put(connection_infos)
+        t = processes[i].put(connection_infos)
 
     received_values: Dict[int, Set[str]] = {}
     for i in range(number_of_instances):
-        received_values[i] = threads[i].get()
+        received_values[i] = processes[i].get()
 
     expected_received_values = {
         i: {
             thread.name
-            for index, thread in threads.items()
+            for index, thread in processes.items()
             if index != i
         }
         for i in range(number_of_instances)
@@ -54,5 +54,5 @@ def test():
     assert expected_received_values == received_values
 
     for i in range(number_of_instances):
-        threads[i].join(timeout=10)
-        assert not threads[i].is_alive()
+        processes[i].join(timeout=10)
+        assert not processes[i].is_alive()
