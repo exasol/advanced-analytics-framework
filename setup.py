@@ -32,7 +32,8 @@ install_requires = \
  'pydantic>=1.10.2,<2.0.0',
  'pyexasol>=0.25.0,<0.26.0',
  'pyzmq>=24.0.1,<25.0.0',
- 'sortedcontainers>=2.4.0,<3.0.0']
+ 'sortedcontainers>=2.4.0,<3.0.0',
+ 'structlog>=22.1.0,<23.0.0']
 
 setup_kwargs = {
     'name': 'exasol-advanced-analytics-framework',

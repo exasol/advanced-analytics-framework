@@ -1,37 +1,39 @@
 import time
-import traceback
 from typing import Dict, List
 
+import structlog
+from structlog.types import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator, key_for_peer
-from tests.udf_communication.peer_communication.utils import BidirectionalQueue, TestThread
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator import key_for_peer
+from tests.udf_communication.peer_communication import add_peer_run
 
+from tests.udf_communication.peer_communication.utils import TestThread
 
-def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
-    try:
-        listen_ip = IPAddress(ip_address=f"127.1.0.1")
-        com = PeerCommunicator(number_of_peers=number_of_instances,
-                               listen_ip=listen_ip,
-                               group_identifier="test")
-        queue.put(com.my_connection_info)
-        peer_connection_infos = queue.get()
-        for index, connection_infos in peer_connection_infos.items():
-            com.register_peer(connection_infos)
-        peers = com.peers()
-        queue.put(peers)
-    except Exception as e:
-        print(e)
-        traceback.print_exc()
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.processors.TimeStamper(),
+        structlog.processors.JSONRenderer()
+    ]
+)
+
+LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def test():
+    group = f"{time.monotonic_ns()}"
+    logger = LOGGER.bind(group=group)
+    logger.info("TEST START")
     number_of_instances = 10
     threads: Dict[int, TestThread] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
-        threads[i] = TestThread(f"t{i}", number_of_instances, run=run)
+        threads[i] = TestThread(f"t{i}", group, number_of_instances, run=add_peer_run.run)
         threads[i].start()
         connection_infos[i] = threads[i].get()
 
@@ -55,3 +57,4 @@ def test():
     for i in range(number_of_instances):
         threads[i].join(timeout=10)
         assert not threads[i].is_alive()
+    logger.info("TEST END")
