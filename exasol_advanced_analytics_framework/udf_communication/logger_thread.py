@@ -30,9 +30,10 @@ class LoggerThread():
         self._queue: Queue[Dict] = Queue()
 
     def log(self, event: str, **kw):
-        event = dict(event=event, timestamp_ns=time.monotonic_ns())
-        log_record = {**event, **kw, }
-        self._queue.put(log_record)
+        # event = dict(event=event, timestamp_ns=time.monotonic_ns())
+        # log_record = {**event, **kw, }
+        # self._queue.put(log_record)
+        pass
 
     def print(self):
         logger: FilteringBoundLogger = structlog.getLogger()

@@ -5,7 +5,6 @@ import structlog
 import zmq
 from sortedcontainers import SortedSet
 from structlog.types import FilteringBoundLogger
-from zmq import PollEvent
 
 from exasol_advanced_analytics_framework.udf_communication.background_listener import BackgroundListener
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
@@ -45,8 +44,8 @@ class PeerCommunicator:
             logger_thread=self._logger_thread)
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_sockets: Dict[Peer, PeerSockets] = {}
-
-        self._sorted_peers: Set[Peer] = cast(Set[Peer], SortedSet(key=key_for_peer))
+        self._acks: Set[Peer] = set()
+        self._sorted_peers: Set[Peer] = set()  # cast(Set[Peer], SortedSet(key=key_for_peer))
 
     def _handle_messages(self):
         for message in self._background_listener.receive_messages():
@@ -54,67 +53,127 @@ class PeerCommunicator:
                 peer = Peer(connection_info=message.connection_info)
                 self._register_peer(peer)
             elif isinstance(message, AckMessage):
-                wrapped_message = message.wrapped_message.__root__
-                if isinstance(wrapped_message, RegisterPeerMessage):
-                    if not wrapped_message.peer in self._send_socket:
-                        self._send_socket[wrapped_message.peer] = self._peer_sockets[
-                            wrapped_message.peer].create_send_socket()
-                    while True:
-                        event_mask = self._send_socket[wrapped_message.peer].poll(timeout=None, flags=PollEvent.POLLOUT)
-                        if event_mask == PollEvent.POLLOUT:
-                            break
-                        elif event_mask == PollEvent.POLLERR:
-                            raise Exception("Got POLLERR for _send_socket")
-                    self._send_pong_message(self._send_socket[wrapped_message.peer])
-                    self._send_ready_to_receive_message(self._send_socket[wrapped_message.peer], wrapped_message.peer)
-                else:
-                    print("Unknown wrapped message in ack in _handle_messages", wrapped_message)
+                self._handle_ack(message)
             elif isinstance(message, ReadyToReceiveMessage):
                 peer = Peer(connection_info=message.connection_info)
+                self._create_send_socket(peer)
                 self._add_peer(peer)
+                self._send_ack_ready_to_receive_message(self._send_socket[peer], message)
             else:
-                print("Unknown message in _handle_messages", message)
+                self._logger.error(
+                    "Unknown message in ack",
+                    location="_handle_messages",
+                    message=message.dict())
+
+    def _resend(self):
+        for peer, send_socket in self._send_socket.items():
+            if not peer in self._sorted_peers:
+                # print("before pong", self._name)
+                self._send_pong_message(send_socket)
+                # print("before ready", self._name)
+                self._send_ready_to_receive_message(send_socket)
+                # print("after ready", self._name)
+            else:
+                self._send_ack_ready_to_receive_message(self._send_socket[peer],
+                                                        ReadyToReceiveMessage(connection_info=peer.connection_info))
+
+    def _handle_ack(self, message: AckMessage):
+        wrapped_message = message.wrapped_message.__root__
+        if isinstance(wrapped_message, RegisterPeerMessage):
+            self._handle_ack_for_register_peer_message(wrapped_message)
+        if isinstance(wrapped_message, ReadyToReceiveMessage):
+            peer = Peer(connection_info=message.connection_info)
+            if peer not in self._acks:
+                self._acks.add(peer)
+        else:
+            self._logger.error(
+                "Unknown wrapped message in ack",
+                location="_handle_ack",
+                message=wrapped_message.dict())
+
+    def _handle_ack_for_register_peer_message(self, message: RegisterPeerMessage):
+        peer = message.peer
+        self._create_send_socket(peer)
+        self._send_pong_message(self._send_socket[peer])
+        self._send_ready_to_receive_message(self._send_socket[peer])
+
+    def _create_send_socket(self, peer):
+        if not peer in self._send_socket:
+            self._send_socket[peer] = self._peer_sockets[peer].create_send_socket()
 
     def _send_pong_message(self, send_socket: zmq.Socket):
         message = PongMessage(connection_info=self.my_connection_info)
         log_info = dict(message=LazyValue(message.dict), location="_send_pong_message", **self._log_info)
-        self._logger_thread.log("send", before=True, **log_info)
-        send_socket.send(serialize_message(message))
-        self._logger_thread.log("send", before=False, **log_info)
+        if send_socket.poll(0, flags=zmq.POLLOUT) == zmq.POLLOUT:
+            self._logger_thread.log("send", before=True, **log_info)
+            send_socket.send(serialize_message(message))
+            self._logger_thread.log("send", before=False, **log_info)
 
-    def _send_ready_to_receive_message(self, send_socket: zmq.Socket, peer: Peer):
+    def _send_ready_to_receive_message(self, send_socket: zmq.Socket):
         message = ReadyToReceiveMessage(connection_info=self.my_connection_info)
         log_info = dict(message=LazyValue(message.dict), location="_send_pong_message", **self._log_info)
-        self._logger_thread.log("send", before=True, **log_info)
-        send_socket.send(serialize_message(message))
-        self._logger_thread.log("send", before=False, **log_info)
+        if send_socket.poll(0, flags=zmq.POLLOUT) == zmq.POLLOUT:
+            self._logger_thread.log("send", before=True, **log_info)
+            send_socket.send(serialize_message(message))
+            self._logger_thread.log("send", before=False, **log_info)
+
+    def _send_ack_ready_to_receive_message(self, send_socket: zmq.Socket, message: ReadyToReceiveMessage):
+        message = AckMessage(connection_info=self.my_connection_info, wrapped_message=message)
+        log_info = dict(message=LazyValue(message.dict), location="_send_ack_ready_to_receive_message",
+                        **self._log_info)
+        if send_socket.poll(0, flags=zmq.POLLOUT) == zmq.POLLOUT:
+            self._logger_thread.log("send", before=True, **log_info)
+            send_socket.send(serialize_message(message))
+            self._logger_thread.log("send", before=False, **log_info)
 
     def wait_for_peers(self, timeout_in_seconds: Optional[int] = None) -> bool:
         start_time_ns = time.monotonic_ns()
+        old_time_difference_ns = 0
+        # print("test0", self._name)
         while True:
+            new_time_difference_ns = self._get_time_difference(start_time_ns)
+            if (new_time_difference_ns - old_time_difference_ns) > 1 * 10 ** 9:
+                old_time_difference_ns = new_time_difference_ns
+
+                self._resend()
+                # print("test1", self._name,
+                #       [p.connection_info.name for p in self._sorted_peers],
+                #       [p.connection_info.name for p in self._acks])
+                # print("Print", self._name, flush=True)
+                #self._logger_thread.print()
+            self._handle_messages()
             if self.are_all_peers_connected():  # or self._is_timeout(start_time_ns, timeout_in_seconds):
                 break
-        return self.are_all_peers_connected()
+            time.sleep(0.0001)
+        connected = self.are_all_peers_connected()
+        # print("test2", self._name,
+        #       [p.connection_info.name for p in self._sorted_peers],
+        #       [p.connection_info.name for p in self._acks])
+        return connected
 
-    def _is_timeout(self, start_time_ns: int, timeout_in_seconds: Optional[int]):
-        if timeout_in_seconds is None:
-            return True
-        else:
-            time_difference_ns = time.monotonic_ns() - start_time_ns
-            timeout_in_ns = timeout_in_seconds * 10 ** 9
-            return time_difference_ns > timeout_in_ns
+    def _get_time_difference(self, start_time_ns):
+        time_difference_ns = time.monotonic_ns() - start_time_ns
+        return time_difference_ns
+
+    # def _is_timeout(self, start_time_ns: int, timeout_in_seconds: Optional[int]):
+    #     if timeout_in_seconds is None:
+    #         return True
+    #     else:
+    #
+    #         timeout_in_ns = timeout_in_seconds * 10 ** 9
+    #         return time_difference_ns > timeout_in_ns
 
     def peers(self, timeout_in_seconds: Optional[int] = None) -> Optional[List[Peer]]:
         self.wait_for_peers(timeout_in_seconds)
         if self.are_all_peers_connected():
-            return list(self._sorted_peers)
+            return sorted(list(self._sorted_peers), key=key_for_peer)
         else:
             return None
 
     def register_peer(self, peer_connection_info: ConnectionInfo):
         self._handle_messages()
-        if (peer_connection_info.group_identifier == self._my_connection_info.group_identifier
-                and peer_connection_info != self._my_connection_info):
+        if (peer_connection_info.group_identifier == self.my_connection_info.group_identifier
+                and peer_connection_info != self.my_connection_info):
             peer = Peer(connection_info=peer_connection_info)
             self._register_peer(peer)
             self._handle_messages()
@@ -134,8 +193,8 @@ class PeerCommunicator:
         return self._my_connection_info
 
     def are_all_peers_connected(self) -> bool:
-        self._handle_messages()
-        return len(self._sorted_peers) == self._number_of_peers - 1
+        # self._handle_messages()
+        return len(self._sorted_peers) == self._number_of_peers - 1 and len(self._acks) == self._number_of_peers - 1
 
     def send(self, peer: Peer, message: bytes):
         assert self.are_all_peers_connected()
@@ -157,12 +216,17 @@ class PeerCommunicator:
             self._background_listener.close()
             self._background_listener = None
         if self._logger_thread is not None:
+            #print("Print", self._name, flush=True)
             self._logger_thread.print()
             self._logger_thread = None
         for socket in self._peer_sockets.values():
+            socket.receive_socket.setsockopt(zmq.LINGER, 0)
             socket.receive_socket.close()
         for socket in self._send_socket.values():
+            socket.setsockopt(zmq.LINGER, 0)
             socket.close()
+        self._context.setsockopt(zmq.LINGER, 0)
+        self._context.term()
 
     def __del__(self):
         self.close()

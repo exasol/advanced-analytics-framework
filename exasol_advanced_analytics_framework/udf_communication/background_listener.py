@@ -45,6 +45,7 @@ class BackgroundListener:
             in_control_socket_address,
             logger_thread)
         self._thread = threading.Thread(target=self._background_listener_run.run)
+        self._thread.daemon = True
         self._thread.start()
         self._set_my_connection_info()
 
@@ -112,13 +113,15 @@ class BackgroundListener:
         self._logger.info("start", **log_info)
         self._send_stop()
         self._thread.join()
+        self._out_control_socket.setsockopt(zmq.LINGER,0)
         self._out_control_socket.close()
+        self._in_control_socket.setsockopt(zmq.LINGER, 0)
         self._in_control_socket.close()
         self._logger.info("end", **log_info)
 
     def _send_stop(self):
         stop_message = StopMessage()
-        log_info = dict(location="_send_stop",message=LazyValue(stop_message.dict), **self._log_info)
+        log_info = dict(location="_send_stop", message=LazyValue(stop_message.dict), **self._log_info)
         self._logger_thread.log("send", before=True, **log_info)
         self._in_control_socket.send(serialize_message(stop_message))
         self._logger_thread.log("send", before=False, **log_info)

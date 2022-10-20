@@ -63,10 +63,14 @@ class BackgroundListenerRun:
     def _close(self):
         log_info = dict(location="close", **self._log_info)
         self._logger.info("start", **log_info)
+        self._out_control_socket.setsockopt(zmq.LINGER, 0)
         self._out_control_socket.close()
+        self._in_control_socket.setsockopt(zmq.LINGER, 0)
         self._in_control_socket.close()
         for socket in self._pipe_socket_for_peers.values():
+            socket.setsockopt(zmq.LINGER, 0)
             socket.close()
+        self._listener_socket.setsockopt(zmq.LINGER, 0)
         self._listener_socket.close()
         self._logger.info("end", **log_info)
 
@@ -89,6 +93,7 @@ class BackgroundListenerRun:
         try:
             while self._status == BackgroundListenerRun.Status.RUNNING:
                 socks = dict(self.poller.poll(timeout=self._poll_timeout_in_seconds * 1000))
+                #print("_run_message_loop", self._name, socks, flush=True)
                 if self._in_control_socket in socks and socks[self._in_control_socket] == zmq.POLLIN:
                     message = self._in_control_socket.recv()
                     self._status = self._handle_control_message(message)
@@ -152,6 +157,8 @@ class BackgroundListenerRun:
             if isinstance(specific_message_obj, PongMessage):
                 self._forward_message_to_control_socket(message=message_obj, frame=message[1])
             elif isinstance(specific_message_obj, ReadyToReceiveMessage):
+                self._forward_message_to_control_socket(message=message_obj, frame=message[1])
+            elif isinstance(specific_message_obj, AckMessage):
                 self._forward_message_to_control_socket(message=message_obj, frame=message[1])
             elif isinstance(specific_message_obj, PayloadMessage):
                 peer = Peer(connection_info=specific_message_obj.connection_info)

@@ -1,4 +1,4 @@
-from typing import Literal, Union, ForwardRef, List
+from typing import Literal, Union, ForwardRef, List, Optional
 
 from pydantic import BaseModel
 
@@ -32,6 +32,7 @@ class PayloadMessage(BaseModel, frozen=True):
 
 class AckMessage(BaseModel, frozen=True):
     message_type: Literal["AckMessage"] = "AckMessage"
+    connection_info: Optional[ConnectionInfo]
     wrapped_message: ForwardRef('Message')
 
 

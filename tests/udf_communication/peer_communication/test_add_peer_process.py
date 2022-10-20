@@ -32,7 +32,7 @@ def test():
     group = f"{time.monotonic_ns()}"
     logger = LOGGER.bind(group=group, location="test")
     logger.info("start")
-    number_of_instances = 5
+    number_of_instances = 50
     processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
