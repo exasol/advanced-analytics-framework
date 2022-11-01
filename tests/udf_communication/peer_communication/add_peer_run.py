@@ -25,7 +25,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
             peer_connection_infos = queue.get()
             for index, connection_info in peer_connection_infos.items():
                 com.register_peer(connection_info)
-            peers = com.peers(timeout_in_seconds=None)
+            peers = com.peers(timeout_in_milliseconds=None)
             logger.info("peers", peers=peers)
             queue.put(peers)
         finally:

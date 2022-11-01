@@ -43,12 +43,12 @@ class LocalDiscovery:
         serialized_message = self._local_discovery_socket.recvfrom()
         if serialized_message is not None:
             ping_message = cast(PingMessage, deserialize_message(serialized_message, PingMessage))
-            peer_connection_info = ping_message.connection_info
+            peer_connection_info = ping_message.source
             self._peer_communicator.register_peer(peer_connection_info)
 
     def _send_ping(self):
         ping_message = PingMessage(
-            connection_info=self._peer_communicator.my_connection_info
+            source=self._peer_communicator.my_connection_info
         )
         serialized_message = serialize_message(ping_message)
         self._local_discovery_socket.send(serialized_message)

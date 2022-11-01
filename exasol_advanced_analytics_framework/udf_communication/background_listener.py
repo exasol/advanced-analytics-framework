@@ -37,26 +37,27 @@ class BackgroundListener:
         in_control_socket_address = self._create_in_control_socket(context)
         self._my_connection_info: Optional[ConnectionInfo] = None
         self._background_listener_run = BackgroundListenerRun(
-            self._name,
-            context,
-            listen_ip,
-            group_identifier,
-            out_control_socket_address,
-            in_control_socket_address,
-            logger_thread)
+            name=self._name,
+            context=context,
+            listen_ip=listen_ip,
+            group_identifier=group_identifier,
+            out_control_socket_address=out_control_socket_address,
+            in_control_socket_address=in_control_socket_address,
+            logger_thread=logger_thread
+        )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
         self._thread.start()
         self._set_my_connection_info()
 
     def _create_in_control_socket(self, context) -> str:
-        self._in_control_socket = context.socket(zmq.PAIR)
+        self._in_control_socket: zmq.Socket = context.socket(zmq.PAIR)
         in_control_socket_address = f"inproc://BackgroundListener_in_control_socket{id(self)}"
         self._in_control_socket.bind(in_control_socket_address)
         return in_control_socket_address
 
     def _create_out_control_socket(self, context) -> str:
-        self._out_control_socket = context.socket(zmq.PAIR)
+        self._out_control_socket: zmq.Socket = context.socket(zmq.PAIR)
         out_control_socket_address = f"inproc://BackgroundListener_out_control_socket{id(self)}"
         self._out_control_socket.bind(out_control_socket_address)
         return out_control_socket_address
@@ -70,7 +71,7 @@ class BackgroundListener:
             specific_message_obj = message_obj.__root__
             self._logger_thread.log("received", message=LazyValue(specific_message_obj.dict), **log_info)
             assert isinstance(specific_message_obj, MyConnectionInfoMessage)
-            self._my_connection_info = specific_message_obj.connection_info
+            self._my_connection_info = specific_message_obj.my_connection_info
         except Exception as e:
             self._logger.exception("Exception",
                                    raw_message=message,
@@ -89,9 +90,9 @@ class BackgroundListener:
         self._in_control_socket.send(serialize_message(register_message))
         self._logger_thread.log("send", before=False, **log_info)
 
-    def receive_messages(self) -> Iterator[Message]:
+    def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[Message]:
         log_info = dict(location="receive_messages", **self._log_info)
-        while self._out_control_socket.poll(flags=zmq.POLLIN, timeout=0) != 0:
+        while self._out_control_socket.poll(flags=zmq.POLLIN, timeout=timeout_in_milliseconds) != 0:
             message = None
             try:
                 message = self._out_control_socket.recv()
@@ -100,6 +101,7 @@ class BackgroundListener:
                 self._logger_thread.log("received",
                                         message=LazyValue(specific_message_obj.dict),
                                         **log_info)
+                timeout_in_milliseconds = 0
                 yield specific_message_obj
             except Exception as e:
                 self._logger.exception("Exception",
@@ -113,10 +115,8 @@ class BackgroundListener:
         self._logger.info("start", **log_info)
         self._send_stop()
         self._thread.join()
-        self._out_control_socket.setsockopt(zmq.LINGER,0)
-        self._out_control_socket.close()
-        self._in_control_socket.setsockopt(zmq.LINGER, 0)
-        self._in_control_socket.close()
+        self._out_control_socket.close(linger=0)
+        self._in_control_socket.close(linger=0)
         self._logger.info("end", **log_info)
 
     def _send_stop(self):

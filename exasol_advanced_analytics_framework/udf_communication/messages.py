@@ -11,14 +11,14 @@ class RegisterPeerMessage(BaseModel, frozen=True):
     peer: Peer
 
 
+class PeerIsReadyToReceiveMessage(BaseModel, frozen=True):
+    message_type: Literal["PeerIsReadyToReceiveMessage"] = "PeerIsReadyToReceiveMessage"
+    peer: Peer
+
+
 class PingMessage(BaseModel, frozen=True):
     message_type: Literal["PingMessage"] = "PingMessage"
-    connection_info: ConnectionInfo
-
-
-class PongMessage(BaseModel, frozen=True):
-    message_type: Literal["PongMessage"] = "PongMessage"
-    connection_info: ConnectionInfo
+    source: ConnectionInfo
 
 
 class StopMessage(BaseModel, frozen=True):
@@ -27,40 +27,32 @@ class StopMessage(BaseModel, frozen=True):
 
 class PayloadMessage(BaseModel, frozen=True):
     message_type: Literal["PayloadMessage"] = "PayloadMessage"
-    connection_info: ConnectionInfo
-
-
-class AckMessage(BaseModel, frozen=True):
-    message_type: Literal["AckMessage"] = "AckMessage"
-    connection_info: Optional[ConnectionInfo]
-    wrapped_message: ForwardRef('Message')
-
-
-class SendMessage(BaseModel, frozen=True):
-    message_type: Literal["SendMessage"] = "SendMessage"
+    source: ConnectionInfo
 
 
 class MyConnectionInfoMessage(BaseModel, frozen=True):
     message_type: Literal["MyConnectionInfoMessage"] = "MyConnectionInfoMessage"
-    connection_info: ConnectionInfo
+    my_connection_info: ConnectionInfo
 
 
-class ReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["ReadyToReceiveMessage"] = "ReadyToReceiveMessage"
-    connection_info: ConnectionInfo
+class WeAreReadyToReceiveMessage(BaseModel, frozen=True):
+    message_type: Literal["WeAreReadyToReceiveMessage"] = "WeAreReadyToReceiveMessage"
+    source: ConnectionInfo
+
+
+class AreYouReadyToReceiveMessage(BaseModel, frozen=True):
+    message_type: Literal["AreYouReadyToReceiveMessage"] = "AreYouReadyToReceiveMessage"
+    source: ConnectionInfo
 
 
 class Message(BaseModel, frozen=True):
     __root__: Union[
-        PongMessage,
         PingMessage,
         RegisterPeerMessage,
         StopMessage,
         PayloadMessage,
-        AckMessage,
         MyConnectionInfoMessage,
-        ReadyToReceiveMessage
+        WeAreReadyToReceiveMessage,
+        AreYouReadyToReceiveMessage,
+        PeerIsReadyToReceiveMessage
     ]
-
-
-AckMessage.update_forward_refs()

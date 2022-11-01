@@ -1,17 +1,35 @@
 import time
+from pathlib import Path
 from typing import Dict, Set
+
+import structlog
+from structlog import WriteLoggerFactory
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from tests.udf_communication.peer_communication import send_recv_run
 from tests.udf_communication.peer_communication.utils import TestProcess
 
+structlog.configure(
+    context_class=dict,
+    logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.processors.TimeStamper(),
+        structlog.processors.JSONRenderer()
+    ]
+)
+
 
 def test():
+    group = f"{time.monotonic_ns()}"
     number_of_instances = 10
     processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
-        processes[i] = TestProcess(f"t{i}", number_of_instances, run=send_recv_run.run)
+        processes[i] = TestProcess(f"t{i}", group, number_of_instances, run=send_recv_run.run)
         processes[i].start()
         connection_infos[i] = processes[i].get()
 
@@ -20,7 +38,6 @@ def test():
 
     for i in range(number_of_instances):
         processes[i].get()
-    print("Wait for peers finished")
 
     received_values: Dict[int, Set[str]] = {}
     for i in range(number_of_instances):
@@ -38,5 +55,4 @@ def test():
 
     for i in range(number_of_instances):
         processes[i].join(timeout=5)
-        #print("joined", i)
         assert not processes[i].is_alive()

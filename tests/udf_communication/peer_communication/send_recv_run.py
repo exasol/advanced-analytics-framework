@@ -7,11 +7,13 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator imp
 from tests.udf_communication.peer_communication.utils import BidirectionalQueue
 
 
-def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
-    com = PeerCommunicator(number_of_peers=number_of_instances,
-                           listen_ip=listen_ip,
-                           group_identifier="test")
+    com = PeerCommunicator(
+        name=name,
+        number_of_peers=number_of_instances,
+        listen_ip=listen_ip,
+        group_identifier=group_identifier)
     queue.put(com.my_connection_info)
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():
@@ -20,9 +22,9 @@ def run(name: str, number_of_instances: int, queue: BidirectionalQueue):
     com.wait_for_peers()
     queue.put("Wait finish")
     for peer in com.peers():
-        com.send(peer, name.encode("utf8"))
+        com.send(peer, [name.encode("utf8")])
     received_values: Set[str] = set()
     for peer in com.peers():
         value = com.recv(peer)
-        received_values.add(value.decode("utf8"))
+        received_values.add(value[0].decode("utf8"))
     queue.put(received_values)
