@@ -9,7 +9,6 @@ from exasol_advanced_analytics_framework.udf_communication.background_listener i
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.frontend_peer_state import FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.logger_thread import LoggerThread
 from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 
@@ -18,6 +17,13 @@ LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 def key_for_peer(peer: Peer):
     return peer.connection_info.ipaddress.ip_address + "_" + str(peer.connection_info.port.port)
+
+
+def _compute_handle_message_timeout(start_time_ns: int, timeout_in_milliseconds: Optional[int] = None) -> int:
+    time_difference_ns = time.monotonic_ns() - start_time_ns
+    time_difference_ms = time_difference_ns // 10 ** 6
+    handle_message_timeout_ms = timeout_in_milliseconds - time_difference_ms
+    return handle_message_timeout_ms
 
 
 class PeerCommunicator:
@@ -31,13 +37,11 @@ class PeerCommunicator:
         self._logger = LOGGER.bind(**self._log_info)
         self._number_of_peers = number_of_peers
         self._context = zmq.Context()
-        self._logger_thread = LoggerThread()
         self._background_listener = BackgroundListener(
             name=self._name,
             context=self._context,
             listen_ip=listen_ip,
-            group_identifier=group_identifier,
-            logger_thread=self._logger_thread)
+            group_identifier=group_identifier, )
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
@@ -66,7 +70,7 @@ class PeerCommunicator:
         start_time_ns = time.monotonic_ns()
         while True:
             if timeout_in_milliseconds is not None:
-                handle_message_timeout_ms = self._compute_handle_message_timeout(start_time_ns, timeout_in_milliseconds)
+                handle_message_timeout_ms = _compute_handle_message_timeout(start_time_ns, timeout_in_milliseconds)
                 if handle_message_timeout_ms < 0:
                     break
             else:
@@ -76,12 +80,6 @@ class PeerCommunicator:
                 break
         connected = self._are_all_peers_connected()
         return connected
-
-    def _compute_handle_message_timeout(self, start_time_ns: int, timeout_in_milliseconds: Optional[int] = None) -> int:
-        time_difference_ns = time.monotonic_ns() - start_time_ns
-        time_difference_ms = time_difference_ns // 10 ** 6
-        handle_message_timeout_ms = timeout_in_milliseconds - time_difference_ms
-        return handle_message_timeout_ms
 
     def peers(self, timeout_in_milliseconds: Optional[int] = None) -> Optional[List[Peer]]:
         self.wait_for_peers(timeout_in_milliseconds)
@@ -128,9 +126,6 @@ class PeerCommunicator:
         if self._background_listener is not None:
             self._background_listener.close()
             self._background_listener = None
-        if self._logger_thread is not None:
-            self._logger_thread.print()
-            self._logger_thread = None
         for peer_state in self._peer_states.values():
             peer_state.close()
         self._context.setsockopt(zmq.LINGER, 0)

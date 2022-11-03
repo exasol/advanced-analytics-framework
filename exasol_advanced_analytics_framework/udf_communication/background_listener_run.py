@@ -1,4 +1,5 @@
 import enum
+import traceback
 from typing import Dict, List
 
 import structlog
@@ -8,10 +9,7 @@ from zmq import Frame
 
 from exasol_advanced_analytics_framework.udf_communication.background_peer_state import BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.get_peer_receive_socket_name import \
-    get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.logger_thread import LoggerThread, LazyValue
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
     WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -32,17 +30,15 @@ class BackgroundListenerRun:
                  group_identifier: str,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
-                 logger_thread: LoggerThread,
                  poll_timeout_in_seconds: int = 1,
                  reminder_timeout_in_seconds: float = 1):
         self._wait_time_between_reminder_in_seconds = reminder_timeout_in_seconds
         self._name = name
-        self._log_info = dict(module_name=__name__,
-                              clazz=self.__class__.__name__,
-                              name=self._name,
-                              group_identifier=group_identifier)
-        self._logger = LOGGER.bind(**self._log_info)
-        self._logger_thread = logger_thread
+        self._logger = LOGGER.bind(
+            module_name=__name__,
+            clazz=self.__class__.__name__,
+            name=self._name,
+            group_identifier=group_identifier)
         self._group_identifier = group_identifier
         self._listen_ip = listen_ip
         self._in_control_socket_address = in_control_socket_address
@@ -64,14 +60,14 @@ class BackgroundListenerRun:
             self._close()
 
     def _close(self):
-        log_info = dict(location="close", **self._log_info)
-        self._logger.info("start", **log_info)
+        logger = self._logger.bind(location="close")
+        logger.info("start")
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
         for peer_state in self._peer_state.values():
             peer_state.close()
         self._listener_socket.close(linger=0)
-        self._logger.info("end", **log_info)
+        logger.info("end")
 
     def _create_listener_socket(self):
         self._listener_socket: zmq.Socket = self._context.socket(zmq.ROUTER)
@@ -109,25 +105,23 @@ class BackgroundListenerRun:
             log.exception("Exception")
 
     def _handle_control_message(self, message: bytes) -> Status:
-        log_info = dict(location="_handle_control_message", **self._log_info)
+        logger = self._logger.bind(location="_handle_control_message")
         try:
             message_obj: Message = deserialize_message(message, Message)
             specific_message_obj = message_obj.__root__
-            self._logger_thread.log("recieved_message", message=LazyValue(specific_message_obj.dict), **log_info)
             if isinstance(specific_message_obj, StopMessage):
                 return BackgroundListenerRun.Status.STOPPED
             elif isinstance(specific_message_obj, RegisterPeerMessage):
                 self._add_peer(specific_message_obj.peer)
             else:
-                self._logger.error(
+                logger.error(
                     "Unknown message type",
-                    message=specific_message_obj.dict(),
-                    **log_info)
+                    message=specific_message_obj.dict())
         except Exception as e:
-            self._logger.exception(
+            logger.exception(
                 "Could not deserialize message",
                 message=message,
-                **log_info
+                exception=traceback.format_exc()
             )
         return BackgroundListenerRun.Status.RUNNING
 
@@ -142,15 +136,13 @@ class BackgroundListenerRun:
             )
 
     def _handle_listener_message(self, message: List[Frame]):
-        log_info = dict(
+        logger = self._logger.bind(
             location="_handle_listener_message",
-            sender=message[1].bytes,
-            **self._log_info
+            sender=message[1].bytes
         )
         try:
             message_obj: Message = deserialize_message(message[1].bytes, Message)
             specific_message_obj = message_obj.__root__
-            self._logger_thread.log("recieved_message", message=LazyValue(specific_message_obj.dict), **log_info)
             if isinstance(specific_message_obj, WeAreReadyToReceiveMessage):
                 self._handle_we_are_ready_to_receive(specific_message_obj)
             if isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
@@ -158,12 +150,12 @@ class BackgroundListenerRun:
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
-                self._logger.error("Unknown message type", message=specific_message_obj.dict(), **log_info)
+                logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
-            self._logger.exception(
+            logger.exception(
                 "Could not deserialize message",
                 message=message[1].bytes,
-                **log_info
+                exception=traceback.format_exc()
             )
 
     def _handle_payload_message(self, message: PayloadMessage, frames: List[Frame]):
@@ -187,9 +179,4 @@ class BackgroundListenerRun:
             port=Port(port=port),
             group_identifier=self._group_identifier)
         message = MyConnectionInfoMessage(my_connection_info=self._my_connection_info)
-        log_info = dict(location="_set_my_connection_info",
-                        message=LazyValue(message.dict),
-                        **self._log_info)
-        self._logger_thread.log("send", before=True, **log_info)
         self._out_control_socket.send(serialize_message(message))
-        self._logger_thread.log("send", before=False, **log_info)
