@@ -1,17 +1,21 @@
 import time
+import traceback
+from pathlib import Path
 from typing import Dict, List
 
 import structlog
+from structlog import WriteLoggerFactory
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
+from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import key_for_peer
-from tests.udf_communication.peer_communication import add_peer_run
-
-from tests.udf_communication.peer_communication.utils import TestThread
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator import key_for_peer, PeerCommunicator
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue
 
 structlog.configure(
+    context_class=dict,
+    logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
@@ -25,24 +29,73 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
+    logger = LOGGER.bind(group_identifier=group_identifier, name=name)
+    try:
+        listen_ip = IPAddress(ip_address=f"127.1.0.1")
+        com = PeerCommunicator(
+            name=name,
+            number_of_peers=number_of_instances,
+            listen_ip=listen_ip,
+            group_identifier=group_identifier)
+        try:
+            queue.put(com.my_connection_info)
+            peer_connection_infos = queue.get()
+            for index, connection_info in peer_connection_infos.items():
+                com.register_peer(connection_info)
+            peers = com.peers(timeout_in_milliseconds=None)
+            logger.info("peers", peers=peers)
+            queue.put(peers)
+        finally:
+            com.close()
+    except Exception as e:
+        traceback.print_exc()
+        logger.exception("Exception during test", exception=e)
+
 def test():
     group = f"{time.monotonic_ns()}"
-    logger = LOGGER.bind(group=group)
-    logger.info("TEST START")
+    logger = LOGGER.bind(group=group, location="test")
+    logger.info("start")
     number_of_instances = 10
-    threads: Dict[int, TestThread] = {}
+    processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
     for i in range(number_of_instances):
-        threads[i] = TestThread(f"t{i}", group, number_of_instances, run=add_peer_run.run)
-        threads[i].start()
-        connection_infos[i] = threads[i].get()
+        processes[i] = TestProcess(f"t{i}", group, number_of_instances, run=run)
+        processes[i].start()
+        connection_infos[i] = processes[i].get()
 
     for i in range(number_of_instances):
-        t = threads[i].put(connection_infos)
+        t = processes[i].put(connection_infos)
+
+    timeout_in_ns = 120 * 10 ** 9
+    start_time_ns = time.monotonic_ns()
+    while True:
+        all_process_stopped = all(not processes[i].is_alive() for i in range(number_of_instances))
+        if all_process_stopped:
+            break
+        difference_ns = time.monotonic_ns() - start_time_ns
+        if difference_ns > timeout_in_ns:
+            break
+        time.sleep(0.01)
+    alive_processes_assert = [processes[i].name for i in range(number_of_instances) if processes[i].is_alive()]
+    if len(alive_processes_assert) > 0:
+        logger.info("failed", processes=alive_processes_assert, reason=f"Processes didn't finish")
+    for i in range(number_of_instances):
+        process = processes[i]
+        if process.is_alive():
+            t = process.kill()
+    alive_processes = [processes[i].name for i in range(number_of_instances) if processes[i].is_alive()]
+    if len(alive_processes) > 0:
+        time.sleep(2)
+    for i in range(number_of_instances):
+        process = processes[i]
+        if process.is_alive():
+            t = process.terminate()
+    assert alive_processes_assert == []
 
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
-        peers_of_threads[i] = threads[i].get()
+        peers_of_threads[i] = processes[i].get()
 
     expected_peers_of_threads = {
         i: sorted([
@@ -52,9 +105,12 @@ def test():
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }
+    if not expected_peers_of_threads == peers_of_threads:
+        logger.info("failed", reason=f"Did not get expected_peers_of_threads",
+                    expected_peers_of_threads=expected_peers_of_threads,
+                    peers_of_threads=peers_of_threads)
+
     assert expected_peers_of_threads == peers_of_threads
 
-    for i in range(number_of_instances):
-        threads[i].join(timeout=10)
-        assert not threads[i].is_alive()
-    logger.info("TEST END")
+    logger.info("success")
+
