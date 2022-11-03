@@ -1,7 +1,7 @@
 import random
 import time
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Set, List
 
 import structlog
 from structlog import WriteLoggerFactory
@@ -9,7 +9,7 @@ from structlog import WriteLoggerFactory
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
     context_class=dict,
@@ -25,7 +25,6 @@ structlog.configure(
 )
 
 
-
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
     com = PeerCommunicator(
@@ -39,7 +38,6 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         com.register_peer(connection_infos)
         time.sleep(random.random() / 10)
     com.wait_for_peers()
-    queue.put("Wait finish")
     for peer in com.peers():
         com.send(peer, [name.encode("utf8")])
     received_values: Set[str] = set()
@@ -52,18 +50,17 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
 def test():
     group = f"{time.monotonic_ns()}"
     number_of_instances = 10
-    processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
+    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
+                                    for i in range(number_of_instances)]
     for i in range(number_of_instances):
-        processes[i] = TestProcess(f"t{i}", group, number_of_instances, run=run)
         processes[i].start()
         connection_infos[i] = processes[i].get()
 
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
 
-    for i in range(number_of_instances):
-        processes[i].get()
+    assert_processes_finish(processes, timeout_in_seconds=120)
 
     received_values: Dict[int, Set[str]] = {}
     for i in range(number_of_instances):
@@ -72,13 +69,9 @@ def test():
     expected_received_values = {
         i: {
             thread.name
-            for index, thread in processes.items()
+            for index, thread in enumerate(processes)
             if index != i
         }
         for i in range(number_of_instances)
     }
     assert expected_received_values == received_values
-
-    for i in range(number_of_instances):
-        processes[i].join(timeout=5)
-        assert not processes[i].is_alive()

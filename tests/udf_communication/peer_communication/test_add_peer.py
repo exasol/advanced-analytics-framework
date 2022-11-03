@@ -11,7 +11,7 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import key_for_peer, PeerCommunicator
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
     context_class=dict,
@@ -52,46 +52,23 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         traceback.print_exc()
         logger.exception("Exception during test", exception=e)
 
+
 def test():
     group = f"{time.monotonic_ns()}"
     logger = LOGGER.bind(group=group, location="test")
     logger.info("start")
     number_of_instances = 10
-    processes: Dict[int, TestProcess] = {}
     connection_infos: Dict[int, ConnectionInfo] = {}
+    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
+                                    for i in range(number_of_instances)]
     for i in range(number_of_instances):
-        processes[i] = TestProcess(f"t{i}", group, number_of_instances, run=run)
         processes[i].start()
         connection_infos[i] = processes[i].get()
 
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
 
-    timeout_in_ns = 120 * 10 ** 9
-    start_time_ns = time.monotonic_ns()
-    while True:
-        all_process_stopped = all(not processes[i].is_alive() for i in range(number_of_instances))
-        if all_process_stopped:
-            break
-        difference_ns = time.monotonic_ns() - start_time_ns
-        if difference_ns > timeout_in_ns:
-            break
-        time.sleep(0.01)
-    alive_processes_assert = [processes[i].name for i in range(number_of_instances) if processes[i].is_alive()]
-    if len(alive_processes_assert) > 0:
-        logger.info("failed", processes=alive_processes_assert, reason=f"Processes didn't finish")
-    for i in range(number_of_instances):
-        process = processes[i]
-        if process.is_alive():
-            t = process.kill()
-    alive_processes = [processes[i].name for i in range(number_of_instances) if processes[i].is_alive()]
-    if len(alive_processes) > 0:
-        time.sleep(2)
-    for i in range(number_of_instances):
-        process = processes[i]
-        if process.is_alive():
-            t = process.terminate()
-    assert alive_processes_assert == []
+    assert_processes_finish(processes, timeout_in_seconds=120)
 
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
@@ -105,12 +82,5 @@ def test():
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }
-    if not expected_peers_of_threads == peers_of_threads:
-        logger.info("failed", reason=f"Did not get expected_peers_of_threads",
-                    expected_peers_of_threads=expected_peers_of_threads,
-                    peers_of_threads=peers_of_threads)
-
     assert expected_peers_of_threads == peers_of_threads
-
-    logger.info("success")
 

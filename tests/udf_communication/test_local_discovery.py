@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.local_discovery impor
 from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator, key_for_peer
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
     context_class=dict,
@@ -55,13 +55,15 @@ def test():
     group = f"{time.monotonic_ns()}"
     logger = LOGGER.bind(group=group, location="test")
     logger.info("start")
-    number_of_instances = 50
-    processes: Dict[int, TestProcess] = {}
+    number_of_instances = 10
     connection_infos: Dict[int, ConnectionInfo] = {}
+    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
+                                    for i in range(number_of_instances)]
     for i in range(number_of_instances):
-        processes[i] = TestProcess(f"t{i}", group, number_of_instances, run=run)
         processes[i].start()
         connection_infos[i] = processes[i].get()
+
+    assert_processes_finish(processes, timeout_in_seconds=120)
 
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
