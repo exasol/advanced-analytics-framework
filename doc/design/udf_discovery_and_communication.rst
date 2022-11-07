@@ -30,16 +30,16 @@ Overview:
   - Send a ReadyToReceiveMessage with our connection information for the receiving socket
     over our sending socket for it, in case we didn't get its PingMessage.
 
-.. image:: peer_communicator_state_machine.drawio.png
+.. image:: udf_communication_overview.drawio.png
 
 ********
 Details:
 ********
 
-We seperated the Local Discovery into two components. The component LocalDiscovery implements
+We separated the Local Discovery into two components. The component LocalDiscovery implements
 the discovery via UDP Broadcast. The component PeerCommunicator handles the reliable network.
 
-If the LocalDiscovery recieves a PingMessage via UDP it registers the connection info for
+If the LocalDiscovery receives a PingMessage via UDP it registers the connection info for
 the reliable network of the peer with the PeerCommunicator.
 
 The PeerCommunicator then handles the reliable network communication.
@@ -50,14 +50,14 @@ and to send and receive message from these peers.
 The PeerCommunicator can be used with different discovery strategies.
 The LocalDiscovery is one, but the GlobalDiscovery can use it as well to form the reliable networks between the leaders.
 
-The current implmentation of the PeerCommunicator use ZMQ for the reliable communication,
+The current implementation of the PeerCommunicator use ZMQ for the reliable communication,
 because it abstracts away the low-level network. It provides:
 
-- A message-based interface, instead the stream-based inteface of TCP.
+- A message-based interface, instead the stream-based interface of TCP.
 - Asynchronous message queue, instead of synchronous TCP socket
 
   - Being asynchronous means that the timings of the physical connection setup and tear down,
     reconnect and effective delivery are transparent to the user and organized by ZeroMQ itself.
   - Further, messages may be queued in the event that a peer is unavailable to receive them.
 
-
+.. image:: peer_communicator_state_machine.drawio.png
