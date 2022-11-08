@@ -30,7 +30,7 @@ Overview:
   - Send a ReadyToReceiveMessage with our connection information for the receiving socket
     over our sending socket for it, in case we didn't get its PingMessage.
 
-.. image:: udf_communication_overview.drawio.png
+.. image:: udf_communication_simple_overview.drawio.png
 
 ********
 Details:
@@ -59,5 +59,15 @@ because it abstracts away the low-level network. It provides:
   - Being asynchronous means that the timings of the physical connection setup and tear down,
     reconnect and effective delivery are transparent to the user and organized by ZeroMQ itself.
   - Further, messages may be queued in the event that a peer is unavailable to receive them.
+
+We further split up the PeerCommunicator into a Frontend and a BackgroundListener which runs in a thread.
+The BackgroundListener listens for incomming messages from other peers or the frontend and
+forwards messages to the frontend.
+
+Here a detailed overview of the information flow:
+
+.. image:: udf_communication_detail_overview.drawio.png
+
+Here the state machines for the BackgroundListener
 
 .. image:: peer_communicator_state_machine.drawio.png
