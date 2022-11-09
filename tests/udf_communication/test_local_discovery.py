@@ -31,7 +31,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
-    local_discovery_socket = LocalDiscoverySocket(Port(port=44444), 1)
+    local_discovery_socket = LocalDiscoverySocket(Port(port=44444))
     peer_communicator = PeerCommunicator(
         name=name,
         number_of_peers=number_of_instances,
@@ -41,6 +41,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     queue.put(peer_communicator.my_connection_info)
     discovery = LocalDiscovery(
         discovery_timeout_in_seconds=10,
+        time_between_ping_messages_in_seconds=1,
         local_discovery_socket=local_discovery_socket,
         peer_communicator=peer_communicator
     )
