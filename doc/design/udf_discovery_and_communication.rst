@@ -13,13 +13,13 @@ Overview:
 - After receiving PingMessage:
 
   - Create sending socket for peer to its receiving socket of the reliable network
-  - Send a ReadyToReceiveMessage with our connection information for the receiving socket
+  - Send a ReadyToReceiveMessage with our connection information including the receiving socket port
     over our sending socket for it to inform the peer that we are ready to receive from it
 
 - After receiving ReadyToReceiveMessage on our receiving socket:
 
   - If not yet discovered, we create a sending socket for the peer to its receiving socket of the reliable network
-  - Send a ReadyToReceiveMessage with our connection information for the receiving socket
+  - Send a ReadyToReceiveMessage with our connection information including the receiving socket port
     over our sending socket for it, in case we didn't get its PingMessage.
   - If we didn't get a ReadyToReceiveMessage message after a certain time , yet, we send a AreYouReadyToReceiveMessage to a discovered peer
     - This should prevent a stuck handshake if we should lose a ReadyToReceiveMessage for whatever reason
@@ -27,7 +27,7 @@ Overview:
 - After receiving AreYouReadyToReceiveMessage:
 
   - If not yet discovered, we create a sending socket for the peer to its receiving socket of the reliable network
-  - Send a ReadyToReceiveMessage with our connection information for the receiving socket
+  - Send a ReadyToReceiveMessage with our connection information including the receiving socket port
     over our sending socket for it, in case we didn't get its PingMessage.
 
 .. image:: udf_communication_simple_overview.drawio.png
