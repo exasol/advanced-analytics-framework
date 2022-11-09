@@ -3,6 +3,7 @@ import traceback
 from pathlib import Path
 from typing import Dict, List
 
+import pytest
 import structlog
 from structlog import WriteLoggerFactory
 from structlog.types import FilteringBoundLogger
@@ -54,27 +55,38 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         logger.exception("Exception during test", exception=e)
 
 
-def test():
+@pytest.mark.repeat(1000)
+@pytest.mark.parametrize("number_of_instances", [2, 10, 50])
+def test_reliability(number_of_instances: int):
     group = f"{time.monotonic_ns()}"
     logger = LOGGER.bind(group=group, location="test")
     logger.info("start")
-    number_of_instances = 10
+    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+    assert expected_peers_of_threads == peers_of_threads
+    logger.info("success")
+
+def test_functionality():
+    group = f"{time.monotonic_ns()}"
+    logger = LOGGER.bind(group=group, location="test")
+    logger.info("start")
+    number_of_instances = 2
+    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+    assert expected_peers_of_threads == peers_of_threads
+    logger.info("success")
+
+def run_test(group:str, number_of_instances:int):
     connection_infos: Dict[int, ConnectionInfo] = {}
     processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
                                     for i in range(number_of_instances)]
     for i in range(number_of_instances):
         processes[i].start()
         connection_infos[i] = processes[i].get()
-
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-
     assert_processes_finish(processes, timeout_in_seconds=120)
-
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
-
     expected_peers_of_threads = {
         i: sorted([
             Peer(connection_info=connection_info)
@@ -83,4 +95,4 @@ def test():
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }
-    assert expected_peers_of_threads == peers_of_threads
+    return expected_peers_of_threads, peers_of_threads

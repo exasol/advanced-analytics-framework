@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from typing import Dict, Set, List
 
+import pytest
 import structlog
 from structlog import WriteLoggerFactory
 
@@ -36,7 +37,6 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():
         com.register_peer(connection_infos)
-        time.sleep(random.random() / 10)
     com.wait_for_peers()
     for peer in com.peers():
         com.send(peer, [name.encode("utf8")])
@@ -47,25 +47,34 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     queue.put(received_values)
 
 
-def test():
+@pytest.mark.repeat(1000)
+@pytest.mark.parametrize("number_of_instances", [2, 10, 50])
+def test_reliability(number_of_instances: int):
     group = f"{time.monotonic_ns()}"
-    number_of_instances = 10
+    expected_received_values, received_values = run_test(group, number_of_instances)
+    assert expected_received_values == received_values
+
+
+def test_functionality():
+    group = f"{time.monotonic_ns()}"
+    number_of_instances = 2
+    expected_received_values, received_values = run_test(group, number_of_instances)
+    assert expected_received_values == received_values
+
+
+def run_test(group: str, number_of_instances: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
     processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
                                     for i in range(number_of_instances)]
     for i in range(number_of_instances):
         processes[i].start()
         connection_infos[i] = processes[i].get()
-
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-
     assert_processes_finish(processes, timeout_in_seconds=120)
-
     received_values: Dict[int, Set[str]] = {}
     for i in range(number_of_instances):
         received_values[i] = processes[i].get()
-
     expected_received_values = {
         i: {
             thread.name
@@ -74,4 +83,4 @@ def test():
         }
         for i in range(number_of_instances)
     }
-    assert expected_received_values == received_values
+    return expected_received_values, received_values
