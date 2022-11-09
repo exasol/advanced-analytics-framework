@@ -68,6 +68,6 @@ Here a detailed overview of the information flow:
 
 .. image:: udf_communication_detail_overview.drawio.png
 
-Here the state machines for the BackgroundListener
+Here the state machines for the BackgroundListener and Frontend
 
 .. image:: peer_communicator_state_machine.drawio.png
