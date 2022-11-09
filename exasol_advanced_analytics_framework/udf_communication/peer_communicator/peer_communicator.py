@@ -5,12 +5,14 @@ import structlog
 import zmq
 from structlog.types import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.background_listener import BackgroundListener
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.frontend_peer_state import FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
+    BackgroundListenerInterface
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
+    FrontendPeerState
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -37,7 +39,7 @@ class PeerCommunicator:
         self._logger = LOGGER.bind(**self._log_info)
         self._number_of_peers = number_of_peers
         self._context = zmq.Context()
-        self._background_listener = BackgroundListener(
+        self._background_listener = BackgroundListenerInterface(
             name=self._name,
             context=self._context,
             listen_ip=listen_ip,

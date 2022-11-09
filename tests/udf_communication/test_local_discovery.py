@@ -8,10 +8,11 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.local_discovery import LocalDiscovery
 from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
+from exasol_advanced_analytics_framework.udf_communication.local_discovery_strategy import LocalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator, key_for_peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -39,7 +40,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         group_identifier=group_identifier
     )
     queue.put(peer_communicator.my_connection_info)
-    discovery = LocalDiscovery(
+    discovery = LocalDiscoveryStrategy(
         discovery_timeout_in_seconds=10,
         time_between_ping_messages_in_seconds=1,
         local_discovery_socket=local_discovery_socket,

@@ -6,18 +6,19 @@ import structlog
 import zmq
 from structlog.types import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.background_listener_run import BackgroundListenerRun
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
     MyConnectionInfoMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
+    BackgroundListenerThread
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class BackgroundListener:
+class BackgroundListenerInterface:
 
     def __init__(self,
                  name: str,
@@ -34,7 +35,7 @@ class BackgroundListener:
         out_control_socket_address = self._create_out_control_socket(context)
         in_control_socket_address = self._create_in_control_socket(context)
         self._my_connection_info: Optional[ConnectionInfo] = None
-        self._background_listener_run = BackgroundListenerRun(
+        self._background_listener_run = BackgroundListenerThread(
             name=self._name,
             context=context,
             listen_ip=listen_ip,

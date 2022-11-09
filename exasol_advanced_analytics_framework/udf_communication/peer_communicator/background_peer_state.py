@@ -6,10 +6,10 @@ import zmq
 from zmq import Frame
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.get_peer_receive_socket_name import \
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
     get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, WeAreReadyToReceiveMessage, \
-    AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage, PayloadMessage
+    AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 

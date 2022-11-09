@@ -7,7 +7,7 @@ import zmq
 from structlog.types import FilteringBoundLogger
 from zmq import Frame
 
-from exasol_advanced_analytics_framework.udf_communication.background_peer_state import BackgroundPeerState
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
@@ -18,7 +18,7 @@ from exasol_advanced_analytics_framework.udf_communication.serialization import 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class BackgroundListenerRun:
+class BackgroundListenerThread:
     class Status(enum.Enum):
         RUNNING = enum.auto()
         STOPPED = enum.auto()
@@ -45,7 +45,7 @@ class BackgroundListenerRun:
         self._out_control_socket_address = out_control_socket_address
         self._poll_timeout_in_seconds = poll_timeout_in_seconds
         self._context = context
-        self._status = BackgroundListenerRun.Status.RUNNING
+        self._status = BackgroundListenerThread.Status.RUNNING
 
     def run(self):
         self._peer_state: Dict[Peer, BackgroundPeerState] = {}
@@ -91,7 +91,7 @@ class BackgroundListenerRun:
     def _run_message_loop(self):
         log = self._logger.bind(location="_run_message_loop")
         try:
-            while self._status == BackgroundListenerRun.Status.RUNNING:
+            while self._status == BackgroundListenerThread.Status.RUNNING:
                 socks = dict(self.poller.poll(timeout=self._poll_timeout_in_seconds * 1000))
                 if self._in_control_socket in socks and socks[self._in_control_socket] == zmq.POLLIN:
                     message = self._in_control_socket.recv()
@@ -110,7 +110,7 @@ class BackgroundListenerRun:
             message_obj: Message = deserialize_message(message, Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, StopMessage):
-                return BackgroundListenerRun.Status.STOPPED
+                return BackgroundListenerThread.Status.STOPPED
             elif isinstance(specific_message_obj, RegisterPeerMessage):
                 self._add_peer(specific_message_obj.peer)
             else:
@@ -123,7 +123,7 @@ class BackgroundListenerRun:
                 message=message,
                 exception=traceback.format_exc()
             )
-        return BackgroundListenerRun.Status.RUNNING
+        return BackgroundListenerThread.Status.RUNNING
 
     def _add_peer(self, peer):
         if peer not in self._peer_state:

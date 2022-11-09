@@ -4,7 +4,7 @@ from typing import cast, Optional
 
 from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
 from exasol_advanced_analytics_framework.udf_communication.messages import PingMessage
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
 
 NANOSECONDS_PER_SECOND = 10 ** 9
@@ -15,7 +15,7 @@ def _convert_to_ping_message(serialized_message: bytes) -> PingMessage:
     return ping_message
 
 
-class LocalDiscovery:
+class LocalDiscoveryStrategy:
 
     def __init__(self,
                  discovery_timeout_in_seconds: int,
