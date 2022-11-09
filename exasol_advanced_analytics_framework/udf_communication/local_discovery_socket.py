@@ -19,8 +19,8 @@ class LocalDiscoverySocket:
         self._udp_socket.sendto(message, (self._broadcast_ip.ip_address, self._port.port))
 
     def recvfrom(self, timeout_in_seconds: float) -> bytes:
-        if timeout_in_seconds<0.0:
-            raise ValueError(f"Timeout needs to be larger than 0.0, but got {timeout_in_seconds}")
+        if timeout_in_seconds < 0.0:
+            raise ValueError(f"Timeout needs to be larger than or equal to 0.0, but got {timeout_in_seconds}")
         # We need to adjust the timeout with a very small number, to avoid 0.0,
         # because this leads the following error
         # BlockingIOError: [Errno 11] Resource temporarily unavailable
