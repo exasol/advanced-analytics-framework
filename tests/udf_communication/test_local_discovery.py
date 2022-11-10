@@ -54,15 +54,12 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         queue.put([])
 
 
-@pytest.mark.repeat(1000)
-@pytest.mark.parametrize("number_of_instances", [2, 10, 50])
-def test_reliability(number_of_instances: int):
-    group = f"{time.monotonic_ns()}"
-    logger = LOGGER.bind(group=group, location="test")
-    logger.info("start")
-    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
-    assert expected_peers_of_threads == peers_of_threads
-    logger.info("success")
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+def test_reliability(number_of_instances: int, repetitions: int):
+    for i in range(repetitions):
+        group = f"{time.monotonic_ns()}"
+        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+        assert expected_peers_of_threads == peers_of_threads
 
 
 def test_functionality():

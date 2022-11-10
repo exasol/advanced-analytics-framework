@@ -47,12 +47,12 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     queue.put(received_values)
 
 
-@pytest.mark.repeat(1000)
-@pytest.mark.parametrize("number_of_instances", [2, 10, 50])
-def test_reliability(number_of_instances: int):
-    group = f"{time.monotonic_ns()}"
-    expected_received_values, received_values = run_test(group, number_of_instances)
-    assert expected_received_values == received_values
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+def test_reliability(number_of_instances: int, repetitions: int):
+    for i in range(repetitions):
+        group = f"{time.monotonic_ns()}"
+        expected_received_values, received_values = run_test(group, number_of_instances)
+        assert expected_received_values == received_values
 
 
 def test_functionality():
