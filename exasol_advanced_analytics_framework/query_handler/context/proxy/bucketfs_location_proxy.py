@@ -14,11 +14,11 @@ class BucketFSLocationProxy(ObjectProxy):
         self._bucketfs_location = bucketfs_location
 
     def bucketfs_location(self) -> AbstractBucketFSLocation:
-        self._check_if_valid()
+        self._check_if_released()
         return self._bucketfs_location
 
     def cleanup(self):
-        if self._is_valid:
+        if self._not_released:
             raise Exception("Cleanup of BucketFSLocationProxy only allowed after release.")
         files = self._list_files()
         for file in files:

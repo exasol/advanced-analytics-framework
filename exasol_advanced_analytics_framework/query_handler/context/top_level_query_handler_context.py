@@ -72,29 +72,30 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._temporary_schema_name = temporary_schema_name
         self._temporary_bucketfs_location = temporary_bucketfs_location
         self._temporary_db_object_name_prefix = temporary_db_object_name_prefix
-        self._valid_object_proxies: Set[ObjectProxy] = set()
-        self._invalid_object_proxies: Set[ObjectProxy] = set()
+        self._not_released_object_proxies: Set[ObjectProxy] = set()
+        self._released_object_proxies: Set[ObjectProxy] = set()
         self._owned_object_proxies: Set[ObjectProxy] = set()
         self._counter = 0
         self._child_query_handler_context_list: List[_ChildQueryHandlerContext] = []
-        self._is_valid = True
+        self._not_released = True
 
     def release(self) -> None:
-        self._check_if_valid()
+        self._check_if_released()
         for object_proxy in list(self._owned_object_proxies):
             self._release_object(object_proxy)
-        if len(self._valid_object_proxies) > 0:
-            for object_proxy in list(self._valid_object_proxies):
+        if len(self._not_released_object_proxies) > 0:
+            for object_proxy in list(self._not_released_object_proxies):
                 self._release_object(object_proxy)
-        self._invalidate()
+        self._release()
+        self._check_if_children_released()
 
     def _get_counter_value(self) -> int:
-        self._check_if_valid()
+        self._check_if_released()
         self._counter += 1
         return self._counter
 
     def _get_temporary_table_name(self) -> TableName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_name = self._get_temporary_db_object_name()
         temporary_table_name = TableNameBuilder.create(
             name=temporary_name,
@@ -102,7 +103,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return temporary_table_name
 
     def _get_temporary_view_name(self) -> ViewName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_name = self._get_temporary_db_object_name()
         temporary_view_name = ViewNameBuilder.create(
             name=temporary_name,
@@ -118,7 +119,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._owned_object_proxies.add(object_proxy)
 
     def get_temporary_table_name(self) -> TableName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_table_name = self._get_temporary_table_name()
         object_proxy = TableNameProxy(temporary_table_name,
                                       self._global_temporary_object_counter.get_current_value())
@@ -126,7 +127,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return object_proxy
 
     def get_temporary_view_name(self) -> ViewName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_view_name = self._get_temporary_view_name()
         object_proxy = ViewNameProxy(temporary_view_name,
                                      self._global_temporary_object_counter.get_current_value())
@@ -134,7 +135,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return object_proxy
 
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_path = self.get_temporary_path()
         child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         object_proxy = BucketFSLocationProxy(child_bucketfs_location)
@@ -146,7 +147,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return temporary_path
 
     def get_child_query_handler_context(self) -> ScopeQueryHandlerContext:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_path = self.get_temporary_path()
         new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         child_query_handler_context = _ChildQueryHandlerContext(
@@ -167,7 +168,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
 
     def _transfer_object_to(self, object_proxy: ObjectProxy,
                             scope_query_handler_context: ScopeQueryHandlerContext) -> None:
-        self._check_if_valid()
+        self._check_if_released()
         if object_proxy in self._owned_object_proxies:
             if isinstance(scope_query_handler_context, _ScopeQueryHandlerContextBase):
                 scope_query_handler_context._own_object(object_proxy)
@@ -181,28 +182,30 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             raise RuntimeError("Object not owned by this ScopeQueryHandlerContext.")
 
     def _remove_object(self, object_proxy: ObjectProxy) -> None:
-        self._valid_object_proxies.remove(object_proxy)
+        self._not_released_object_proxies.remove(object_proxy)
 
     def _un_own_object(self, object_proxy: ObjectProxy) -> None:
         self._owned_object_proxies.remove(object_proxy)
 
-    def _check_if_valid(self):
-        if not self._is_valid:
+    def _check_if_released(self):
+        if not self._not_released:
             raise RuntimeError("Context already released.")
 
-    def _invalidate(self):
-        self._check_if_valid()
-        self._invalid_object_proxies = self._invalid_object_proxies.union(self._valid_object_proxies)
-        self._valid_object_proxies = set()
+    def _release(self):
+        self._check_if_released()
+        self._released_object_proxies = self._released_object_proxies.union(self._not_released_object_proxies)
+        self._not_released_object_proxies = set()
         self._owned_object_proxies = set()
-        self._is_valid = False
+        self._not_released = False
+
+    def _check_if_children_released(self):
         not_released_child_contexts = []
         exceptions_from_not_released_child_contexts = []
         for child_query_handler_context in self._child_query_handler_context_list:
-            if child_query_handler_context._is_valid:
+            if child_query_handler_context._not_released:
                 not_released_child_contexts.append(child_query_handler_context)
                 try:
-                    child_query_handler_context._invalidate()
+                    child_query_handler_context._release()
                 except ChildContextNotReleasedError as e:
                     exceptions_from_not_released_child_contexts.append(e)
         if not_released_child_contexts:
@@ -212,15 +215,15 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             )
 
     def _register_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.add(object_proxy)
+        self._check_if_released()
+        self._not_released_object_proxies.add(object_proxy)
 
     def _release_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.remove(object_proxy)
+        self._check_if_released()
+        self._not_released_object_proxies.remove(object_proxy)
         if object_proxy in self._owned_object_proxies:
             self._owned_object_proxies.remove(object_proxy)
-        self._invalid_object_proxies.add(object_proxy)
+        self._released_object_proxies.add(object_proxy)
 
     def get_connection(self, name: str) -> Connection:
         return self._connection_lookup(name)
@@ -241,7 +244,7 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
 
     def _release_object(self, object_proxy: ObjectProxy):
         super()._release_object(object_proxy)
-        object_proxy._invalidate()
+        object_proxy._release()
 
     def cleanup_released_object_proxies(self) -> List[Query]:
         """
@@ -252,12 +255,12 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         such that, we remove first objects that might depend on previous objects.
         """
         db_objects: List[DBObjectNameProxy] = \
-            [object_proxy for object_proxy in self._invalid_object_proxies
+            [object_proxy for object_proxy in self._released_object_proxies
              if isinstance(object_proxy, DBObjectNameProxy)]
         bucketfs_objects: List[BucketFSLocationProxy] = \
-            [object_proxy for object_proxy in self._invalid_object_proxies
+            [object_proxy for object_proxy in self._released_object_proxies
              if isinstance(object_proxy, BucketFSLocationProxy)]
-        self._invalid_object_proxies = set()
+        self._released_object_proxies = set()
         self._remove_bucketfs_objects(bucketfs_objects)
         reverse_sorted_db_objects = sorted(db_objects, key=lambda x: x._global_counter_value, reverse=True)
         cleanup_queries = [object_proxy.get_cleanup_query()

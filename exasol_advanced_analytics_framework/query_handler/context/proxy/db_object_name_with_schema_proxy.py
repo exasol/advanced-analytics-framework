@@ -14,5 +14,5 @@ class DBObjectNameWithSchemaProxy(DBObjectNameProxy[NameType], DBObjectNameWithS
 
     @property
     def schema_name(self) -> SchemaName:
-        self._check_if_valid()
+        self._check_if_released()
         return self._db_object_name.schema_name

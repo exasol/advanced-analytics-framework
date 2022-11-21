@@ -22,13 +22,14 @@
 
   - #8: Renamed master branch to main
   - #62: Fixed bug in ScopeQueryHandlerContext transfer_object_to
-  - #64: Removed `_check_if_valid` calls in `__eq__` and `__hash__` for DBObjectNameProxy
-  - #65: Fixed that the `ScopeQueryHandlerContext` might not `_invalidate` all child contexts, if a grand-child-context wasn't released
+  - #64: Removed `_check_if_released` calls in `__eq__` and `__hash__` for DBObjectNameProxy
+  - #65: Fixed that the `ScopeQueryHandlerContext` might not `_release` all child contexts, if a grand-child-context wasn't released
   - #68: Fixed that methods called in BucketFSLocationProxy.cleanup can fail and stop the cleanup
 
 ### Refactoring
 
  - #42: Updated dependencies
+ - #72: Unified naming of released resources in QueryHandler
   
 ### Documentation
 
