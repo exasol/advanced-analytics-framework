@@ -206,6 +206,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
                 not_released_child_contexts.append(child_query_handler_context)
                 try:
                     child_query_handler_context._release()
+                    child_query_handler_context._check_if_children_released()
                 except ChildContextNotReleasedError as e:
                     exceptions_from_not_released_child_contexts.append(e)
         if not_released_child_contexts:
