@@ -332,6 +332,7 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
         scope_query_handler_context.release()
 
     not_released_contexts = e.value.get_all_not_released_contexts()
+    f = "f"
     assert len(not_released_contexts) == 6
 
 

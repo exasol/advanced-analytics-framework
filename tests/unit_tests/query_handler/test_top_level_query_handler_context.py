@@ -7,7 +7,7 @@ from exasol_advanced_analytics_framework.query_handler.query.drop_table_query im
 from exasol_advanced_analytics_framework.query_handler.query.drop_view_query import DropViewQuery
 
 
-def test_cleanup_invalid_temporary_table_proxies_after_release(
+def test_cleanup_released_temporary_table_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxy = top_level_query_handler_context.get_temporary_table_name()
     proxy_fully_qualified = proxy.fully_qualified
@@ -17,7 +17,7 @@ def test_cleanup_invalid_temporary_table_proxies_after_release(
            and queries[0].query_string == f"DROP TABLE IF EXISTS {proxy_fully_qualified};"
 
 
-def test_cleanup_invalid_temporary_view_proxies_after_release(
+def test_cleanup_released_temporary_view_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxy = top_level_query_handler_context.get_temporary_view_name()
     proxy_fully_qualified = proxy.fully_qualified
@@ -28,7 +28,7 @@ def test_cleanup_invalid_temporary_view_proxies_after_release(
            and queries[0].query_string == f"DROP VIEW IF EXISTS {proxy_fully_qualified};"
 
 
-def test_cleanup_invalid_bucketfs_object_with_uploaded_file_proxies_after_release(
+def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
         bucketfs_location: AbstractBucketFSLocation,
         prefix: str):
@@ -41,7 +41,7 @@ def test_cleanup_invalid_bucketfs_object_with_uploaded_file_proxies_after_releas
     assert file_list == []
 
 
-def test_cleanup_invalid_bucketfs_object_without_uploaded_file_proxies_after_release(
+def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_release(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
         bucketfs_location: AbstractBucketFSLocation,
         prefix: str):
