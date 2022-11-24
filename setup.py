@@ -24,8 +24,7 @@ package_data = \
 install_requires = \
 ['Jinja2>=3.0.3,<4.0.0',
  'click>=8.0.4,<9.0.0',
- 'exasol-bucketfs-utils-python @ '
- 'git+https://github.com/exasol/bucketfs-utils-python.git@main',
+ 'exasol-bucketfs>=0.6.0,<0.7.0',
  'exasol-data-science-utils-python @ '
  'git+https://github.com/exasol/data-science-utils-python.git@main',
  'importlib-resources>=5.4.0,<6.0.0',
