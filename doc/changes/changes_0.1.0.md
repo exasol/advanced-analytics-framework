@@ -25,6 +25,7 @@
   - #64: Removed `_check_if_released` calls in `__eq__` and `__hash__` for DBObjectNameProxy
   - #65: Fixed that the `ScopeQueryHandlerContext` might not `_release` all child contexts, if a grand-child-context wasn't released
   - #68: Fixed that methods called in BucketFSLocationProxy.cleanup can fail and stop the cleanup
+  - #66: Fixed _ScopeQueryHandlerContextBase.get_temporary_path not being private
 
 ### Refactoring
 

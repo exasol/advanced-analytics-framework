@@ -136,19 +136,19 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
 
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
         self._check_if_released()
-        temporary_path = self.get_temporary_path()
+        temporary_path = self._get_temporary_path()
         child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         object_proxy = BucketFSLocationProxy(child_bucketfs_location)
         self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_path(self):
+    def _get_temporary_path(self):
         temporary_path = f"{self._get_counter_value()}"
         return temporary_path
 
     def get_child_query_handler_context(self) -> ScopeQueryHandlerContext:
         self._check_if_released()
-        temporary_path = self.get_temporary_path()
+        temporary_path = self._get_temporary_path()
         new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         child_query_handler_context = _ChildQueryHandlerContext(
             self,
