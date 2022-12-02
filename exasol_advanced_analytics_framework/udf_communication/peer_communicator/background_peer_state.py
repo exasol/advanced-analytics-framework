@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Optional
 
 import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, AcknowledgeConnectionMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import Message, AcknowledgeConnectionMessage, \
+    RegisterPeerMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender
@@ -13,10 +14,13 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get
     get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
     PeerIsReadySender
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
+    RegisterPeerConnection
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
+from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
     SocketType, Socket, Frame
 
@@ -32,6 +36,7 @@ class BackgroundPeerState:
             out_control_socket: Socket,
             socket_factory: SocketFactory,
             peer: Peer,
+            register_peer_connection: Optional[RegisterPeerConnection],
             clock: Clock,
             synchronize_timeout_in_ms: int,
             abort_timeout_in_ms: int,
@@ -64,6 +69,7 @@ class BackgroundPeerState:
             my_connection_info=my_connection_info,
             socket_factory=socket_factory,
             peer=peer,
+            register_peer_connection=register_peer_connection,
             sender=sender,
             synchronize_connection_sender=synchronize_connection_sender,
             abort_timeout_sender=abort_timeout_sender,
@@ -75,10 +81,12 @@ class BackgroundPeerState:
                  my_connection_info: ConnectionInfo,
                  socket_factory: SocketFactory,
                  peer: Peer,
+                 register_peer_connection: Optional[RegisterPeerConnection],
                  sender: Sender,
                  synchronize_connection_sender: SynchronizeConnectionSender,
                  abort_timeout_sender: AbortTimeoutSender,
                  peer_is_ready_sender: PeerIsReadySender):
+        self._register_peer_connection = register_peer_connection
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._socket_factory = socket_factory
@@ -87,10 +95,15 @@ class BackgroundPeerState:
         self._synchronize_connection_sender = synchronize_connection_sender
         self._abort_timeout_sender = abort_timeout_sender
         self._peer_is_ready_sender = peer_is_ready_sender
-        self._synchronize_connection_sender.send_if_necessary(force=True)
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
-            my_connection_info=self._my_connection_info.dict())
+            my_connection_info=self._my_connection_info.dict(),
+            forwarded=self._register_peer_connection is not None
+        )
+        self._logger.debug("__init__")
+        if self._register_peer_connection is not None:
+            self._register_peer_connection.forward(self._peer)
+        self._synchronize_connection_sender.send_if_necessary(force=True)
 
     def _create_receive_socket(self):
         self._receive_socket = self._socket_factory.create_socket(SocketType.PAIR)

@@ -9,6 +9,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 class RegisterPeerMessage(BaseModel, frozen=True):
     message_type: Literal["RegisterPeerMessage"] = "RegisterPeerMessage"
     peer: Peer
+    source: Optional["Peer"]
 
 
 class PeerIsReadyToReceiveMessage(BaseModel, frozen=True):

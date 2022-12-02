@@ -27,6 +27,8 @@ class BackgroundListenerInterface:
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
+                 leader: bool,
+                 forward: bool,
                  clock: Clock,
                  poll_timeout_in_ms: int,
                  synchronize_timeout_in_ms: int,
@@ -34,6 +36,7 @@ class BackgroundListenerInterface:
                  peer_is_ready_wait_time_in_ms: int,
                  send_socket_linger_time_in_ms:int,
                  trace_logging: bool):
+
         self._name = name
         self._logger = LOGGER.bind(
             name=self._name,
@@ -49,6 +52,8 @@ class BackgroundListenerInterface:
             group_identifier=group_identifier,
             out_control_socket_address=out_control_socket_address,
             in_control_socket_address=in_control_socket_address,
+            leader=leader,
+            forward=forward,
             clock=clock,
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
