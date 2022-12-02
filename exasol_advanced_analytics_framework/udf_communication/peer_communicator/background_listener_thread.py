@@ -1,5 +1,5 @@
 import enum
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -12,6 +12,10 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
+    RegisterPeerConnection
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
+    SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
@@ -29,6 +33,8 @@ class BackgroundListenerThread:
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
+                 leader: bool,
+                 forward: bool,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
                  clock: Clock,
@@ -38,6 +44,9 @@ class BackgroundListenerThread:
                  peer_is_ready_wait_time_in_ms: int,
                  send_socket_linger_time_in_ms: int,
                  trace_logging: bool):
+        self._register_peer_connection: Optional[RegisterPeerConnection] = None
+        self._forward = forward
+        self._leader = leader
         self._send_socket_linger_time_in_ms = send_socket_linger_time_in_ms
         self._trace_logging = trace_logging
         self._clock = clock
@@ -47,7 +56,10 @@ class BackgroundListenerThread:
         self._name = name
         self._logger = LOGGER.bind(
             name=self._name,
-            group_identifier=group_identifier)
+            group_identifier=group_identifier,
+            leader=self._leader,
+            forward=self._forward
+        )
         self._group_identifier = group_identifier
         self._listen_ip = listen_ip
         self._in_control_socket_address = in_control_socket_address
@@ -55,9 +67,9 @@ class BackgroundListenerThread:
         self._poll_timeout_in_ms = poll_timeout_in_ms
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
+        self._peer_state: Dict[Peer, BackgroundPeerState] = {}
 
     def run(self):
-        self._peer_state: Dict[Peer, BackgroundPeerState] = {}
         self._create_in_control_socket()
         self._create_out_control_socket()
         port = self._create_listener_socket()
@@ -70,6 +82,8 @@ class BackgroundListenerThread:
 
     def _close(self):
         self._logger.info("start")
+        if self._register_peer_connection is not None:
+            self._register_peer_connection.close()
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
         for peer_state in self._peer_state.values():
@@ -120,25 +134,32 @@ class BackgroundListenerThread:
             if isinstance(specific_message_obj, StopMessage):
                 return BackgroundListenerThread.Status.STOPPED
             elif isinstance(specific_message_obj, RegisterPeerMessage):
-                self._add_peer(specific_message_obj.peer)
+                if self._forward and self._leader or not self._forward:
+                    self._handle_register_peer_message(specific_message_obj)
+                else:
+                    self._logger.error("RegisterPeerMessage message not allowed", message=specific_message_obj.dict())
             else:
                 self._logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
             self._logger.exception("Exception during handling message", message=message)
         return BackgroundListenerThread.Status.RUNNING
 
-    def _add_peer(self, peer):
+    def _add_peer(self, peer: Peer, forward: bool = False):
         if peer.connection_info.group_identifier != self._my_connection_info.group_identifier:
             self._logger.error("Peer belongs to a different group",
                                my_connection_info=self._my_connection_info.dict(),
                                peer=peer.dict())
             raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
+            register_peer_connection: Optional[RegisterPeerConnection] = None
+            if forward:
+                register_peer_connection = self._register_peer_connection
             self._peer_state[peer] = BackgroundPeerState.create(
                 my_connection_info=self._my_connection_info,
                 out_control_socket=self._out_control_socket,
                 socket_factory=self._socket_factory,
                 peer=peer,
+                register_peer_connection=register_peer_connection,
                 clock=self._clock,
                 peer_is_ready_wait_time_in_ms=self._peer_is_ready_wait_time_in_ms,
                 abort_timeout_in_ms=self._abort_timeout_in_ms,
@@ -158,6 +179,11 @@ class BackgroundListenerThread:
                 self._handle_synchronize_connection(specific_message_obj)
             elif isinstance(specific_message_obj, AcknowledgeConnectionMessage):
                 self._handle_acknowledge_connection(specific_message_obj)
+            elif isinstance(specific_message_obj, RegisterPeerMessage):
+                if not self._leader and self._forward:
+                    self._handle_register_peer_message(specific_message_obj)
+                else:
+                    logger.error("RegisterPeerMessage message not allowed", message=specific_message_obj.dict())
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
@@ -187,3 +213,33 @@ class BackgroundListenerThread:
             group_identifier=self._group_identifier)
         message = MyConnectionInfoMessage(my_connection_info=self._my_connection_info)
         self._out_control_socket.send(serialize_message(message))
+
+    def _handle_register_peer_message(self, message: RegisterPeerMessage):
+        if self._forward:
+            if self._register_peer_connection is None:
+                self._create_register_peer_connection(message)
+                self._add_peer(message.peer)
+            else:
+                self._add_peer(message.peer, forward=True)
+        else:
+            self._add_peer(message.peer)
+
+    def _create_register_peer_connection(self, message: RegisterPeerMessage):
+        successor_send_socket_factory = SendSocketFactory(
+            my_connection_info=self._my_connection_info,
+            peer=message.peer,
+            socket_factory=self._socket_factory
+        )
+        if message.source is not None:
+            predecessor_send_socket_factory = SendSocketFactory(
+                my_connection_info=self._my_connection_info,
+                peer=message.source,
+                socket_factory=self._socket_factory
+            )
+        else:
+            predecessor_send_socket_factory = None
+        self._register_peer_connection = RegisterPeerConnection(
+            predecessor_send_socket_factory=predecessor_send_socket_factory,
+            successor_send_socket_factory=successor_send_socket_factory,
+            my_connection_info=self._my_connection_info
+        )
