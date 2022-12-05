@@ -1,11 +1,16 @@
 import abc
 from enum import Enum, auto
-from typing import Union, List, Set, Optional
+from typing import Union, List, Set, Optional, Dict
 
 
 class Frame(abc.ABC):
+    """
+    Abstraction for a memory buffer which can exchanged between sockets without moving it to Python
+    """
+
     @abc.abstractmethod
     def to_bytes(self) -> bytes:
+        """Copies the memory buffer to Python"""
         pass
 
 
@@ -17,30 +22,34 @@ class PollerFlag(Enum):
 class Socket(abc.ABC):
     @abc.abstractmethod
     def send(self, message: bytes):
-        pass
+        """Sends a message asynchronously if output queue has space, otherwise blocks"""
 
     @abc.abstractmethod
     def receive(self) -> bytes:
-        pass
+        """Receive a message synchronously"""
 
     @abc.abstractmethod
     def receive_multipart(self) -> List[Frame]:
+        """Receive a multipart message synchronously"""
         pass
 
     @abc.abstractmethod
     def send_multipart(self, message: List[Frame]):
-        pass
+        """Sends a multipart message asynchronously"""
 
     @abc.abstractmethod
     def bind(self, address: str):
+        """Bind to the given address"""
         pass
 
     @abc.abstractmethod
     def bind_to_random_port(self, address: str) -> int:
+        """Bind to the given address with a random port and return the port"""
         pass
 
     @abc.abstractmethod
     def connect(self, address: str):
+        """Connect to the given address"""
         pass
 
     @abc.abstractmethod
@@ -48,14 +57,25 @@ class Socket(abc.ABC):
              flags: Union[PollerFlag, Set[PollerFlag]],
              timeout_in_ms: Optional[int] = None) \
             -> Optional[Set[PollerFlag]]:
+        """
+        Checks if the socket can receive or send without blocking or
+        if timeout is set, it waits until a requested event occurred.
+        """
         pass
 
     @abc.abstractmethod
-    def close(self, linger=None):
+    def close(self, linger: int = None):
+        """
+        Closes the socket asynchronously. but waits until no unsent messages are queued.
+        If linger is not None it forces the close after the number of seconds.
+        """
         pass
 
     @abc.abstractmethod
     def set_identity(self, name: str):
+        """
+        Sets the identity of the socket.
+        """
         pass
 
     @abc.abstractmethod
@@ -71,10 +91,12 @@ class Poller(abc.ABC):
 
     @abc.abstractmethod
     def register(self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]) -> None:
+        """Register a socket with the events we want to poll."""
         pass
 
     @abc.abstractmethod
-    def poll(self, timeout_in_ms: Optional[int] = None):
+    def poll(self, timeout_in_ms: Optional[int] = None) -> Dict[Socket, Set[PollerFlag]]:
+        """Poll if an event occurred for the registered sockets or wait until an event occurred, if timeout is set. """
         pass
 
 
