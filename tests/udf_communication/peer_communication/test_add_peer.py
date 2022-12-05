@@ -5,6 +5,7 @@ from typing import Dict, List
 
 import pytest
 import structlog
+import zmq
 from structlog import WriteLoggerFactory
 from structlog.types import FilteringBoundLogger
 
@@ -13,6 +14,7 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -35,11 +37,14 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     logger = LOGGER.bind(group_identifier=group_identifier, name=name)
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
+        context = zmq.Context()
+        socker_factory = ZMQSocketFactory(context)
         com = PeerCommunicator(
             name=name,
             number_of_peers=number_of_instances,
             listen_ip=listen_ip,
-            group_identifier=group_identifier)
+            group_identifier=group_identifier,
+            socket_factory=socker_factory)
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
@@ -51,8 +56,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         finally:
             com.close()
     except Exception as e:
-        traceback.print_exc()
-        logger.exception("Exception during test", exception=e)
+        logger.exception("Exception during test", stacktrace=traceback.format_exc())
 
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])

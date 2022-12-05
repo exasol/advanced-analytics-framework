@@ -2,45 +2,44 @@ import contextlib
 import time
 from typing import Optional, Generator, List
 
-import zmq
-from zmq import Frame
-
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
-    get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, WeAreReadyToReceiveMessage, \
     AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
+    get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+    SocketType, Socket, Frame
 
 
 class BackgroundPeerState:
 
     def __init__(self,
                  my_connection_info: ConnectionInfo,
-                 out_control_socket: zmq.Socket,
-                 context: zmq.Context,
+                 out_control_socket: Socket,
+                 socket_factory: SocketFactory,
                  peer: Peer,
                  reminder_timeout_in_seconds: float = 1):
         self._out_control_socket = out_control_socket
         self._my_connection_info = my_connection_info
         self._wait_time_between_reminder_in_seconds = reminder_timeout_in_seconds
         self._peer = peer
-        self._context = context
+        self._socket_factory = socket_factory
         self._peer_can_receive_from_us = False
         self._last_send_ready_to_receive_timestamp_in_seconds: Optional[float] = None
         self._create_receive_socket()
         self._send_we_are_ready_to_receive()
 
     def _create_receive_socket(self):
-        self._receive_socket = self._context.socket(zmq.PAIR)
+        self._receive_socket = self._socket_factory.create_socket(SocketType.PAIR)
         receive_socket_address = get_peer_receive_socket_name(self._peer)
         self._receive_socket.bind(receive_socket_address)
 
     @contextlib.contextmanager
-    def _create_send_socket(self) -> Generator[zmq.Socket, None, None]:
-        send_socket: zmq.Socket
-        with self._context.socket(zmq.DEALER) as send_socket:
+    def _create_send_socket(self) -> Generator[Socket, None, None]:
+        send_socket: Socket
+        with self._socket_factory.create_socket(SocketType.DEALER) as send_socket:
             send_socket.connect(
                 f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
             yield send_socket
@@ -77,7 +76,7 @@ class BackgroundPeerState:
             self._peer_can_receive_from_us = True
 
     def _send(self, message: Message):
-        send_socket: zmq.Socket
+        send_socket: Socket
         with self._create_send_socket() as send_socket:
             serialized_message = serialize_message(message.__root__)
             send_socket.send(serialized_message)

@@ -1,0 +1,99 @@
+import abc
+from enum import Enum, auto
+from typing import Union, List, Set, Optional
+
+
+class Frame(abc.ABC):
+    @abc.abstractmethod
+    def to_bytes(self) -> bytes:
+        pass
+
+
+class PollerFlag(Enum):
+    POLLIN = auto()
+    POLLOUT = auto()
+
+
+class Socket(abc.ABC):
+    @abc.abstractmethod
+    def send(self, message: bytes):
+        pass
+
+    @abc.abstractmethod
+    def receive(self) -> bytes:
+        pass
+
+    @abc.abstractmethod
+    def receive_multipart(self) -> List[Frame]:
+        pass
+
+    @abc.abstractmethod
+    def send_multipart(self, message: List[Frame]):
+        pass
+
+    @abc.abstractmethod
+    def bind(self, address: str):
+        pass
+
+    @abc.abstractmethod
+    def bind_to_random_port(self, address: str) -> int:
+        pass
+
+    @abc.abstractmethod
+    def connect(self, address: str):
+        pass
+
+    @abc.abstractmethod
+    def poll(self,
+             flags: Union[PollerFlag, Set[PollerFlag]],
+             timeout_in_ms: Optional[int] = None) \
+            -> Optional[Set[PollerFlag]]:
+        pass
+
+    @abc.abstractmethod
+    def close(self, linger=None):
+        pass
+
+    @abc.abstractmethod
+    def set_identity(self, name: str):
+        pass
+
+    @abc.abstractmethod
+    def __enter__(self):
+        pass
+
+    @abc.abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
+class Poller(abc.ABC):
+
+    @abc.abstractmethod
+    def register(self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]) -> None:
+        pass
+
+    @abc.abstractmethod
+    def poll(self, timeout_in_ms: Optional[int] = None):
+        pass
+
+
+class SocketType(Enum):
+    PAIR = auto()
+    ROUTER = auto()
+    DEALER = auto()
+
+
+class SocketFactory(abc.ABC):
+
+    @abc.abstractmethod
+    def create_socket(self, socket_type: SocketType) -> Socket:
+        pass
+
+    @abc.abstractmethod
+    def create_frame(self, message_part: bytes) -> Frame:
+        pass
+
+    @abc.abstractmethod
+    def create_poller(self) -> Poller:
+        pass

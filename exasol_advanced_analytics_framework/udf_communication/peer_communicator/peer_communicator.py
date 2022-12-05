@@ -2,7 +2,6 @@ import time
 from typing import Optional, Dict, List
 
 import structlog
-import zmq
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
@@ -13,6 +12,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
     BackgroundListenerInterface
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+    Frame
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -30,7 +31,13 @@ def _compute_handle_message_timeout(start_time_ns: int, timeout_in_milliseconds:
 
 class PeerCommunicator:
 
-    def __init__(self, name: str, number_of_peers: int, listen_ip: IPAddress, group_identifier: str):
+    def __init__(self,
+                 name: str,
+                 number_of_peers: int,
+                 listen_ip: IPAddress,
+                 group_identifier: str,
+                 socket_factory: SocketFactory):
+        self._socket_factory = socket_factory
         self._name = name
         self._log_info = dict(module_name=__name__,
                               clazz=self.__class__.__name__,
@@ -38,12 +45,11 @@ class PeerCommunicator:
                               group_identifier=group_identifier)
         self._logger = LOGGER.bind(**self._log_info)
         self._number_of_peers = number_of_peers
-        self._context = zmq.Context()
         self._background_listener = BackgroundListenerInterface(
             name=self._name,
-            context=self._context,
+            socket_factory=self._socket_factory,
             listen_ip=listen_ip,
-            group_identifier=group_identifier, )
+            group_identifier=group_identifier)
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
@@ -64,7 +70,7 @@ class PeerCommunicator:
         if peer not in self._peer_states:
             self._peer_states[peer] = FrontendPeerState(
                 my_connection_info=self.my_connection_info,
-                context=self._context,
+                socket_factory=self._socket_factory,
                 peer=peer
             )
 
@@ -115,11 +121,11 @@ class PeerCommunicator:
         result = len(self._peer_states) == self._number_of_peers - 1 and all_peers_ready
         return result
 
-    def send(self, peer: Peer, message: List[bytes]):
+    def send(self, peer: Peer, message: List[Frame]):
         assert self.are_all_peers_connected()
         self._peer_states[peer].send(message)
 
-    def recv(self, peer: Peer, timeout_in_milliseconds: Optional[int] = None) -> List[bytes]:
+    def recv(self, peer: Peer, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
         assert self.are_all_peers_connected()
         return self._peer_states[peer].recv(timeout_in_milliseconds)
 
@@ -130,8 +136,6 @@ class PeerCommunicator:
             self._background_listener = None
         for peer_state in self._peer_states.values():
             peer_state.close()
-        self._context.setsockopt(zmq.LINGER, 0)
-        self._context.destroy()
 
     def __del__(self):
         self.close()

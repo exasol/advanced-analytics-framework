@@ -4,6 +4,7 @@ from typing import Dict, List
 
 import pytest
 import structlog
+import zmq
 from structlog import WriteLoggerFactory
 from structlog.types import FilteringBoundLogger
 
@@ -14,6 +15,7 @@ from exasol_advanced_analytics_framework.udf_communication.local_discovery_strat
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -34,12 +36,15 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
     local_discovery_socket = LocalDiscoverySocket(Port(port=44444))
+    listen_ip = IPAddress(ip_address=f"127.1.0.1")
+    context = zmq.Context()
+    socker_factory = ZMQSocketFactory(context)
     peer_communicator = PeerCommunicator(
         name=name,
         number_of_peers=number_of_instances,
-        listen_ip=IPAddress(ip_address="127.0.0.1"),
-        group_identifier=group_identifier
-    )
+        listen_ip=listen_ip,
+        group_identifier=group_identifier,
+        socket_factory=socker_factory)
     queue.put(peer_communicator.my_connection_info)
     discovery = LocalDiscoveryStrategy(
         discovery_timeout_in_seconds=120,
