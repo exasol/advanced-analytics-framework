@@ -29,7 +29,7 @@ structlog.configure(
 )
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed:int=0):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
     context = zmq.Context()
     socker_factory = ZMQSocketFactory(context)
