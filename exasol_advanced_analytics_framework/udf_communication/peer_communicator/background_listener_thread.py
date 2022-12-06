@@ -8,7 +8,8 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage
+    WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage, \
+    AckReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -31,9 +32,9 @@ class BackgroundListenerThread:
                  group_identifier: str,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
-                 poll_timeout_in_seconds: int = 1,
-                 reminder_timeout_in_seconds: float = 1):
-        self._wait_time_between_reminder_in_seconds = reminder_timeout_in_seconds
+                 poll_timeout_in_ms: int = 100,
+                 reminder_timeout_in_ms: float = 300):
+        self._wait_time_between_reminder_in_ms = reminder_timeout_in_ms
         self._name = name
         self._logger = LOGGER.bind(
             module_name=__name__,
@@ -44,7 +45,7 @@ class BackgroundListenerThread:
         self._listen_ip = listen_ip
         self._in_control_socket_address = in_control_socket_address
         self._out_control_socket_address = out_control_socket_address
-        self._poll_timeout_in_seconds = poll_timeout_in_seconds
+        self._poll_timeout_in_ms = poll_timeout_in_ms
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
 
@@ -93,7 +94,7 @@ class BackgroundListenerThread:
         log = self._logger.bind(location="_run_message_loop")
         try:
             while self._status == BackgroundListenerThread.Status.RUNNING:
-                poll = self.poller.poll(timeout_in_ms=self._poll_timeout_in_seconds * 1000)
+                poll = self.poller.poll(timeout_in_ms=self._poll_timeout_in_ms)
                 if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
                     message = self._in_control_socket.receive()
                     self._status = self._handle_control_message(message)
@@ -102,7 +103,7 @@ class BackgroundListenerThread:
                     self._handle_listener_message(message)
                 if self._status == BackgroundListenerThread.Status.RUNNING:
                     for peer_state in self._peer_state.values():
-                        peer_state._send_are_you_ready_to_receive_if_necassary()
+                        peer_state.resend_if_necessary()
         except Exception as e:
             log.exception("Exception", exception=traceback.format_exc())
 
@@ -134,7 +135,7 @@ class BackgroundListenerThread:
                 out_control_socket=self._out_control_socket,
                 socket_factory=self._socket_factory,
                 peer=peer,
-                reminder_timeout_in_seconds=self._wait_time_between_reminder_in_seconds
+                reminder_timeout_in_ms=self._wait_time_between_reminder_in_ms
             )
 
     def _handle_listener_message(self, message: List[Frame]):
@@ -149,6 +150,8 @@ class BackgroundListenerThread:
                 self._handle_we_are_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
                 self._handle_are_you_ready_to_receive(specific_message_obj)
+            elif isinstance(specific_message_obj, AckReadyToReceiveMessage):
+                self._handle_ack_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
@@ -167,12 +170,16 @@ class BackgroundListenerThread:
     def _handle_we_are_ready_to_receive(self, message: WeAreReadyToReceiveMessage):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
-        self._peer_state[peer].received_peer_is_ready_to_receive()
+        self._peer_state[peer].received_we_are_ready_to_receive()
 
     def _handle_are_you_ready_to_receive(self, message: AreYouReadyToReceiveMessage):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
         self._peer_state[peer].received_are_you_ready_to_receive()
+
+    def _handle_ack_ready_to_receive(self, message: AckReadyToReceiveMessage):
+        peer = Peer(connection_info=message.source)
+        self._peer_state[peer].received_ack()
 
     def _set_my_connection_info(self, port: int):
         self._my_connection_info = ConnectionInfo(

@@ -45,6 +45,11 @@ class AreYouReadyToReceiveMessage(BaseModel, frozen=True):
     source: ConnectionInfo
 
 
+class AckReadyToReceiveMessage(BaseModel, frozen=True):
+    message_type: Literal["AckReadyToReceiveMessage"] = "AckReadyToReceiveMessage"
+    source: ConnectionInfo
+
+
 class Message(BaseModel, frozen=True):
     __root__: Union[
         PingMessage,
@@ -54,5 +59,6 @@ class Message(BaseModel, frozen=True):
         MyConnectionInfoMessage,
         WeAreReadyToReceiveMessage,
         AreYouReadyToReceiveMessage,
-        PeerIsReadyToReceiveMessage
+        PeerIsReadyToReceiveMessage,
+        AckReadyToReceiveMessage
     ]

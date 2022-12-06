@@ -59,6 +59,9 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
             queue.put(peers)
         finally:
             com.close()
+            logger.info("after close")
+            context.destroy(linger=0)
+            logger.info("after destroy")
     except Exception as e:
         logger.exception("Exception during test", stacktrace=traceback.format_exc())
 
