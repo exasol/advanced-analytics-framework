@@ -32,9 +32,11 @@ class BackgroundListenerThread:
                  group_identifier: str,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
-                 poll_timeout_in_ms: int = 100,
-                 reminder_timeout_in_ms: float = 300):
-        self._wait_time_between_reminder_in_ms = reminder_timeout_in_ms
+                 poll_timeout_in_ms: int = 1000,
+                 reminder_timeout_in_ms: float = 1000,
+                 countdown_max: int = 2):
+        self._countdown_max = countdown_max
+        self._reminder_timeout_in_ms = reminder_timeout_in_ms
         self._name = name
         self._logger = LOGGER.bind(
             module_name=__name__,
@@ -135,7 +137,8 @@ class BackgroundListenerThread:
                 out_control_socket=self._out_control_socket,
                 socket_factory=self._socket_factory,
                 peer=peer,
-                reminder_timeout_in_ms=self._wait_time_between_reminder_in_ms
+                reminder_timeout_in_ms=self._reminder_timeout_in_ms,
+                countdown_max=self._countdown_max
             )
 
     def _handle_listener_message(self, message: List[Frame]):

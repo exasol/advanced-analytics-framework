@@ -51,7 +51,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
             for index, connection_info in peer_connection_infos.items():
                 com.register_peer(connection_info)
             peers = com.peers(timeout_in_milliseconds=None)
-            logger.info("peers", peers=peers)
+            logger.info("peers", number_of_peers=len(peers))
             queue.put(peers)
         finally:
             com.close()
@@ -64,20 +64,37 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
 def test_reliability(number_of_instances: int, repetitions: int):
+    run_test_with_repetitions(number_of_instances, repetitions)
+
+
+def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
+        LOGGER.info(f"Start iteration",
+                    iteration=i + 1,
+                    repetitions=repetitions,
+                    number_of_instances=number_of_instances)
+        start_time = time.monotonic()
         group = f"{time.monotonic_ns()}"
         expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, seed=i)
         assert expected_peers_of_threads == peers_of_threads
+        end_time = time.monotonic()
+        LOGGER.info(f"Finish iteration",
+                    iteration=i + 1,
+                    repetitions=repetitions,
+                    number_of_instances=number_of_instances,
+                    duration=end_time - start_time)
 
 
-def test_functionality():
-    group = f"{time.monotonic_ns()}"
-    logger = LOGGER.bind(group=group, location="test")
-    logger.info("start")
-    number_of_instances = 2
-    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, 0)
-    assert expected_peers_of_threads == peers_of_threads
-    logger.info("success")
+def test_functionality_2():
+    run_test_with_repetitions(2, 20)
+
+
+def test_functionality_10():
+    run_test_with_repetitions(20, 20)
+
+
+def test_functionality_50():
+    run_test_with_repetitions(50, 20)
 
 
 def run_test(group: str, number_of_instances: int, seed: int):
@@ -89,7 +106,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=240)
+    assert_processes_finish(processes, timeout_in_seconds=120)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()

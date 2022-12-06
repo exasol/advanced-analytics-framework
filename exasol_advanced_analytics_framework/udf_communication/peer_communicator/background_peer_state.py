@@ -86,10 +86,6 @@ class WeAreReadyMessageSender(Sender):
         should_send_we_are_ready_to_receive = self._should_we_send() or force
         if should_send_we_are_ready_to_receive:
             message = Message(__root__=WeAreReadyToReceiveMessage(source=self._my_connection_info))
-            self._logger.info("_send_we_are_ready_to_receive",
-                              message=message.dict(),
-                              peer=self._peer,
-                              my_connection_info=self._my_connection_info)
             self._send(message)
             self._last_send_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
 
@@ -122,10 +118,6 @@ class AreYouReadySender(Sender):
         should_send_are_you_ready_to_receive = self._should_we_send()
         if should_send_are_you_ready_to_receive:
             message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
-            self._logger.info("_send_are_you_ready_to_receive",
-                              message=message.dict(),
-                              peer=self._peer,
-                              my_connection_info=self._my_connection_info)
             self._send(message)
             self._last_send_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
 
@@ -144,16 +136,20 @@ class PeerIsReadySender(Sender):
                  socket_factory: SocketFactory,
                  peer: Peer,
                  clock: Clock,
-                 reminder_timeout_in_ms: float):
+                 reminder_timeout_in_ms: float,
+                 countdown_max: int = 3):
         super().__init__(my_connection_info,
                          socket_factory,
                          peer,
                          clock,
                          reminder_timeout_in_ms)
         self._out_control_socket = out_control_socket
-        self._countdown_max = 3
-        self._countdown = self._countdown_max
+        self._countdown_max = countdown_max
+        self.reset_countdown()
         self._finished = False
+
+    def reset_countdown(self):
+        self._countdown = self._countdown_max
 
     def send_if_necessary(self):
         should_send_peer_is_ready_to_frontend = self._should_send_peer_is_ready_to_frontend()
@@ -171,10 +167,6 @@ class PeerIsReadySender(Sender):
 
     def _send_peer_is_ready_to_frontend(self):
         message = PeerIsReadyToReceiveMessage(peer=self._peer)
-        self._logger.info("_send_peer_is_ready_to_frontend_if_ready",
-                          message=message.dict(),
-                          peer=self._peer,
-                          my_connection_info=self._my_connection_info)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 
@@ -187,13 +179,14 @@ class BackgroundPeerState(Sender):
                  socket_factory: SocketFactory,
                  peer: Peer,
                  clock: Clock = Clock(),
-                 reminder_timeout_in_ms: float = 100):
+                 reminder_timeout_in_ms: float = 100,
+                 countdown_max: int = 3):
         super().__init__(my_connection_info,
                          socket_factory,
                          peer,
                          clock,
                          reminder_timeout_in_ms)
-
+        self._countdown_max = countdown_max
         self._out_control_socket = out_control_socket
         self._create_receive_socket()
         self._are_you_ready_to_receive_sender = AreYouReadySender(
@@ -221,15 +214,13 @@ class BackgroundPeerState(Sender):
 
     def _send_ack(self):
         message = Message(__root__=AckReadyToReceiveMessage(source=self._my_connection_info))
-        self._logger.info("_send_ack",
-                          message=message.dict(),
-                          peer=self._peer,
-                          my_connection_info=self._my_connection_info)
         self._send(message)
 
     def received_we_are_ready_to_receive(self):
         self._are_you_ready_to_receive_sender.received_we_are_ready_to_receive()
         self._send_ack()
+        if self._peer_is_ready_sender is not None:
+            self._peer_is_ready_sender.reset_countdown()
 
     def received_ack(self):
         self._we_are_ready_to_receive_sender.received_ack()
@@ -240,14 +231,12 @@ class BackgroundPeerState(Sender):
                 socket_factory=self._socket_factory,
                 peer=self._peer,
                 clock=self._clock,
-                reminder_timeout_in_ms=self._reminder_timeout_in_ms
+                reminder_timeout_in_ms=self._reminder_timeout_in_ms,
+                countdown_max=self._countdown_max
             )
         self._peer_is_ready_sender.send_if_necessary()
 
     def received_are_you_ready_to_receive(self):
-        if self._ack_received:
-            self._logger.error("received_are_you_ready_to_receive after ack received",
-                               peer=self._peer, my_connection_info=self._my_connection_info)
         if self._we_are_ready_to_receive_sender is None:
             self._we_are_ready_to_receive_sender = WeAreReadyMessageSender(
                 my_connection_info=self._my_connection_info,
@@ -257,6 +246,8 @@ class BackgroundPeerState(Sender):
                 reminder_timeout_in_ms=self._reminder_timeout_in_ms
             )
         self._we_are_ready_to_receive_sender.send_if_necessary(force=True)
+        if self._peer_is_ready_sender is not None:
+            self._peer_is_ready_sender.reset_countdown()
 
     def forward_payload(self, frames: List[Frame]):
         self._receive_socket.send_multipart(frames)
