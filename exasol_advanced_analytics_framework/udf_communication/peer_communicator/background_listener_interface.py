@@ -110,5 +110,6 @@ class BackgroundListenerInterface:
         self._logger.info("end")
 
     def _send_stop(self):
+        self._logger.info("_send_stop")
         stop_message = StopMessage()
         self._in_control_socket.send(serialize_message(stop_message))

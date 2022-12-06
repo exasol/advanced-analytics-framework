@@ -1,13 +1,12 @@
-import contextlib
 import time
-from typing import Optional, Generator, List
+from typing import Optional, List
 
 import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, WeAreReadyToReceiveMessage, \
-    AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage
+    AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage, AckReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
     get_peer_receive_socket_name
@@ -18,88 +17,246 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-class BackgroundPeerState:
+class Clock():
+    def get_current_timestamp_in_ms(self) -> int:
+        current_timestamp_in_ms = time.monotonic_ns() // 10 ** 6
+        return current_timestamp_in_ms
 
+
+class Sender:
     def __init__(self,
                  my_connection_info: ConnectionInfo,
-                 out_control_socket: Socket,
                  socket_factory: SocketFactory,
                  peer: Peer,
-                 reminder_timeout_in_seconds: float = 1):
-        self._out_control_socket = out_control_socket
+                 clock: Clock,
+                 reminder_timeout_in_ms: float):
+        self._clock = clock
         self._my_connection_info = my_connection_info
-        self._wait_time_between_reminder_in_seconds = reminder_timeout_in_seconds
+        self._reminder_timeout_in_ms = reminder_timeout_in_ms
         self._peer = peer
         self._socket_factory = socket_factory
-        self._peer_can_receive_from_us = False
-        self._last_send_ready_to_receive_timestamp_in_seconds: Optional[float] = None
+        self._last_send_timestamp_in_ms: Optional[int] = None
         self._logger = LOGGER.bind(
             module_name=__name__,
             clazz=self.__class__.__name__,
             peer=self._peer,
             my_connection_info=self._my_connection_info,
         )
+
+    def _is_time(self, last_timestamp_in_ms: int):
+        current_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
+        diff = current_timestamp_in_ms - last_timestamp_in_ms
+        return diff > self._reminder_timeout_in_ms
+
+    def _create_send_socket(self) -> Socket:
+        send_socket: Socket = self._socket_factory.create_socket(SocketType.DEALER)
+        send_socket.connect(
+            f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
+        return send_socket
+
+    def _send(self, message: Message):
+        send_socket: Optional[Socket] = None
+        try:
+            send_socket = self._create_send_socket()
+            serialized_message = serialize_message(message.__root__)
+            send_socket.send(serialized_message)
+        finally:
+            if send_socket is not None:
+                send_socket.close(linger=10)
+
+
+class WeAreReadyMessageSender(Sender):
+    def __init__(self,
+                 my_connection_info: ConnectionInfo,
+                 socket_factory: SocketFactory,
+                 peer: Peer,
+                 clock: Clock,
+                 reminder_timeout_in_ms: float):
+        super().__init__(my_connection_info,
+                         socket_factory,
+                         peer,
+                         clock,
+                         reminder_timeout_in_ms)
+        self._ack_received = False
+
+    def received_ack(self):
+        self._ack_received = True
+
+    def send_if_necessary(self, force: bool):
+        should_send_we_are_ready_to_receive = self._should_we_send() or force
+        if should_send_we_are_ready_to_receive:
+            message = Message(__root__=WeAreReadyToReceiveMessage(source=self._my_connection_info))
+            self._logger.info("_send_we_are_ready_to_receive",
+                              message=message.dict(),
+                              peer=self._peer,
+                              my_connection_info=self._my_connection_info)
+            self._send(message)
+            self._last_send_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
+
+    def _should_we_send(self):
+        is_time = (self._last_send_timestamp_in_ms is None or self._is_time(
+            self._last_send_timestamp_in_ms))
+        is_enabled = not self._ack_received
+        result = is_time and is_enabled
+        return result
+
+
+class AreYouReadySender(Sender):
+    def __init__(self,
+                 my_connection_info: ConnectionInfo,
+                 socket_factory: SocketFactory,
+                 peer: Peer,
+                 clock: Clock,
+                 reminder_timeout_in_ms: float):
+        super().__init__(my_connection_info,
+                         socket_factory,
+                         peer,
+                         clock,
+                         reminder_timeout_in_ms)
+        self._received_we_are_ready_to_receive = False
+
+    def received_we_are_ready_to_receive(self):
+        self._received_we_are_ready_to_receive = True
+
+    def send_if_necessary(self):
+        should_send_are_you_ready_to_receive = self._should_we_send()
+        if should_send_are_you_ready_to_receive:
+            message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
+            self._logger.info("_send_are_you_ready_to_receive",
+                              message=message.dict(),
+                              peer=self._peer,
+                              my_connection_info=self._my_connection_info)
+            self._send(message)
+            self._last_send_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
+
+    def _should_we_send(self):
+        is_time = (self._last_send_timestamp_in_ms is None
+                   or self._is_time(self._last_send_timestamp_in_ms))
+        is_enabled = not self._received_we_are_ready_to_receive
+        result = is_time and is_enabled
+        return result
+
+
+class PeerIsReadySender(Sender):
+    def __init__(self,
+                 out_control_socket: Socket,
+                 my_connection_info: ConnectionInfo,
+                 socket_factory: SocketFactory,
+                 peer: Peer,
+                 clock: Clock,
+                 reminder_timeout_in_ms: float):
+        super().__init__(my_connection_info,
+                         socket_factory,
+                         peer,
+                         clock,
+                         reminder_timeout_in_ms)
+        self._out_control_socket = out_control_socket
+        self._countdown_max = 3
+        self._countdown = self._countdown_max
+        self._finished = False
+
+    def send_if_necessary(self):
+        should_send_peer_is_ready_to_frontend = self._should_send_peer_is_ready_to_frontend()
+        if should_send_peer_is_ready_to_frontend:
+            self._last_send_timestamp_in_ms = self._clock.get_current_timestamp_in_ms()
+            if self._countdown == 0:
+                self._finished = True
+                self._send_peer_is_ready_to_frontend()
+            else:
+                self._countdown -= 1
+
+    def _should_send_peer_is_ready_to_frontend(self):
+        is_time = (self._last_send_timestamp_in_ms is None or self._is_time(self._last_send_timestamp_in_ms))
+        return is_time and not self._finished
+
+    def _send_peer_is_ready_to_frontend(self):
+        message = PeerIsReadyToReceiveMessage(peer=self._peer)
+        self._logger.info("_send_peer_is_ready_to_frontend_if_ready",
+                          message=message.dict(),
+                          peer=self._peer,
+                          my_connection_info=self._my_connection_info)
+        serialized_message = serialize_message(message)
+        self._out_control_socket.send(serialized_message)
+
+
+class BackgroundPeerState(Sender):
+
+    def __init__(self,
+                 my_connection_info: ConnectionInfo,
+                 out_control_socket: Socket,
+                 socket_factory: SocketFactory,
+                 peer: Peer,
+                 clock: Clock = Clock(),
+                 reminder_timeout_in_ms: float = 100):
+        super().__init__(my_connection_info,
+                         socket_factory,
+                         peer,
+                         clock,
+                         reminder_timeout_in_ms)
+
+        self._out_control_socket = out_control_socket
         self._create_receive_socket()
-        self._send_we_are_ready_to_receive()
+        self._are_you_ready_to_receive_sender = AreYouReadySender(
+            my_connection_info=self._my_connection_info,
+            socket_factory=self._socket_factory,
+            peer=self._peer,
+            clock=self._clock,
+            reminder_timeout_in_ms=self._reminder_timeout_in_ms
+        )
+        self._we_are_ready_to_receive_sender: Optional[WeAreReadyMessageSender] = None
+        self._peer_is_ready_sender: Optional[PeerIsReadySender] = None
+        self._are_you_ready_to_receive_sender.send_if_necessary()
 
     def _create_receive_socket(self):
         self._receive_socket = self._socket_factory.create_socket(SocketType.PAIR)
         receive_socket_address = get_peer_receive_socket_name(self._peer)
         self._receive_socket.bind(receive_socket_address)
 
-    @contextlib.contextmanager
-    def _create_send_socket(self) -> Generator[Socket, None, None]:
-        send_socket: Socket
-        with self._socket_factory.create_socket(SocketType.DEALER) as send_socket:
-            send_socket.connect(
-                f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
-            yield send_socket
+    def resend_if_necessary(self):
+        self._are_you_ready_to_receive_sender.send_if_necessary()
+        if self._we_are_ready_to_receive_sender is not None:
+            self._we_are_ready_to_receive_sender.send_if_necessary(force=False)
+        if self._peer_is_ready_sender is not None:
+            self._peer_is_ready_sender.send_if_necessary()
 
-    def _is_time_to_send_are_you_ready_to_receive(self):
-        current_timestamp_in_seconds = time.monotonic()
-        if self._last_send_ready_to_receive_timestamp_in_seconds is not None:
-            diff = current_timestamp_in_seconds - self._last_send_ready_to_receive_timestamp_in_seconds
-            if diff > self._wait_time_between_reminder_in_seconds:
-                self._last_send_ready_to_receive_timestamp_in_seconds = current_timestamp_in_seconds
-                return True
-        else:
-            self._last_send_ready_to_receive_timestamp_in_seconds = current_timestamp_in_seconds
-        return False
-
-    def _send_are_you_ready_to_receive_if_necassary(self):
-        if not self._peer_can_receive_from_us:
-            if self._is_time_to_send_are_you_ready_to_receive():
-                self._logger.info("Send AreYouReadyToReceiveMessage", peer=self._peer,
-                            my_connection_info=self._my_connection_info)
-                message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
-                self._send(message)
-
-    def _send_we_are_ready_to_receive(self):
-        message = Message(__root__=WeAreReadyToReceiveMessage(source=self._my_connection_info))
+    def _send_ack(self):
+        message = Message(__root__=AckReadyToReceiveMessage(source=self._my_connection_info))
+        self._logger.info("_send_ack",
+                          message=message.dict(),
+                          peer=self._peer,
+                          my_connection_info=self._my_connection_info)
         self._send(message)
 
-    def received_peer_is_ready_to_receive(self):
-        self._handle_peer_is_ready_to_receive()
+    def received_we_are_ready_to_receive(self):
+        self._are_you_ready_to_receive_sender.received_we_are_ready_to_receive()
+        self._send_ack()
+
+    def received_ack(self):
+        self._we_are_ready_to_receive_sender.received_ack()
+        if self._peer_is_ready_sender is None:
+            self._peer_is_ready_sender = PeerIsReadySender(
+                out_control_socket=self._out_control_socket,
+                my_connection_info=self._my_connection_info,
+                socket_factory=self._socket_factory,
+                peer=self._peer,
+                clock=self._clock,
+                reminder_timeout_in_ms=self._reminder_timeout_in_ms
+            )
+        self._peer_is_ready_sender.send_if_necessary()
 
     def received_are_you_ready_to_receive(self):
-        self._handle_peer_is_ready_to_receive()
-        self._send_we_are_ready_to_receive()
-
-    def _handle_peer_is_ready_to_receive(self):
-        if not self._peer_can_receive_from_us:
-            self._send_peer_is_ready_to_frontend()
-            self._peer_can_receive_from_us = True
-
-    def _send(self, message: Message):
-        send_socket: Socket
-        with self._create_send_socket() as send_socket:
-            serialized_message = serialize_message(message.__root__)
-            send_socket.send(serialized_message)
-
-    def _send_peer_is_ready_to_frontend(self):
-        message = PeerIsReadyToReceiveMessage(peer=self._peer)
-        serialized_message = serialize_message(message)
-        self._out_control_socket.send(serialized_message)
+        if self._ack_received:
+            self._logger.error("received_are_you_ready_to_receive after ack received",
+                               peer=self._peer, my_connection_info=self._my_connection_info)
+        if self._we_are_ready_to_receive_sender is None:
+            self._we_are_ready_to_receive_sender = WeAreReadyMessageSender(
+                my_connection_info=self._my_connection_info,
+                socket_factory=self._socket_factory,
+                peer=self._peer,
+                clock=self._clock,
+                reminder_timeout_in_ms=self._reminder_timeout_in_ms
+            )
+        self._we_are_ready_to_receive_sender.send_if_necessary(force=True)
 
     def forward_payload(self, frames: List[Frame]):
         self._receive_socket.send_multipart(frames)
