@@ -33,8 +33,7 @@ structlog.configure(
     ]
 )
 
-LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
-
+LOGGER: FilteringBoundLogger = structlog.get_logger().bind(module_name=__name__)
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int):
     logger = LOGGER.bind(group_identifier=group_identifier, name=name)

@@ -100,8 +100,9 @@ class BackgroundListenerThread:
                 if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
                     message = self._listener_socket.receive_multipart()
                     self._handle_listener_message(message)
-                for peer_state in self._peer_state.values():
-                    peer_state._send_are_you_ready_to_receive_if_necassary()
+                if self._status == BackgroundListenerThread.Status.RUNNING:
+                    for peer_state in self._peer_state.values():
+                        peer_state._send_are_you_ready_to_receive_if_necassary()
         except Exception as e:
             log.exception("Exception", exception=traceback.format_exc())
 
