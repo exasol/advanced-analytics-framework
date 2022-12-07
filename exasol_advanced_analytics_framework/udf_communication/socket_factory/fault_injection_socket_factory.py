@@ -1,5 +1,5 @@
-import inspect
 from typing import Union, List, Set, Optional, Dict
+from warnings import warn
 
 import structlog
 from numpy.random import RandomState
@@ -30,6 +30,7 @@ class FISocket(Socket):
         self._send_fault_probability = send_fault_probability
         self._internal_socket = internal_socket
         self._is_inproc = False
+        self._closed = False
 
     def _is_fault(self):
         random_sample = self._random_state.random_sample(1)[0].item()
@@ -86,7 +87,8 @@ class FISocket(Socket):
         return self._internal_socket.poll(flags, timeout_in_ms)
 
     def close(self, linger=None):
-        self._internal_socket.close()
+        self._internal_socket.close(linger=linger)
+        self._closed = True
 
     def set_identity(self, name: str):
         self._internal_socket.set_identity(name)
@@ -95,7 +97,20 @@ class FISocket(Socket):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._internal_socket.close()
+        self.close(linger=0)
+
+    def __del__(self):
+        if not self._closed:
+            if warn is not None:
+                # warn can be None during process teardown
+                warn(
+                    f"Unclosed socket {self}",
+                    ResourceWarning,
+                    stacklevel=2,
+                    source=self,
+                )
+            self.close(linger=0)
+        del self._internal_socket
 
 
 class FIPoller(Poller):
