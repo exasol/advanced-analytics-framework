@@ -1,5 +1,5 @@
 from typing import Union, List, Set, Optional, Dict
-
+from warnings import warn
 import zmq
 
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Frame, Socket, \
@@ -99,6 +99,14 @@ class ZMQSocket(Socket):
         self.close(linger=0)
 
     def __del__(self):
+        if warn is not None:
+            # warn can be None during process teardown
+            warn(
+                f"Unclosed socket {self}",
+                ResourceWarning,
+                stacklevel=2,
+                source=self,
+            )
         self.close(linger=0)
         del self._internal_socket
 

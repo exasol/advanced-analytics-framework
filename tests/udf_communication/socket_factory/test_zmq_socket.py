@@ -114,3 +114,10 @@ def test_socket_set_identity():
             if isinstance(socket1, ZMQSocket):
                 result = socket1._internal_socket.get_string(zmq.IDENTITY)
             assert result == name
+
+
+def test_socket_del_warning():
+    with  zmq.Context() as context:
+        factory = ZMQSocketFactory(context)
+        with pytest.warns(ResourceWarning):
+            factory.create_socket(SocketType.PAIR)
