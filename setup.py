@@ -12,6 +12,7 @@ packages = \
  'exasol_advanced_analytics_framework.testing',
  'exasol_advanced_analytics_framework.udf_communication',
  'exasol_advanced_analytics_framework.udf_communication.peer_communicator',
+ 'exasol_advanced_analytics_framework.udf_communication.socket_factory',
  'exasol_advanced_analytics_framework.udf_framework']
 
 package_data = \

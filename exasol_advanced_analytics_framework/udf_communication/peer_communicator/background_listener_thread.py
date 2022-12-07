@@ -3,17 +3,18 @@ import traceback
 from typing import Dict, List
 
 import structlog
-import zmq
 from structlog.types import FilteringBoundLogger
-from zmq import Frame
 
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
     WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
+    BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+    SocketType, Socket, PollerFlag, Frame
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -25,7 +26,7 @@ class BackgroundListenerThread:
 
     def __init__(self,
                  name: str,
-                 context: zmq.Context,
+                 socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
                  out_control_socket_address: str,
@@ -44,7 +45,7 @@ class BackgroundListenerThread:
         self._in_control_socket_address = in_control_socket_address
         self._out_control_socket_address = out_control_socket_address
         self._poll_timeout_in_seconds = poll_timeout_in_seconds
-        self._context = context
+        self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
 
     def run(self):
@@ -70,39 +71,37 @@ class BackgroundListenerThread:
         logger.info("end")
 
     def _create_listener_socket(self):
-        self._listener_socket: zmq.Socket = self._context.socket(zmq.ROUTER)
-        self._listener_socket.set_string(zmq.IDENTITY, self._name)
+        self._listener_socket: Socket = self._socket_factory.create_socket(SocketType.ROUTER)
+        self._listener_socket.set_identity(self._name)
         port = self._listener_socket.bind_to_random_port(f"tcp://*")
         return port
 
     def _create_in_control_socket(self):
-        self._in_control_socket: zmq.Socket = self._context.socket(zmq.PAIR)
+        self._in_control_socket: Socket = self._socket_factory.create_socket(SocketType.PAIR)
         self._in_control_socket.connect(self._in_control_socket_address)
 
     def _create_out_control_socket(self):
-        self._out_control_socket: zmq.Socket = self._context.socket(zmq.PAIR)
+        self._out_control_socket: Socket = self._socket_factory.create_socket(SocketType.PAIR)
         self._out_control_socket.connect(self._out_control_socket_address)
 
     def _create_poller(self):
-        self.poller = zmq.Poller()
-        self.poller.register(self._in_control_socket, zmq.POLLIN)
-        self.poller.register(self._listener_socket, zmq.POLLIN)
+        self.poller = self._socket_factory.create_poller()
+        self.poller.register(self._in_control_socket, flags=PollerFlag.POLLIN)
+        self.poller.register(self._listener_socket, flags=PollerFlag.POLLIN)
 
     def _run_message_loop(self):
         log = self._logger.bind(location="_run_message_loop")
         try:
             while self._status == BackgroundListenerThread.Status.RUNNING:
-                socks = dict(self.poller.poll(timeout=self._poll_timeout_in_seconds * 1000))
-                if self._in_control_socket in socks and socks[self._in_control_socket] == zmq.POLLIN:
-                    message = self._in_control_socket.recv()
+                poll = self.poller.poll(timeout_in_ms=self._poll_timeout_in_seconds * 1000)
+                if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
+                    message = self._in_control_socket.receive()
                     self._status = self._handle_control_message(message)
-                elif self._listener_socket in socks and socks[self._listener_socket] == zmq.POLLIN:
-                    message = self._listener_socket.recv_multipart(copy=False)
+                if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
+                    message = self._listener_socket.receive_multipart()
                     self._handle_listener_message(message)
-                elif len(socks) != 0:
-                    log.error("Sockets unhandled event", socks=socks)
         except Exception as e:
-            log.exception("Exception")
+            log.exception("Exception", exception=traceback.format_exc())
 
     def _handle_control_message(self, message: bytes) -> Status:
         logger = self._logger.bind(location="_handle_control_message")
@@ -130,7 +129,7 @@ class BackgroundListenerThread:
             self._peer_state[peer] = BackgroundPeerState(
                 my_connection_info=self._my_connection_info,
                 out_control_socket=self._out_control_socket,
-                context=self._context,
+                socket_factory=self._socket_factory,
                 peer=peer,
                 reminder_timeout_in_seconds=self._wait_time_between_reminder_in_seconds
             )
@@ -138,14 +137,14 @@ class BackgroundListenerThread:
     def _handle_listener_message(self, message: List[Frame]):
         logger = self._logger.bind(
             location="_handle_listener_message",
-            sender=message[1].bytes
+            sender=message[0].to_bytes()
         )
         try:
-            message_obj: Message = deserialize_message(message[1].bytes, Message)
+            message_obj: Message = deserialize_message(message[1].to_bytes(), Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, WeAreReadyToReceiveMessage):
                 self._handle_we_are_ready_to_receive(specific_message_obj)
-            if isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
+            elif isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
                 self._handle_are_you_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
@@ -154,7 +153,7 @@ class BackgroundListenerThread:
         except Exception as e:
             logger.exception(
                 "Could not deserialize message",
-                message=message[1].bytes,
+                message=message[1].to_bytes(),
                 exception=traceback.format_exc()
             )
 

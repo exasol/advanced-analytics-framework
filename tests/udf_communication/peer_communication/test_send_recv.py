@@ -5,11 +5,14 @@ from typing import Dict, Set, List
 
 import pytest
 import structlog
+import zmq
 from structlog import WriteLoggerFactory
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Frame
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -28,22 +31,25 @@ structlog.configure(
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
+    context = zmq.Context()
+    socker_factory = ZMQSocketFactory(context)
     com = PeerCommunicator(
         name=name,
         number_of_peers=number_of_instances,
         listen_ip=listen_ip,
-        group_identifier=group_identifier)
+        group_identifier=group_identifier,
+        socket_factory=socker_factory)
     queue.put(com.my_connection_info)
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():
         com.register_peer(connection_infos)
     com.wait_for_peers()
     for peer in com.peers():
-        com.send(peer, [name.encode("utf8")])
+        com.send(peer, [socker_factory.create_frame(name.encode("utf8"))])
     received_values: Set[str] = set()
     for peer in com.peers():
         value = com.recv(peer)
-        received_values.add(value[0].decode("utf8"))
+        received_values.add(value[0].to_bytes().decode("utf8"))
     queue.put(received_values)
 
 
