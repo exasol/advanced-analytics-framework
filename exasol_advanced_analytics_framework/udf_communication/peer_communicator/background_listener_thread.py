@@ -97,13 +97,11 @@ class BackgroundListenerThread:
                 if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
                     message = self._in_control_socket.receive()
                     self._status = self._handle_control_message(message)
-                elif self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
+                if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
                     message = self._listener_socket.receive_multipart()
                     self._handle_listener_message(message)
-                elif len(poll) != 0:
-                    log.error("Sockets unhandled event", socks=poll)
         except Exception as e:
-            log.exception("Exception")
+            log.exception("Exception", exception=traceback.format_exc())
 
     def _handle_control_message(self, message: bytes) -> Status:
         logger = self._logger.bind(location="_handle_control_message")
@@ -139,14 +137,14 @@ class BackgroundListenerThread:
     def _handle_listener_message(self, message: List[Frame]):
         logger = self._logger.bind(
             location="_handle_listener_message",
-            sender=message[1].to_bytes()
+            sender=message[0].to_bytes()
         )
         try:
             message_obj: Message = deserialize_message(message[1].to_bytes(), Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, WeAreReadyToReceiveMessage):
                 self._handle_we_are_ready_to_receive(specific_message_obj)
-            if isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
+            elif isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
                 self._handle_are_you_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)

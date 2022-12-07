@@ -98,7 +98,7 @@ class ZMQSocket(Socket):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close(linger=0)
+        self.close(linger=None)
 
     def __del__(self):
         if not self._closed:
@@ -110,8 +110,8 @@ class ZMQSocket(Socket):
                     stacklevel=2,
                     source=self,
                 )
-            self.close(linger=0)
-        del self._internal_socket
+            self.close(linger=None)
+            del self._internal_socket
 
 
 class ZMQPoller(Poller):
