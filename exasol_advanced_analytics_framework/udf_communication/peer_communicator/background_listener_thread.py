@@ -32,9 +32,9 @@ class BackgroundListenerThread:
                  group_identifier: str,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
-                 poll_timeout_in_ms: int = 1000,
+                 poll_timeout_in_ms: int = 300,
                  reminder_timeout_in_ms: float = 1000,
-                 countdown_max: int = 2):
+                 countdown_max: int = 5):
         self._countdown_max = countdown_max
         self._reminder_timeout_in_ms = reminder_timeout_in_ms
         self._name = name
