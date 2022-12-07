@@ -49,6 +49,9 @@ class AckReadyToReceiveMessage(BaseModel, frozen=True):
     message_type: Literal["AckReadyToReceiveMessage"] = "AckReadyToReceiveMessage"
     source: ConnectionInfo
 
+class TimeoutMessage(BaseModel, frozen=True):
+    message_type: Literal["TimeoutMessage"] = "TimeoutMessage"
+
 
 class Message(BaseModel, frozen=True):
     __root__: Union[
@@ -60,5 +63,6 @@ class Message(BaseModel, frozen=True):
         WeAreReadyToReceiveMessage,
         AreYouReadyToReceiveMessage,
         PeerIsReadyToReceiveMessage,
-        AckReadyToReceiveMessage
+        AckReadyToReceiveMessage,
+        TimeoutMessage
     ]

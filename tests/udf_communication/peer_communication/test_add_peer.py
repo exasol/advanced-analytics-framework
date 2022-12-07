@@ -1,3 +1,4 @@
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -62,7 +63,11 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
             logger.info("after close")
             context.destroy(linger=0)
             logger.info("after destroy")
+            for frame in sys._current_frames().values():
+                stacktrace = traceback.format_stack(frame)
+                logger.info("Frame", stacktrace=stacktrace)
     except Exception as e:
+        queue.put([])
         logger.exception("Exception during test", stacktrace=traceback.format_exc())
 
 
@@ -90,15 +95,15 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 
 def test_functionality_2():
-    run_test_with_repetitions(2, 20)
+    run_test_with_repetitions(2, 5)
 
 
 def test_functionality_10():
-    run_test_with_repetitions(20, 20)
+    run_test_with_repetitions(20, 5)
 
 
 def test_functionality_50():
-    run_test_with_repetitions(50, 20)
+    run_test_with_repetitions(50, 5)
 
 
 def run_test(group: str, number_of_instances: int, seed: int):
