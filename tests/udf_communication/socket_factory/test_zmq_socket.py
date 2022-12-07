@@ -1,4 +1,6 @@
 import time
+from typing import Union, Optional
+from unittest.mock import create_autospec, MagicMock
 
 import pytest
 import zmq
@@ -8,6 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
     PollerFlag
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory, \
     ZMQFrame, ZMQSocket
+from tests.mock_cast import mock_cast
 
 
 def test_create_socket_with():
@@ -116,8 +119,24 @@ def test_socket_set_identity():
             assert result == name
 
 
-def test_socket_del_warning():
-    with  zmq.Context() as context:
-        factory = ZMQSocketFactory(context)
-        with pytest.warns(ResourceWarning):
-            factory.create_socket(SocketType.PAIR)
+@pytest.mark.parametrize("linger", [None, 2])
+def test_close_linger(linger: Optional[int]):
+    socket_mock: Union[zmq.Socket, MagicMock] = create_autospec(zmq.Socket)
+    socket = ZMQSocket(socket_mock)
+    socket.close(linger=linger)
+    mock_cast(socket_mock.close).assert_called_once_with(linger=linger)
+
+
+def test_exit_linger():
+    socket_mock: Union[zmq.Socket, MagicMock] = create_autospec(zmq.Socket)
+    with ZMQSocket(socket_mock) as socket:
+        pass
+    mock_cast(socket_mock.close).assert_called_once_with(linger=0)
+
+
+def test_del():
+    socket_mock: Union[zmq.Socket, MagicMock] = create_autospec(zmq.Socket)
+    socket = ZMQSocket(socket_mock)
+    with pytest.warns(ResourceWarning):
+        del socket
+    mock_cast(socket_mock.close).assert_called_once_with(linger=0)

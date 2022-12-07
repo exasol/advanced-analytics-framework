@@ -44,6 +44,7 @@ class ZMQSocket(Socket):
 
     def __init__(self, internal_socket: zmq.Socket):
         self._internal_socket = internal_socket
+        self._closed = False
 
     def send(self, message: bytes):
         self._internal_socket.send(message)
@@ -88,6 +89,7 @@ class ZMQSocket(Socket):
 
     def close(self, linger=None):
         self._internal_socket.close(linger=linger)
+        self._closed = True
 
     def set_identity(self, name: str):
         self._internal_socket.setsockopt_string(zmq.IDENTITY, name)
@@ -99,15 +101,16 @@ class ZMQSocket(Socket):
         self.close(linger=0)
 
     def __del__(self):
-        if warn is not None:
-            # warn can be None during process teardown
-            warn(
-                f"Unclosed socket {self}",
-                ResourceWarning,
-                stacklevel=2,
-                source=self,
-            )
-        self.close(linger=0)
+        if not self._closed:
+            if warn is not None:
+                # warn can be None during process teardown
+                warn(
+                    f"Unclosed socket {self}",
+                    ResourceWarning,
+                    stacklevel=2,
+                    source=self,
+                )
+            self.close(linger=0)
         del self._internal_socket
 
 
