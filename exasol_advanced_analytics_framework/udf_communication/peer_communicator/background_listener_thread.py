@@ -8,8 +8,7 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage, \
-    AckReadyToReceiveMessage
+    WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -33,8 +32,8 @@ class BackgroundListenerThread:
                  out_control_socket_address: str,
                  in_control_socket_address: str,
                  poll_timeout_in_ms: int = 300,
-                 reminder_timeout_in_ms: float = 1000,
-                 countdown_max: int = 5):
+                 reminder_timeout_in_ms: float = 600,
+                 countdown_max: int = 4):
         self._countdown_max = countdown_max
         self._reminder_timeout_in_ms = reminder_timeout_in_ms
         self._name = name
@@ -153,8 +152,6 @@ class BackgroundListenerThread:
                 self._handle_we_are_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
                 self._handle_are_you_ready_to_receive(specific_message_obj)
-            elif isinstance(specific_message_obj, AckReadyToReceiveMessage):
-                self._handle_ack_ready_to_receive(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
@@ -179,10 +176,6 @@ class BackgroundListenerThread:
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
         self._peer_state[peer].received_are_you_ready_to_receive()
-
-    def _handle_ack_ready_to_receive(self, message: AckReadyToReceiveMessage):
-        peer = Peer(connection_info=message.source)
-        self._peer_state[peer].received_ack()
 
     def _set_my_connection_info(self, port: int):
         self._my_connection_info = ConnectionInfo(
