@@ -148,6 +148,10 @@ doc/_build
 
 .luarocks
 
+# vim
+.*.swp
+.*.swo
+
 # vagrant
 
 .vagrant
