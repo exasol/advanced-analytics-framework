@@ -35,19 +35,15 @@ class MyConnectionInfoMessage(BaseModel, frozen=True):
     my_connection_info: ConnectionInfo
 
 
-class WeAreReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["WeAreReadyToReceiveMessage"] = "WeAreReadyToReceiveMessage"
+class SynchronizeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["SynchronizeConnectionMessage"] = "SynchronizeConnectionMessage"
     source: ConnectionInfo
 
 
-class AreYouReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["AreYouReadyToReceiveMessage"] = "AreYouReadyToReceiveMessage"
+class AcknowledgeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["AcknowledgeConnectionMessage"] = "AcknowledgeConnectionMessage"
     source: ConnectionInfo
 
-
-class AckReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["AckReadyToReceiveMessage"] = "AckReadyToReceiveMessage"
-    source: ConnectionInfo
 
 class TimeoutMessage(BaseModel, frozen=True):
     message_type: Literal["TimeoutMessage"] = "TimeoutMessage"
@@ -60,9 +56,8 @@ class Message(BaseModel, frozen=True):
         StopMessage,
         PayloadMessage,
         MyConnectionInfoMessage,
-        WeAreReadyToReceiveMessage,
-        AreYouReadyToReceiveMessage,
         PeerIsReadyToReceiveMessage,
-        AckReadyToReceiveMessage,
+        SynchronizeConnectionMessage,
+        AcknowledgeConnectionMessage,
         TimeoutMessage
     ]

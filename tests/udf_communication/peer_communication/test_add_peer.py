@@ -42,7 +42,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FISocketFactory(socket_factory, 0.001, RandomState(seed))
+        socket_factory = FISocketFactory(socket_factory, 0.0, RandomState(seed))
         com = PeerCommunicator(
             name=name,
             number_of_peers=number_of_instances,
@@ -98,7 +98,11 @@ def test_functionality_2():
 
 
 def test_functionality_10():
-    run_test_with_repetitions(20, 5)
+    run_test_with_repetitions(10, 5)
+
+
+def test_functionality_25():
+    run_test_with_repetitions(25, 5)
 
 
 def test_functionality_50():

@@ -12,6 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.messages import Messa
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
     BackgroundListenerThread
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
     SocketType, Socket, PollerFlag
@@ -25,7 +26,12 @@ class BackgroundListenerInterface:
                  name: str,
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
-                 group_identifier: str):
+                 group_identifier: str,
+                 clock: Clock,
+                 poll_timeout_in_ms: int,
+                 synchronize_timeout_in_ms: int,
+                 abort_timeout_in_ms: int,
+                 peer_is_ready_wait_time_in_ms: int):
         self._name = name
         self._logger = LOGGER.bind(
             module_name=__name__,
@@ -43,6 +49,11 @@ class BackgroundListenerInterface:
             group_identifier=group_identifier,
             out_control_socket_address=out_control_socket_address,
             in_control_socket_address=in_control_socket_address,
+            clock=clock,
+            poll_timeout_in_ms=poll_timeout_in_ms,
+            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
+            abort_timeout_in_ms=abort_timeout_in_ms,
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
