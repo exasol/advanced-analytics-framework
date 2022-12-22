@@ -99,7 +99,11 @@ def test_functionality_2():
 
 
 def test_functionality_10():
-    run_test_with_repetitions(20, 5)
+    run_test_with_repetitions(10, 5)
+
+
+def test_functionality_25():
+    run_test_with_repetitions(25, 5)
 
 
 def test_functionality_50():

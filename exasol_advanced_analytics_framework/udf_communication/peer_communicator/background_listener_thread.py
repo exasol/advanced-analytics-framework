@@ -8,10 +8,11 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    WeAreReadyToReceiveMessage, PayloadMessage, MyConnectionInfoMessage, AreYouReadyToReceiveMessage
+    PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
@@ -31,11 +32,16 @@ class BackgroundListenerThread:
                  group_identifier: str,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
-                 poll_timeout_in_ms: int = 300,
-                 reminder_timeout_in_ms: float = 600,
-                 countdown_max: int = 4):
-        self._countdown_max = countdown_max
-        self._reminder_timeout_in_ms = reminder_timeout_in_ms
+                 clock: Clock,
+                 poll_timeout_in_ms: int,
+                 synchronize_timeout_in_ms: int,
+                 abort_timeout_in_ms: int,
+                 peer_is_ready_wait_time_in_ms: int
+                 ):
+        self._clock = clock
+        self._peer_is_ready_wait_time_in_ms = peer_is_ready_wait_time_in_ms
+        self._abort_timeout_in_ms = abort_timeout_in_ms
+        self._synchronize_timeout_in_ms = synchronize_timeout_in_ms
         self._name = name
         self._logger = LOGGER.bind(
             module_name=__name__,
@@ -105,8 +111,19 @@ class BackgroundListenerThread:
                 if self._status == BackgroundListenerThread.Status.RUNNING:
                     for peer_state in self._peer_state.values():
                         peer_state.resend_if_necessary()
+            self.consume_remaining_messages()
         except Exception as e:
             log.exception("Exception", exception=traceback.format_exc())
+
+    def consume_remaining_messages(self):
+        while True:
+            poll = self.poller.poll(timeout_in_ms=0)
+            if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
+                _ = self._in_control_socket.receive()
+            if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
+                _ = self._listener_socket.receive_multipart()
+            if len(poll) == 0:
+                break
 
     def _handle_control_message(self, message: bytes) -> Status:
         logger = self._logger.bind(location="_handle_control_message")
@@ -131,13 +148,15 @@ class BackgroundListenerThread:
 
     def _add_peer(self, peer):
         if peer not in self._peer_state:
-            self._peer_state[peer] = BackgroundPeerState(
+            self._peer_state[peer] = BackgroundPeerState.create(
                 my_connection_info=self._my_connection_info,
                 out_control_socket=self._out_control_socket,
                 socket_factory=self._socket_factory,
                 peer=peer,
-                reminder_timeout_in_ms=self._reminder_timeout_in_ms,
-                countdown_max=self._countdown_max
+                clock=self._clock,
+                peer_is_ready_wait_time_in_ms=self._peer_is_ready_wait_time_in_ms,
+                abort_timeout_in_ms=self._abort_timeout_in_ms,
+                synchronize_timeout_in_ms=self._synchronize_timeout_in_ms,
             )
 
     def _handle_listener_message(self, message: List[Frame]):
@@ -148,10 +167,10 @@ class BackgroundListenerThread:
         try:
             message_obj: Message = deserialize_message(message[1].to_bytes(), Message)
             specific_message_obj = message_obj.__root__
-            if isinstance(specific_message_obj, WeAreReadyToReceiveMessage):
-                self._handle_we_are_ready_to_receive(specific_message_obj)
-            elif isinstance(specific_message_obj, AreYouReadyToReceiveMessage):
-                self._handle_are_you_ready_to_receive(specific_message_obj)
+            if isinstance(specific_message_obj, SynchronizeConnectionMessage):
+                self._handle_synchronize_connection(specific_message_obj)
+            elif isinstance(specific_message_obj, AcknowledgeConnectionMessage):
+                self._handle_acknowledge_connection(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
@@ -167,15 +186,15 @@ class BackgroundListenerThread:
         peer = Peer(connection_info=message.source)
         self._peer_state[peer].forward_payload(frames[2:])
 
-    def _handle_we_are_ready_to_receive(self, message: WeAreReadyToReceiveMessage):
+    def _handle_synchronize_connection(self, message: SynchronizeConnectionMessage):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
-        self._peer_state[peer].received_we_are_ready_to_receive()
+        self._peer_state[peer].received_synchronize_connection()
 
-    def _handle_are_you_ready_to_receive(self, message: AreYouReadyToReceiveMessage):
+    def _handle_acknowledge_connection(self, message: AcknowledgeConnectionMessage):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
-        self._peer_state[peer].received_are_you_ready_to_receive()
+        self._peer_state[peer].received_acknowledge_connection()
 
     def _set_my_connection_info(self, port: int):
         self._my_connection_info = ConnectionInfo(

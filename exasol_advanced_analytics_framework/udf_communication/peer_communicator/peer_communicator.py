@@ -10,6 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.messages import PeerI
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
@@ -36,7 +37,12 @@ class PeerCommunicator:
                  number_of_peers: int,
                  listen_ip: IPAddress,
                  group_identifier: str,
-                 socket_factory: SocketFactory):
+                 socket_factory: SocketFactory,
+                 poll_timeout_in_ms: int = 250,
+                 synchronize_timeout_in_ms: int = 500,
+                 abort_timeout_in_ms: int = 120000,
+                 peer_is_ready_wait_time_in_ms: int = 1000,
+                 clock: Clock = Clock()):
         self._socket_factory = socket_factory
         self._name = name
         self._log_info = dict(module_name=__name__,
@@ -49,7 +55,13 @@ class PeerCommunicator:
             name=self._name,
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
-            group_identifier=group_identifier)
+            group_identifier=group_identifier,
+            clock=clock,
+            poll_timeout_in_ms=poll_timeout_in_ms,
+            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
+            abort_timeout_in_ms=abort_timeout_in_ms,
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms
+        )
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
