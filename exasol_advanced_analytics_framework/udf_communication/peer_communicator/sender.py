@@ -23,8 +23,6 @@ class Sender:
         self._socket_factory = socket_factory
 
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             peer=self._peer,
             my_connection_info=self._my_connection_info,
         )

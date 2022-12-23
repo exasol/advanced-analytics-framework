@@ -23,21 +23,19 @@ class PeerIsReadySender:
         self._finished = False
         self._enabled = False
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             peer=self._peer.dict(),
             my_connection_info=my_connection_info.dict())
 
     def enable(self):
-        self._logger.info("enable")
+        self._logger.debug("enable")
         self._enabled = True
 
     def reset_timer(self):
-        self._logger.info("reset_timer")
+        self._logger.debug("reset_timer")
         self._timer.reset_timer()
 
     def send_if_necessary(self, force=False):
-        self._logger.info("send_if_necessary")
+        self._logger.debug("send_if_necessary")
         should_we_send = self._should_we_send()
         if should_we_send or force:
             self._finished = True
@@ -49,7 +47,7 @@ class PeerIsReadySender:
         return result
 
     def _send_peer_is_ready_to_frontend(self):
-        self._logger.info("send")
+        self._logger.debug("send")
         message = PeerIsReadyToReceiveMessage(peer=self._peer)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)

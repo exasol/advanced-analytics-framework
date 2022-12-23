@@ -21,24 +21,22 @@ class SynchronizeConnectionSender():
         self._sender = sender
         self._finished = False
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             peer=peer.dict(),
             my_connection_info=my_connection_info.dict())
 
     def stop(self):
-        self._logger.info("stop")
+        self._logger.debug("stop")
         self._finished = True
 
     def send_if_necessary(self, force=False):
-        self._logger.info("send_if_necessary")
+        self._logger.debug("send_if_necessary")
         should_we_send = self._should_we_send()
         if should_we_send or force:
             self._send()
             self._timer.reset_timer()
 
     def _send(self):
-        self._logger.info("send")
+        self._logger.debug("send")
         message = Message(__root__=SynchronizeConnectionMessage(source=self._my_connection_info))
         self._sender.send(message)
 

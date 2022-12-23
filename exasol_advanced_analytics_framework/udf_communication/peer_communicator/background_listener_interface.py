@@ -31,11 +31,10 @@ class BackgroundListenerInterface:
                  poll_timeout_in_ms: int,
                  synchronize_timeout_in_ms: int,
                  abort_timeout_in_ms: int,
-                 peer_is_ready_wait_time_in_ms: int):
+                 peer_is_ready_wait_time_in_ms: int,
+                 trace_logging: bool):
         self._name = name
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             name=self._name,
             group_identifier=group_identifier
         )
@@ -53,7 +52,8 @@ class BackgroundListenerInterface:
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
             abort_timeout_in_ms=abort_timeout_in_ms,
-            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            trace_logging=trace_logging
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
@@ -81,10 +81,7 @@ class BackgroundListenerInterface:
             assert isinstance(specific_message_obj, MyConnectionInfoMessage)
             self._my_connection_info = specific_message_obj.my_connection_info
         except Exception as e:
-            self._logger.exception("Exception",
-                                   location="_set_my_connection_info",
-                                   raw_message=message,
-                                   exception=traceback.format_exc())
+            self._logger.exception("Exception", raw_message=message)
 
     @property
     def my_connection_info(self) -> ConnectionInfo:
@@ -106,13 +103,9 @@ class BackgroundListenerInterface:
                 timeout_in_milliseconds = 0
                 yield specific_message_obj
             except Exception as e:
-                self._logger.exception("Exception",
-                                       location="receive_messages",
-                                       raw_message=message,
-                                       exception=traceback.format_exc())
+                self._logger.exception("Exception", raw_message=message)
 
     def close(self):
-        logger = self._logger.bind(location="close")
         self._logger.info("start")
         self._send_stop()
         self._thread.join()

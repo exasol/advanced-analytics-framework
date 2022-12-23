@@ -8,7 +8,8 @@ import pytest
 import structlog
 import zmq
 from numpy.random import RandomState
-from structlog import WriteLoggerFactory
+from structlog import WriteLoggerFactory, DropEvent
+from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
@@ -21,20 +22,34 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
+
+class ConditionalMethodDropper:
+    def __init__(self, method_name):
+        self._method_name = method_name
+
+    def __call__(self, logger, method_name, event_dict):
+        if method_name == self._method_name:
+            raise DropEvent
+
+        return event_dict
+
+
 structlog.configure(
     context_class=dict,
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
+        #ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
         structlog.processors.TimeStamper(),
+        structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
+        structlog.processors.CallsiteParameterAdder(),
         structlog.processors.JSONRenderer()
     ]
 )
 
-LOGGER: FilteringBoundLogger = structlog.get_logger().bind(module_name=__name__)
+LOGGER: FilteringBoundLogger = structlog.get_logger()
+
 
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int):
@@ -68,7 +83,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
                 logger.info("Frame", stacktrace=stacktrace)
     except Exception as e:
         queue.put([])
-        logger.exception("Exception during test", stacktrace=traceback.format_exc())
+        logger.exception("Exception during test")
 
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])

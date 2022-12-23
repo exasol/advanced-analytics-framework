@@ -35,7 +35,7 @@ class BackgroundPeerState:
             clock: Clock,
             synchronize_timeout_in_ms: int,
             abort_timeout_in_ms: int,
-            peer_is_ready_wait_time_in_ms: int
+            peer_is_ready_wait_time_in_ms: int,
     ):
         sender = Sender(my_connection_info=my_connection_info,
                         socket_factory=socket_factory,
@@ -50,21 +50,23 @@ class BackgroundPeerState:
             out_control_socket=out_control_socket,
             timer=Timer(clock=clock, timeout_in_ms=abort_timeout_in_ms),
             my_connection_info=my_connection_info,
-            peer=peer,
+            peer=peer
         )
         peer_is_ready_sender = PeerIsReadySender(
             out_control_socket=out_control_socket,
             timer=Timer(clock=clock, timeout_in_ms=peer_is_ready_wait_time_in_ms),
             peer=peer,
-            my_connection_info=my_connection_info
+            my_connection_info=my_connection_info,
         )
-        peer_state = cls(my_connection_info=my_connection_info,
-                         socket_factory=socket_factory,
-                         peer=peer,
-                         sender=sender,
-                         synchronize_connection_sender=synchronize_connection_sender,
-                         abort_timeout_sender=abort_timeout_sender,
-                         peer_is_ready_sender=peer_is_ready_sender)
+        peer_state = cls(
+            my_connection_info=my_connection_info,
+            socket_factory=socket_factory,
+            peer=peer,
+            sender=sender,
+            synchronize_connection_sender=synchronize_connection_sender,
+            abort_timeout_sender=abort_timeout_sender,
+            peer_is_ready_sender=peer_is_ready_sender
+        )
         return peer_state
 
     def __init__(self,
@@ -74,8 +76,7 @@ class BackgroundPeerState:
                  sender: Sender,
                  synchronize_connection_sender: SynchronizeConnectionSender,
                  abort_timeout_sender: AbortTimeoutSender,
-                 peer_is_ready_sender: PeerIsReadySender
-                 ):
+                 peer_is_ready_sender: PeerIsReadySender):
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._socket_factory = socket_factory
@@ -86,8 +87,6 @@ class BackgroundPeerState:
         self._peer_is_ready_sender = peer_is_ready_sender
         self._synchronize_connection_sender.send_if_necessary(force=True)
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             peer=self._peer.dict(),
             my_connection_info=self._my_connection_info.dict())
 
@@ -97,20 +96,20 @@ class BackgroundPeerState:
         self._receive_socket.bind(receive_socket_address)
 
     def resend_if_necessary(self):
-        self._logger.info("resend_if_necessary")
+        self._logger.debug("resend_if_necessary")
         self._synchronize_connection_sender.send_if_necessary()
         self._abort_timeout_sender.send_if_necessary()
         self._peer_is_ready_sender.send_if_necessary()
 
     def received_synchronize_connection(self):
-        self._logger.info("received_synchronize_connection")
+        self._logger.debug("received_synchronize_connection")
         self._peer_is_ready_sender.enable()
         self._peer_is_ready_sender.reset_timer()
         self._abort_timeout_sender.stop()
         self._sender.send(Message(__root__=AcknowledgeConnectionMessage(source=self._my_connection_info)))
 
     def received_acknowledge_connection(self):
-        self._logger.info("received_acknowledge_connection")
+        self._logger.debug("received_acknowledge_connection")
         self._abort_timeout_sender.stop()
         self._synchronize_connection_sender.stop()
         self._peer_is_ready_sender.send_if_necessary(force=True)
