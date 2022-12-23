@@ -1,23 +1,15 @@
 import json
-from collections import defaultdict
+from collections import defaultdict, Counter
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Callable
 
 
-def is_log_sequence_complete(lines: List[Dict[str, str]]):
-    is_peer_is_ready_send_found = False
-    is_received_acknowledge_connection_found = False
-    is_received_synchronize_connection_found = False
+def is_log_sequence_ok(lines: List[Dict[str, str]], line_predicate: Callable[[Dict[str, str]], bool]):
+    result = False
     for line in lines:
-        if is_peer_is_ready_send(line):
-            is_peer_is_ready_send_found = True
-        if is_received_acknowledge_connection(line):
-            is_received_acknowledge_connection_found = True
-        if is_received_synchronize_connection(line):
-            is_received_synchronize_connection_found = True
-    return is_peer_is_ready_send_found \
-           and is_received_acknowledge_connection_found \
-           and is_received_synchronize_connection_found
+        if line_predicate(line):
+            result = True
+    return result
 
 
 def is_peer_is_ready_send(line: Dict[str, str]):
@@ -42,20 +34,24 @@ def analyze_source_target_interaction():
 
 
 def print_source_target_interaction(group_source_target_map):
+    predicates = {
+        "is_peer_is_ready_send": is_peer_is_ready_send,
+        "is_received_acknowledge_connection": is_received_acknowledge_connection,
+        "is_received_synchronize_connection": is_received_synchronize_connection
+    }
     for group, sources in group_source_target_map.items():
-        ok = 0
-        not_ok = 0
+        ok = Counter()
+        not_ok = Counter()
         for source, targets in sources.items():
             for target, lines in targets.items():
-                if not is_log_sequence_complete(lines):
-                    print(f"========== {group}-{source}-{target} ============")
-                    for line in lines:
-                        print(group, source, target, line)
-                    print()
-                    not_ok += 1
-                else:
-                    ok += 1
-        print(f"{group} ok {ok} not_ok {not_ok}")
+                for predicate_name, predicate in predicates.items():
+                    if not is_log_sequence_ok(lines, predicate):
+                        print(f"========== {predicate_name}-{group}-{source}-{target} ============")
+                        not_ok[predicate_name] += 1
+                    else:
+                        ok[predicate_name] += 1
+        for predicate_name in predicates.keys():
+            print(f"{group} {predicate_name} ok {ok[predicate_name]} not_ok {not_ok[predicate_name]}")
 
 
 def collect_source_target_interaction(f, group_source_target_map):
@@ -65,6 +61,7 @@ def collect_source_target_interaction(f, group_source_target_map):
                 and "my_connection_info" in json_line
                 and "event" in json_line
                 and "module" in json_line
+                and json_line["event"] != "send_if_necessary"
         ):
             group = json_line["my_connection_info"]["group_identifier"]
             source = json_line["my_connection_info"]["name"]
@@ -103,7 +100,7 @@ def print_close(group_source_map):
 
 
 def analyze_close():
-    print("analyze_source_target_interaction")
+    print("analyze_close")
     root = Path(__file__).parent
     with open(root / "test_add_peer.log") as f:
         group_source_map = defaultdict(lambda: defaultdict(list))

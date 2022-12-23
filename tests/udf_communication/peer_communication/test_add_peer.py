@@ -134,7 +134,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=120)
+    assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()

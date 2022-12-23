@@ -32,6 +32,7 @@ class BackgroundListenerInterface:
                  synchronize_timeout_in_ms: int,
                  abort_timeout_in_ms: int,
                  peer_is_ready_wait_time_in_ms: int,
+                 send_socket_linger_time_in_ms:int,
                  trace_logging: bool):
         self._name = name
         self._logger = LOGGER.bind(
@@ -53,6 +54,7 @@ class BackgroundListenerInterface:
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
             abort_timeout_in_ms=abort_timeout_in_ms,
             peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
             trace_logging=trace_logging
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)

@@ -37,7 +37,9 @@ class BackgroundListenerThread:
                  synchronize_timeout_in_ms: int,
                  abort_timeout_in_ms: int,
                  peer_is_ready_wait_time_in_ms: int,
+                 send_socket_linger_time_in_ms: int,
                  trace_logging: bool):
+        self._send_socket_linger_time_in_ms = send_socket_linger_time_in_ms
         self._trace_logging = trace_logging
         self._clock = clock
         self._peer_is_ready_wait_time_in_ms = peer_is_ready_wait_time_in_ms
@@ -133,10 +135,15 @@ class BackgroundListenerThread:
             else:
                 self._logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
-            self._logger.exception("Could not deserialize message", message=message)
+            self._logger.exception("Exception during handling message", message=message)
         return BackgroundListenerThread.Status.RUNNING
 
     def _add_peer(self, peer):
+        if peer.connection_info.group_identifier != self._my_connection_info.group_identifier:
+            self._logger.error("Peer belongs to a different group",
+                               my_connection_info=self._my_connection_info.dict(),
+                               peer=peer.dict())
+            raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
             self._peer_state[peer] = BackgroundPeerState.create(
                 my_connection_info=self._my_connection_info,
@@ -146,7 +153,8 @@ class BackgroundListenerThread:
                 clock=self._clock,
                 peer_is_ready_wait_time_in_ms=self._peer_is_ready_wait_time_in_ms,
                 abort_timeout_in_ms=self._abort_timeout_in_ms,
-                synchronize_timeout_in_ms=self._synchronize_timeout_in_ms
+                synchronize_timeout_in_ms=self._synchronize_timeout_in_ms,
+                send_socket_linger_time_in_ms=self._send_socket_linger_time_in_ms
             )
 
     def _handle_listener_message(self, message: List[Frame]):

@@ -36,10 +36,12 @@ class BackgroundPeerState:
             synchronize_timeout_in_ms: int,
             abort_timeout_in_ms: int,
             peer_is_ready_wait_time_in_ms: int,
+            send_socket_linger_time_in_ms: int
     ):
         sender = Sender(my_connection_info=my_connection_info,
                         socket_factory=socket_factory,
-                        peer=peer)
+                        peer=peer,
+                        send_socket_linger_time_in_ms=send_socket_linger_time_in_ms)
         synchronize_connection_sender = SynchronizeConnectionSender(
             my_connection_info=my_connection_info,
             peer=peer,

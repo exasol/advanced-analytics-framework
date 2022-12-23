@@ -41,7 +41,8 @@ class PeerCommunicator:
                  poll_timeout_in_ms: int = 250,
                  synchronize_timeout_in_ms: int = 500,
                  abort_timeout_in_ms: int = 120000,
-                 peer_is_ready_wait_time_in_ms: int = 1000,
+                 peer_is_ready_wait_time_in_ms: int = 2000,
+                 send_socket_linger_time_in_ms: int = 100,
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
         self._socket_factory = socket_factory
@@ -61,6 +62,7 @@ class PeerCommunicator:
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
             abort_timeout_in_ms=abort_timeout_in_ms,
             peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
             trace_logging=trace_logging
         )
         self._my_connection_info = self._background_listener.my_connection_info
