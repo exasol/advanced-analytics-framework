@@ -57,7 +57,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FISocketFactory(socket_factory, 0.0, RandomState(seed))
+        socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(seed))
         com = PeerCommunicator(
             name=name,
             number_of_peers=number_of_instances,
@@ -133,7 +133,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=120)
+    assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
