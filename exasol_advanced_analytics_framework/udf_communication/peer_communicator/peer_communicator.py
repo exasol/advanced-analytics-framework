@@ -42,14 +42,14 @@ class PeerCommunicator:
                  synchronize_timeout_in_ms: int = 500,
                  abort_timeout_in_ms: int = 120000,
                  peer_is_ready_wait_time_in_ms: int = 1000,
-                 clock: Clock = Clock()):
+                 clock: Clock = Clock(),
+                 trace_logging: bool = False):
         self._socket_factory = socket_factory
         self._name = name
-        self._log_info = dict(module_name=__name__,
-                              clazz=self.__class__.__name__,
-                              name=self._name,
-                              group_identifier=group_identifier)
-        self._logger = LOGGER.bind(**self._log_info)
+        self._logger = LOGGER.bind(
+            name=self._name,
+            group_identifier=group_identifier
+        )
         self._number_of_peers = number_of_peers
         self._background_listener = BackgroundListenerInterface(
             name=self._name,
@@ -60,7 +60,8 @@ class PeerCommunicator:
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
             abort_timeout_in_ms=abort_timeout_in_ms,
-            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            trace_logging=trace_logging
         )
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
@@ -77,7 +78,6 @@ class PeerCommunicator:
                 else:
                     self._logger.error(
                         "Unknown message",
-                        location="_handle_messages",
                         message=message.dict())
 
     def _add_peer_state(self, peer):

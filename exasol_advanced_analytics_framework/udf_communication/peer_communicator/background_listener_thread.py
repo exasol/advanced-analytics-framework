@@ -36,16 +36,15 @@ class BackgroundListenerThread:
                  poll_timeout_in_ms: int,
                  synchronize_timeout_in_ms: int,
                  abort_timeout_in_ms: int,
-                 peer_is_ready_wait_time_in_ms: int
-                 ):
+                 peer_is_ready_wait_time_in_ms: int,
+                 trace_logging: bool):
+        self._trace_logging = trace_logging
         self._clock = clock
         self._peer_is_ready_wait_time_in_ms = peer_is_ready_wait_time_in_ms
         self._abort_timeout_in_ms = abort_timeout_in_ms
         self._synchronize_timeout_in_ms = synchronize_timeout_in_ms
         self._name = name
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             name=self._name,
             group_identifier=group_identifier)
         self._group_identifier = group_identifier
@@ -69,14 +68,13 @@ class BackgroundListenerThread:
             self._close()
 
     def _close(self):
-        logger = self._logger.bind(location="close")
-        logger.info("start")
+        self._logger.info("start")
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
         for peer_state in self._peer_state.values():
             peer_state.close()
         self._listener_socket.close(linger=0)
-        logger.info("end")
+        self._logger.info("end")
 
     def _create_listener_socket(self):
         self._listener_socket: Socket = self._socket_factory.create_socket(SocketType.ROUTER)
@@ -98,7 +96,6 @@ class BackgroundListenerThread:
         self.poller.register(self._listener_socket, flags=PollerFlag.POLLIN)
 
     def _run_message_loop(self):
-        log = self._logger.bind(location="_run_message_loop")
         try:
             while self._status == BackgroundListenerThread.Status.RUNNING:
                 poll = self.poller.poll(timeout_in_ms=self._poll_timeout_in_ms)
@@ -113,7 +110,7 @@ class BackgroundListenerThread:
                         peer_state.resend_if_necessary()
             self.consume_remaining_messages()
         except Exception as e:
-            log.exception("Exception", exception=traceback.format_exc())
+            self._logger.exception("Exception in message loop")
 
     def consume_remaining_messages(self):
         while True:
@@ -126,7 +123,6 @@ class BackgroundListenerThread:
                 break
 
     def _handle_control_message(self, message: bytes) -> Status:
-        logger = self._logger.bind(location="_handle_control_message")
         try:
             message_obj: Message = deserialize_message(message, Message)
             specific_message_obj = message_obj.__root__
@@ -135,15 +131,9 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, RegisterPeerMessage):
                 self._add_peer(specific_message_obj.peer)
             else:
-                logger.error(
-                    "Unknown message type",
-                    message=specific_message_obj.dict())
+                self._logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
-            logger.exception(
-                "Could not deserialize message",
-                message=message,
-                exception=traceback.format_exc()
-            )
+            self._logger.exception("Could not deserialize message", message=message)
         return BackgroundListenerThread.Status.RUNNING
 
     def _add_peer(self, peer):
@@ -156,12 +146,11 @@ class BackgroundListenerThread:
                 clock=self._clock,
                 peer_is_ready_wait_time_in_ms=self._peer_is_ready_wait_time_in_ms,
                 abort_timeout_in_ms=self._abort_timeout_in_ms,
-                synchronize_timeout_in_ms=self._synchronize_timeout_in_ms,
+                synchronize_timeout_in_ms=self._synchronize_timeout_in_ms
             )
 
     def _handle_listener_message(self, message: List[Frame]):
         logger = self._logger.bind(
-            location="_handle_listener_message",
             sender=message[0].to_bytes()
         )
         try:
@@ -176,11 +165,7 @@ class BackgroundListenerThread:
             else:
                 logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
-            logger.exception(
-                "Could not deserialize message",
-                message=message[1].to_bytes(),
-                exception=traceback.format_exc()
-            )
+            logger.exception("Exception during handling message", message=message[1].to_bytes())
 
     def _handle_payload_message(self, message: PayloadMessage, frames: List[Frame]):
         peer = Peer(connection_info=message.source)

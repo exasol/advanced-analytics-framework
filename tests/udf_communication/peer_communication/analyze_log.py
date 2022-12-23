@@ -21,15 +21,15 @@ def is_log_sequence_complete(lines: List[Dict[str, str]]):
 
 
 def is_peer_is_ready_send(line: Dict[str, str]):
-    return line["clazz"] == "PeerIsReadySender" and line["event"] == "send"
+    return line["module"] == "peer_is_ready_sender" and line["event"] == "send"
 
 
 def is_received_acknowledge_connection(line: Dict[str, str]):
-    return line["clazz"] == "BackgroundPeerState" and line["event"] == "received_acknowledge_connection"
+    return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_connection"
 
 
 def is_received_synchronize_connection(line: Dict[str, str]):
-    return line["clazz"] == "BackgroundPeerState" and line["event"] == "received_synchronize_connection"
+    return line["module"] == "background_peer_state" and line["event"] == "received_synchronize_connection"
 
 
 def analyze_source_target_interaction():
@@ -64,14 +64,14 @@ def collect_source_target_interaction(f, group_source_target_map):
         if ("peer" in json_line
                 and "my_connection_info" in json_line
                 and "event" in json_line
-                and "clazz" in json_line
+                and "module" in json_line
         ):
             group = json_line["my_connection_info"]["group_identifier"]
             source = json_line["my_connection_info"]["name"]
             target = json_line["peer"]["connection_info"]["name"]
             group_source_target_map[group][source][target].append({
                 "event": json_line["event"],
-                "clazz": json_line["clazz"],
+                "module": json_line["module"],
                 "timestamp": json_line["timestamp"],
             })
 

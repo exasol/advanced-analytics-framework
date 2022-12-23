@@ -21,8 +21,6 @@ class AbortTimeoutSender:
         self._out_control_socket = out_control_socket
         self._finished = False
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             peer=peer.dict(),
             my_connection_info=my_connection_info.dict())
 
@@ -35,7 +33,7 @@ class AbortTimeoutSender:
         self._finished = True
 
     def send_if_necessary(self):
-        self._logger.info("send_if_necessary")
+        self._logger.debug("send_if_necessary")
         should_we_send = self._should_we_send()
         if should_we_send:
             self._finished = True
@@ -47,7 +45,7 @@ class AbortTimeoutSender:
         return result
 
     def _send_timeout_to_frontend(self):
-        self._logger.info("send")
+        self._logger.debug("send")
         message = TimeoutMessage()
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
