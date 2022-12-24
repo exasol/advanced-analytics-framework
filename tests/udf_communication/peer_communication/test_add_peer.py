@@ -8,7 +8,7 @@ import pytest
 import structlog
 import zmq
 from numpy.random import RandomState
-from structlog import WriteLoggerFactory, DropEvent
+from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
@@ -20,26 +20,15 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pee
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
     FISocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
+from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
-
-
-class ConditionalMethodDropper:
-    def __init__(self, method_name):
-        self._method_name = method_name
-
-    def __call__(self, logger, method_name, event_dict):
-        if method_name == self._method_name:
-            raise DropEvent
-
-        return event_dict
-
 
 structlog.configure(
     context_class=dict,
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        #ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -90,6 +79,25 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
+REPETITIONS_FOR_FUNCTIONALITY = 2
+
+
+def test_functionality_2():
+    run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_10():
+    run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_25():
+    run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_50():
+    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
+
+
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         LOGGER.info(f"Start iteration",
@@ -106,22 +114,6 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
                     repetitions=repetitions,
                     number_of_instances=number_of_instances,
                     duration=end_time - start_time)
-
-
-def test_functionality_2():
-    run_test_with_repetitions(2, 5)
-
-
-def test_functionality_10():
-    run_test_with_repetitions(10, 5)
-
-
-def test_functionality_25():
-    run_test_with_repetitions(25, 5)
-
-
-def test_functionality_50():
-    run_test_with_repetitions(50, 5)
 
 
 def run_test(group: str, number_of_instances: int, seed: int):
