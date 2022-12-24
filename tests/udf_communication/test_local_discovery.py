@@ -6,6 +6,7 @@ import pytest
 import structlog
 import zmq
 from structlog import WriteLoggerFactory
+from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
@@ -16,6 +17,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
+from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -23,10 +25,11 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
+        ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
         structlog.processors.TimeStamper(),
+        structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
+        structlog.processors.CallsiteParameterAdder(),
         structlog.processors.JSONRenderer()
     ]
 )
@@ -61,20 +64,44 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
+    run_test_with_repetitions(number_of_instances, repetitions)
+
+
+REPETITIONS_FOR_FUNCTIONALITY = 2
+
+
+def test_functionality_2():
+    run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_10():
+    run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_25():
+    run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_50():
+    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
+        LOGGER.info(f"Start iteration",
+                    iteration=i + 1,
+                    repetitions=repetitions,
+                    number_of_instances=number_of_instances)
+        start_time = time.monotonic()
         group = f"{time.monotonic_ns()}"
         expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
         assert expected_peers_of_threads == peers_of_threads
-
-
-def test_functionality():
-    number_of_instances = 2
-    group = f"{time.monotonic_ns()}"
-    logger = LOGGER.bind(group=group, location="test")
-    logger.info("start")
-    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
-    assert expected_peers_of_threads == peers_of_threads
-    logger.info("success")
+        end_time = time.monotonic()
+        LOGGER.info(f"Finish iteration",
+                    iteration=i + 1,
+                    repetitions=repetitions,
+                    number_of_instances=number_of_instances,
+                    duration=end_time - start_time)
 
 
 def run_test(group: str, number_of_instances: int):
@@ -84,7 +111,7 @@ def run_test(group: str, number_of_instances: int):
     for i in range(number_of_instances):
         processes[i].start()
         connection_infos[i] = processes[i].get()
-    assert_processes_finish(processes, timeout_in_seconds=120)
+    assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
