@@ -93,7 +93,7 @@ def create_test_setup() -> TestSetup:
 def test_init():
     test_setup = create_test_setup()
     assert (
-            test_setup.synchronize_connection_sender_mock.mock_calls == [call.send_if_necessary(force=True)]
+            test_setup.synchronize_connection_sender_mock.mock_calls == [call.try_send(force=True)]
             and test_setup.peer_is_ready_sender_mock.mock_calls == []
             and test_setup.abort_timeout_sender_mock.mock_calls == []
             and test_setup.sender_mock.mock_calls == []
@@ -109,9 +109,9 @@ def test_resend():
     test_setup.reset_mock()
     test_setup.background_peer_state.resend_if_necessary()
     assert (
-            test_setup.synchronize_connection_sender_mock.mock_calls == [call.send_if_necessary()]
-            and test_setup.peer_is_ready_sender_mock.mock_calls == [call.send_if_necessary()]
-            and test_setup.abort_timeout_sender_mock.mock_calls == [call.send_if_necessary()]
+            test_setup.synchronize_connection_sender_mock.mock_calls == [call.try_send()]
+            and test_setup.peer_is_ready_sender_mock.mock_calls == [call.try_send()]
+            and test_setup.abort_timeout_sender_mock.mock_calls == [call.try_send()]
             and test_setup.sender_mock.mock_calls == []
             and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
             and test_setup.receive_socket_mock.mock_calls == []
@@ -139,7 +139,7 @@ def test_received_acknowledge_connection():
     test_setup.background_peer_state.received_acknowledge_connection()
     assert (
             test_setup.synchronize_connection_sender_mock.mock_calls == [call.stop()]
-            and test_setup.peer_is_ready_sender_mock.mock_calls == [call.send_if_necessary(force=True)]
+            and test_setup.peer_is_ready_sender_mock.mock_calls == [call.try_send(force=True)]
             and test_setup.abort_timeout_sender_mock.mock_calls == [call.stop()]
             and test_setup.sender_mock.mock_calls == []
             and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []

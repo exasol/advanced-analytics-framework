@@ -16,35 +16,67 @@ class PeerIsReadySender:
                  out_control_socket: Socket,
                  peer: Peer,
                  my_connection_info: ConnectionInfo,
-                 timer: Timer):
+                 timer: Timer,
+                 needs_acknowledge_register_peer: bool):
+        self._needs_acknowledge_register_peer = needs_acknowledge_register_peer
         self._timer = timer
         self._peer = peer
         self._out_control_socket = out_control_socket
         self._finished = False
-        self._enabled = False
+        self._received_synchronize_connection = False
+        self._received_acknowledge_connection = False
+        self._received_acknowledge_register_peer = True
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
             my_connection_info=my_connection_info.dict())
 
-    def enable(self):
-        self._logger.debug("enable")
-        self._enabled = True
+    def received_synchronize_connection(self):
+        self._logger.debug("received_synchronize_connection")
+        self._received_synchronize_connection = True
+
+    def received_acknowledge_register_peer(self):
+        self._logger.debug("received_acknowledge_register_peer")
+        self._received_acknowledge_register_peer = True
+
+    def received_acknowledge_connection(self):
+        self._logger.debug("received_acknowledge_connection")
+        self._received_acknowledge_connection = True
 
     def reset_timer(self):
         self._logger.debug("reset_timer")
         self._timer.reset_timer()
 
-    def send_if_necessary(self, force=False):
-        self._logger.debug("send_if_necessary")
+    def try_send(self):
+        self._logger.debug("try_send")
         should_we_send = self._should_we_send()
-        if should_we_send or force:
+        if should_we_send:
             self._finished = True
             self._send_peer_is_ready_to_frontend()
 
     def _should_we_send(self):
         is_time = self._timer.is_time()
-        result = is_time and not self._finished and self._enabled
+        is_enabled = self._is_enabled()
+        send_independent_of_time = self._send_independent_of_time()
+        result = (
+                not self._finished
+                and (
+                        (is_time and is_enabled) or
+                        send_independent_of_time
+                )
+        )
         return result
+
+    def _send_independent_of_time(self):
+        received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
+                                              or self._received_acknowledge_register_peer)
+        send_independent_of_time = self._received_acknowledge_connection and received_acknowledge_register_peer
+        return send_independent_of_time
+
+    def _is_enabled(self):
+        received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
+                                              or self._received_acknowledge_register_peer)
+        is_enabled = self._received_synchronize_connection and received_acknowledge_register_peer
+        return is_enabled
 
     def _send_peer_is_ready_to_frontend(self):
         self._logger.debug("send")

@@ -61,7 +61,7 @@ def collect_source_target_interaction(f, group_source_target_map):
                 and "my_connection_info" in json_line
                 and "event" in json_line
                 and "module" in json_line
-                and json_line["event"] != "send_if_necessary"
+                and json_line["event"] != "try_send"
         ):
             group = json_line["my_connection_info"]["group_identifier"]
             source = json_line["my_connection_info"]["name"]

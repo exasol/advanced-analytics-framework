@@ -6,6 +6,7 @@ from typing import Dict, List
 import pytest
 import structlog
 import zmq
+from numpy.random import RandomState
 from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
@@ -15,6 +16,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
+    FISocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
@@ -24,7 +27,7 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        #ConditionalMethodDropper(method_name="debug"),
+        # ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -42,8 +45,10 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
+        #socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(seed))
         leader = False
-        if name == "t1":
+        leader_name = "t0"
+        if name == leader_name:
             leader = True
         com = PeerCommunicator(
             name=name,
@@ -57,7 +62,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
-            if name == "t1":
+            if name == leader_name:
                 for index, connection_info in peer_connection_infos.items():
                     com.register_peer(connection_info)
             peers = com.peers(timeout_in_milliseconds=None)
@@ -75,15 +80,26 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 2
+REPETITIONS_FOR_FUNCTIONALITY = 10000
 
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+def test_functionality_3():
+    run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
+
+def test_functionality_5():
+    run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
+
+
 def test_functionality_10():
     run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_15():
+    run_test_with_repetitions(15, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_25():

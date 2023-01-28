@@ -7,7 +7,8 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage
+    PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage, \
+    AcknowledgeRegisterPeerMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -193,6 +194,8 @@ class BackgroundListenerThread:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
                     logger.error("RegisterPeerMessage message not allowed", message=specific_message_obj.dict())
+            elif isinstance(specific_message_obj, AcknowledgeRegisterPeerMessage):
+                self._handle_acknowledge_register_peer_message(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
@@ -230,6 +233,7 @@ class BackgroundListenerThread:
                 self._add_peer(message.peer)
             else:
                 self._add_peer(message.peer, forward=True)
+            self._register_peer_connection.ack(message.peer)
         else:
             self._add_peer(message.peer)
 
@@ -248,7 +252,20 @@ class BackgroundListenerThread:
         else:
             predecessor_send_socket_factory = None
         self._register_peer_connection = RegisterPeerConnection(
+            predecessor=message.source,
             predecessor_send_socket_factory=predecessor_send_socket_factory,
+            successor=message.peer,
             successor_send_socket_factory=successor_send_socket_factory,
             my_connection_info=self._my_connection_info
         )
+
+    def _handle_acknowledge_register_peer_message(self, message: AcknowledgeRegisterPeerMessage):
+        if self._register_peer_connection.successor != message.source:
+            self._logger.error("AcknowledgeRegisterPeerMessage message not from successor", message=message.dict())
+        LOGGER.debug("_handle_acknowledge_register_peer_message",
+                     source=message.source.connection_info.name,
+                     peer=message.peer.connection_info.name,
+                     my=self._my_connection_info.name,
+                     group=self._my_connection_info.group_identifier)
+        peer = message.peer
+        self._peer_state[peer].received_acknowledge_register_peer()
