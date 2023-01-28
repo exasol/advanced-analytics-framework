@@ -12,6 +12,12 @@ class RegisterPeerMessage(BaseModel, frozen=True):
     source: Optional["Peer"]
 
 
+class AcknowledgeRegisterPeerMessage(BaseModel, frozen=True):
+    message_type: Literal["AcknowledgeRegisterPeerMessage"] = "AcknowledgeRegisterPeerMessage"
+    peer: Peer
+    source: Peer
+
+
 class PeerIsReadyToReceiveMessage(BaseModel, frozen=True):
     message_type: Literal["PeerIsReadyToReceiveMessage"] = "PeerIsReadyToReceiveMessage"
     peer: Peer
@@ -54,6 +60,7 @@ class Message(BaseModel, frozen=True):
     __root__: Union[
         PingMessage,
         RegisterPeerMessage,
+        AcknowledgeRegisterPeerMessage,
         StopMessage,
         PayloadMessage,
         MyConnectionInfoMessage,

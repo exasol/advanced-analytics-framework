@@ -16,9 +16,14 @@ class AbortTimeoutSender:
                  my_connection_info: ConnectionInfo,
                  peer: Peer,
                  out_control_socket: Socket,
-                 timer: Timer):
+                 timer: Timer,
+                 needs_acknowledge_register_peer: bool):
+        self._needs_acknowledge_register_peer = needs_acknowledge_register_peer
         self._timer = timer
         self._out_control_socket = out_control_socket
+        self._received_synchronize_connection = False
+        self._received_acknowledge_connection = False
+        self._received_acknowledge_register_peer = True
         self._finished = False
         self._logger = LOGGER.bind(
             peer=peer.dict(),
@@ -28,12 +33,8 @@ class AbortTimeoutSender:
         self._logger.info("reset_timer")
         self._timer.reset_timer()
 
-    def stop(self):
-        self._logger.info("stop")
-        self._finished = True
-
-    def send_if_necessary(self):
-        self._logger.debug("send_if_necessary")
+    def try_send(self):
+        self._logger.debug("try_send")
         should_we_send = self._should_we_send()
         if should_we_send:
             self._finished = True
@@ -41,11 +42,31 @@ class AbortTimeoutSender:
 
     def _should_we_send(self):
         is_time = self._timer.is_time()
-        result = is_time and not self._finished
+        abort_stopped = self._abort_stopped()
+        result = is_time and not self._finished and not abort_stopped
         return result
+
+    def _abort_stopped(self):
+        connection_ok = self._received_synchronize_connection or self._received_acknowledge_connection
+        received_acknowledge_register_peer = self._needs_acknowledge_register_peer \
+                                             or self._received_acknowledge_register_peer
+        abort_stopped = connection_ok and received_acknowledge_register_peer
+        return abort_stopped
 
     def _send_timeout_to_frontend(self):
         self._logger.debug("send")
         message = TimeoutMessage()
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
+
+    def received_synchronize_connection(self):
+        self._logger.info("received_synchronize_connection")
+        self._received_synchronize_connection = True
+
+    def received_acknowledge_connection(self):
+        self._logger.info("received_acknowledge_connection")
+        self._received_acknowledge_connection = True
+
+    def received_acknowledge_register_peer(self):
+        self._logger.info("received_acknowledge_register_peer")
+        self._received_acknowledge_register_peer = True
