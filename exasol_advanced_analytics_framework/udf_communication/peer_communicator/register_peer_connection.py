@@ -5,7 +5,7 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeerMessage, \
-    AcknowledgeRegisterPeerMessage
+    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
@@ -23,7 +23,9 @@ class RegisterPeerConnection:
                  successor: Peer,
                  successor_send_socket_factory: SendSocketFactory,
                  my_connection_info: ConnectionInfo):
-        self._logger = LOGGER.bind(successor=successor, predecessor=predecessor, my_connection_info=my_connection_info)
+        self._logger = LOGGER.bind(successor=successor.dict(),
+                                   predecessor=None if predecessor is None else predecessor.dict(),
+                                   my_connection_info=my_connection_info.dict())
         self._successor = successor
         self._predecessor = predecessor
         self._my_connection_info = my_connection_info
@@ -41,7 +43,7 @@ class RegisterPeerConnection:
         return self._predecessor
 
     def forward(self, peer: Peer):
-        self._logger.debug("forward", peer=peer)
+        self._logger.debug("forward", peer=peer.dict())
         message = RegisterPeerMessage(
             peer=peer,
             source=Peer(connection_info=self._my_connection_info)
@@ -50,7 +52,7 @@ class RegisterPeerConnection:
         self._successor_socket.send(serialized_message)
 
     def ack(self, peer: Peer):
-        self._logger.debug("ack", peer=peer)
+        self._logger.debug("ack", peer=peer.dict())
         if self._predecessor_socket is not None:
             message = AcknowledgeRegisterPeerMessage(
                 peer=peer,
@@ -59,10 +61,19 @@ class RegisterPeerConnection:
             serialized_message = serialize_message(message)
             self._predecessor_socket.send(serialized_message)
 
+    def complete(self, peer: Peer):
+        self._logger.debug("complete", peer=peer.dict())
+        message = RegisterPeerCompleteMessage(
+            peer=peer,
+            source=Peer(connection_info=self._my_connection_info)
+        )
+        serialized_message = serialize_message(message)
+        self._successor_socket.send(serialized_message)
+
     def close(self):
-        self._successor_socket.close()
+        self._successor_socket.close(linger=10)
         if self._predecessor_socket is not None:
-            self._predecessor_socket.close()
+            self._predecessor_socket.close(linger=10)
 
     def __del__(self):
         self.close()

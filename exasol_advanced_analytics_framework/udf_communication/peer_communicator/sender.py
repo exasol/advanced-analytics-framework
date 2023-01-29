@@ -30,3 +30,16 @@ class Sender:
             serialized_message = serialize_message(message.__root__)
             send_socket.send(serialized_message)
             send_socket.close(self._send_socket_linger_time_in_ms)
+
+
+class SenderFactory:
+    def create(self,
+               my_connection_info: ConnectionInfo,
+               socket_factory: SocketFactory,
+               peer: Peer,
+               send_socket_linger_time_in_ms: int) -> Sender:
+        sender = Sender(my_connection_info=my_connection_info,
+                        socket_factory=socket_factory,
+                        peer=peer,
+                        send_socket_linger_time_in_ms=send_socket_linger_time_in_ms)
+        return sender

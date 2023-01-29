@@ -42,8 +42,8 @@ class PeerCommunicator:
                  forward: bool = False,
                  poll_timeout_in_ms: int = 500,
                  synchronize_timeout_in_ms: int = 1000,
-                 abort_timeout_in_ms: int = 120000,
-                 peer_is_ready_wait_time_in_ms: int = 2000,
+                 abort_timeout_in_ms: int = 240000,
+                 peer_is_ready_wait_time_in_ms: int = 10000,
                  send_socket_linger_time_in_ms: int = 100,
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
@@ -84,7 +84,7 @@ class PeerCommunicator:
                 else:
                     self._logger.error(
                         "Unknown message",
-                        message=message.dict())
+                        message_obj=message.dict())
 
     def _add_peer_state(self, peer):
         if peer not in self._peer_states:

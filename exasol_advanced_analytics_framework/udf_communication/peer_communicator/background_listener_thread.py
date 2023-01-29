@@ -8,7 +8,7 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
     PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage, \
-    AcknowledgeRegisterPeerMessage
+    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -148,29 +148,34 @@ class BackgroundListenerThread:
                 if self._forward and self._leader or not self._forward:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
-                    self._logger.error("RegisterPeerMessage message not allowed", message=specific_message_obj.dict())
+                    self._logger.error("RegisterPeerMessage message not allowed",
+                                       message_obj=specific_message_obj.dict())
             else:
-                self._logger.error("Unknown message type", message=specific_message_obj.dict())
+                self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
             self._logger.exception("Exception during handling message", message=message)
         return BackgroundListenerThread.Status.RUNNING
 
-    def _add_peer(self, peer: Peer, forward: bool = False):
+    def _add_peer(self,
+                  peer: Peer,
+                  forward_register_peer: bool = False,
+                  acknowledge_register_peer: bool = False,
+                  needs_register_peer_complete: bool = False):
         if peer.connection_info.group_identifier != self._my_connection_info.group_identifier:
             self._logger.error("Peer belongs to a different group",
                                my_connection_info=self._my_connection_info.dict(),
                                peer=peer.dict())
             raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
-            register_peer_connection: Optional[RegisterPeerConnection] = None
-            if forward:
-                register_peer_connection = self._register_peer_connection
             self._peer_state[peer] = BackgroundPeerState.create(
                 my_connection_info=self._my_connection_info,
                 out_control_socket=self._out_control_socket,
                 socket_factory=self._socket_factory,
                 peer=peer,
-                register_peer_connection=register_peer_connection,
+                register_peer_connection=self._register_peer_connection,
+                forward_register_peer=forward_register_peer,
+                acknowledge_register_peer=acknowledge_register_peer,
+                needs_register_peer_complete=needs_register_peer_complete,
                 clock=self._clock,
                 peer_is_ready_wait_time_in_ms=self._peer_is_ready_wait_time_in_ms,
                 abort_timeout_in_ms=self._abort_timeout_in_ms,
@@ -193,13 +198,15 @@ class BackgroundListenerThread:
                 if not self._leader and self._forward:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
-                    logger.error("RegisterPeerMessage message not allowed", message=specific_message_obj.dict())
+                    logger.error("RegisterPeerMessage message not allowed", message_obj=specific_message_obj.dict())
             elif isinstance(specific_message_obj, AcknowledgeRegisterPeerMessage):
                 self._handle_acknowledge_register_peer_message(specific_message_obj)
+            elif isinstance(specific_message_obj, RegisterPeerCompleteMessage):
+                self._handle_register_peer_complete_message(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
                 self._handle_payload_message(specific_message_obj, message)
             else:
-                logger.error("Unknown message type", message=specific_message_obj.dict())
+                logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
             logger.exception("Exception during handling message", message=message[1].to_bytes())
 
@@ -230,10 +237,12 @@ class BackgroundListenerThread:
         if self._forward:
             if self._register_peer_connection is None:
                 self._create_register_peer_connection(message)
-                self._add_peer(message.peer)
+                self._add_peer(message.peer, acknowledge_register_peer=True,
+                               needs_register_peer_complete=True)
             else:
-                self._add_peer(message.peer, forward=True)
-            self._register_peer_connection.ack(message.peer)
+                self._add_peer(message.peer, forward_register_peer=True,
+                               acknowledge_register_peer=True,
+                               needs_register_peer_complete=True)
         else:
             self._add_peer(message.peer)
 
@@ -261,11 +270,12 @@ class BackgroundListenerThread:
 
     def _handle_acknowledge_register_peer_message(self, message: AcknowledgeRegisterPeerMessage):
         if self._register_peer_connection.successor != message.source:
-            self._logger.error("AcknowledgeRegisterPeerMessage message not from successor", message=message.dict())
-        LOGGER.debug("_handle_acknowledge_register_peer_message",
-                     source=message.source.connection_info.name,
-                     peer=message.peer.connection_info.name,
-                     my=self._my_connection_info.name,
-                     group=self._my_connection_info.group_identifier)
+            self._logger.error("AcknowledgeRegisterPeerMessage message not from successor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_acknowledge_register_peer()
+
+    def _handle_register_peer_complete_message(self, message: RegisterPeerCompleteMessage):
+        if self._register_peer_connection.predecssor != message.source:
+            self._logger.error("RegisterPeerCompleteMessage message not from predecssor", message_obj=message.dict())
+        peer = message.peer
+        self._peer_state[peer].received_register_peer_complete()

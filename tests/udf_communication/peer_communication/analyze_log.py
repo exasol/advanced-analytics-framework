@@ -16,18 +16,25 @@ def is_peer_is_ready_send(line: Dict[str, str]):
     return line["module"] == "peer_is_ready_sender" and line["event"] == "send"
 
 
-def is_received_acknowledge_connection(line: Dict[str, str]):
-    return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_connection"
-
-
 def is_received_synchronize_connection(line: Dict[str, str]):
     return line["module"] == "background_peer_state" and line["event"] == "received_synchronize_connection"
 
 
-def analyze_source_target_interaction():
+def is_received_acknowledge_connection(line: Dict[str, str]):
+    return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_connection"
+
+
+def is_received_acknowledge_register_peer(line: Dict[str, str]):
+    return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_register_peer"
+
+
+def is_received_register_peer_complete(line: Dict[str, str]):
+    return line["module"] == "background_peer_state" and line["event"] == "received_register_peer_complete"
+
+
+def analyze_source_target_interaction(log_file_path: Path):
     print("analyze_source_target_interaction")
-    root = Path(__file__).parent
-    with open(root / "test_add_peer.log") as f:
+    with open(log_file_path) as f:
         group_source_target_map = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         collect_source_target_interaction(f, group_source_target_map)
     print_source_target_interaction(group_source_target_map)
@@ -36,8 +43,10 @@ def analyze_source_target_interaction():
 def print_source_target_interaction(group_source_target_map):
     predicates = {
         "is_peer_is_ready_send": is_peer_is_ready_send,
+        "is_received_synchronize_connection": is_received_synchronize_connection,
         "is_received_acknowledge_connection": is_received_acknowledge_connection,
-        "is_received_synchronize_connection": is_received_synchronize_connection
+        "is_received_acknowledge_register_peer": is_received_acknowledge_register_peer,
+        "is_received_register_peer_complete": is_received_register_peer_complete
     }
     for group, sources in group_source_target_map.items():
         ok = Counter()
@@ -46,12 +55,16 @@ def print_source_target_interaction(group_source_target_map):
             for target, lines in targets.items():
                 for predicate_name, predicate in predicates.items():
                     if not is_log_sequence_ok(lines, predicate):
-                        print(f"========== {predicate_name}-{group}-{source}-{target} ============")
                         not_ok[predicate_name] += 1
+                        if predicate_name == "is_peer_is_ready_send":
+                            print(f"========== {predicate_name}-{group}-{source}-{target} ============")
                     else:
+                        # if predicate_name == "is_received_acknowledge_register_peer":
+                        #     print(f"========== {predicate_name}-{group}-{source}-{target} ============")
                         ok[predicate_name] += 1
         for predicate_name in predicates.keys():
             print(f"{group} {predicate_name} ok {ok[predicate_name]} not_ok {not_ok[predicate_name]}")
+        print()
 
 
 def collect_source_target_interaction(f, group_source_target_map):
@@ -63,14 +76,17 @@ def collect_source_target_interaction(f, group_source_target_map):
                 and "module" in json_line
                 and json_line["event"] != "try_send"
         ):
-            group = json_line["my_connection_info"]["group_identifier"]
-            source = json_line["my_connection_info"]["name"]
-            target = json_line["peer"]["connection_info"]["name"]
-            group_source_target_map[group][source][target].append({
-                "event": json_line["event"],
-                "module": json_line["module"],
-                "timestamp": json_line["timestamp"],
-            })
+            try:
+                group = json_line["my_connection_info"]["group_identifier"]
+                source = json_line["my_connection_info"]["name"]
+                target = json_line["peer"]["connection_info"]["name"]
+                group_source_target_map[group][source][target].append({
+                    "event": json_line["event"],
+                    "module": json_line["module"],
+                    "timestamp": json_line["timestamp"],
+                })
+            except Exception as e:
+                raise Exception("Could not parse line: " + str(json_line)) from e
 
 
 def collect_close(f, group_source_map):
@@ -99,15 +115,16 @@ def print_close(group_source_map):
         print(f"{group} after ... {len(sources)}")
 
 
-def analyze_close():
+def analyze_close(log_file_path: Path):
     print("analyze_close")
-    root = Path(__file__).parent
-    with open(root / "test_add_peer.log") as f:
+    with open(log_file_path) as f:
         group_source_map = defaultdict(lambda: defaultdict(list))
         collect_close(f, group_source_map)
     print_close(group_source_map)
 
 
 if __name__ == "__main__":
-    analyze_source_target_interaction()
-    analyze_close()
+    root = Path(__file__).parent
+    log_file_path = root / "test_add_peer_forward.log"
+    analyze_source_target_interaction(log_file_path)
+    analyze_close(log_file_path)

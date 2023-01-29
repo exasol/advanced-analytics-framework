@@ -17,18 +17,25 @@ class PeerIsReadySender:
                  peer: Peer,
                  my_connection_info: ConnectionInfo,
                  timer: Timer,
-                 needs_acknowledge_register_peer: bool):
+                 needs_acknowledge_register_peer: bool,
+                 needs_register_peer_complete: bool):
         self._needs_acknowledge_register_peer = needs_acknowledge_register_peer
+        self._needs_register_peer_complete = needs_register_peer_complete
         self._timer = timer
         self._peer = peer
         self._out_control_socket = out_control_socket
         self._finished = False
         self._received_synchronize_connection = False
         self._received_acknowledge_connection = False
-        self._received_acknowledge_register_peer = True
+        self._received_acknowledge_register_peer = False
+        self._received_register_peer_complete = False
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
-            my_connection_info=my_connection_info.dict())
+            my_connection_info=my_connection_info.dict(),
+            needs_acknowledge_register_peer=self._needs_acknowledge_register_peer,
+            needs_register_peer_complete=self._needs_register_peer_complete
+        )
+        self._logger.debug("init")
 
     def received_synchronize_connection(self):
         self._logger.debug("received_synchronize_connection")
@@ -41,6 +48,10 @@ class PeerIsReadySender:
     def received_acknowledge_connection(self):
         self._logger.debug("received_acknowledge_connection")
         self._received_acknowledge_connection = True
+
+    def received_register_peer_complete(self):
+        self._logger.debug("received_register_peer_complete")
+        self._received_register_peer_complete = True
 
     def reset_timer(self):
         self._logger.debug("reset_timer")
@@ -64,18 +75,34 @@ class PeerIsReadySender:
                         send_independent_of_time
                 )
         )
+        self._logger.debug("_should_we_send",
+                           result=result,
+                           is_time=is_time,
+                           is_enabled=is_enabled,
+                           send_independent_of_time=send_independent_of_time,
+                           needs_acknowledge_register_peer=self._needs_acknowledge_register_peer,
+                           needs_register_peer_complete=self._needs_register_peer_complete,
+                           received_acknowledge_register_peer=self._received_acknowledge_register_peer,
+                           received_register_peer_complete=self._received_register_peer_complete,
+                           received_synchronize_connection=self._received_synchronize_connection,
+                           received_acknowledge_connection=self._received_acknowledge_connection)
         return result
 
     def _send_independent_of_time(self):
         received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
                                               or self._received_acknowledge_register_peer)
-        send_independent_of_time = self._received_acknowledge_connection and received_acknowledge_register_peer
+        received_register_peer_complete = (not self._needs_register_peer_complete
+                                           or self._received_register_peer_complete)
+        send_independent_of_time = (self._received_acknowledge_connection
+                                    and received_acknowledge_register_peer
+                                    and received_register_peer_complete)
         return send_independent_of_time
 
     def _is_enabled(self):
         received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
                                               or self._received_acknowledge_register_peer)
-        is_enabled = self._received_synchronize_connection and received_acknowledge_register_peer
+        is_enabled = (self._received_synchronize_connection
+                      and received_acknowledge_register_peer)
         return is_enabled
 
     def _send_peer_is_ready_to_frontend(self):
@@ -83,3 +110,22 @@ class PeerIsReadySender:
         message = PeerIsReadyToReceiveMessage(peer=self._peer)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
+
+
+class PeerIsReadySenderFactory:
+    def create(self,
+               out_control_socket: Socket,
+               peer: Peer,
+               my_connection_info: ConnectionInfo,
+               timer: Timer,
+               needs_acknowledge_register_peer: bool,
+               needs_register_peer_complete: bool) -> PeerIsReadySender:
+        peer_is_ready_sender = PeerIsReadySender(
+            out_control_socket=out_control_socket,
+            timer=timer,
+            peer=peer,
+            my_connection_info=my_connection_info,
+            needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+            needs_register_peer_complete=needs_register_peer_complete,
+        )
+        return peer_is_ready_sender

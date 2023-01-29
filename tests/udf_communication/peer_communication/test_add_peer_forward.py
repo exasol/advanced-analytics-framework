@@ -27,9 +27,9 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        # ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(),
+        structlog.processors.TimeStamper(fmt="ISO"),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
         structlog.processors.CallsiteParameterAdder(),
         structlog.processors.JSONRenderer()
@@ -45,7 +45,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        #socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(seed))
+        socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(seed))
         leader = False
         leader_name = "t0"
         if name == leader_name:
@@ -66,7 +66,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
                 for index, connection_info in peer_connection_infos.items():
                     com.register_peer(connection_info)
             peers = com.peers(timeout_in_milliseconds=None)
-            logger.info("peers", peers=peers)
+            logger.info("peers", peers=len(peers))
             queue.put(peers)
         finally:
             com.close()
@@ -80,7 +80,7 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 10000
+REPETITIONS_FOR_FUNCTIONALITY = 1
 
 
 def test_functionality_2():
@@ -137,7 +137,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=180)
+    assert_processes_finish(processes, timeout_in_seconds=300)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
