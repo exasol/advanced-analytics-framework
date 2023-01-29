@@ -38,8 +38,8 @@ class PeerCommunicator:
                  listen_ip: IPAddress,
                  group_identifier: str,
                  socket_factory: SocketFactory,
-                 leader: bool = False,
-                 forward: bool = False,
+                 is_leader: bool = False,
+                 forward_enabled: bool = False,
                  poll_timeout_in_ms: int = 500,
                  synchronize_timeout_in_ms: int = 1000,
                  abort_timeout_in_ms: int = 240000,
@@ -47,6 +47,8 @@ class PeerCommunicator:
                  send_socket_linger_time_in_ms: int = 100,
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
+        self._is_leader = is_leader
+        self._forward_enabled = forward_enabled
         self._socket_factory = socket_factory
         self._name = name
         self._logger = LOGGER.bind(
@@ -59,8 +61,8 @@ class PeerCommunicator:
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            leader=leader,
-            forward=forward,
+            leader=is_leader,
+            forward=forward_enabled,
             clock=clock,
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
@@ -130,6 +132,14 @@ class PeerCommunicator:
     @property
     def my_connection_info(self) -> ConnectionInfo:
         return self._my_connection_info
+
+    @property
+    def is_leader(self) -> bool:
+        return self._is_leader
+
+    @property
+    def forward_enabled(self) -> bool:
+        return self._forward_enabled
 
     def are_all_peers_connected(self) -> bool:
         self._handle_messages()
