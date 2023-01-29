@@ -23,7 +23,7 @@ class AbortTimeoutSender:
         self._out_control_socket = out_control_socket
         self._received_synchronize_connection = False
         self._received_acknowledge_connection = False
-        self._received_acknowledge_register_peer = True
+        self._received_acknowledge_register_peer = False
         self._finished = False
         self._logger = LOGGER.bind(
             peer=peer.dict(),
@@ -70,3 +70,20 @@ class AbortTimeoutSender:
     def received_acknowledge_register_peer(self):
         self._logger.info("received_acknowledge_register_peer")
         self._received_acknowledge_register_peer = True
+
+
+class AbortTimeoutSenderFactory:
+    def create(self,
+               my_connection_info: ConnectionInfo,
+               peer: Peer,
+               out_control_socket: Socket,
+               timer: Timer,
+               needs_acknowledge_register_peer: bool) -> AbortTimeoutSender:
+        abort_timeout_sender = AbortTimeoutSender(
+            out_control_socket=out_control_socket,
+            timer=timer,
+            my_connection_info=my_connection_info,
+            peer=peer,
+            needs_acknowledge_register_peer=needs_acknowledge_register_peer
+        )
+        return abort_timeout_sender

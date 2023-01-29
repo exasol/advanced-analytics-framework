@@ -17,3 +17,11 @@ class Timer:
         current_timestamp_in_ms = self._clock.current_timestamp_in_ms()
         diff = current_timestamp_in_ms - self._last_send_timestamp_in_ms
         return diff > self._timeout_in_ms
+
+
+class TimerFactory:
+
+    def create(self,
+               clock: Clock,
+               timeout_in_ms: int):
+        return Timer(clock=clock, timeout_in_ms=timeout_in_ms)

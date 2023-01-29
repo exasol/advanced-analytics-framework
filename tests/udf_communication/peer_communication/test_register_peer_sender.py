@@ -30,7 +30,7 @@ class TestSetup:
         self.timer_mock.reset_mock()
 
 
-def create_test_setup():
+def create_test_setup(needs_to_send_for_peer: bool):
     peer = Peer(
         connection_info=ConnectionInfo(
             name="t2",
@@ -51,6 +51,7 @@ def create_test_setup():
         my_connection_info=my_connection_info,
         register_peer_connection=register_peer_connection,
         timer=timer_mock,
+        needs_to_send_for_peer=needs_to_send_for_peer
     )
     return TestSetup(
         peer=peer,
@@ -60,68 +61,98 @@ def create_test_setup():
     )
 
 
-def test_init():
-    test_setup = create_test_setup()
+@pytest.mark.parametrize("needs_to_send_for_peer",
+                         [
+                             (True,),
+                             (False,),
+                         ])
+def test_init(needs_to_send_for_peer: bool):
+    test_setup = create_test_setup(needs_to_send_for_peer=needs_to_send_for_peer)
     assert (
             test_setup.register_peer_connection.mock_calls == []
             and test_setup.timer_mock.mock_calls == []
     )
 
 
-def test_try_send_after_init_and_is_time_false():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = False
+@pytest.mark.parametrize("needs_to_send_for_peer,is_time,send_expected",
+                         [
+                             (True, True, True),
+                             (True, False, False),
+                             (False, True, False),
+                             (False, False, False),
+
+                         ])
+def test_try_send_after_init(needs_to_send_for_peer: bool, is_time: bool, send_expected: bool):
+    test_setup = create_test_setup(needs_to_send_for_peer=needs_to_send_for_peer)
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
 
     test_setup.register_peer_sender.try_send()
 
-    assert (
-            test_setup.register_peer_connection.mock_calls == []
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time()
-            ]
-    )
+    if send_expected:
+        assert (
+                test_setup.register_peer_connection.mock_calls ==
+                [
+                    call.forward(test_setup.peer)
+                ]
+                and test_setup.timer_mock.mock_calls == [
+                    call.is_time(),
+                    call.reset_timer()
+                ]
+        )
+    else:
+        assert (
+                test_setup.register_peer_connection.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [
+                    call.is_time()
+                ]
+        )
 
 
-def test_try_send_after_init_and_is_time_true():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = True
+@pytest.mark.parametrize("needs_to_send_for_peer,is_time,send_expected",
+                         [
+                             (True, True, True),
+                             (True, False, False),
+                             (False, True, False),
+                             (False, False, False),
+                         ])
+def test_try_send_after_init_twice(needs_to_send_for_peer: bool, is_time: bool, send_expected: bool):
+    test_setup = create_test_setup(needs_to_send_for_peer=needs_to_send_for_peer)
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.register_peer_sender.try_send()
     test_setup.reset_mock()
 
     test_setup.register_peer_sender.try_send()
-    assert (
-            test_setup.register_peer_connection.mock_calls ==
-            [
-                call.forward(test_setup.peer)
-            ]
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time(),
-                call.reset_timer()
-            ]
-    )
-
-def test_try_send_after_init_twice_and_is_time_true():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.register_peer_sender.try_send()
-    test_setup.reset_mock()
-
-    test_setup.register_peer_sender.try_send()
-    assert (
-            test_setup.register_peer_connection.mock_calls ==
-            [
-                call.forward(test_setup.peer)
-            ]
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time(),
-                call.reset_timer()
-            ]
-    )
+    if send_expected:
+        assert (
+                test_setup.register_peer_connection.mock_calls ==
+                [
+                    call.forward(test_setup.peer)
+                ]
+                and test_setup.timer_mock.mock_calls == [
+                    call.is_time(),
+                    call.reset_timer()
+                ]
+        )
+    else:
+        assert (
+                test_setup.register_peer_connection.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [
+                    call.is_time()
+                ]
+        )
 
 
-@pytest.mark.parametrize("is_time", [True, False])
-def test_try_send_after_stop_and_is_time_false(is_time: bool):
-    test_setup = create_test_setup()
+@pytest.mark.parametrize("needs_to_send_for_peer,is_time",
+                         [
+                             (True, True),
+                             (True, False),
+                             (False, True),
+                             (False, False),
+                         ])
+
+def test_try_send_after_stop(needs_to_send_for_peer: bool, is_time: bool):
+    test_setup = create_test_setup(needs_to_send_for_peer=needs_to_send_for_peer)
     test_setup.register_peer_sender.stop()
     mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
