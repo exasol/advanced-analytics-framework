@@ -38,22 +38,23 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
-    global_discovery_socket = multi_node.DiscoverySocket(ip_address=listen_ip, port=Port(port=44444))
+    discovery_port = Port(port=44444)
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    leader = False
+    global_discovery_socket_factory = GlobalDiscoverySocketFactory()
+    is_leader = False
     leader_name = "t0"
     if name == leader_name:
-        leader = True
-    peer_communicator = PeerCommunicator(
-        name=name,
-        number_of_peers=number_of_instances,
-        listen_ip=listen_ip,
+        is_leader = True
+    peer_communicator = create_global_peer_communicator(
         group_identifier=group_identifier,
-        is_leader=leader,
-        forward_enabled=True,
-        socket_factory=socket_factory
-    )
+        name=name,
+        number_of_instances=number_of_instances,
+        is_leader=is_leader,
+        listen_ip=listen_ip,
+        discovery_port=discovery_port,
+        socket_factory=socket_factory,
+        global_discovery_socket_factory=global_discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
     discovery = multi_node.DiscoveryStrategy(
         discovery_timeout_in_seconds=120,
@@ -120,6 +121,7 @@ def run_test(group: str, number_of_instances: int):
                                     for i in range(number_of_instances)]
     for i in range(number_of_instances):
         processes[i].start()
+    for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}

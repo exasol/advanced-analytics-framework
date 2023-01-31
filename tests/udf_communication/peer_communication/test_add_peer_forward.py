@@ -54,8 +54,8 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
             number_of_peers=number_of_instances,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            is_leader=leader,
-            forward_enabled=True,
+            is_forward_register_peer_leader=leader,
+            is_forward_register_peer_enabled=True,
             socket_factory=socket_factory
         )
         try:
