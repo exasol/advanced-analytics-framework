@@ -2,7 +2,8 @@ import socket
 import time
 from typing import cast, Optional
 
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
+from exasol_advanced_analytics_framework.udf_communication.ip_address import Port
+from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.messages import PingMessage
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
@@ -18,16 +19,15 @@ def _convert_to_ping_message(serialized_message: bytes) -> PingMessage:
 class LocalDiscoveryStrategy:
 
     def __init__(self,
-                 discovery_timeout_in_seconds: int,
+                 port: Port,
+                 timeout_in_seconds: int,
                  time_between_ping_messages_in_seconds: float,
                  peer_communicator: PeerCommunicator,
-                 local_discovery_socket: LocalDiscoverySocket
-                 ):
-        self._time_between_ping_messages_in_seconds = float(time_between_ping_messages_in_seconds)
-        self._local_discovery_socket = local_discovery_socket
+                 local_discovery_socket_factory: LocalDiscoverySocketFactory):
         self._peer_communicator = peer_communicator
-        self._discovery_timeout_in_ns = discovery_timeout_in_seconds * NANOSECONDS_PER_SECOND
-        self._discover_peers()
+        self._time_between_ping_messages_in_seconds = float(time_between_ping_messages_in_seconds)
+        self._local_discovery_socket = local_discovery_socket_factory.create(port=port)
+        self._timeout_in_ns = timeout_in_seconds * NANOSECONDS_PER_SECOND
 
     def _has_discovery_timed_out(self, begin_time_ns: int) -> bool:
         time_left_until_timeout = self._time_left_until_discovery_timeout_in_ns(begin_time_ns)
@@ -36,10 +36,10 @@ class LocalDiscoveryStrategy:
     def _time_left_until_discovery_timeout_in_ns(self, begin_time_ns: int) -> int:
         current_time_ns = time.monotonic_ns()
         time_difference_ns = current_time_ns - begin_time_ns
-        time_left_until_timeout = self._discovery_timeout_in_ns - time_difference_ns
+        time_left_until_timeout = self._timeout_in_ns - time_difference_ns
         return max(0, time_left_until_timeout)
 
-    def _discover_peers(self):
+    def discover_peers(self):
         self._send_ping()
         begin_time_ns = time.monotonic_ns()
         while not self._should_discovery_end(begin_time_ns):
@@ -55,7 +55,7 @@ class LocalDiscoveryStrategy:
         while True:
             serialized_message = self._receive_message(timeout_in_seconds)
             if serialized_message is not None:
-                timeout_in_seconds = self.handle_serialized_message(serialized_message)
+                timeout_in_seconds = self._handle_serialized_message(serialized_message)
                 if self._peer_communicator.are_all_peers_connected():
                     break
             else:
@@ -68,7 +68,7 @@ class LocalDiscoveryStrategy:
                                  self._time_between_ping_messages_in_seconds)
         return timeout_in_seconds
 
-    def handle_serialized_message(self, serialized_message) -> float:
+    def _handle_serialized_message(self, serialized_message) -> float:
         ping_message = _convert_to_ping_message(serialized_message)
         timeout_in_seconds = 0.0
         if ping_message is not None:

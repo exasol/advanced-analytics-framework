@@ -10,20 +10,13 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocket, \
-    GlobalDiscoverySocketFactory
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_strategy import GlobalDiscoveryStrategy
+from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.global_peer_communicator import \
     create_global_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_strategy import LocalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
-from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -59,6 +52,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         number_of_instances=number_of_instances,
         is_leader=is_leader,
         listen_ip=listen_ip,
+        discovery_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
         global_discovery_socket_factory=global_discovery_socket_factory)

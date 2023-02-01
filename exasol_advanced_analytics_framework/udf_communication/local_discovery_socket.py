@@ -37,3 +37,8 @@ class LocalDiscoverySocket:
 
     def __del__(self):
         self.close()
+
+
+class LocalDiscoverySocketFactory:
+    def create(self, port: Port) -> LocalDiscoverySocket:
+        return LocalDiscoverySocket(port=port)
