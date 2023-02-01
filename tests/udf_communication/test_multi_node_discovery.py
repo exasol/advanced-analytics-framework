@@ -11,6 +11,8 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.discovery import multi_node
+from exasol_advanced_analytics_framework.udf_communication.global_peer_communicator import \
+    create_global_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
@@ -52,16 +54,11 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         number_of_instances=number_of_instances,
         is_leader=is_leader,
         listen_ip=listen_ip,
+        discovery_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
         global_discovery_socket_factory=global_discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
-    discovery = multi_node.DiscoveryStrategy(
-        discovery_timeout_in_seconds=120,
-        time_between_ping_messages_in_seconds=1,
-        discovery_socket=global_discovery_socket,
-        peer_communicator=peer_communicator
-    )
     if peer_communicator.are_all_peers_connected():
         peers = peer_communicator.peers()
         queue.put(peers)
