@@ -77,7 +77,7 @@ class PeerCommunicator:
             trace_logging=trace_logging
         )
         self._my_connection_info = self._background_listener.my_connection_info
-        self._logger = self._logger.bind(my_connection_info=self._my_connection_info)
+        self._logger = self._logger.bind(my_connection_info=self._my_connection_info.dict())
         self._logger.info("my_connection_info")
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
@@ -121,7 +121,8 @@ class PeerCommunicator:
     def peers(self, timeout_in_milliseconds: Optional[int] = None) -> Optional[List[Peer]]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
-            peers = [peer for peer in self._peer_states.keys()]
+            peers = [peer for peer in self._peer_states.keys()] + \
+                    [Peer(connection_info=self._my_connection_info)]
             return sorted(peers, key=key_for_peer)
         else:
             return None

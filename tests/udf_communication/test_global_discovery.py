@@ -17,7 +17,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import Por
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+    PeerCommunicatorTestProcessParameter
 
 structlog.configure(
     context_class=dict,
@@ -36,21 +37,21 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
+def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
     discovery_port = Port(port=44444)
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
     global_discovery_socket_factory = GlobalDiscoverySocketFactory()
     is_leader = False
-    leader_name = "t0"
-    if name == leader_name:
+    leader_name = "i0"
+    if parameter.instance_name == leader_name:
         is_leader = True
     peer_communicator = create_global_peer_communicator(
-        group_identifier=group_identifier,
-        name=name,
-        number_of_instances=number_of_instances,
-        is_leader=is_leader,
+        group_identifier=parameter.group_identifier,
+        name=parameter.instance_name,
+        number_of_instances=parameter.number_of_instances,
+        is_discovery_leader=is_leader,
         listen_ip=listen_ip,
         discovery_ip=listen_ip,
         discovery_port=discovery_port,
@@ -116,8 +117,14 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 def run_test(group: str, number_of_instances: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
-    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
-                                    for i in range(number_of_instances)]
+    parameters = [
+        PeerCommunicatorTestProcessParameter(
+            instance_name=f"i{i}", group_identifier=group,
+            number_of_instances=number_of_instances,
+            seed=0)
+        for i in range(number_of_instances)]
+    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
+        [TestProcess(parameter, run=run) for parameter in parameters]
     for i in range(number_of_instances):
         processes[i].start()
     for i in range(number_of_instances):
@@ -130,7 +137,6 @@ def run_test(group: str, number_of_instances: int):
         i: sorted([
             Peer(connection_info=connection_info)
             for index, connection_info in connection_infos.items()
-            if index != i
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }
