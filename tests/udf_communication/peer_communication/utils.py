@@ -1,11 +1,15 @@
+import json
 import multiprocessing
 import time
+from abc import ABC
 from multiprocessing import Process
 from queue import Queue
-from typing import Any, Callable, List
+from typing import Any, Callable, List, TypeVar, Generic
 
 import structlog
 from structlog.typing import FilteringBoundLogger
+
+from exasol_advanced_analytics_framework.udf_communication.ip_address import Port
 
 NANOSECONDS_PER_SECOND = 10 ** 9
 
@@ -25,16 +29,52 @@ class BidirectionalQueue:
         return self._get_queue.get()
 
 
-class TestProcess:
-    def __init__(self, name: str, group: str, number_of_instances: int,
-                 run: Callable[[str, str, int, BidirectionalQueue, int], None],
-                 seed: int = 0):
-        self.name = name
+class TestProcessParameter(ABC):
+    def __init__(self, seed: int):
+        self.seed = seed
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
+
+class PeerCommunicatorTestProcessParameter(TestProcessParameter):
+    def __init__(self, instance_name: str, group_identifier: str, number_of_instances: int, seed: int):
+        super().__init__(seed)
+        self.number_of_instances = number_of_instances
+        self.group_identifier = group_identifier
+        self.instance_name = instance_name
+
+
+class CommunicatorTestProcessParameter(TestProcessParameter):
+    def __init__(self,
+                 node_name: str,
+                 instance_name: str,
+                 group_identifier: str,
+                 number_of_nodes: int,
+                 number_of_instances_per_node: int,
+                 local_discovery_port: Port,
+                 seed: int):
+        super().__init__(seed)
+        self.local_discovery_port = local_discovery_port
+        self.number_of_instances_per_node = number_of_instances_per_node
+        self.number_of_nodes = number_of_nodes
+        self.node_name = node_name
+        self.group_identifier = group_identifier
+        self.instance_name = instance_name
+
+
+T = TypeVar('T')
+
+
+class TestProcess(Generic[T]):
+    def __init__(self, parameter: T,
+                 run: Callable[[T, BidirectionalQueue], None]):
+        self.parameter = parameter
         put_queue = multiprocessing.Queue()
         get_queue = multiprocessing.Queue()
         self._main_thread_queue = BidirectionalQueue(put_queue=get_queue, get_queue=put_queue)
         thread_queue = BidirectionalQueue(put_queue=put_queue, get_queue=get_queue)
-        self._process = Process(target=run, args=(name, group, number_of_instances, thread_queue, seed))
+        self._process = Process(target=run, args=(self.parameter, thread_queue))
 
     def start(self):
         self._process.start()
@@ -70,7 +110,7 @@ def assert_processes_finish(processes: List[TestProcess], timeout_in_seconds: in
         if difference_ns > timeout_in_ns:
             break
         time.sleep(0.01)
-    alive_processes_before_kill = [process.name for process in get_alive_processes(processes)]
+    alive_processes_before_kill = [process.parameter for process in get_alive_processes(processes)]
     kill_alive_processes(processes)
     if len(get_alive_processes(processes)) > 0:
         time.sleep(2)

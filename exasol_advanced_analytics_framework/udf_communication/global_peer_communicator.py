@@ -7,7 +7,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 def create_global_peer_communicator(
         name: str,
         group_identifier: str,
-        is_leader: bool,
+        is_discovery_leader: bool,
         number_of_instances: int,
         listen_ip: IPAddress,
         discovery_ip: IPAddress,
@@ -19,7 +19,7 @@ def create_global_peer_communicator(
         number_of_peers=number_of_instances,
         listen_ip=listen_ip,
         group_identifier=group_identifier,
-        is_forward_register_peer_leader=is_leader,
+        is_forward_register_peer_leader=is_discovery_leader,
         is_forward_register_peer_enabled=True,
         socket_factory=socket_factory
     )

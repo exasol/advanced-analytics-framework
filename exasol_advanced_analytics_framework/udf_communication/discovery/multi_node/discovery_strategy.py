@@ -51,6 +51,8 @@ class DiscoveryStrategy:
             if self._peer_communicator.is_forward_register_peer_leader:
                 self._receive_pings(begin_time_ns)
             self._send_ping()
+        if not self._peer_communicator.are_all_peers_connected():
+            raise TimeoutError()
 
     def _should_discovery_end(self, begin_time_ns: int) -> bool:
         are_all_peers_connected = self._peer_communicator.are_all_peers_connected()

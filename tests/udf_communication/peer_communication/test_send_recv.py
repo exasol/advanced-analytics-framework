@@ -11,10 +11,12 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
+from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+    PeerCommunicatorTestProcessParameter
 
 structlog.configure(
     context_class=dict,
@@ -33,28 +35,30 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
+def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
     context = zmq.Context()
     socker_factory = ZMQSocketFactory(context)
     com = PeerCommunicator(
-        name=name,
-        number_of_peers=number_of_instances,
+        name=parameter.instance_name,
+        number_of_peers=parameter.number_of_instances,
         listen_ip=listen_ip,
-        group_identifier=group_identifier,
+        group_identifier=parameter.group_identifier,
         socket_factory=socker_factory)
     queue.put(com.my_connection_info)
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():
         com.register_peer(connection_infos)
     com.wait_for_peers()
-    LOGGER.info("Peer is ready", name=name)
+    LOGGER.info("Peer is ready", name=parameter.instance_name)
     for peer in com.peers():
-        com.send(peer, [socker_factory.create_frame(name.encode("utf8"))])
+        if peer != Peer(connection_info=com.my_connection_info):
+            com.send(peer, [socker_factory.create_frame(parameter.instance_name.encode("utf8"))])
     received_values: Set[str] = set()
     for peer in com.peers():
-        value = com.recv(peer)
-        received_values.add(value[0].to_bytes().decode("utf8"))
+        if peer != Peer(connection_info=com.my_connection_info):
+            value = com.recv(peer)
+            received_values.add(value[0].to_bytes().decode("utf8"))
     queue.put(received_values)
 
 
@@ -98,10 +102,17 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 def run_test(group: str, number_of_instances: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
-    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
-                                    for i in range(number_of_instances)]
+    parameters = [
+        PeerCommunicatorTestProcessParameter(
+            instance_name=f"i{i}", group_identifier=group,
+            number_of_instances=number_of_instances,
+            seed=0)
+        for i in range(number_of_instances)]
+    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
+        [TestProcess(parameter, run=run) for parameter in parameters]
     for i in range(number_of_instances):
         processes[i].start()
+    for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
@@ -111,7 +122,7 @@ def run_test(group: str, number_of_instances: int):
         received_values[i] = processes[i].get()
     expected_received_values = {
         i: {
-            thread.name
+            thread.parameter.instance_name
             for index, thread in enumerate(processes)
             if index != i
         }
