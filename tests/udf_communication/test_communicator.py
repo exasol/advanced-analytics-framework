@@ -71,6 +71,10 @@ def test_functionality_2_2():
     run_test_with_repetitions(2, 2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+def test_functionality_3_3():
+    run_test_with_repetitions(3, 3, REPETITIONS_FOR_FUNCTIONALITY)
+
+
 def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
     for i in range(repetitions):
         group = f"{time.monotonic_ns()}"

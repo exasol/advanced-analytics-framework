@@ -139,7 +139,7 @@ def test_received_register_peer_complete():
     test_setup.reset_mock()
     test_setup.background_peer_state.received_register_peer_complete()
     assert (
-            test_setup.connection_establisher_mock.mock_calls == [call.test_received_register_peer_complete()]
+            test_setup.connection_establisher_mock.mock_calls == [call.received_register_peer_complete()]
             and test_setup.sender_mock.mock_calls == []
             and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
             and test_setup.receive_socket_mock.mock_calls == []

@@ -14,10 +14,10 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config import \
-    ConnectionEstablisherTimeoutConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
     import SocketFactory, Frame
 
@@ -43,15 +43,10 @@ class PeerCommunicator:
                  listen_ip: IPAddress,
                  group_identifier: str,
                  socket_factory: SocketFactory,
-                 connection_establisher_timeout_config: ConnectionEstablisherTimeoutConfig =
-                 ConnectionEstablisherTimeoutConfig(),
-                 forward_register_peer_config: ForwardRegisterPeerConfig = ForwardRegisterPeerConfig(),
-                 poll_timeout_in_ms: int = 200,
-                 send_socket_linger_time_in_ms: int = 100,
+                 config: PeerCommunicatorConfig = PeerCommunicatorConfig(),
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
-        self._connection_establisher_settings = connection_establisher_timeout_config
-        self._forward_register_peer_config = forward_register_peer_config
+        self._config = config
         self._socket_factory = socket_factory
         self._name = name
         self._group_identifier = group_identifier
@@ -59,8 +54,8 @@ class PeerCommunicator:
         self._logger = LOGGER.bind(
             name=self._name,
             group_identifier=self._group_identifier,
-            forward_register_peer_config=asdict(forward_register_peer_config),
             number_of_peers=self._number_of_peers,
+            config=asdict(config)
         )
         self._logger.info("init")
         self._background_listener = BackgroundListenerInterface(
@@ -68,12 +63,9 @@ class PeerCommunicator:
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
             group_identifier=self._group_identifier,
-            forward_register_peer_config=forward_register_peer_config,
+            config=config,
             clock=clock,
-            poll_timeout_in_ms=poll_timeout_in_ms,
-            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
             trace_logging=trace_logging,
-            connection_establisher_timeout_config=connection_establisher_timeout_config
         )
         self._my_connection_info = self._background_listener.my_connection_info
         self._logger = self._logger.bind(my_connection_info=self._my_connection_info.dict())
@@ -143,7 +135,7 @@ class PeerCommunicator:
 
     @property
     def forward_register_peer_config(self) -> ForwardRegisterPeerConfig:
-        return self._forward_register_peer_config
+        return self._config.forward_register_peer_config
 
     def are_all_peers_connected(self) -> bool:
         self._handle_messages()
