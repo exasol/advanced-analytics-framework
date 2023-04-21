@@ -15,6 +15,8 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
     FISocketFactory
@@ -56,8 +58,10 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            is_forward_register_peer_leader=leader,
-            is_forward_register_peer_enabled=True,
+            forward_register_peer_config=ForwardRegisterPeerConfig(
+                is_leader=leader,
+                is_enabled=True
+            ),
             socket_factory=socket_factory
         )
         try:
@@ -81,7 +85,7 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 1
+REPETITIONS_FOR_FUNCTIONALITY = 3
 
 
 def test_functionality_2():

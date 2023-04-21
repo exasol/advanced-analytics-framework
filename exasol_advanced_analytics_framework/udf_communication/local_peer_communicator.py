@@ -3,6 +3,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.local_discovery_strategy import LocalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
 
 
@@ -19,8 +21,10 @@ def create_local_peer_communicator(
         number_of_peers=number_of_instances,
         listen_ip=listen_ip,
         group_identifier=group_identifier,
-        is_forward_register_peer_leader=False,
-        is_forward_register_peer_enabled=False,
+        forward_register_peer_config=ForwardRegisterPeerConfig(
+            is_leader=False,
+            is_enabled=False
+        ),
         socket_factory=socket_factory
     )
     discovery = LocalDiscoveryStrategy(

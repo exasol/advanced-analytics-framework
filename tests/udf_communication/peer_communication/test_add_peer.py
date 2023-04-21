@@ -16,6 +16,8 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
     FISocketFactory
@@ -53,7 +55,12 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            socket_factory=socket_factory)
+            socket_factory=socket_factory,
+            forward_register_peer_config=ForwardRegisterPeerConfig(
+                is_leader=False,
+                is_enabled=False
+            )
+        )
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()

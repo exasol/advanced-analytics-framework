@@ -13,6 +13,8 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
@@ -44,7 +46,12 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         number_of_peers=parameter.number_of_instances,
         listen_ip=listen_ip,
         group_identifier=parameter.group_identifier,
-        socket_factory=socker_factory)
+        socket_factory=socker_factory,
+        forward_register_peer_config=ForwardRegisterPeerConfig(
+            is_leader=False,
+            is_enabled=False
+        ),
+    )
     queue.put(com.my_connection_info)
     peer_connection_infos = queue.get()
     for index, connection_infos in peer_connection_infos.items():

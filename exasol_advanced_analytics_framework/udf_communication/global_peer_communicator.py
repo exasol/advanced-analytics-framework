@@ -1,9 +1,15 @@
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.global_discovery_strategy import GlobalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
 
+LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 def create_global_peer_communicator(
         name: str,
@@ -20,8 +26,10 @@ def create_global_peer_communicator(
         number_of_peers=number_of_instances,
         listen_ip=listen_ip,
         group_identifier=group_identifier,
-        is_forward_register_peer_leader=is_discovery_leader,
-        is_forward_register_peer_enabled=True,
+        forward_register_peer_config=ForwardRegisterPeerConfig(
+            is_leader=is_discovery_leader,
+            is_enabled=True
+        ),
         socket_factory=socket_factory
     )
     discovery = GlobalDiscoveryStrategy(
@@ -32,5 +40,7 @@ def create_global_peer_communicator(
         peer_communicator=peer_communicator,
         global_discovery_socket_factory=global_discovery_socket_factory,
     )
+    LOGGER.info("before discover_peers")
     discovery.discover_peers()
+    LOGGER.info("after discover_peers")
     return peer_communicator

@@ -1,5 +1,4 @@
 import threading
-import traceback
 from typing import Optional, Iterator
 
 import structlog
@@ -12,10 +11,14 @@ from exasol_advanced_analytics_framework.udf_communication.messages import Messa
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
     BackgroundListenerThread
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config import \
+    ConnectionEstablisherTimeoutConfig
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
-    SocketType, Socket, PollerFlag
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
+    import SocketFactory, SocketType, Socket, PollerFlag
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -27,14 +30,11 @@ class BackgroundListenerInterface:
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
-                 is_forward_register_peer_leader: bool,
-                 is_forward_register_peer_enabled: bool,
+                 forward_register_peer_config: ForwardRegisterPeerConfig,
                  clock: Clock,
                  poll_timeout_in_ms: int,
-                 synchronize_timeout_in_ms: int,
-                 abort_timeout_in_ms: int,
-                 peer_is_ready_wait_time_in_ms: int,
-                 send_socket_linger_time_in_ms:int,
+                 send_socket_linger_time_in_ms: int,
+                 connection_establisher_timeout_config: ConnectionEstablisherTimeoutConfig,
                  trace_logging: bool):
 
         self._name = name
@@ -52,15 +52,12 @@ class BackgroundListenerInterface:
             group_identifier=group_identifier,
             out_control_socket_address=out_control_socket_address,
             in_control_socket_address=in_control_socket_address,
-            is_forward_register_peer_leader=is_forward_register_peer_leader,
-            is_forward_register_peer_enabled=is_forward_register_peer_enabled,
+            forward_register_peer_config=forward_register_peer_config,
             clock=clock,
             poll_timeout_in_ms=poll_timeout_in_ms,
-            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
-            abort_timeout_in_ms=abort_timeout_in_ms,
-            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
             send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
-            trace_logging=trace_logging
+            trace_logging=trace_logging,
+            connection_establisher_timeout_config=connection_establisher_timeout_config
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
