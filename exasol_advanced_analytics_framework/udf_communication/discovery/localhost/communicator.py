@@ -3,6 +3,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 
@@ -22,9 +24,11 @@ class CommunicatorFactory:
             number_of_peers=number_of_instances,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            forward_register_peer_config=ForwardRegisterPeerConfig(
-                is_leader=False,
-                is_enabled=False,
+            config=PeerCommunicatorConfig(
+                forward_register_peer_config=ForwardRegisterPeerConfig(
+                    is_leader=False,
+                    is_enabled=False,
+                )
             ),
             socket_factory=socket_factory
         )

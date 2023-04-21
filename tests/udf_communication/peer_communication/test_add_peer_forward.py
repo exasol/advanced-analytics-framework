@@ -20,6 +20,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.for
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import \
     FaultInjectionSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
@@ -58,9 +60,11 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            forward_register_peer_config=ForwardRegisterPeerConfig(
-                is_leader=leader,
-                is_enabled=True
+            config=PeerCommunicatorConfig(
+                forward_register_peer_config=ForwardRegisterPeerConfig(
+                    is_leader=leader,
+                    is_enabled=True
+                ),
             ),
             socket_factory=socket_factory
         )
