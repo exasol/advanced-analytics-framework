@@ -12,8 +12,8 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
-from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
+from tests.integration_tests.without_db.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
     CommunicatorTestProcessParameter
 
 structlog.configure(
