@@ -7,9 +7,9 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
+from exasol_advanced_analytics_framework.udf_communication.messages import Message, CloseMessage, RegisterPeerMessage, \
     PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage, \
-    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage
+    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage, PrepareToCloseMessage, IsReadyToCloseMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSenderFactory
@@ -73,10 +73,12 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
 class BackgroundListenerThread:
     class Status(enum.Enum):
         RUNNING = enum.auto()
-        STOPPED = enum.auto()
+        PREPARE_TO_CLOSED = enum.auto()
+        CLOSED = enum.auto()
 
     def __init__(self,
                  name: str,
+                 number_of_peers: int,
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
@@ -86,6 +88,7 @@ class BackgroundListenerThread:
                  config: PeerCommunicatorConfig,
                  trace_logging: bool,
                  background_peer_state_factory: BackgroundPeerStateBuilder = create_background_peer_state_builder()):
+        self._number_of_peers = number_of_peers
         self._config = config
         self._background_peer_state_factory = background_peer_state_factory
         self._register_peer_connection: Optional[RegisterPeerConnection] = None
@@ -148,37 +151,46 @@ class BackgroundListenerThread:
 
     def _run_message_loop(self):
         try:
-            while self._status == BackgroundListenerThread.Status.RUNNING:
-                poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
-                if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-                    message = self._in_control_socket.receive()
-                    self._status = self._handle_control_message(message)
-                if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
-                    message = self._listener_socket.receive_multipart()
-                    self._handle_listener_message(message)
-                if self._status == BackgroundListenerThread.Status.RUNNING:
-                    for peer_state in self._peer_state.values():
-                        peer_state.resend_if_necessary()
-            self.consume_remaining_messages()
+            while self._status != BackgroundListenerThread.Status.CLOSED:
+                self._handle_message()
+                self._try_send()
+                self._check_is_ready_to_close()
         except Exception as e:
             self._logger.exception("Exception in message loop")
 
-    def consume_remaining_messages(self):
-        while True:
-            poll = self.poller.poll(timeout_in_ms=0)
-            if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-                _ = self._in_control_socket.receive()
-            if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
-                _ = self._listener_socket.receive_multipart()
-            if len(poll) == 0:
-                break
+    def _check_is_ready_to_close(self):
+        if self._status == BackgroundListenerThread.Status.PREPARE_TO_CLOSED:
+            if self._is_ready_to_close():
+                self._out_control_socket.send(serialize_message(IsReadyToCloseMessage()))
+
+    def _is_ready_to_close(self):
+        peers_status = [peer_state.is_ready_to_close()
+                        for peer_state in self._peer_state.values()]
+        is_ready_to_close = all(peers_status) and len(peers_status) == self._number_of_peers - 1
+        return is_ready_to_close
+
+    def _try_send(self):
+        if self._status != BackgroundListenerThread.Status.CLOSED:
+            for peer_state in self._peer_state.values():
+                peer_state.try_send()
+
+    def _handle_message(self):
+        poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
+        if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
+            message = self._in_control_socket.receive()
+            self._status = self._handle_control_message(message)
+        if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
+            message = self._listener_socket.receive_multipart()
+            self._handle_listener_message(message)
 
     def _handle_control_message(self, message: bytes) -> Status:
         try:
             message_obj: Message = deserialize_message(message, Message)
             specific_message_obj = message_obj.__root__
-            if isinstance(specific_message_obj, StopMessage):
-                return BackgroundListenerThread.Status.STOPPED
+            if isinstance(specific_message_obj, CloseMessage):
+                return BackgroundListenerThread.Status.CLOSED
+            elif isinstance(specific_message_obj, PrepareToCloseMessage):
+                return BackgroundListenerThread.Status.PREPARE_TO_CLOSED
             elif isinstance(specific_message_obj, RegisterPeerMessage):
                 if self._is_register_peer_message_allowed_as_control_message():
                     self._handle_register_peer_message(specific_message_obj)
@@ -280,13 +292,13 @@ class BackgroundListenerThread:
                 self._create_register_peer_connection(message)
                 self._add_peer(message.peer,
                                connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
-                                   acknowledge_register_peer=True,
+                                   acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
                                    needs_register_peer_complete=True))
             else:
                 self._add_peer(message.peer,
                                connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
                                    forward_register_peer=True,
-                                   acknowledge_register_peer=True,
+                                   acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
                                    needs_register_peer_complete=True))
         else:
             self._add_peer(message.peer)

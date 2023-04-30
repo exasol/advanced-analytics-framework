@@ -21,8 +21,8 @@ class RegisterPeerSender():
                  timer: Timer):
         self._needs_to_send_for_peer = needs_to_send_for_peer
         self._register_peer_connection = register_peer_connection
-        if self._needs_to_send_for_peer and self._register_peer_connection is None:
-            raise ValueError("_register_peer_connection is None while _needs_to_send_for_peer is true")
+        if needs_to_send_for_peer and self._register_peer_connection is None:
+            raise ValueError("_register_peer_connection is None while needs_to_send_for_peer is true")
         self._my_connection_info = my_connection_info
         self._timer = timer
         self._finished = False
@@ -55,6 +55,9 @@ class RegisterPeerSender():
         is_time = self._timer.is_time()
         result = is_time and not self._finished
         return result
+
+    def is_ready_to_close(self):
+        return (self._finished and self._needs_to_send_for_peer) or not self._needs_to_send_for_peer
 
 
 class RegisterPeerSenderFactory():

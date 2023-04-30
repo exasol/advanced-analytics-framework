@@ -41,7 +41,7 @@ class BackgroundPeerState:
         receive_socket_address = get_peer_receive_socket_name(self._peer)
         self._receive_socket.bind(receive_socket_address)
 
-    def resend_if_necessary(self):
+    def try_send(self):
         self._logger.debug("resend_if_necessary")
         self._connection_establisher.try_send()
 
@@ -62,3 +62,6 @@ class BackgroundPeerState:
 
     def close(self):
         self._receive_socket.close(linger=0)
+
+    def is_ready_to_close(self):
+        return self._connection_establisher.is_ready_to_close()

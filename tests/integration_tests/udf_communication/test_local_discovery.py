@@ -16,9 +16,10 @@ from exasol_advanced_analytics_framework.udf_communication.local_peer_communicat
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
-from tests.integration_tests.udf_communication.peer_communicator.conditional_method_dropper import ConditionalMethodDropper
-from tests.integration_tests.udf_communication.peer_communicator import TestProcess, BidirectionalQueue, assert_processes_finish, \
-    PeerCommunicatorTestProcessParameter
+from tests.integration_tests.udf_communication.peer_communicator.conditional_method_dropper import \
+    ConditionalMethodDropper
+from tests.integration_tests.udf_communication.peer_communicator.utils import PeerCommunicatorTestProcessParameter, \
+    TestProcess, assert_processes_finish, BidirectionalQueue
 
 structlog.configure(
     context_class=dict,

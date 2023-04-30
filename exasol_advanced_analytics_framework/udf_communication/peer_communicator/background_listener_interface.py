@@ -7,8 +7,8 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    MyConnectionInfoMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import Message, CloseMessage, RegisterPeerMessage, \
+    MyConnectionInfoMessage, PrepareToCloseMessage, IsReadyToCloseMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
     BackgroundListenerThread
@@ -26,6 +26,7 @@ class BackgroundListenerInterface:
 
     def __init__(self,
                  name: str,
+                 number_of_peers: int,
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
@@ -43,8 +44,10 @@ class BackgroundListenerInterface:
         out_control_socket_address = self._create_out_control_socket(socket_factory)
         in_control_socket_address = self._create_in_control_socket(socket_factory)
         self._my_connection_info: Optional[ConnectionInfo] = None
+        self._is_ready_to_close = False
         self._background_listener_run = BackgroundListenerThread(
             name=self._name,
+            number_of_peers=number_of_peers,
             socket_factory=socket_factory,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
@@ -96,23 +99,40 @@ class BackgroundListenerInterface:
                 timeout_in_ms=timeout_in_milliseconds):
             message = None
             try:
+                timeout_in_milliseconds = 0
                 message = self._out_control_socket.receive()
                 message_obj: Message = deserialize_message(message, Message)
-                specific_message_obj = message_obj.__root__
-                timeout_in_milliseconds = 0
-                yield specific_message_obj
+                yield from self._handle_message(message_obj)
             except Exception as e:
                 self._logger.exception("Exception", raw_message=message)
 
+    def _handle_message(self, message_obj: Message) -> Message:
+        specific_message_obj = message_obj.__root__
+        if isinstance(specific_message_obj, IsReadyToCloseMessage):
+            self._is_ready_to_close = True
+        else:
+            yield message_obj
+
+    def is_ready_to_close(self):
+        return self._is_ready_to_close
+
     def close(self):
         self._logger.info("start")
-        self._send_stop()
+        self._send_close()
         self._thread.join()
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
         self._logger.info("end")
 
-    def _send_stop(self):
-        self._logger.info("_send_stop")
-        stop_message = StopMessage()
-        self._in_control_socket.send(serialize_message(stop_message))
+    def _send_close(self):
+        close_message = CloseMessage()
+        self._in_control_socket.send(serialize_message(close_message))
+
+    def prepare_to_close(self):
+        self._logger.info("start")
+        self._send_prepare_to_close()
+        self._logger.info("end")
+
+    def _send_prepare_to_close(self):
+        prepare_to_close_message = PrepareToCloseMessage()
+        self._in_control_socket.send(serialize_message(prepare_to_close_message))

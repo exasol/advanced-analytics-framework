@@ -17,8 +17,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import Por
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
-from tests.integration_tests.udf_communication.peer_communicator import TestProcess, BidirectionalQueue, assert_processes_finish, \
-    PeerCommunicatorTestProcessParameter
+from tests.integration_tests.udf_communication.peer_communicator.utils import PeerCommunicatorTestProcessParameter, \
+    BidirectionalQueue, TestProcess, assert_processes_finish
 
 structlog.configure(
     context_class=dict,

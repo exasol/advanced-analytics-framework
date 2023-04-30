@@ -34,8 +34,16 @@ class PingMessage(BaseModel, frozen=True):
     source: ConnectionInfo
 
 
-class StopMessage(BaseModel, frozen=True):
-    message_type: Literal["StopMessage"] = "StopMessage"
+class CloseMessage(BaseModel, frozen=True):
+    message_type: Literal["CloseMessage"] = "CloseMessage"
+
+
+class PrepareToCloseMessage(BaseModel, frozen=True):
+    message_type: Literal["PrepareToCloseMessage"] = "PrepareToCloseMessage"
+
+
+class IsReadyToCloseMessage(BaseModel, frozen=True):
+    message_type: Literal["IsReadyToCloseMessage"] = "IsReadyToCloseMessage"
 
 
 class PayloadMessage(BaseModel, frozen=True):
@@ -69,7 +77,9 @@ class Message(BaseModel, frozen=True):
         RegisterPeerMessage,
         AcknowledgeRegisterPeerMessage,
         RegisterPeerCompleteMessage,
-        StopMessage,
+        CloseMessage,
+        PrepareToCloseMessage,
+        IsReadyToCloseMessage,
         PayloadMessage,
         MyConnectionInfoMessage,
         PeerIsReadyToReceiveMessage,

@@ -1,27 +1,31 @@
+import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Dict, Set, List
+from typing import Dict, List
 
+import pytest
 import structlog
 import zmq
+from numpy.random import RandomState
 from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
-from structlog.typing import FilteringBoundLogger
+from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
+    FISocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.integration_tests.udf_communication.peer_communicator.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.udf_communication.peer_communicator.utils import PeerCommunicatorTestProcessParameter, \
-    BidirectionalQueue, TestProcess, assert_processes_finish
+    TestProcess, assert_processes_finish, BidirectionalQueue
 
 structlog.configure(
     context_class=dict,
@@ -45,51 +49,55 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
-        socker_factory = ZMQSocketFactory(context)
+        socket_factory = ZMQSocketFactory(context)
+        socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            socket_factory=socker_factory,
+            socket_factory=socket_factory,
             config=PeerCommunicatorConfig(
                 forward_register_peer_config=ForwardRegisterPeerConfig(
                     is_leader=False,
                     is_enabled=False
-                ),
+                )
             ),
         )
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
-            for index, connection_infos in peer_connection_infos.items():
-                com.register_peer(connection_infos)
-            com.wait_for_peers()
-            LOGGER.info("Peer is ready", name=parameter.instance_name)
-            for peer in com.peers():
-                if peer != Peer(connection_info=com.my_connection_info):
-                    com.send(peer, [socker_factory.create_frame(parameter.instance_name.encode("utf8"))])
-            received_values: Set[str] = set()
-            for peer in com.peers():
-                if peer != Peer(connection_info=com.my_connection_info):
-                    value = com.recv(peer)
-                    received_values.add(value[0].to_bytes().decode("utf8"))
-            queue.put(received_values)
+            for index, connection_info in peer_connection_infos.items():
+                com.register_peer(connection_info)
         finally:
-            com.close()
-            logger.info("before destroy")
-            context.destroy()
-            logger.info("after destroy")
+            try:
+                com.close()
+                queue.put("Success")
+            except:
+                queue.put("Failed")
+            context.destroy(linger=0)
+            for frame in sys._current_frames().values():
+                stacktrace = traceback.format_stack(frame)
+                logger.info("Frame", stacktrace=stacktrace)
     except Exception as e:
-        traceback.print_exc()
-        logger.exception("Exception during test", exception=e)
+        queue.put("Failed")
+        logger.exception("Exception during test")
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 2
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+def test_reliability(number_of_instances: int, repetitions: int):
+    run_test_with_repetitions(number_of_instances, repetitions)
+
+
+REPETITIONS_FOR_FUNCTIONALITY = 1
 
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_3():
+    run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_10():
@@ -112,7 +120,7 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
                     number_of_instances=number_of_instances)
         start_time = time.monotonic()
         group = f"{time.monotonic_ns()}"
-        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, seed=i)
         assert expected_peers_of_threads == peers_of_threads
         end_time = time.monotonic()
         LOGGER.info(f"Finish iteration",
@@ -122,32 +130,27 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
                     duration=end_time - start_time)
 
 
-def run_test(group: str, number_of_instances: int):
+def run_test(group: str, number_of_instances: int, seed: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
     parameters = [
         PeerCommunicatorTestProcessParameter(
             instance_name=f"i{i}", group_identifier=group,
             number_of_instances=number_of_instances,
-            seed=0)
+            seed=seed + i)
         for i in range(number_of_instances)]
     processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
         [TestProcess(parameter, run=run) for parameter in parameters]
     for i in range(number_of_instances):
         processes[i].start()
-    for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
     assert_processes_finish(processes, timeout_in_seconds=180)
-    received_values: Dict[int, Set[str]] = {}
+    result_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
-        received_values[i] = processes[i].get()
-    expected_received_values = {
-        i: {
-            thread.parameter.instance_name
-            for index, thread in enumerate(processes)
-            if index != i
-        }
+        result_of_threads[i] = processes[i].get()
+    expected_results_of_threads = {
+        i: "Success"
         for i in range(number_of_instances)
     }
-    return expected_received_values, received_values
+    return expected_results_of_threads, result_of_threads

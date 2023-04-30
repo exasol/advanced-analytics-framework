@@ -1,6 +1,9 @@
 import contextlib
 from typing import Optional, Generator, List
 
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.messages import PayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -9,6 +12,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
     import SocketFactory, SocketType, Socket, Frame, PollerFlag
+
+LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 
 class FrontendPeerState:
@@ -54,6 +59,7 @@ class FrontendPeerState:
             serialized_message = serialize_message(message)
             frame = self._socket_factory.create_frame(serialized_message)
             send_socket.send_multipart([frame] + payload)
+            send_socket.close(linger=100)
 
     def recv(self, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
         if self._receive_socket.poll(flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds) != 0:

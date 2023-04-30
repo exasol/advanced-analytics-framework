@@ -1,6 +1,6 @@
 import time
 from dataclasses import asdict
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Callable
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -60,6 +60,7 @@ class PeerCommunicator:
         self._logger.info("init")
         self._background_listener = BackgroundListenerInterface(
             name=self._name,
+            number_of_peers=number_of_peers,
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
             group_identifier=self._group_identifier,
@@ -73,18 +74,18 @@ class PeerCommunicator:
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
-        if not self._are_all_peers_connected():
-            for message in self._background_listener.receive_messages(timeout_in_milliseconds):
-                if isinstance(message, PeerIsReadyToReceiveMessage):
-                    peer = message.peer
-                    self._add_peer_state(peer)
-                    self._peer_states[peer].received_peer_is_ready_to_receive()
-                elif isinstance(message, TimeoutMessage):
-                    raise TimeoutError(message.reason)
-                else:
-                    self._logger.error(
-                        "Unknown message",
-                        message_obj=message.dict())
+        for message_obj in self._background_listener.receive_messages(timeout_in_milliseconds):
+            specific_message_obj = message_obj.__root__
+            if isinstance(specific_message_obj, PeerIsReadyToReceiveMessage):
+                peer = specific_message_obj.peer
+                self._add_peer_state(peer)
+                self._peer_states[peer].received_peer_is_ready_to_receive()
+            elif isinstance(specific_message_obj, TimeoutMessage):
+                raise TimeoutError(specific_message_obj.reason)
+            else:
+                self._logger.error(
+                    "Unknown message",
+                    message_obj=specific_message_obj.dict())
 
     def _add_peer_state(self, peer: Peer):
         if peer not in self._peer_states:
@@ -94,9 +95,11 @@ class PeerCommunicator:
                 peer=peer
             )
 
-    def wait_for_peers(self, timeout_in_milliseconds: Optional[int] = None) -> bool:
+    def _wait_for_condition(self, condition: Callable[[], bool],
+                            timeout_in_milliseconds: Optional[int] = None) -> bool:
         start_time_ns = time.monotonic_ns()
-        while True:
+        self._handle_messages(timeout_in_milliseconds=0)
+        while not condition():
             if timeout_in_milliseconds is not None:
                 handle_message_timeout_ms = _compute_handle_message_timeout(start_time_ns, timeout_in_milliseconds)
                 if handle_message_timeout_ms < 0:
@@ -104,10 +107,10 @@ class PeerCommunicator:
             else:
                 handle_message_timeout_ms = None
             self._handle_messages(timeout_in_milliseconds=handle_message_timeout_ms)
-            if self._are_all_peers_connected():
-                break
-        connected = self._are_all_peers_connected()
-        return connected
+        return condition()
+
+    def wait_for_peers(self, timeout_in_milliseconds: Optional[int] = None) -> bool:
+        return self._wait_for_condition(self._are_all_peers_connected, timeout_in_milliseconds)
 
     def peers(self, timeout_in_milliseconds: Optional[int] = None) -> Optional[List[Peer]]:
         self.wait_for_peers(timeout_in_milliseconds)
@@ -158,10 +161,29 @@ class PeerCommunicator:
     def close(self):
         self._logger.info("close")
         if self._background_listener is not None:
+            try:
+                self._close_background_listener()
+            finally:
+                self._close_peer_states()
+
+    def _close_background_listener(self):
+        self._logger.info("close background_listener")
+        self._background_listener.prepare_to_close()
+        try:
+            is_ready_to_close = \
+                self._wait_for_condition(self._background_listener.is_ready_to_close,
+                                         timeout_in_milliseconds=self._config.close_timeout_in_ms)
+            if not is_ready_to_close:
+                raise TimeoutError("Timeout expired, could not gracefully close PeerCommuincator.")
+        finally:
             self._background_listener.close()
             self._background_listener = None
-        for peer_state in self._peer_states.values():
-            peer_state.close()
+
+    def _close_peer_states(self):
+        self._logger.info("close peer_states")
+        for peer_state_key in list(self._peer_states.keys()):
+            self._peer_states[peer_state_key].close()
+            del self._peer_states[peer_state_key]
 
     def __del__(self):
         self.close()

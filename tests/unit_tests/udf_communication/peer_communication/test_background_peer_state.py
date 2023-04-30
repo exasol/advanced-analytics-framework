@@ -89,7 +89,7 @@ def test_init():
 def test_resend_if_necessary():
     test_setup = create_test_setup()
     test_setup.reset_mock()
-    test_setup.background_peer_state.resend_if_necessary()
+    test_setup.background_peer_state.try_send()
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.try_send()]
             and test_setup.sender_mock.mock_calls == []

@@ -75,17 +75,6 @@ class PeerIsReadySender:
                         send_independent_of_time
                 )
         )
-        self._logger.debug("_should_we_send",
-                           result=result,
-                           is_time=is_time,
-                           is_enabled=is_enabled,
-                           send_independent_of_time=send_independent_of_time,
-                           needs_acknowledge_register_peer=self._needs_acknowledge_register_peer,
-                           needs_register_peer_complete=self._needs_register_peer_complete,
-                           received_acknowledge_register_peer=self._received_acknowledge_register_peer,
-                           received_register_peer_complete=self._received_register_peer_complete,
-                           received_synchronize_connection=self._received_synchronize_connection,
-                           received_acknowledge_connection=self._received_acknowledge_connection)
         return result
 
     def _send_independent_of_time(self):
@@ -110,6 +99,9 @@ class PeerIsReadySender:
         message = PeerIsReadyToReceiveMessage(peer=self._peer)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
+
+    def is_ready_to_close(self):
+        return self._finished
 
 
 class PeerIsReadySenderFactory:

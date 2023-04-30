@@ -33,8 +33,8 @@ class ConnectionEstablisher:
                  register_peer_sender: RegisterPeerSender,
                  synchronize_connection_sender: SynchronizeConnectionSender):
         self._synchronize_connection_sender = synchronize_connection_sender
-        self._register_peer_sender = register_peer_sender
         self._peer_is_ready_sender = peer_is_ready_sender
+        self._register_peer_sender = register_peer_sender
         self._acknowledge_register_peer_sender = acknowledge_register_peer_sender
         self._abort_timeout_sender = abort_timeout_sender
         self._register_peer_connection = register_peer_connection
@@ -84,3 +84,14 @@ class ConnectionEstablisher:
         self._abort_timeout_sender.try_send()
         self._peer_is_ready_sender.try_send()
         self._acknowledge_register_peer_sender.try_send()
+
+    def is_ready_to_close(self):
+        peer_is_ready_sender = self._peer_is_ready_sender.is_ready_to_close()
+        register_peer_sender = self._register_peer_sender.is_ready_to_close()
+        acknowledge_register_peer_sender = self._acknowledge_register_peer_sender.is_ready_to_close()
+
+        return (
+                peer_is_ready_sender
+                and register_peer_sender
+                and acknowledge_register_peer_sender
+        )
