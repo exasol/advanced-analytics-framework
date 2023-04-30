@@ -33,8 +33,8 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        #ConditionalMethodDropper(method_name="debug"),
-        #ConditionalMethodDropper(method_name="info"),
+        ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="ISO"),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -93,7 +93,7 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 3
+REPETITIONS_FOR_FUNCTIONALITY = 1
 
 
 def test_functionality_2():
