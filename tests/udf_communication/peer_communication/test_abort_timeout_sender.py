@@ -96,7 +96,7 @@ def test_try_send_after_init_and_is_time_true(needs_acknowledge_register_peer: b
     assert (
             test_setup.out_control_socket_mock.mock_calls ==
             [
-                call.send(serialize_message(TimeoutMessage()))
+                call.send(serialize_message(TimeoutMessage(reason="Establishing connection aborted after timeout.")))
             ]
             and test_setup.timer_mock.mock_calls == [
                 call.is_time()
@@ -155,7 +155,7 @@ def test_try_send_after_acknowledge_register_peer_and_is_time_true(needs_acknowl
     assert (
             test_setup.out_control_socket_mock.mock_calls ==
             [
-                call.send(serialize_message(TimeoutMessage()))
+                call.send(serialize_message(TimeoutMessage(reason="Establishing connection aborted after timeout.")))
             ]
             and test_setup.timer_mock.mock_calls == [
                 call.is_time()
@@ -187,8 +187,13 @@ def test_try_send_after_synchronize_connection_and_is_time_true_and_needs_acknow
     test_setup.abort_timeout_sender.try_send()
 
     assert (
-            test_setup.out_control_socket_mock.mock_calls == []
-            and test_setup.timer_mock.mock_calls == [call.is_time()]
+            test_setup.out_control_socket_mock.mock_calls ==
+            [
+                call.send(serialize_message(TimeoutMessage(reason="Establishing connection aborted after timeout.")))
+            ]
+            and test_setup.timer_mock.mock_calls == [
+                call.is_time()
+            ]
     )
 
 
@@ -201,15 +206,9 @@ def test_try_send_after_synchronize_connection_and_is_time_true_and_needs_acknow
     test_setup.abort_timeout_sender.try_send()
 
     assert (
-            test_setup.out_control_socket_mock.mock_calls ==
-            [
-                call.send(serialize_message(TimeoutMessage()))
-            ]
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time()
-            ]
+            test_setup.out_control_socket_mock.mock_calls == []
+            and test_setup.timer_mock.mock_calls == [call.is_time()]
     )
-
 
 @pytest.mark.parametrize("needs_acknowledge_register_peer", [True, False])
 def test_try_send_after_acknowledge_connection_and_is_time_false(needs_acknowledge_register_peer: bool):
@@ -235,8 +234,13 @@ def test_try_send_after_acknowledge_connection_and_is_time_true_and_needs_acknow
     test_setup.abort_timeout_sender.try_send()
 
     assert (
-            test_setup.out_control_socket_mock.mock_calls == []
-            and test_setup.timer_mock.mock_calls == [call.is_time()]
+            test_setup.out_control_socket_mock.mock_calls ==
+            [
+                call.send(serialize_message(TimeoutMessage(reason="Establishing connection aborted after timeout.")))
+            ]
+            and test_setup.timer_mock.mock_calls == [
+                call.is_time()
+            ]
     )
 
 
@@ -249,13 +253,8 @@ def test_try_send_after_acknowledge_connection_and_is_time_true_and_needs_acknow
     test_setup.abort_timeout_sender.try_send()
 
     assert (
-            test_setup.out_control_socket_mock.mock_calls ==
-            [
-                call.send(serialize_message(TimeoutMessage()))
-            ]
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time()
-            ]
+            test_setup.out_control_socket_mock.mock_calls == []
+            and test_setup.timer_mock.mock_calls == [call.is_time()]
     )
 
 

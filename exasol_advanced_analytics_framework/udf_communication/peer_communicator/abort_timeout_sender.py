@@ -48,14 +48,14 @@ class AbortTimeoutSender:
 
     def _abort_stopped(self):
         connection_ok = self._received_synchronize_connection or self._received_acknowledge_connection
-        received_acknowledge_register_peer = self._needs_acknowledge_register_peer \
+        received_acknowledge_register_peer = not self._needs_acknowledge_register_peer \
                                              or self._received_acknowledge_register_peer
         abort_stopped = connection_ok and received_acknowledge_register_peer
         return abort_stopped
 
     def _send_timeout_to_frontend(self):
         self._logger.debug("send")
-        message = TimeoutMessage()
+        message = TimeoutMessage(reason="Establishing connection aborted after timeout.")
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 

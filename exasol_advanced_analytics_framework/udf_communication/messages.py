@@ -60,6 +60,7 @@ class AcknowledgeConnectionMessage(BaseModel, frozen=True):
 
 class TimeoutMessage(BaseModel, frozen=True):
     message_type: Literal["TimeoutMessage"] = "TimeoutMessage"
+    reason: str
 
 
 class Message(BaseModel, frozen=True):
