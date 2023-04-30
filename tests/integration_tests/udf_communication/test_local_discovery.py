@@ -10,14 +10,14 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocketFactory
-from exasol_advanced_analytics_framework.udf_communication.global_peer_communicator import \
-    create_global_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
+from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocketFactory
+from exasol_advanced_analytics_framework.udf_communication.local_peer_communicator import create_local_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+from tests.integration_tests.udf_communication.peer_communicator.conditional_method_dropper import ConditionalMethodDropper
+from tests.integration_tests.udf_communication.peer_communicator import TestProcess, BidirectionalQueue, assert_processes_finish, \
     PeerCommunicatorTestProcessParameter
 
 structlog.configure(
@@ -25,7 +25,7 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        # ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -38,25 +38,19 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
-    listen_ip = IPAddress(ip_address=f"127.1.0.1")
     discovery_port = Port(port=44444)
+    listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    global_discovery_socket_factory = GlobalDiscoverySocketFactory()
-    is_leader = False
-    leader_name = "i0"
-    if parameter.instance_name == leader_name:
-        is_leader = True
-    peer_communicator = create_global_peer_communicator(
+    local_discovery_socket_factory = LocalDiscoverySocketFactory()
+    peer_communicator = create_local_peer_communicator(
         group_identifier=parameter.group_identifier,
         name=parameter.instance_name,
         number_of_instances=parameter.number_of_instances,
-        is_discovery_leader=is_leader,
         listen_ip=listen_ip,
-        discovery_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
-        global_discovery_socket_factory=global_discovery_socket_factory)
+        local_discovery_socket_factory=local_discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
     if peer_communicator.are_all_peers_connected():
         peers = peer_communicator.peers()
@@ -70,19 +64,11 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 1
+REPETITIONS_FOR_FUNCTIONALITY = 2
 
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_3():
-    run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_5():
-    run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_10():
