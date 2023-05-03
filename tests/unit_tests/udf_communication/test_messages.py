@@ -17,7 +17,7 @@ messages_under_test = [
     messages.Stop(),
     messages.Payload(source=connection_info),
     messages.MyConnectionInfo(my_connection_info=connection_info),
-    messages.PeerIsReadyToReceive(peer=peer)
+    messages.ConnectionIsReady(peer=peer)
 ]
 
 

@@ -12,10 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.reg
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
     RegisterPeerSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
-
-
-def mock_cast(obj: Any) -> Mock:
-    return cast(Mock, obj)
+from tests.mock_cast import mock_cast
 
 
 @dataclasses.dataclass()
@@ -150,7 +147,6 @@ def test_try_send_after_init_twice(needs_to_send_for_peer: bool, is_time: bool, 
                              (False, True),
                              (False, False),
                          ])
-
 def test_try_send_after_stop(needs_to_send_for_peer: bool, is_time: bool):
     test_setup = create_test_setup(needs_to_send_for_peer=needs_to_send_for_peer)
     test_setup.register_peer_sender.stop()

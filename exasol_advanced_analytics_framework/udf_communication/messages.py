@@ -24,8 +24,9 @@ class RegisterPeerComplete(BaseModel, frozen=True):
     source: Peer
 
 
-class PeerIsReadyToReceive(BaseModel, frozen=True):
-    message_type: Literal["PeerIsReadyToReceive"] = "PeerIsReadyToReceive"
+class PeerRegisterForwarderIsReady(BaseModel, frozen=True):
+    message_type: Literal["PeerRegisterForwarderIsReady"] = \
+        "PeerRegisterForwarderIsReady"
     peer: Peer
 
 
@@ -37,11 +38,14 @@ class Ping(BaseModel, frozen=True):
 class Stop(BaseModel, frozen=True):
     message_type: Literal["Stop"] = "Stop"
 
+
 class PrepareToStop(BaseModel, frozen=True):
     message_type: Literal["PrepareToStop"] = "PrepareToStop"
 
+
 class IsReadyToStop(BaseModel, frozen=True):
     message_type: Literal["IsReadyToStop"] = "IsReadyToStop"
+
 
 class Payload(BaseModel, frozen=True):
     message_type: Literal["Payload"] = "Payload"
@@ -63,9 +67,15 @@ class AcknowledgeConnection(BaseModel, frozen=True):
     source: ConnectionInfo
 
 
+class ConnectionIsReady(BaseModel, frozen=True):
+    message_type: Literal["ConnectionIsReady"] = "ConnectionIsReady"
+    peer: Peer
+
+
 class Timeout(BaseModel, frozen=True):
     message_type: Literal["Timeout"] = "Timeout"
     reason: str
+
 
 class Message(BaseModel, frozen=True):
     __root__: Union[
@@ -73,12 +83,13 @@ class Message(BaseModel, frozen=True):
         RegisterPeer,
         AcknowledgeRegisterPeer,
         RegisterPeerComplete,
+        PeerRegisterForwarderIsReady,
         Stop,
         PrepareToStop,
         IsReadyToStop,
         Payload,
         MyConnectionInfo,
-        PeerIsReadyToReceive,
+        ConnectionIsReady,
         SynchronizeConnection,
         AcknowledgeConnection,
         Timeout

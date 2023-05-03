@@ -25,7 +25,8 @@ class FrontendPeerState:
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._socket_factory = socket_factory
-        self._peer_is_ready = False
+        self._connection_is_ready = False
+        self._peer_register_forwarder_is_ready = False
         self._create_receive_socket()
 
     def _create_receive_socket(self):
@@ -41,12 +42,15 @@ class FrontendPeerState:
                 f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
             yield send_socket
 
-    def received_peer_is_ready_to_receive(self):
-        self._peer_is_ready = True
+    def received_connection_is_ready(self):
+        self._connection_is_ready = True
+
+    def received_peer_register_forwarder_is_ready(self):
+        self._peer_register_forwarder_is_ready = True
 
     @property
     def peer_is_ready(self) -> bool:
-        return self._peer_is_ready
+        return self._connection_is_ready and self._peer_register_forwarder_is_ready
 
     @property
     def receive_socket(self) -> Socket:
