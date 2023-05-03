@@ -1,3 +1,5 @@
+from enum import IntFlag, auto
+
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -11,6 +13,13 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
+class _States(IntFlag):
+    INIT = auto()
+    RECEIVED_SYNCHRONIZE_CONNECTION = auto()
+    RECEIVED_ACKKNOWLEDGE_CONNECTION = auto()
+    FINISHED = auto()
+
+
 class ConnectionIsReadySender:
     def __init__(self,
                  out_control_socket: Socket,
@@ -20,9 +29,7 @@ class ConnectionIsReadySender:
         self._timer = timer
         self._peer = peer
         self._out_control_socket = out_control_socket
-        self._finished = False
-        self._received_synchronize_connection = False
-        self._received_acknowledge_connection = False
+        self._states = _States.INIT
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
             my_connection_info=my_connection_info.dict(),
@@ -30,42 +37,49 @@ class ConnectionIsReadySender:
         self._logger.debug("init")
 
     def received_synchronize_connection(self):
-        self._logger.debug("received_synchronize_connection")
-        self._received_synchronize_connection = True
+        self._logger.debug("received_synchronize_connection", states=self._states)
+        self._states |= _States.RECEIVED_SYNCHRONIZE_CONNECTION
         self._timer.reset_timer()
 
     def received_acknowledge_connection(self):
-        self._logger.debug("received_acknowledge_connection")
-        self._received_acknowledge_connection = True
+        self._logger.debug("received_acknowledge_connection", states=self._states)
+        self._states |= _States.RECEIVED_ACKKNOWLEDGE_CONNECTION
 
     def try_send(self):
-        self._logger.debug("try_send")
+        self._logger.debug("try_send", states=self._states)
         should_we_send = self._should_we_send()
         if should_we_send:
-            self._finished = True
+            self._states |= _States.FINISHED
             self._send_connection_is_ready_to_frontend()
 
     def _should_we_send(self):
         is_time = self._timer.is_time()
-        send_time_dependent = self._received_synchronize_connection
-        send_time_independent = self._received_acknowledge_connection
+        send_time_dependent = _States.RECEIVED_SYNCHRONIZE_CONNECTION in self._states
+        send_time_independent = _States.RECEIVED_ACKKNOWLEDGE_CONNECTION in self._states
+        finished = _States.FINISHED in self._states
         result = (
-                not self._finished
+                not finished
                 and (
                         (is_time and send_time_dependent) or
                         send_time_independent
                 )
         )
+        self._logger.debug("_should_we_send",
+                           result=result,
+                           is_time=is_time,
+                           send_time_dependent=send_time_dependent,
+                           send_time_independent=send_time_independent,
+                           states=self._states)
         return result
 
     def _send_connection_is_ready_to_frontend(self):
-        self._logger.debug("send")
+        self._logger.debug("send", states=self._states)
         message = messages.ConnectionIsReady(peer=self._peer)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 
     def is_ready_to_stop(self):
-        return self._finished
+        return _States.FINISHED in self._states
 
 
 class ConnectionIsReadySenderFactory:

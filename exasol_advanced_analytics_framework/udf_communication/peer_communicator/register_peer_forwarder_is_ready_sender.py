@@ -62,24 +62,24 @@ class RegisterPeerForwarderIsReadySender:
 
     def _should_we_send(self) -> bool:
         is_time = self._timer.is_time()
-        is_enabled = self._is_enabled()
-        send_independent_of_time = self._send_independent_of_time()
+        send_time_dependent = self._is_send_time_dependent()
+        send_time_independent = self._is_send_time_independent()
         result = (
                 not _States.FINISHED in self._states
                 and (
-                        (is_time and is_enabled) or
-                        send_independent_of_time
+                        (is_time and send_time_dependent) or
+                        send_time_independent
                 )
         )
         self._logger.debug("_should_we_send",
                            result=result,
                            is_time=is_time,
-                           is_enabled=is_enabled,
-                           send_independent_of_time=send_independent_of_time,
+                           send_time_dependent=send_time_dependent,
+                           send_time_independent=send_time_independent,
                            states=self._states)
         return result
 
-    def _send_independent_of_time(self):
+    def _is_send_time_independent(self):
         received_acknowledge_register_peer = (
                 not self._behavior_config.needs_to_send_register_peer
                 or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
@@ -94,7 +94,7 @@ class RegisterPeerForwarderIsReadySender:
         )
         return send_independent_of_time
 
-    def _is_enabled(self):
+    def _is_send_time_dependent(self):
         received_acknowledge_register_peer = (
                 not self._behavior_config.needs_to_send_register_peer
                 or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
