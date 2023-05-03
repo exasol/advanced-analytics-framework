@@ -1,15 +1,15 @@
 import dataclasses
 
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_behavior_config import \
-    ConnectionEstablisherBehaviorConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config import \
-    ConnectionEstablisherTimeoutConfig
+    RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_timeout_config import \
+    RegisterPeerForwarderTimeoutConfig
 
 
 @dataclasses.dataclass(frozen=True)
-class ConnectionEstablisherBuilderParameter:
+class RegisterPeerForwarderBuilderParameter:
     register_peer_connection: RegisterPeerConnection
-    behavior_config: ConnectionEstablisherBehaviorConfig
-    timeout_config: ConnectionEstablisherTimeoutConfig
+    behavior_config: RegisterPeerForwarderBehaviorConfig
+    timeout_config: RegisterPeerForwarderTimeoutConfig

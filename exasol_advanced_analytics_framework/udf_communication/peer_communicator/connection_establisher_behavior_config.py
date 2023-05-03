@@ -2,7 +2,6 @@ import dataclasses
 
 
 @dataclasses.dataclass
-class ConnectionEstablisherBehaviorConfig:
-    forward_register_peer: bool = False
-    acknowledge_register_peer: bool = False
-    needs_register_peer_complete: bool = False
+class RegisterPeerForwarderBehaviorConfig:
+    needs_to_send_register_peer: bool = False
+    needs_to_send_acknowledge_register_peer: bool = False

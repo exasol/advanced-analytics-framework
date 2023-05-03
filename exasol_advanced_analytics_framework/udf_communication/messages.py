@@ -6,6 +6,31 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 
 
+class MyConnectionInfoMessage(BaseModel, frozen=True):
+    message_type: Literal["MyConnectionInfoMessage"] = "MyConnectionInfoMessage"
+    my_connection_info: ConnectionInfo
+
+
+class PingMessage(BaseModel, frozen=True):
+    message_type: Literal["PingMessage"] = "PingMessage"
+    source: ConnectionInfo
+
+
+class SynchronizeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["SynchronizeConnectionMessage"] = "SynchronizeConnectionMessage"
+    source: ConnectionInfo
+
+
+class AcknowledgeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["AcknowledgeConnectionMessage"] = "AcknowledgeConnectionMessage"
+    source: ConnectionInfo
+
+
+class ConnectionIsReadyMessage(BaseModel, frozen=True):
+    message_type: Literal["ConnectionIsReadyMessage"] = "ConnectionIsReadyMessage"
+    peer: Peer
+
+
 class RegisterPeerMessage(BaseModel, frozen=True):
     message_type: Literal["RegisterPeerMessage"] = "RegisterPeerMessage"
     peer: Peer
@@ -24,14 +49,10 @@ class RegisterPeerCompleteMessage(BaseModel, frozen=True):
     source: Peer
 
 
-class PeerIsReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["PeerIsReadyToReceiveMessage"] = "PeerIsReadyToReceiveMessage"
+class PeerRegisterForwarderIsReadyMessage(BaseModel, frozen=True):
+    message_type: Literal["PeerRegisterForwarderIsReadyMessage"] = \
+        "PeerRegisterForwarderIsReadyMessage"
     peer: Peer
-
-
-class PingMessage(BaseModel, frozen=True):
-    message_type: Literal["PingMessage"] = "PingMessage"
-    source: ConnectionInfo
 
 
 class CloseMessage(BaseModel, frozen=True):
@@ -51,21 +72,6 @@ class PayloadMessage(BaseModel, frozen=True):
     source: ConnectionInfo
 
 
-class MyConnectionInfoMessage(BaseModel, frozen=True):
-    message_type: Literal["MyConnectionInfoMessage"] = "MyConnectionInfoMessage"
-    my_connection_info: ConnectionInfo
-
-
-class SynchronizeConnectionMessage(BaseModel, frozen=True):
-    message_type: Literal["SynchronizeConnectionMessage"] = "SynchronizeConnectionMessage"
-    source: ConnectionInfo
-
-
-class AcknowledgeConnectionMessage(BaseModel, frozen=True):
-    message_type: Literal["AcknowledgeConnectionMessage"] = "AcknowledgeConnectionMessage"
-    source: ConnectionInfo
-
-
 class TimeoutMessage(BaseModel, frozen=True):
     message_type: Literal["TimeoutMessage"] = "TimeoutMessage"
     reason: str
@@ -73,17 +79,18 @@ class TimeoutMessage(BaseModel, frozen=True):
 
 class Message(BaseModel, frozen=True):
     __root__: Union[
+        MyConnectionInfoMessage,
         PingMessage,
+        SynchronizeConnectionMessage,
+        AcknowledgeConnectionMessage,
+        ConnectionIsReadyMessage,
         RegisterPeerMessage,
         AcknowledgeRegisterPeerMessage,
         RegisterPeerCompleteMessage,
+        PeerRegisterForwarderIsReadyMessage,
         CloseMessage,
         PrepareToCloseMessage,
         IsReadyToCloseMessage,
         PayloadMessage,
-        MyConnectionInfoMessage,
-        PeerIsReadyToReceiveMessage,
-        SynchronizeConnectionMessage,
-        AcknowledgeConnectionMessage,
-        TimeoutMessage
+        TimeoutMessage,
     ]

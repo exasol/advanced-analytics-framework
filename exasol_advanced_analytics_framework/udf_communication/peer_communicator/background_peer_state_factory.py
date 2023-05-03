@@ -4,6 +4,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher import \
     ConnectionEstablisher
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder import \
+    RegisterPeerForwarder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
 
@@ -15,13 +17,13 @@ class BackgroundPeerStateFactory:
                socket_factory: SocketFactory,
                peer: Peer,
                sender: Sender,
-               connection_establisher: ConnectionEstablisher) -> BackgroundPeerState:
+               connection_establisher: ConnectionEstablisher,
+               register_peer_forwarder: RegisterPeerForwarder) -> BackgroundPeerState:
         return BackgroundPeerState(
             my_connection_info=my_connection_info,
             socket_factory=socket_factory,
             peer=peer,
             sender=sender,
-            connection_establisher=connection_establisher
+            connection_establisher=connection_establisher,
+            register_peer_forwarder=register_peer_forwarder
         )
-
-

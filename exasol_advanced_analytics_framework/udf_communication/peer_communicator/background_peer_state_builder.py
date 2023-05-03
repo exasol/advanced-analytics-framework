@@ -1,5 +1,3 @@
-from typing import Callable
-
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
@@ -9,8 +7,12 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder_parameter import \
-    ConnectionEstablisherBuilderParameter
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config \
+    import ConnectionEstablisherTimeoutConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder import \
+    RegisterPeerForwarderBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter \
+    import RegisterPeerForwarderBuilderParameter
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import SenderFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket, \
     SocketFactory
@@ -19,12 +21,14 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 class BackgroundPeerStateBuilder:
 
     def __init__(self,
-                 connection_establisher_factory: ConnectionEstablisherBuilder,
+                 connection_establisher_builder: ConnectionEstablisherBuilder,
+                 register_peer_forwarder_builder: RegisterPeerForwarderBuilder,
                  sender_factory: SenderFactory,
                  background_peer_state_factory: BackgroundPeerStateFactory = BackgroundPeerStateFactory()):
+        self._connection_establisher_builder = connection_establisher_builder
+        self._register_peer_forwarder_builder = register_peer_forwarder_builder
         self._background_peer_state_factory = background_peer_state_factory
         self._sender_factory = sender_factory
-        self._connection_establisher_factory = connection_establisher_factory
 
     def create(
             self,
@@ -34,20 +38,29 @@ class BackgroundPeerStateBuilder:
             peer: Peer,
             clock: Clock,
             send_socket_linger_time_in_ms: int,
-            connection_establisher_builder_parameter: ConnectionEstablisherBuilderParameter,
-            background_peer_state_factory: Callable = BackgroundPeerState) -> BackgroundPeerState:
+            register_peer_forwarder_builder_parameter: RegisterPeerForwarderBuilderParameter,
+            connection_establisher_timeout_config: ConnectionEstablisherTimeoutConfig
+    ) -> BackgroundPeerState:
         sender = self._sender_factory.create(
             my_connection_info=my_connection_info,
             socket_factory=socket_factory,
             peer=peer,
             send_socket_linger_time_in_ms=send_socket_linger_time_in_ms)
-        connection_establisher = self._connection_establisher_factory.create(
+        connection_establisher = self._connection_establisher_builder.create(
             peer=peer,
             my_connection_info=my_connection_info,
             out_control_socket=out_control_socket,
             clock=clock,
             sender=sender,
-            parameter=connection_establisher_builder_parameter
+            timeout_config=connection_establisher_timeout_config
+        )
+        register_peer_forwarder = self._register_peer_forwarder_builder.create(
+            peer=peer,
+            my_connection_info=my_connection_info,
+            out_control_socket=out_control_socket,
+            clock=clock,
+            sender=sender,
+            parameter=register_peer_forwarder_builder_parameter,
         )
         peer_state = self._background_peer_state_factory.create(
             my_connection_info=my_connection_info,
@@ -55,5 +68,6 @@ class BackgroundPeerStateBuilder:
             peer=peer,
             sender=sender,
             connection_establisher=connection_establisher,
+            register_peer_forwarder=register_peer_forwarder
         )
         return peer_state
