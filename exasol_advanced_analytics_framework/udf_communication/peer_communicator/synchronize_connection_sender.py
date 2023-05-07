@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.tim
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class SynchronizeConnectionSender():
+class SynchronizeConnectionSender:
     def __init__(self,
                  my_connection_info: ConnectionInfo,
                  peer: Peer,

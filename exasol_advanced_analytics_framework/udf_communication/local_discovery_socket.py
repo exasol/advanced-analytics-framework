@@ -1,6 +1,4 @@
 import socket
-import time
-from typing import Optional
 
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 

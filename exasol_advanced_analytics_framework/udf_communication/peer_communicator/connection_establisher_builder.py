@@ -7,8 +7,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.con
     ConnectionEstablisher
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_factory import \
     ConnectionEstablisherFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config import \
-    ConnectionEstablisherTimeoutConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config \
+    import ConnectionEstablisherTimeoutConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_is_ready_sender import \
     ConnectionIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender

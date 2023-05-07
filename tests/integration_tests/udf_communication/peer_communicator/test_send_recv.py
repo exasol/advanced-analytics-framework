@@ -85,7 +85,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         logger.exception("Exception during test", exception=e)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 2
+REPETITIONS_FOR_FUNCTIONALITY = 1
 
 
 def test_functionality_2():

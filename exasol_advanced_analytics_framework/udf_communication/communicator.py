@@ -44,7 +44,7 @@ class Communicator:
         self._global_group_identifier = f"{group_identifier}_global"
         self._number_of_nodes = number_of_nodes
         self._global_peer_communicator = self._create_global_peer_communicator()
-        if not self._global_peer_communicator is None:
+        if self._global_peer_communicator is not None:
             self._global_peer = Peer(connection_info=self._global_peer_communicator.my_connection_info)
             self._global_peers = self._local_peer_communicator.peers()
             self._global_rank = self._local_peers.index(self._local_peer)

@@ -90,7 +90,7 @@ def test_try_send_after_init(needs_to_send_for_peer: bool, is_time: bool, send_e
         )
 
 
-@pytest.mark.parametrize("needs_to_send_for_peer", [
+@pytest.mark.parametrize("needs_to_send_for_peer, is_time", [
     (True, True),
     (True, False),
     (False, True),
@@ -107,10 +107,17 @@ def test_stop(needs_to_send_for_peer: bool, is_time: bool):
     )
 
 
-@pytest.mark.parametrize("needs_to_send_for_peer", [True, False])
-def test_try_send_after_stop(needs_to_send_for_peer: bool):
+@pytest.mark.parametrize("needs_to_send_for_peer, is_time",
+                         [
+                             (True, True),
+                             (True, False),
+                             (False, True),
+                             (False, False),
+                         ])
+def test_try_send_after_stop(needs_to_send_for_peer: bool, is_time: bool):
     test_setup = create_test_setup(needs_to_send_for_peer)
     test_setup.acknowledge_register_peer_sender.stop()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
     test_setup.acknowledge_register_peer_sender.try_send()
     assert (

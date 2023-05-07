@@ -2,8 +2,8 @@ from typing import Union, List, Set, Optional, Dict
 from warnings import warn
 import zmq
 
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Frame, Socket, \
-    PollerFlag, Poller, SocketFactory, SocketType
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
+    import Frame, Socket, PollerFlag, Poller, SocketFactory, SocketType
 
 
 def _flags_to_bitmask(flags: Union[PollerFlag, Set[PollerFlag]]) -> int:

@@ -1,46 +1,66 @@
-import contextlib
-from typing import Optional, Generator, List
+from collections import deque
+from typing import List, Deque
 
 import structlog
+from sortedcontainers import SortedSet
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import PayloadMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import PayloadMessage, AcknowledgePayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
-    get_peer_receive_socket_name
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
+    BackgroundListenerInterface
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
-    import SocketFactory, SocketType, Socket, Frame, PollerFlag
+    import Frame
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
+
+
+class IntSet:
+    def __init__(self):
+        self._set: SortedSet = SortedSet()
+        self._max_complete = None
+
+    def add(self, item: int):
+        if self._max_complete is None:
+            self._max_complete = item
+        elif item == self._max_complete + 1:
+            self._max_complete = item
+            self._compact_set()
+        if item > self._max_complete:
+            self._set.add(item)
+
+    def __contains__(self, item: int) -> bool:
+        return self._max_complete is not None and item <= self._max_complete or item in self._set
+
+    def _compact_set(self):
+        position_of_max = None
+        for index, item in enumerate(self._set):
+            if item == self._max_complete + 1:
+                self._max_complete = item
+                position_of_max = index
+            else:
+                break
+        if position_of_max is not None:
+            del self._set[0:position_of_max]
 
 
 class FrontendPeerState:
 
     def __init__(self,
                  my_connection_info: ConnectionInfo,
-                 socket_factory: SocketFactory,
+                 background_listener: BackgroundListenerInterface,
                  peer: Peer):
+        self._background_listener = background_listener
         self._my_connection_info = my_connection_info
         self._peer = peer
-        self._socket_factory = socket_factory
         self._connection_is_ready = False
         self._peer_register_forwarder_is_ready = False
-        self._create_receive_socket()
-
-    def _create_receive_socket(self):
-        self._receive_socket = self._socket_factory.create_socket(SocketType.PAIR)
-        receive_socket_address = get_peer_receive_socket_name(self._peer)
-        self._receive_socket.connect(receive_socket_address)
-
-    @contextlib.contextmanager
-    def _create_send_socket(self) -> Generator[Socket, None, None]:
-        send_socket: Socket
-        with self._socket_factory.create_socket(SocketType.DEALER) as send_socket:
-            send_socket.connect(
-                f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
-            yield send_socket
+        self._next_send_payload_sequence_number = 0
+        self._next_received_payload_sequence_number = 0
+        self._received_messages: Deque[List[Frame]] = deque()
+        self._received_acknowledgments: IntSet = IntSet()
+        self._logger = LOGGER.bind(peer=peer.dict(), my_connection_info=my_connection_info.dict())
 
     def received_connection_is_ready(self):
         self._connection_is_ready = True
@@ -52,22 +72,47 @@ class FrontendPeerState:
     def peer_is_ready(self) -> bool:
         return self._connection_is_ready and self._peer_register_forwarder_is_ready
 
-    @property
-    def receive_socket(self) -> Socket:
-        return self._receive_socket
+    def send(self, payload: List[Frame]) -> int:
+        message = PayloadMessage(source=Peer(connection_info=self._my_connection_info),
+                                 destination=self._peer,
+                                 sequence_number=self._get_next_send_payload_sequence_number())
+        self._logger.info("send", message=message.dict())
+        self._background_listener.send_payload(message=message, payload=payload)
+        return message.sequence_number
 
-    def send(self, payload: List[Frame]):
-        send_socket: Socket
-        with self._create_send_socket() as send_socket:
-            message = PayloadMessage(source=self._my_connection_info)
-            serialized_message = serialize_message(message)
-            frame = self._socket_factory.create_frame(serialized_message)
-            send_socket.send_multipart([frame] + payload)
-            send_socket.close(linger=100)
+    def _get_next_send_payload_sequence_number(self) -> int:
+        result = self._next_send_payload_sequence_number
+        self._next_send_payload_sequence_number += 1
+        return result
 
-    def recv(self, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
-        if self._receive_socket.poll(flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds) != 0:
-            return self._receive_socket.receive_multipart()
+    def has_received_messages(self) -> bool:
+        return len(self._received_messages) > 0
 
-    def close(self):
-        self._receive_socket.close(linger=0)
+    def recv(self) -> List[Frame]:
+        if len(self._received_messages) > 0:
+            return self._received_messages.pop()
+        else:
+            raise RuntimeError("No messages to receive.")
+
+    def received_payload_message(self, message_obj: PayloadMessage, frames: List[Frame]):
+        if message_obj.source == self._peer:
+            raise RuntimeError(f"Received message from wrong peer. "
+                               f"Expected peer is {self._peer}, but got {message_obj.source}."
+                               f"Message was: {message_obj}")
+        if message_obj.sequence_number == self._next_received_payload_sequence_number:
+            raise RuntimeError(f"Received message with wrong sequence number. "
+                               f"Expected number is {self._next_received_payload_sequence_number}, "
+                               f"but got {message_obj.sequence_number}."
+                               f"Message was: {message_obj}")
+        self._received_messages.append(frames)
+        self._next_received_payload_sequence_number += 1
+
+    def received_acknowledge_payload_message(self, message_obj: AcknowledgePayloadMessage):
+        if message_obj.source == self._peer:
+            raise RuntimeError(f"Received message from wrong peer. "
+                               f"Expected peer is {self._peer}, but got {message_obj.source}."
+                               f"Message was: {message_obj}")
+        self._received_acknowledgments.add(message_obj.sequence_number)
+
+    def message_was_send_and_got_received(self, sequence_number: int) -> bool:
+        return sequence_number in self._received_acknowledgments

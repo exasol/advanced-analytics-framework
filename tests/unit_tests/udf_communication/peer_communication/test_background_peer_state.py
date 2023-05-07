@@ -2,13 +2,18 @@ import dataclasses
 from typing import Union, cast, Any
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
+import pytest
+from polyfactory.factories.pydantic_factory import ModelFactory
+
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
+from exasol_advanced_analytics_framework.udf_communication.messages import PayloadMessage, AcknowledgePayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher import \
     ConnectionEstablisher
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler import PayloadHandler
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder import \
     RegisterPeerForwarder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
@@ -21,19 +26,15 @@ from tests.mock_cast import mock_cast
 class TestSetup:
     peer: Peer
     my_connection_info: ConnectionInfo
-    socket_factory_mock: Union[MagicMock, SocketFactory]
-    receive_socket_mock: Union[MagicMock, Socket]
-    sender_mock: Union[MagicMock, Sender]
     connection_establisher_mock: Union[MagicMock, ConnectionEstablisher]
     register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder]
+    payload_handler_mock: Union[MagicMock, PayloadHandler]
     background_peer_state: BackgroundPeerState
 
     def reset_mock(self):
-        self.sender_mock.reset_mock()
-        self.receive_socket_mock.reset_mock()
-        self.socket_factory_mock.reset_mock()
         self.connection_establisher_mock.reset_mock()
         self.register_peer_forwarder_mock.reset_mock()
+        self.payload_handler_mock.reset_mock()
 
 
 def create_test_setup() -> TestSetup:
@@ -50,42 +51,32 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g"
     )
-    receive_socket_mock: Union[MagicMock, Socket] = create_autospec(Socket)
-    socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(SocketFactory)
-    mock_cast(socket_factory_mock.create_socket).side_effect = [receive_socket_mock]
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
     connection_establisher_mock: Union[MagicMock, ConnectionEstablisher] = create_autospec(ConnectionEstablisher)
     register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder] = create_autospec(RegisterPeerForwarder)
+    payload_handler_mock: Union[MagicMock, PayloadHandler] = create_autospec(PayloadHandler)
     background_peer_state = BackgroundPeerState(
         my_connection_info=my_connection_info,
         peer=peer,
-        socket_factory=socket_factory_mock,
-        sender=sender_mock,
         connection_establisher=connection_establisher_mock,
-        register_peer_forwarder=register_peer_forwarder_mock
+        register_peer_forwarder=register_peer_forwarder_mock,
+        payload_handler=payload_handler_mock,
     )
     return TestSetup(
         peer=peer,
         my_connection_info=my_connection_info,
-        socket_factory_mock=socket_factory_mock,
-        sender_mock=sender_mock,
         background_peer_state=background_peer_state,
-        receive_socket_mock=receive_socket_mock,
         connection_establisher_mock=connection_establisher_mock,
-        register_peer_forwarder_mock=register_peer_forwarder_mock
+        register_peer_forwarder_mock=register_peer_forwarder_mock,
+        payload_handler_mock=payload_handler_mock
     )
 
 
 def test_init():
     test_setup = create_test_setup()
     assert (
-            test_setup.sender_mock.mock_calls == []
-            and test_setup.connection_establisher_mock.mock_calls == []
+            test_setup.connection_establisher_mock.mock_calls == []
             and test_setup.register_peer_forwarder_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == [call(SocketType.PAIR)]
-            and test_setup.receive_socket_mock.mock_calls == [
-                call.bind('inproc://peer/g/127.0.0.1/11')
-            ]
+            and test_setup.payload_handler_mock.mock_calls == []
     )
 
 
@@ -96,9 +87,7 @@ def test_resend_if_necessary():
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.try_send()]
             and test_setup.register_peer_forwarder_mock.mock_calls == [call.try_send()]
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == [call.try_send()]
     )
 
 
@@ -109,9 +98,7 @@ def test_received_synchronize_connection():
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.received_synchronize_connection()]
             and test_setup.register_peer_forwarder_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == []
     )
 
 
@@ -122,9 +109,7 @@ def test_received_acknowledge_connection():
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.received_acknowledge_connection()]
             and test_setup.register_peer_forwarder_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == []
     )
 
 
@@ -135,9 +120,7 @@ def test_received_acknowledge_register_peer():
     assert (
             test_setup.register_peer_forwarder_mock.mock_calls == [call.received_acknowledge_register_peer()]
             and test_setup.connection_establisher_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == []
     )
 
 
@@ -148,34 +131,72 @@ def test_received_register_peer_complete():
     assert (
             test_setup.register_peer_forwarder_mock.mock_calls == [call.received_register_peer_complete()]
             and test_setup.connection_establisher_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == []
     )
 
 
-def test_forward_payload():
+def test_received_payload():
     test_setup = create_test_setup()
     test_setup.reset_mock()
     frames = [create_autospec(Frame)]
-    test_setup.background_peer_state.forward_payload(frames=frames)
+    message = ModelFactory.create_factory(model=PayloadMessage).build()
+    test_setup.background_peer_state.received_payload(message=message, frames=frames)
     assert (
             test_setup.connection_establisher_mock.mock_calls == []
             and test_setup.register_peer_forwarder_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == [call.send_multipart(frames)]
+            and test_setup.payload_handler_mock.mock_calls == [call.received_payload(message, frames)]
     )
 
 
-def test_close():
+def test_received_acknowledge_payload():
     test_setup = create_test_setup()
     test_setup.reset_mock()
-    test_setup.background_peer_state.close()
+    message = ModelFactory.create_factory(model=AcknowledgePayloadMessage).build()
+    test_setup.background_peer_state.received_acknowledge_payload(message=message)
     assert (
             test_setup.connection_establisher_mock.mock_calls == []
             and test_setup.register_peer_forwarder_mock.mock_calls == []
-            and test_setup.sender_mock.mock_calls == []
-            and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
-            and test_setup.receive_socket_mock.mock_calls == [call.close(linger=0)]
+            and test_setup.payload_handler_mock.mock_calls == [call.received_acknowledge_payload(message=message)]
+    )
+
+
+def test_send_payload():
+    test_setup = create_test_setup()
+    test_setup.reset_mock()
+    frames = [create_autospec(Frame)]
+    message = ModelFactory.create_factory(model=AcknowledgePayloadMessage).build()
+    test_setup.background_peer_state.send_payload(message=message, frames=frames)
+    assert (
+            test_setup.connection_establisher_mock.mock_calls == []
+            and test_setup.register_peer_forwarder_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == [call.send_payload(message, frames)]
+    )
+
+
+@pytest.mark.parametrize("connection_establisher_answer,register_peer_forwarder_answer,payload_handler_answer,expected",
+                         [
+                             (True, True, True, True),
+                             (True, True, False, False),
+                             (True, False, True, False),
+                             (True, False, False, False),
+                             (False, True, True, False),
+                             (False, True, False, False),
+                             (False, False, True, False),
+                             (False, False, False, False),
+                         ])
+def test_is_ready_to_close(connection_establisher_answer: bool,
+                           register_peer_forwarder_answer: bool,
+                           payload_handler_answer: bool,
+                           expected: bool):
+    test_setup = create_test_setup()
+    mock_cast(test_setup.payload_handler_mock.is_ready_to_close).return_value = payload_handler_answer
+    mock_cast(test_setup.connection_establisher_mock.is_ready_to_close).return_value = connection_establisher_answer
+    mock_cast(test_setup.register_peer_forwarder_mock.is_ready_to_close).return_value = register_peer_forwarder_answer
+    test_setup.reset_mock()
+    result = test_setup.background_peer_state.is_ready_to_close()
+    assert (
+            result == expected
+            and test_setup.connection_establisher_mock.mock_calls == [call.is_ready_to_close()]
+            and test_setup.register_peer_forwarder_mock.mock_calls == [call.is_ready_to_close()]
+            and test_setup.payload_handler_mock.mock_calls == [call.is_ready_to_close()]
     )

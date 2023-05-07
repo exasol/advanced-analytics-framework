@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.tim
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class RegisterPeerSender():
+class RegisterPeerSender:
     def __init__(self,
                  register_peer_connection: Optional[RegisterPeerConnection],
                  needs_to_send_for_peer: bool,
@@ -60,7 +60,7 @@ class RegisterPeerSender():
         return (self._finished and self._needs_to_send_for_peer) or not self._needs_to_send_for_peer
 
 
-class RegisterPeerSenderFactory():
+class RegisterPeerSenderFactory:
     def create(self,
                register_peer_connection: Optional[RegisterPeerConnection],
                needs_to_send_for_peer: bool,

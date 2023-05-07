@@ -8,8 +8,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.reg
     RegisterPeerConnection
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder import \
     RegisterPeerForwarder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
-    RegisterPeerForwarderIsReadySender
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender \
+    import RegisterPeerForwarderIsReadySender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
     RegisterPeerSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
@@ -25,7 +25,7 @@ class RegisterPeerForwarderFactory:
                abort_timeout_sender: AbortTimeoutSender,
                acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
                register_peer_sender: RegisterPeerSender,
-               register_peer_forwarder_is_ready_sender: RegisterPeerForwarderIsReadySender)->RegisterPeerForwarder:
+               register_peer_forwarder_is_ready_sender: RegisterPeerForwarderIsReadySender) -> RegisterPeerForwarder:
         return RegisterPeerForwarder(
             peer=peer,
             my_connection_info=my_connection_info,

@@ -9,8 +9,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.ack
     AcknowledgeRegisterPeerSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
-    RegisterPeerForwarderIsReadySender
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender \
+    import RegisterPeerForwarderIsReadySender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
     RegisterPeerSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
@@ -68,5 +68,3 @@ class RegisterPeerForwarder:
 
     def is_ready_to_close(self):
         return self._register_peer_forwarder_is_ready_sender.is_ready_to_close()
-
-

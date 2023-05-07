@@ -7,9 +7,10 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, CloseMessage, RegisterPeerMessage, \
+from exasol_advanced_analytics_framework.udf_communication.messages import Message, RegisterPeerMessage, \
     PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage, \
-    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage, PrepareToCloseMessage, IsReadyToCloseMessage
+    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage, IsReadyToCloseMessage, CloseMessage, \
+    PrepareToCloseMessage, AcknowledgePayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSenderFactory
@@ -20,22 +21,30 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state_builder import \
     BackgroundPeerStateBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_behavior_config import \
-    RegisterPeerForwarderBehaviorConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_behavior_config \
+    import RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_is_ready_sender import \
     ConnectionIsReadySenderFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler_builder import \
+    PayloadHandlerBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender_factory import \
+    PayloadMessageSenderFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_receiver_factory import \
+    PayloadReceiverFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender_factory import \
+    PayloadSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder import \
     RegisterPeerForwarderBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter import \
-    RegisterPeerForwarderBuilderParameter
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
-    RegisterPeerForwarderIsReadySenderFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter \
+    import RegisterPeerForwarderBuilderParameter
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender \
+    import RegisterPeerForwarderIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
     RegisterPeerSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
@@ -45,8 +54,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.syn
     SynchronizeConnectionSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
-    SocketType, Socket, PollerFlag, Frame
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
+    import SocketFactory, SocketType, Socket, PollerFlag, Frame
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -73,10 +82,18 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
         timer_factory=timer_factory,
     )
     sender_factory = SenderFactory()
+    payload_message_sender_factory = PayloadMessageSenderFactory(timer_factory=timer_factory)
+    payload_sender_factory = PayloadSenderFactory(payload_message_sender_factory=payload_message_sender_factory)
+    payload_receiver_factory = PayloadReceiverFactory()
+    payload_handler_builder = PayloadHandlerBuilder(
+        payload_sender_factory=payload_sender_factory,
+        payload_receiver_factory=payload_receiver_factory
+    )
     background_peer_state_factory = BackgroundPeerStateBuilder(
         sender_factory=sender_factory,
         connection_establisher_builder=connection_establisher_builder,
         register_peer_forwarder_builder=register_peer_forwarder_builder,
+        payload_handler_builder=payload_handler_builder,
     )
     return background_peer_state_factory
 
@@ -188,15 +205,15 @@ class BackgroundListenerThread:
     def _handle_message(self):
         poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
         if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-            message = self._in_control_socket.receive()
+            message = self._in_control_socket.receive_multipart()
             self._status = self._handle_control_message(message)
         if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
             message = self._listener_socket.receive_multipart()
             self._handle_listener_message(message)
 
-    def _handle_control_message(self, message: bytes) -> Status:
+    def _handle_control_message(self, message: List[Frame]) -> Status:
         try:
-            message_obj: Message = deserialize_message(message, Message)
+            message_obj: Message = deserialize_message(message[0].to_bytes(), Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, CloseMessage):
                 return BackgroundListenerThread.Status.CLOSED
@@ -208,6 +225,9 @@ class BackgroundListenerThread:
                 else:
                     self._logger.error("RegisterPeerMessage message not allowed",
                                        message_obj=specific_message_obj.dict())
+            elif isinstance(specific_message_obj, PayloadMessage):
+                self._peer_state[specific_message_obj.destination].send_payload(
+                    message=specific_message_obj, frames=message)
             else:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
@@ -242,6 +262,7 @@ class BackgroundListenerThread:
                 send_socket_linger_time_in_ms=self._config.send_socket_linger_time_in_ms,
                 connection_establisher_timeout_config=self._config.connection_establisher_timeout_config,
                 register_peer_forwarder_builder_parameter=parameter,
+                payload_message_sender_timeout_config=self._config.payload_message_sender_timeout_config,
             )
 
     def _handle_listener_message(self, message: List[Frame]):
@@ -265,7 +286,10 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, RegisterPeerCompleteMessage):
                 self._handle_register_peer_complete_message(specific_message_obj)
             elif isinstance(specific_message_obj, PayloadMessage):
-                self._handle_payload_message(specific_message_obj, message)
+                self._peer_state[specific_message_obj.source].received_payload(
+                    specific_message_obj, frames=message[1:])
+            elif isinstance(specific_message_obj, AcknowledgePayloadMessage):
+                self._peer_state[specific_message_obj.source].received_acknowledge_payload(specific_message_obj)
             else:
                 logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
@@ -274,10 +298,6 @@ class BackgroundListenerThread:
     def is_register_peer_message_allowed_as_listener_message(self):
         return not self._config.forward_register_peer_config.is_leader \
                and self._config.forward_register_peer_config.is_enabled
-
-    def _handle_payload_message(self, message: PayloadMessage, frames: List[Frame]):
-        peer = Peer(connection_info=message.source)
-        self._peer_state[peer].forward_payload(frames[2:])
 
     def _handle_synchronize_connection(self, message: SynchronizeConnectionMessage):
         peer = Peer(connection_info=message.source)

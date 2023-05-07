@@ -8,13 +8,13 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.messages import ConnectionIsReadyMessage, TimeoutMessage, \
-    PeerRegisterForwarderIsReadyMessage
+    PeerRegisterForwarderIsReadyMessage, PayloadMessage, AcknowledgePayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
@@ -34,6 +34,21 @@ def _compute_handle_message_timeout(start_time_ns: int, timeout_in_milliseconds:
     time_difference_ms = time_difference_ns // 10 ** 6
     handle_message_timeout_ms = timeout_in_milliseconds - time_difference_ms
     return handle_message_timeout_ms
+
+
+class MessageTracker:
+
+    def __init__(self,
+                 check_function: Callable[[], bool],
+                 wait_for_condition: Callable[[Callable[[], bool], Optional[int]], bool]):
+        self._wait_for_condition = wait_for_condition
+        self._check_function = check_function
+
+    def wait(self, timeout_in_milliseconds: Optional[int]) -> bool:
+        return self._wait_for_condition(self._check_function, timeout_in_milliseconds)
+
+    def was_received(self) -> bool:
+        return self._check_function()
 
 
 class PeerCommunicator:
@@ -74,8 +89,8 @@ class PeerCommunicator:
         self._logger.info("my_connection_info")
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
-    def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
-        for message_obj in self._background_listener.receive_messages(timeout_in_milliseconds):
+    def _handle_messages(self, timeout_in_milliseconds: int):
+        for message_obj, frames in self._background_listener.receive_messages(timeout_in_milliseconds):
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, ConnectionIsReadyMessage):
                 peer = specific_message_obj.peer
@@ -87,6 +102,11 @@ class PeerCommunicator:
                 self._peer_states[peer].received_peer_register_forwarder_is_ready()
             elif isinstance(specific_message_obj, TimeoutMessage):
                 raise TimeoutError(specific_message_obj.reason)
+            elif isinstance(specific_message_obj, PayloadMessage):
+                self._peer_states[specific_message_obj.source].received_payload_message(specific_message_obj, frames)
+            elif isinstance(specific_message_obj, AcknowledgePayloadMessage):
+                self._peer_states[specific_message_obj.source].received_acknowledge_payload_message(
+                    specific_message_obj)
             else:
                 self._logger.error(
                     "Unknown message",
@@ -96,8 +116,8 @@ class PeerCommunicator:
         if peer not in self._peer_states:
             self._peer_states[peer] = FrontendPeerState(
                 my_connection_info=self.my_connection_info,
-                socket_factory=self._socket_factory,
-                peer=peer
+                peer=peer,
+                background_listener=self._background_listener
             )
 
     def _wait_for_condition(self, condition: Callable[[], bool],
@@ -114,6 +134,25 @@ class PeerCommunicator:
             self._handle_messages(timeout_in_milliseconds=handle_message_timeout_ms)
         return condition()
 
+    def register_peer(self, peer_connection_info: ConnectionInfo):
+        self._logger.info("register_peer", peer_connection_info=peer_connection_info.dict())
+        self._handle_messages(timeout_in_milliseconds=0)
+        if (peer_connection_info.group_identifier == self.my_connection_info.group_identifier
+                and peer_connection_info != self.my_connection_info):
+            peer = Peer(connection_info=peer_connection_info)
+            if peer not in self._peer_states:
+                self._add_peer_state(peer)
+                self._background_listener.register_peer(peer)
+                self._handle_messages(timeout_in_milliseconds=0)
+
+    @property
+    def my_connection_info(self) -> ConnectionInfo:
+        return self._my_connection_info
+
+    @property
+    def forward_register_peer_config(self) -> ForwardRegisterPeerConfig:
+        return self._config.forward_register_peer_config
+
     def wait_for_peers(self, timeout_in_milliseconds: Optional[int] = None) -> bool:
         return self._wait_for_condition(self._are_all_peers_connected, timeout_in_milliseconds)
 
@@ -126,27 +165,8 @@ class PeerCommunicator:
         else:
             return None
 
-    def register_peer(self, peer_connection_info: ConnectionInfo):
-        self._logger.info("register_peer", peer_connection_info=peer_connection_info.dict())
-        self._handle_messages()
-        if (peer_connection_info.group_identifier == self.my_connection_info.group_identifier
-                and peer_connection_info != self.my_connection_info):
-            peer = Peer(connection_info=peer_connection_info)
-            if peer not in self._peer_states:
-                self._add_peer_state(peer)
-                self._background_listener.register_peer(peer)
-                self._handle_messages()
-
-    @property
-    def my_connection_info(self) -> ConnectionInfo:
-        return self._my_connection_info
-
-    @property
-    def forward_register_peer_config(self) -> ForwardRegisterPeerConfig:
-        return self._config.forward_register_peer_config
-
     def are_all_peers_connected(self) -> bool:
-        self._handle_messages()
+        self._handle_messages(timeout_in_milliseconds=0)
         result = self._are_all_peers_connected()
         return result
 
@@ -155,21 +175,43 @@ class PeerCommunicator:
         result = len(self._peer_states) == self._number_of_peers - 1 and all_peers_ready
         return result
 
-    def send(self, peer: Peer, message: List[Frame]):
-        assert self.are_all_peers_connected()
-        self._peer_states[peer].send(message)
+    def send(self, peer: Peer, message: List[Frame]) -> MessageTracker:
+        self.wait_for_peers()
+        peer_state = self._peer_states[peer]
+        sequence_number = peer_state.send(message)
+
+        def message_was_send_and_got_received() -> bool:
+            return peer_state.message_was_send_and_got_received(sequence_number)
+
+        return MessageTracker(check_function=message_was_send_and_got_received,
+                              wait_for_condition=self._wait_for_condition)
+
+    def poll_peers(self, peers: Optional[List[Peer]], timeout_in_milliseconds: Optional[int] = None) -> List[Peer]:
+        self.wait_for_peers()
+
+        if peers is None:
+            peers = self._peer_states.keys()
+
+        def have_peers__received_messages(self) -> bool:
+            return any(self._peer_states[peer].has_received_messages() for peer in peers)
+
+        self._wait_for_condition(have_peers__received_messages,
+                                 timeout_in_milliseconds=timeout_in_milliseconds)
+        return [peer for peer in peers if self._peer_states[peer].has_received_messages()]
 
     def recv(self, peer: Peer, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
-        assert self.are_all_peers_connected()
-        return self._peer_states[peer].recv(timeout_in_milliseconds)
+        self.wait_for_peers()
+        peer_has_received_messages = self._wait_for_condition(self._peer_states[peer].has_received_messages,
+                                                              timeout_in_milliseconds=timeout_in_milliseconds)
+        if peer_has_received_messages:
+            return self._peer_states[peer].recv()
+        else:
+            raise TimeoutError("Timeout occurred during waiting for messages.")
 
     def close(self):
         self._logger.info("close")
         if self._background_listener is not None:
-            try:
-                self._close_background_listener()
-            finally:
-                self._close_peer_states()
+            self._close_background_listener()
 
     def _close_background_listener(self):
         self._logger.info("close background_listener")
@@ -179,16 +221,10 @@ class PeerCommunicator:
                 self._wait_for_condition(self._background_listener.is_ready_to_close,
                                          timeout_in_milliseconds=self._config.close_timeout_in_ms)
             if not is_ready_to_close:
-                raise TimeoutError("Timeout expired, could not gracefully close PeerCommuincator.")
+                raise TimeoutError("Timeout expired, could not gracefully close PeerCommunicator.")
         finally:
             self._background_listener.close()
             self._background_listener = None
-
-    def _close_peer_states(self):
-        self._logger.info("close peer_states")
-        for peer_state_key in list(self._peer_states.keys()):
-            self._peer_states[peer_state_key].close()
-            del self._peer_states[peer_state_key]
 
     def __del__(self):
         self.close()

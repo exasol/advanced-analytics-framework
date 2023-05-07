@@ -1,42 +1,32 @@
-import pytest
+from typing import Type, get_args
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeerMessage, Message, PingMessage, \
-    CloseMessage, PayloadMessage, MyConnectionInfoMessage, ConnectionIsReadyMessage
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+import pytest
+from polyfactory.factories.pydantic_factory import ModelFactory
+from pydantic.fields import ModelField
+
+from exasol_advanced_analytics_framework.udf_communication.messages import *
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
 
-connection_info = ConnectionInfo(port=Port(port=10000), group_identifier="test",
-                                 ipaddress=IPAddress(ip_address="127.0.0.1"),
-                                 name="test")
-peer = Peer(connection_info=connection_info)
-
-messages = [
-    RegisterPeerMessage(peer=peer),
-    PingMessage(source=connection_info),
-    CloseMessage(),
-    PayloadMessage(source=connection_info),
-    MyConnectionInfoMessage(my_connection_info=connection_info),
-    ConnectionIsReadyMessage(peer=peer)
-]
+base_message_subclasses = BaseMessage.__subclasses__()
 
 
-@pytest.mark.parametrize(
-    "message",
-    [message for message in messages],
-    ids=[message.__class__.__name__ for message in messages]
-)
-def test_message_serialization(message):
+@pytest.mark.parametrize("message_class", base_message_subclasses)
+def test_message_serialization(message_class: Type):
+    factory = ModelFactory.create_factory(model=message_class)
+    message = factory.build()
     byte_string = serialize_message(message)
     obj = deserialize_message(byte_string, Message)
     assert message == obj.__root__
 
 
-@pytest.mark.parametrize(
-    "message",
-    [message for message in messages],
-    ids=[message.__class__.__name__ for message in messages]
-)
-def test_message_has_message_type(message):
+@pytest.mark.parametrize("message_class", base_message_subclasses)
+def test_message_type(message_class: Type):
+    factory = ModelFactory.create_factory(model=message_class)
+    message = factory.build()
     assert "message_type" in message.__dict__ and message.message_type == message.__class__.__name__
+
+
+def test_all_base_message_subclasses_are_registered_in_root_field_of_message():
+    root_field: ModelField = Message.__fields__["__root__"]
+    classes_in_root_field = list(get_args(root_field.type_))
+    assert classes_in_root_field == base_message_subclasses

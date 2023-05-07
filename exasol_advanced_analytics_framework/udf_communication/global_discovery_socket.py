@@ -1,6 +1,4 @@
 import socket
-import time
-from typing import Optional
 
 import structlog
 from structlog.typing import FilteringBoundLogger

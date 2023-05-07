@@ -1,3 +1,5 @@
+from typing import List
+
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -7,7 +9,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory \
+    import SocketFactory, Frame
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -29,6 +32,11 @@ class Sender:
         with self._send_socket_factory.create_send_socket() as send_socket:
             serialized_message = serialize_message(message.__root__)
             send_socket.send(serialized_message)
+            send_socket.close(self._send_socket_linger_time_in_ms)
+
+    def send_multipart(self, frames: List[Frame]):
+        with self._send_socket_factory.create_send_socket() as send_socket:
+            send_socket.send_multipart(frames)
             send_socket.close(self._send_socket_linger_time_in_ms)
 
 
