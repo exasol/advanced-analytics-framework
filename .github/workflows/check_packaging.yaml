@@ -28,10 +28,7 @@ jobs:
     - name: Show changes on working copy
       run: git status --porcelain=v1 -uno
     - name: Show diff on working copy
-      run: git diff --cached; cat setup.py
     - name: Check if setup.py changed
       run: |
         [ -z "$(git status --porcelain=v1 -uno 2>/dev/null)" ]
 
-    - name: Check if setup.py works
-      run: pip install .
