@@ -1,6 +1,9 @@
 name: Check packaging of the python package
 
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - main
 
 jobs:
   check_packaging:
