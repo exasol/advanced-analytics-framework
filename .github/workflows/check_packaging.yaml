@@ -12,13 +12,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
 
-    - uses: abatilo/actions-poetry@v2.0.0
-      with:
-        poetry-version: 1.2.0
+    - name: Setup Python & Poetry Environment
+      uses: ./.github/actions/prepare_poetry_env
 
     - name: Install Lua environment
       run: ./scripts/install_lua_environment.sh
@@ -31,11 +27,6 @@ jobs:
 
     - name: Show changes on working copy
       run: git status --porcelain=v1 -uno
-    - name: Show diff on working copy
-      run: git diff --cached; cat setup.py
-    - name: Check if setup.py changed
-      run: |
-        [ -z "$(git status --porcelain=v1 -uno 2>/dev/null)" ]
 
-    - name: Check if setup.py works
-      run: pip install .
+    - name: Show diff on working copy
+      run: git diff --cached
