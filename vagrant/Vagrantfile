@@ -6,7 +6,6 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, guest: 8888, host: 8888
   config.vm.network :forwarded_port, guest: 6666, host: 6666
   config.vm.synced_folder "#{home_directory}", "/home/vagrant/", type: "rsync", rsync__exclude: "*", rsync__args: ["--verbose", "--archive", "--delete", "-z", "--links", "--include",".gitconfig",  "--include",".git-credentials"], rsync__verbose: true
-#  config.vm.synced_folder "#{gitcredentials_file}", "/home/vagrant/.git-credentials", type: "rsync"
   config.vm.synced_folder ".", "/home/vagrant/vagrant", type: "rsync", rsync__exclude: ".git/"
   config.vm.synced_folder "..", "/home/vagrant/project", type: "rsync", rsync__exclude: [".build_output", ".conda_env", ".luarocks"], rsync__args: ["--verbose", "--archive", "--delete", "-z", "--links"], rsync__verbose: true
 
