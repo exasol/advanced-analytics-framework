@@ -22,7 +22,7 @@ def test_create_socket_with():
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     with FISocket(socket_mock, 0.1, random_state_mock) as socket:
         pass
-    mock_cast(socket_mock.close).assert_called_once_with(linger=0)
+    mock_cast(socket_mock.close).assert_called_once_with(linger=None)
 
 
 def test_socket_send_fault():
@@ -204,7 +204,7 @@ def test_exit_linger():
     socket_mock: Union[zmq.Socket, MagicMock] = create_autospec(zmq.Socket)
     with ZMQSocket(socket_mock) as socket:
         pass
-    mock_cast(socket_mock.close).assert_called_once_with(linger=0)
+    mock_cast(socket_mock.close).assert_called_once_with(linger=None)
 
 
 def test_del():
@@ -212,4 +212,4 @@ def test_del():
     socket = ZMQSocket(socket_mock)
     with pytest.warns(ResourceWarning):
         del socket
-    mock_cast(socket_mock.close).assert_called_once_with(linger=0)
+    mock_cast(socket_mock.close).assert_called_once_with(linger=None)

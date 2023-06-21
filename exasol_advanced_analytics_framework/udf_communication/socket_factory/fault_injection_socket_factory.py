@@ -27,6 +27,11 @@ class FISocket(Socket):
         if not (send_fault_probability >= 0 and send_fault_probability < 1):
             raise ValueError(
                 f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}.")
+        self._logger = LOGGER.bind(
+            module_name=__name__,
+            clazz=self.__class__.__name__,
+            socket=str(self)
+        )
         self._send_fault_probability = send_fault_probability
         self._internal_socket = internal_socket
         self._is_inproc = False
@@ -42,7 +47,7 @@ class FISocket(Socket):
         if not self._is_fault():
             self._internal_socket.send(message)
         else:
-            LOGGER.info("Fault injected", message=message)
+            self._logger.info("Fault injected", message=message)
 
     def receive(self) -> bytes:
         message = self._internal_socket.receive()
@@ -63,7 +68,7 @@ class FISocket(Socket):
             converted_message = [convert_frame(frame) for frame in message]
             self._internal_socket.send_multipart(converted_message)
         else:
-            LOGGER.info("Fault injected", message=message)
+            self._logger.info("Fault injected", message=message)
 
     def bind(self, address: str):
         if address.startswith("inproc"):
@@ -97,7 +102,7 @@ class FISocket(Socket):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close(linger=0)
+        self.close(linger=None)
 
     def __del__(self):
         if not self._closed:
@@ -109,7 +114,7 @@ class FISocket(Socket):
                     stacklevel=2,
                     source=self,
                 )
-            self.close(linger=0)
+            self.close(linger=None)
         del self._internal_socket
 
 

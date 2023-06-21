@@ -33,6 +33,12 @@ class BackgroundPeerState:
         self._socket_factory = socket_factory
         self._peer_can_receive_from_us = False
         self._last_send_ready_to_receive_timestamp_in_seconds: Optional[float] = None
+        self._logger = LOGGER.bind(
+            module_name=__name__,
+            clazz=self.__class__.__name__,
+            peer=self._peer,
+            my_connection_info=self._my_connection_info,
+        )
         self._create_receive_socket()
         self._send_we_are_ready_to_receive()
 
@@ -63,7 +69,7 @@ class BackgroundPeerState:
     def _send_are_you_ready_to_receive_if_necassary(self):
         if not self._peer_can_receive_from_us:
             if self._is_time_to_send_are_you_ready_to_receive():
-                LOGGER.info("Send AreYouReadyToReceiveMessage", peer=self._peer,
+                self._logger.info("Send AreYouReadyToReceiveMessage", peer=self._peer,
                             my_connection_info=self._my_connection_info)
                 message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
                 self._send(message)
