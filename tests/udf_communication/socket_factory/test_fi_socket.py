@@ -88,7 +88,7 @@ def test_socket_send_mulitpart_fault():
     mock_cast(socket_mock.send).assert_not_called()
 
 
-def test_socket_send_mulitpart_fault_bind_inproc():
+def test_socket_send_mulitpart_should_be_fault_but_bind_inproc_is_reliable():
     socket_mock: Union[Socket, MagicMock] = create_autospec(Socket)
     frame_mock: Union[Frame, MagicMock] = create_autospec(Frame, spec_set=True)
     frame = FIFrame(frame_mock)
@@ -101,7 +101,7 @@ def test_socket_send_mulitpart_fault_bind_inproc():
     mock_cast(socket_mock.send_multipart).assert_called_once_with([frame_mock])
 
 
-def test_socket_send_mulitpart_fault_bind_random_port_inproc():
+def test_socket_send_mulitpart_should_be_fault_but_bind_random_port_inproc_is_reliable():
     socket_mock: Union[Socket, MagicMock] = create_autospec(Socket)
     frame_mock: Union[Frame, MagicMock] = create_autospec(Frame, spec_set=True)
     frame = FIFrame(frame_mock)
@@ -114,7 +114,7 @@ def test_socket_send_mulitpart_fault_bind_random_port_inproc():
     mock_cast(socket_mock.send_multipart).assert_called_once_with([frame_mock])
 
 
-def test_socket_send_mulitpart_fault_connect_inproc():
+def test_socket_send_mulitpart_should_be_fault_but_connect_inproc_is_reiliable():
     socket_mock: Union[Socket, MagicMock] = create_autospec(Socket)
     frame_mock: Union[Frame, MagicMock] = create_autospec(Frame, spec_set=True)
     frame = FIFrame(frame_mock)
