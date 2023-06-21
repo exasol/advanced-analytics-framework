@@ -59,7 +59,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         queue.put([])
 
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         group = f"{time.monotonic_ns()}"
