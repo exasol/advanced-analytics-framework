@@ -34,7 +34,7 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
     local_discovery_socket = LocalDiscoverySocket(Port(port=44444))
     listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()

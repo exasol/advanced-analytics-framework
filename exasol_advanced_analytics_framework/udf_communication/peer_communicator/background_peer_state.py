@@ -2,6 +2,9 @@ import contextlib
 import time
 from typing import Optional, Generator, List
 
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, WeAreReadyToReceiveMessage, \
     AreYouReadyToReceiveMessage, PeerIsReadyToReceiveMessage
@@ -11,6 +14,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
     SocketType, Socket, Frame
+
+LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 class BackgroundPeerState:
@@ -45,17 +50,21 @@ class BackgroundPeerState:
             yield send_socket
 
     def _is_time_to_send_are_you_ready_to_receive(self):
-        if self._last_send_ready_to_receive_timestamp_in_seconds:
-            current_timestamp_in_seconds = time.monotonic()
+        current_timestamp_in_seconds = time.monotonic()
+        if self._last_send_ready_to_receive_timestamp_in_seconds is not None:
             diff = current_timestamp_in_seconds - self._last_send_ready_to_receive_timestamp_in_seconds
             if diff > self._wait_time_between_reminder_in_seconds:
                 self._last_send_ready_to_receive_timestamp_in_seconds = current_timestamp_in_seconds
                 return True
+        else:
+            self._last_send_ready_to_receive_timestamp_in_seconds = current_timestamp_in_seconds
         return False
 
     def _send_are_you_ready_to_receive_if_necassary(self):
         if not self._peer_can_receive_from_us:
             if self._is_time_to_send_are_you_ready_to_receive():
+                LOGGER.info("Send AreYouReadyToReceiveMessage", peer=self._peer,
+                            my_connection_info=self._my_connection_info)
                 message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
                 self._send(message)
 

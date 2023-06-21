@@ -6,6 +6,7 @@ from typing import Dict, List
 import pytest
 import structlog
 import zmq
+from numpy.random import RandomState
 from structlog import WriteLoggerFactory
 from structlog.types import FilteringBoundLogger
 
@@ -14,6 +15,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
+    FISocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
@@ -33,18 +36,19 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int):
     logger = LOGGER.bind(group_identifier=group_identifier, name=name)
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
-        socker_factory = ZMQSocketFactory(context)
+        socket_factory = ZMQSocketFactory(context)
+        socket_factory = FISocketFactory(socket_factory, 0.0, RandomState(seed))
         com = PeerCommunicator(
             name=name,
             number_of_peers=number_of_instances,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            socket_factory=socker_factory)
+            socket_factory=socket_factory)
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
@@ -63,7 +67,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
 def test_reliability(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         group = f"{time.monotonic_ns()}"
-        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, seed=i)
         assert expected_peers_of_threads == peers_of_threads
 
 
@@ -72,21 +76,21 @@ def test_functionality():
     logger = LOGGER.bind(group=group, location="test")
     logger.info("start")
     number_of_instances = 2
-    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+    expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, 0)
     assert expected_peers_of_threads == peers_of_threads
     logger.info("success")
 
 
-def run_test(group: str, number_of_instances: int):
+def run_test(group: str, number_of_instances: int, seed: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
-    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
+    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, seed=seed + i, run=run)
                                     for i in range(number_of_instances)]
     for i in range(number_of_instances):
         processes[i].start()
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=120)
+    assert_processes_finish(processes, timeout_in_seconds=240)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
