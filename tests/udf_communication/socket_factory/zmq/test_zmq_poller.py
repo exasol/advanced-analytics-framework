@@ -1,9 +1,8 @@
 import zmq
 
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketType, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketType, \
     PollerFlag
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory, \
-    ZMQPoller
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 
 
 def test_create_poller():

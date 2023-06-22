@@ -1,4 +1,3 @@
-import random
 import time
 from pathlib import Path
 from typing import Dict, Set, List
@@ -11,8 +10,7 @@ from structlog import WriteLoggerFactory
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Frame
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -29,7 +27,7 @@ structlog.configure(
 )
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed:int=0):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
     listen_ip = IPAddress(ip_address=f"127.1.0.1")
     context = zmq.Context()
     socker_factory = ZMQSocketFactory(context)

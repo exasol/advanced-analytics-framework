@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
     get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, Frame
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
@@ -70,7 +70,7 @@ class BackgroundPeerState:
         if not self._peer_can_receive_from_us:
             if self._is_time_to_send_are_you_ready_to_receive():
                 self._logger.info("Send AreYouReadyToReceiveMessage", peer=self._peer,
-                            my_connection_info=self._my_connection_info)
+                                  my_connection_info=self._my_connection_info)
                 message = Message(__root__=AreYouReadyToReceiveMessage(source=self._my_connection_info))
                 self._send(message)
 
