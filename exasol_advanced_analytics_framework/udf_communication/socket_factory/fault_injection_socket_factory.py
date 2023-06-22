@@ -47,7 +47,7 @@ class FISocket(Socket):
         if self._is_fault():
             self._logger.info("Fault injected", message=message)
             return
-         self._internal_socket.send(message)
+        self._internal_socket.send(message)
 
 
     def receive(self) -> bytes:
