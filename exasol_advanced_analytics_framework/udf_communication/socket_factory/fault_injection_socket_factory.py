@@ -49,7 +49,6 @@ class FISocket(Socket):
             return
         self._internal_socket.send(message)
 
-
     def receive(self) -> bytes:
         message = self._internal_socket.receive()
         return message
@@ -64,23 +63,26 @@ class FISocket(Socket):
             if not isinstance(frame, FIFrame):
                 raise TypeError(f"Frame type not supported, {frame}")
             return frame._internal_frame
+
         if self._is_fault():
             self._logger.info("Fault injected", message=message)
             return
         converted_message = [convert_frame(frame) for frame in message]
         self._internal_socket.send_multipart(converted_message)
 
+    def _is_address_inproc(self, address):
+        return address.startswith("inproc")
+
     def bind(self, address: str):
-        if address.startswith("inproc"):
-            self._is_inproc = True
+        self._is_inproc = self._is_address_inproc(address)
         self._internal_socket.bind(address)
 
     def bind_to_random_port(self, address: str) -> int:
-        self._is_inproc = address.startswith("inproc")
+        self._is_inproc = self._is_address_inproc(address)
         return self._internal_socket.bind_to_random_port(address)
 
     def connect(self, address: str):
-        self._is_inproc = address.startswith("inproc")
+        self._is_inproc = self._is_address_inproc(address)
         self._internal_socket.connect(address)
 
     def poll(self,
