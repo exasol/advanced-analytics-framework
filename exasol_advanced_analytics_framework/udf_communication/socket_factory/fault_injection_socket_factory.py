@@ -44,10 +44,11 @@ class FISocket(Socket):
         return is_fault
 
     def send(self, message: bytes):
-        if not self._is_fault():
-            self._internal_socket.send(message)
-        else:
+        if self._is_fault():
             self._logger.info("Fault injected", message=message)
+            return
+         self._internal_socket.send(message)
+
 
     def receive(self) -> bytes:
         message = self._internal_socket.receive()
@@ -59,16 +60,15 @@ class FISocket(Socket):
         return converted_message
 
     def send_multipart(self, message: List[Frame]):
-        if not self._is_fault():
-            def convert_frame(frame: Frame):
-                if not isinstance(frame, FIFrame):
-                    raise TypeError(f"Frame type not supported, {frame}")
-                return frame._internal_frame
-
-            converted_message = [convert_frame(frame) for frame in message]
-            self._internal_socket.send_multipart(converted_message)
-        else:
+        def convert_frame(frame: Frame):
+            if not isinstance(frame, FIFrame):
+                raise TypeError(f"Frame type not supported, {frame}")
+            return frame._internal_frame
+        if self._is_fault():
             self._logger.info("Fault injected", message=message)
+            return
+        converted_message = [convert_frame(frame) for frame in message]
+        self._internal_socket.send_multipart(converted_message)
 
     def bind(self, address: str):
         if address.startswith("inproc"):
@@ -76,13 +76,11 @@ class FISocket(Socket):
         self._internal_socket.bind(address)
 
     def bind_to_random_port(self, address: str) -> int:
-        if address.startswith("inproc"):
-            self._is_inproc = True
+        self._is_inproc = address.startswith("inproc")
         return self._internal_socket.bind_to_random_port(address)
 
     def connect(self, address: str):
-        if address.startswith("inproc"):
-            self._is_inproc = True
+        self._is_inproc = address.startswith("inproc")
         self._internal_socket.connect(address)
 
     def poll(self,
