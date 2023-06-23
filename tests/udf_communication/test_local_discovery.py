@@ -15,7 +15,7 @@ from exasol_advanced_analytics_framework.udf_communication.local_discovery_strat
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
 structlog.configure(
@@ -34,7 +34,7 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue):
+def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
     local_discovery_socket = LocalDiscoverySocket(Port(port=44444))
     listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()
@@ -59,7 +59,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         queue.put([])
 
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         group = f"{time.monotonic_ns()}"

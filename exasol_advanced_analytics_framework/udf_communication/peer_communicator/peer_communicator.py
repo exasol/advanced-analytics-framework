@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
     BackgroundListenerInterface
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     Frame
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()

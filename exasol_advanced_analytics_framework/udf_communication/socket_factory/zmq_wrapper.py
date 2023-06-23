@@ -2,7 +2,7 @@ from typing import Union, List, Set, Optional, Dict
 from warnings import warn
 import zmq
 
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Frame, Socket, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Frame, Socket, \
     PollerFlag, Poller, SocketFactory, SocketType
 
 

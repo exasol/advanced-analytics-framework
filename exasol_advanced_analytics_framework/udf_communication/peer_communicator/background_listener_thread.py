@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
@@ -100,6 +100,9 @@ class BackgroundListenerThread:
                 if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
                     message = self._listener_socket.receive_multipart()
                     self._handle_listener_message(message)
+                if self._status == BackgroundListenerThread.Status.RUNNING:
+                    for peer_state in self._peer_state.values():
+                        peer_state._send_are_you_ready_to_receive_if_necassary()
         except Exception as e:
             log.exception("Exception", exception=traceback.format_exc())
 
