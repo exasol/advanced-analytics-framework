@@ -1,25 +1,23 @@
 import dataclasses
-from typing import Union, cast, Any, List, Iterator
+from typing import Union, cast, Any
 from unittest.mock import MagicMock, Mock, create_autospec, call
+
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
+    SocketFactory, SocketType
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import SynchronizeConnectionMessage, \
-    AcknowledgeConnectionMessage, Message
+from exasol_advanced_analytics_framework.udf_communication.messages import AcknowledgeConnectionMessage, Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
     PeerIsReadySender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSender
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket, \
-    SocketFactory, SocketType
 
 
 def mock_cast(obj: Any) -> Mock:

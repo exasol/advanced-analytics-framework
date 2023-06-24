@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pee
     PeerIsReadySender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
 
 
 def mock_cast(obj: Any) -> Mock:

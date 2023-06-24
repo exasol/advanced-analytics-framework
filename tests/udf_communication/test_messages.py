@@ -3,7 +3,7 @@ import pytest
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeerMessage, Message, PingMessage, \
-    StopMessage, PayloadMessage, MyConnectionInfoMessage, WeAreReadyToReceiveMessage, AreYouReadyToReceiveMessage, \
+    StopMessage, PayloadMessage, MyConnectionInfoMessage, \
     PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
@@ -19,8 +19,6 @@ messages = [
     StopMessage(),
     PayloadMessage(source=connection_info),
     MyConnectionInfoMessage(my_connection_info=connection_info),
-    WeAreReadyToReceiveMessage(source=connection_info),
-    AreYouReadyToReceiveMessage(source=connection_info),
     PeerIsReadyToReceiveMessage(peer=peer)
 ]
 
@@ -34,6 +32,7 @@ def test_message_serialization(message):
     byte_string = serialize_message(message)
     obj = deserialize_message(byte_string, Message)
     assert message == obj.__root__
+
 
 @pytest.mark.parametrize(
     "message",

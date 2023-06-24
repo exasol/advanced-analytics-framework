@@ -1,5 +1,4 @@
 import enum
-import traceback
 from typing import Dict, List
 
 import structlog

@@ -5,7 +5,6 @@ from typing import Dict, Set, List
 import pytest
 import structlog
 import zmq
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
 from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger

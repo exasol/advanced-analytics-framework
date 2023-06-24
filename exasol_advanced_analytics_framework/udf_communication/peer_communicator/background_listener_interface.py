@@ -1,5 +1,4 @@
 import threading
-import traceback
 from typing import Optional, Iterator
 
 import structlog
