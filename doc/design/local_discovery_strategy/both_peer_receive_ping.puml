@@ -1,0 +1,36 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+!include ../legend.puml
+
+box "Peer1"
+    participant "Frontend" as Peer1Frontend
+    participant "DiscoveryStrategy" as Peer1DiscoveryStrategy
+end box
+
+box "Peer2"
+    participant "DiscoveryStrategy" as Peer2DiscoveryStrategy
+    participant "Frontend" as Peer2Frontend
+end box
+
+par
+    loop are_all_peers_connected()
+        Peer1DiscoveryStrategy -[$udp]>> Peer2DiscoveryStrategy: PingMessage
+        Peer2DiscoveryStrategy -[$method_call]> Peer2Frontend: register_peer()
+        return
+        ref over Peer1Frontend, Peer2Frontend: Establish Connection
+        Peer2DiscoveryStrategy -[$method_call]> Peer2Frontend: are_all_peers_connected()
+        return
+    end
+else
+    loop are_all_peers_connected()
+        Peer1DiscoveryStrategy <<[$udp]- Peer2DiscoveryStrategy: PingMessage
+        Peer1DiscoveryStrategy -[$method_call]> Peer1Frontend: register_peer()
+        return
+        ref over Peer1Frontend, Peer2Frontend: Establish Connection
+        Peer1DiscoveryStrategy -[$method_call]> Peer1Frontend: are_all_peers_connected()
+        return
+    end
+end
+
+@enduml

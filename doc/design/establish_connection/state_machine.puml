@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+[*] --> PeerIsRegistered : received RegisterPeerMessage / \n send SynchronizeConnectionMessage
+[*] --> ReceivedSynchronizeConnectionMessage : received SynchronizeConnectionMessage / \n send SynchronizeConnectionMessage \n send AcknowledgeConnectionMessage
+PeerIsRegistered --> ReceivedSynchronizeConnectionMessage : received SynchronizeConnectionMessage \n send AcknowledgeConnectionMessage
+PeerIsRegistered --> ReceivedAcknowledgeConnectionMessage : received AcknowledgeConnectionMessage
+
+ReceivedSynchronizeConnectionMessage --> PeerIsReady : received AcknowledgeConnectionMessage
+
+PeerIsRegistered -> PeerIsRegistered : Timeout / \n send SynchronizeConnectionMessage
+
+ReceivedSynchronizeConnectionMessage --> ReceivedSynchronizeConnectionMessage : Timeout / \n send SynchronizeConnectionMessage
+ReceivedSynchronizeConnectionMessage --> PeerIsReady : Waited a while
+
+ReceivedAcknowledgeConnectionMessage --> PeerIsReady : received SynchronizeConnectionMessage \n send AcknowledgeConnectionMessage
+ReceivedAcknowledgeConnectionMessage --> PeerIsReady : Waited a while
+@enduml
