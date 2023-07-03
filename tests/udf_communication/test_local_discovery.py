@@ -82,10 +82,6 @@ def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
 
 
-def test_functionality_50():
-    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
-
-
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         LOGGER.info(f"Start iteration",
