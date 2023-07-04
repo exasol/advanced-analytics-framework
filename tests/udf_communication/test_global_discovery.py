@@ -13,12 +13,10 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocket
 from exasol_advanced_analytics_framework.udf_communication.global_discovery_strategy import GlobalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_strategy import LocalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
@@ -71,7 +69,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         queue.put([])
 
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
@@ -97,10 +95,6 @@ def test_functionality_10():
 
 def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_50():
-    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):

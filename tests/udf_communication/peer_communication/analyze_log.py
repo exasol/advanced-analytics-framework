@@ -1,4 +1,5 @@
 import json
+import sys
 from collections import defaultdict, Counter
 from pathlib import Path
 from typing import Dict, List, Callable
@@ -23,7 +24,7 @@ def is_connection_acknowledged(line: Dict[str, str]):
 def is_connection_synchronized(line: Dict[str, str]):
     return line["module"] == "background_peer_state" and line["event"] == "received_synchronize_connection"
 
-def is__register_peer_acknowledged(line: Dict[str, str]):
+def is_register_peer_acknowledged(line: Dict[str, str]):
     return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_register_peer"
 
 def is_register_peer_complete(line: Dict[str, str]):
@@ -43,7 +44,7 @@ def print_source_target_interaction(group_source_target_map):
         "is_peer_ready": is_peer_ready,
         "is_connection_acknowledged": is_connection_acknowledged,
         "is_connection_synchronized": is_connection_synchronized,
-        "is__register_peer_acknowledged": is__register_peer_acknowledged,
+        "is_register_peer_acknowledged": is_register_peer_acknowledged,
         "is_register_peer_complete": is_register_peer_complete
     }
     for group, sources in group_source_target_map.items():
@@ -124,7 +125,6 @@ def analyze_close(log_file_path: Path):
 
 
 if __name__ == "__main__":
-    root = Path(__file__).parent
-    log_file_path = root / "test_add_peer_forward.log"
+    log_file_path=Path(sys.argv[1]).absolute()
     analyze_source_target_interaction(log_file_path)
     analyze_close(log_file_path)

@@ -25,7 +25,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sen
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSender, SynchronizeConnectionSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
     SocketFactory, SocketType
 
 

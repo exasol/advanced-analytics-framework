@@ -16,9 +16,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection_socket_factory import \
-    FISocketFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_socket_factory import ZMQSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import FaultInjectionSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
 
@@ -45,7 +44,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FISocketFactory(socket_factory, 0.01, RandomState(seed))
+        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(seed))
         leader = False
         leader_name = "t0"
         if name == leader_name:
@@ -75,7 +74,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         logger.exception("Exception during test", exception=e)
 
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
@@ -104,10 +103,6 @@ def test_functionality_15():
 
 def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_50():
-    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):

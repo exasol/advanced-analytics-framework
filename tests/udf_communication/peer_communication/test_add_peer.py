@@ -28,7 +28,7 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        ConditionalMethodDropper(method_name="debug"),
+        #ConditionalMethodDropper(method_name="debug"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),

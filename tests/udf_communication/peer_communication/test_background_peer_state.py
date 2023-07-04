@@ -2,13 +2,14 @@ import dataclasses
 from typing import Union, cast, Any
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
-
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import AcknowledgeConnectionMessage, Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.acknowledge_register_peer_sender import \
+    AcknowledgeRegisterPeerSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \

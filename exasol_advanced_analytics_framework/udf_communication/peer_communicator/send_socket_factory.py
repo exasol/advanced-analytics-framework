@@ -5,7 +5,7 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     Socket, SocketType
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
