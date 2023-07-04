@@ -67,7 +67,7 @@ def test_init():
 def test_send_if_necessary_after_init_and_is_time_false():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = False
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.send_if_necessary()
 
@@ -80,7 +80,7 @@ def test_send_if_necessary_after_init_and_is_time_false():
 def test_send_if_necessary_after_init_and_is_time_false_and_force():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = False
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.send_if_necessary(force=True)
 
@@ -100,7 +100,7 @@ def test_send_if_necessary_after_init_and_is_time_false_and_force():
 def test_send_if_necessary_after_init_and_is_time_true():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.send_if_necessary()
 
@@ -121,7 +121,7 @@ def test_send_if_necessary_twice_and_is_time_true():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.synchronize_connection_sender.send_if_necessary()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.send_if_necessary()
 
@@ -141,7 +141,7 @@ def test_send_if_necessary_twice_and_is_time_true():
 def test_received_acknowledge_connection_after_init():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.stop()
 
@@ -155,7 +155,7 @@ def test_received_acknowledge_connection_after_send():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.synchronize_connection_sender.send_if_necessary()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.stop()
 
@@ -169,7 +169,7 @@ def test_send_if_necessary_after_received_acknowledge_connection_and_is_time_tru
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.synchronize_connection_sender.stop()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.send_if_necessary()
 

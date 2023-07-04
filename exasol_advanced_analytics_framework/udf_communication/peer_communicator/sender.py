@@ -34,11 +34,10 @@ class Sender:
         try:
             send_socket = self._socket_factory.create_socket(SocketType.DEALER)
             send_socket.connect(
-                f"tcp://{ip}:{port}".format(
+                "tcp://{ip}:{port}".format(
                     ip=self._peer.connection_info.ipaddress.ip_address,
                     port=self._peer.connection_info.port.port
-                )
-
+                ))
             return send_socket
         except Exception:
             send_socket.close()

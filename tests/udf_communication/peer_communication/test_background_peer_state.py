@@ -108,7 +108,7 @@ def test_init():
 
 def test_resend():
     test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
     test_setup.background_peer_state.resend_if_necessary()
     assert (
             test_setup.synchronize_connection_sender_mock.mock_calls == [call.send_if_necessary()]
@@ -122,7 +122,7 @@ def test_resend():
 
 def test_received_synchronize_connection():
     test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
     test_setup.background_peer_state.received_synchronize_connection()
     assert (
             test_setup.synchronize_connection_sender_mock.mock_calls == []
@@ -137,7 +137,7 @@ def test_received_synchronize_connection():
 
 def test_received_acknowledge_connection():
     test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup.reset_mocks()
     test_setup.background_peer_state.received_acknowledge_connection()
     assert (
             test_setup.synchronize_connection_sender_mock.mock_calls == [call.stop()]
