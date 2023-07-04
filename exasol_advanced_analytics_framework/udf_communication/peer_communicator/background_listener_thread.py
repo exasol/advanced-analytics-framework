@@ -150,8 +150,9 @@ class BackgroundListenerThread:
         logger = self._logger.bind(
             sender=message[0].to_bytes()
         )
+        message_content_bytes = message[1].to_bytes()
         try:
-            message_obj: Message = deserialize_message(message[1].to_bytes(), Message)
+            message_obj: Message = deserialize_message(message_content_bytes, Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, SynchronizeConnectionMessage):
                 self._handle_synchronize_connection(specific_message_obj)
@@ -162,7 +163,7 @@ class BackgroundListenerThread:
             else:
                 logger.error("Unknown message type", message=specific_message_obj.dict())
         except Exception as e:
-            logger.exception("Exception during handling message", message=message[1].to_bytes())
+            logger.exception("Exception during handling message", message_content=message_content_bytes)
 
     def _handle_payload_message(self, message: PayloadMessage, frames: List[Frame]):
         peer = Peer(connection_info=message.source)
