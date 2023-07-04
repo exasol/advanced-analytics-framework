@@ -109,19 +109,9 @@ class BackgroundListenerThread:
                 if self._status == BackgroundListenerThread.Status.RUNNING:
                     for peer_state in self._peer_state.values():
                         peer_state.resend_if_necessary()
-            self.consume_remaining_messages()
         except Exception as e:
             self._logger.exception("Exception in message loop")
 
-    def consume_remaining_messages(self):
-        while True:
-            poll = self.poller.poll(timeout_in_ms=0)
-            if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-                _ = self._in_control_socket.receive()
-            if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
-                _ = self._listener_socket.receive_multipart()
-            if len(poll) == 0:
-                break
 
     def _handle_control_message(self, message: bytes) -> Status:
         try:
