@@ -69,18 +69,18 @@ class PeerCommunicator:
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
-        if not self._are_all_peers_connected():
-            for message in self._background_listener.receive_messages(timeout_in_milliseconds):
-                if isinstance(message, PeerIsReadyToReceiveMessage):
-                    peer = message.peer
-                    self._add_peer_state(peer)
-                    self._peer_states[peer].received_peer_is_ready_to_receive()
-                elif isinstance(message, TimeoutMessage):
-                    raise TimeoutError()
-                else:
-                    self._logger.error(
-                        "Unknown message",
-                        message=message.dict())
+        if self._are_all_peers_connected():
+            return
+
+        for message in self._background_listener.receive_messages(timeout_in_milliseconds):
+            if isinstance(message, PeerIsReadyToReceiveMessage):
+                peer = message.peer
+                self._add_peer_state(peer)
+                self._peer_states[peer].received_peer_is_ready_to_receive()
+            elif isinstance(message, TimeoutMessage):
+                raise TimeoutError()
+            else:
+                self._logger.error("Unknown message", message=message.dict())
 
     def _add_peer_state(self, peer):
         if peer not in self._peer_states:
