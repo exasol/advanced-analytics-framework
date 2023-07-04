@@ -21,7 +21,7 @@ class TestSetup:
     sender_mock: Union[MagicMock, Sender]
     synchronize_connection_sender: SynchronizeConnectionSender
 
-    def reset_mock(self):
+    def reset_mocks(self):
         self.sender_mock.reset_mock()
         self.timer_mock.reset_mock()
 

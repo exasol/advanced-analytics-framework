@@ -163,7 +163,6 @@ def test_send_if_necessary_after_enable_and_is_time_true_twice():
 
 def test_reset_timer():
     test_setup = create_test_setup()
-    print(test_setup.timer_mock.mock_calls)
     test_setup.peer_is_ready_sender.reset_timer()
     assert (
             test_setup.out_control_socket_mock.mock_calls == []

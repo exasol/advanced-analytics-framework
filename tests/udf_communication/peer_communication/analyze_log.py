@@ -12,15 +12,15 @@ def is_log_sequence_ok(lines: List[Dict[str, str]], line_predicate: Callable[[Di
     return result
 
 
-def is_peer_is_ready_send(line: Dict[str, str]):
+def is_peer_ready_to_send(line: Dict[str, str]):
     return line["module"] == "peer_is_ready_sender" and line["event"] == "send"
 
 
-def is_received_acknowledge_connection(line: Dict[str, str]):
+def is_connection_acknowledged(line: Dict[str, str]):
     return line["module"] == "background_peer_state" and line["event"] == "received_acknowledge_connection"
 
 
-def is_received_synchronize_connection(line: Dict[str, str]):
+def is_connection_synchronized(line: Dict[str, str]):
     return line["module"] == "background_peer_state" and line["event"] == "received_synchronize_connection"
 
 

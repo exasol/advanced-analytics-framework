@@ -36,13 +36,17 @@ class TestSetup:
     synchronize_connection_sender_mock: Union[MagicMock, SynchronizeConnectionSender]
     background_peer_state: BackgroundPeerState
 
-    def reset_mock(self):
-        self.abort_timeout_sender_mock.reset_mock()
-        self.synchronize_connection_sender_mock.reset_mock()
-        self.peer_is_ready_sender_mock.reset_mock()
-        self.sender_mock.reset_mock()
-        self.receive_socket_mock.reset_mock()
-        self.socket_factory_mock.reset_mock()
+    def reset_mocks(self):
+        mocks = (
+            self.abort_timeout_sender_mock,
+            self.synchronize_connection_sender_mock,
+            self.peer_is_ready_sender_mock,
+            self.sender_mock,
+            self.receive_socket_mock,
+            self.socket_factory_mock,
+        )
+        for mock in mocks:
+            mock.reset_mock()
 
 
 def create_test_setup() -> TestSetup:
