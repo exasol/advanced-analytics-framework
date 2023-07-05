@@ -12,7 +12,7 @@ def is_log_sequence_ok(lines: List[Dict[str, str]], line_predicate: Callable[[Di
     return result
 
 
-def is_peer_ready_to_send(line: Dict[str, str]):
+def is_peer_ready(line: Dict[str, str]):
     return line["module"] == "peer_is_ready_sender" and line["event"] == "send"
 
 
@@ -35,9 +35,9 @@ def analyze_source_target_interaction():
 
 def print_source_target_interaction(group_source_target_map):
     predicates = {
-        "is_peer_is_ready_send": is_peer_is_ready_send,
-        "is_received_acknowledge_connection": is_received_acknowledge_connection,
-        "is_received_synchronize_connection": is_received_synchronize_connection
+        "is_peer_ready": is_peer_ready,
+        "is_connection_acknowledged": is_connection_acknowledged,
+        "is_connection_synchronized": is_connection_synchronized
     }
     for group, sources in group_source_target_map.items():
         ok = Counter()
@@ -47,9 +47,9 @@ def print_source_target_interaction(group_source_target_map):
                 for predicate_name, predicate in predicates.items():
                     if not is_log_sequence_ok(lines, predicate):
                         print(f"========== {predicate_name}-{group}-{source}-{target} ============")
-                        not_ok[predicate_name] += 1
+                        not_ok.update((predicate_name,))
                     else:
-                        ok[predicate_name] += 1
+                        ok.update((predicate_name,))
         for predicate_name in predicates.keys():
             print(f"{group} {predicate_name} ok {ok[predicate_name]} not_ok {not_ok[predicate_name]}")
 
@@ -92,6 +92,10 @@ def collect_close(f, group_source_map):
 def print_close(group_source_map):
     for group, sources in group_source_map.items():
         for source, lines in sources.items():
+            # There are two steps for closing a test.
+            # First, closing the PeerCommunicator.
+            # Second, closing the zmq context.
+            # If we have more or less, something is off.
             if len(lines) != 2:
                 print(f"============== {group}-{source} ===============")
                 for line in lines:
