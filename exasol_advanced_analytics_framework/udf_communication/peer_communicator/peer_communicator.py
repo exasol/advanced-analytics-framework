@@ -6,10 +6,11 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage, TimeoutMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
@@ -36,35 +37,50 @@ class PeerCommunicator:
                  number_of_peers: int,
                  listen_ip: IPAddress,
                  group_identifier: str,
-                 socket_factory: SocketFactory):
+                 socket_factory: SocketFactory,
+                 poll_timeout_in_ms: int = 500,
+                 synchronize_timeout_in_ms: int = 1000,
+                 abort_timeout_in_ms: int = 120000,
+                 peer_is_ready_wait_time_in_ms: int = 2000,
+                 send_socket_linger_time_in_ms: int = 100,
+                 clock: Clock = Clock(),
+                 trace_logging: bool = False):
         self._socket_factory = socket_factory
         self._name = name
-        self._log_info = dict(module_name=__name__,
-                              clazz=self.__class__.__name__,
-                              name=self._name,
-                              group_identifier=group_identifier)
-        self._logger = LOGGER.bind(**self._log_info)
+        self._logger = LOGGER.bind(
+            name=self._name,
+            group_identifier=group_identifier
+        )
         self._number_of_peers = number_of_peers
         self._background_listener = BackgroundListenerInterface(
             name=self._name,
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
-            group_identifier=group_identifier)
+            group_identifier=group_identifier,
+            clock=clock,
+            poll_timeout_in_ms=poll_timeout_in_ms,
+            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
+            abort_timeout_in_ms=abort_timeout_in_ms,
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
+            trace_logging=trace_logging
+        )
         self._my_connection_info = self._background_listener.my_connection_info
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
-        if not self._are_all_peers_connected():
-            for message in self._background_listener.receive_messages(timeout_in_milliseconds):
-                if isinstance(message, PeerIsReadyToReceiveMessage):
-                    peer = message.peer
-                    self._add_peer_state(peer)
-                    self._peer_states[peer].received_peer_is_ready_to_receive()
-                else:
-                    self._logger.error(
-                        "Unknown message",
-                        location="_handle_messages",
-                        message=message.dict())
+        if self._are_all_peers_connected():
+            return
+
+        for message in self._background_listener.receive_messages(timeout_in_milliseconds):
+            if isinstance(message, PeerIsReadyToReceiveMessage):
+                peer = message.peer
+                self._add_peer_state(peer)
+                self._peer_states[peer].received_peer_is_ready_to_receive()
+            elif isinstance(message, TimeoutMessage):
+                raise TimeoutError()
+            else:
+                self._logger.error("Unknown message", message=message.dict())
 
     def _add_peer_state(self, peer):
         if peer not in self._peer_states:

@@ -1,4 +1,4 @@
-from typing import Literal, Union, ForwardRef, List, Optional
+from typing import Literal, Union
 
 from pydantic import BaseModel
 
@@ -35,14 +35,18 @@ class MyConnectionInfoMessage(BaseModel, frozen=True):
     my_connection_info: ConnectionInfo
 
 
-class WeAreReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["WeAreReadyToReceiveMessage"] = "WeAreReadyToReceiveMessage"
+class SynchronizeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["SynchronizeConnectionMessage"] = "SynchronizeConnectionMessage"
     source: ConnectionInfo
 
 
-class AreYouReadyToReceiveMessage(BaseModel, frozen=True):
-    message_type: Literal["AreYouReadyToReceiveMessage"] = "AreYouReadyToReceiveMessage"
+class AcknowledgeConnectionMessage(BaseModel, frozen=True):
+    message_type: Literal["AcknowledgeConnectionMessage"] = "AcknowledgeConnectionMessage"
     source: ConnectionInfo
+
+
+class TimeoutMessage(BaseModel, frozen=True):
+    message_type: Literal["TimeoutMessage"] = "TimeoutMessage"
 
 
 class Message(BaseModel, frozen=True):
@@ -52,7 +56,8 @@ class Message(BaseModel, frozen=True):
         StopMessage,
         PayloadMessage,
         MyConnectionInfoMessage,
-        WeAreReadyToReceiveMessage,
-        AreYouReadyToReceiveMessage,
-        PeerIsReadyToReceiveMessage
+        PeerIsReadyToReceiveMessage,
+        SynchronizeConnectionMessage,
+        AcknowledgeConnectionMessage,
+        TimeoutMessage
     ]

@@ -1,5 +1,4 @@
 import threading
-import traceback
 from typing import Optional, Iterator
 
 import structlog
@@ -12,6 +11,7 @@ from exasol_advanced_analytics_framework.udf_communication.messages import Messa
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
     BackgroundListenerThread
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag
@@ -25,11 +25,16 @@ class BackgroundListenerInterface:
                  name: str,
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
-                 group_identifier: str):
+                 group_identifier: str,
+                 clock: Clock,
+                 poll_timeout_in_ms: int,
+                 synchronize_timeout_in_ms: int,
+                 abort_timeout_in_ms: int,
+                 peer_is_ready_wait_time_in_ms: int,
+                 send_socket_linger_time_in_ms:int,
+                 trace_logging: bool):
         self._name = name
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             name=self._name,
             group_identifier=group_identifier
         )
@@ -43,6 +48,13 @@ class BackgroundListenerInterface:
             group_identifier=group_identifier,
             out_control_socket_address=out_control_socket_address,
             in_control_socket_address=in_control_socket_address,
+            clock=clock,
+            poll_timeout_in_ms=poll_timeout_in_ms,
+            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
+            abort_timeout_in_ms=abort_timeout_in_ms,
+            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
+            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
+            trace_logging=trace_logging
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
@@ -70,10 +82,7 @@ class BackgroundListenerInterface:
             assert isinstance(specific_message_obj, MyConnectionInfoMessage)
             self._my_connection_info = specific_message_obj.my_connection_info
         except Exception as e:
-            self._logger.exception("Exception",
-                                   location="_set_my_connection_info",
-                                   raw_message=message,
-                                   exception=traceback.format_exc())
+            self._logger.exception("Exception", raw_message=message)
 
     @property
     def my_connection_info(self) -> ConnectionInfo:
@@ -95,13 +104,9 @@ class BackgroundListenerInterface:
                 timeout_in_milliseconds = 0
                 yield specific_message_obj
             except Exception as e:
-                self._logger.exception("Exception",
-                                       location="receive_messages",
-                                       raw_message=message,
-                                       exception=traceback.format_exc())
+                self._logger.exception("Exception", raw_message=message)
 
     def close(self):
-        logger = self._logger.bind(location="close")
         self._logger.info("start")
         self._send_stop()
         self._thread.join()
@@ -110,5 +115,6 @@ class BackgroundListenerInterface:
         self._logger.info("end")
 
     def _send_stop(self):
+        self._logger.info("_send_stop")
         stop_message = StopMessage()
         self._in_control_socket.send(serialize_message(stop_message))

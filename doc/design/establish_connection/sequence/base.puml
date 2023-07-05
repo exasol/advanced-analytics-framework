@@ -1,0 +1,15 @@
+@startuml
+
+!include ../../legend.puml
+
+box "Peer1"
+    participant "Frontend" as Peer1Frontend
+    participant "Backend" as Peer1Backend
+end box
+
+box "Peer2"
+    participant "Backend" as Peer2Backend
+    participant "Frontend" as Peer2Frontend
+end box
+
+@enduml

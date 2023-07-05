@@ -32,8 +32,6 @@ class Socket(abstract.Socket):
             raise ValueError(
                 f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}.")
         self._logger = LOGGER.bind(
-            module_name=__name__,
-            clazz=self.__class__.__name__,
             socket=str(self)
         )
         self._send_fault_probability = send_fault_probability

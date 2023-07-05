@@ -1,80 +1,59 @@
 UDF Discovery and Communication
 ===============================
 
-===============
-Local Discovery
-===============
+===================
+Establish Connection
+===================
 
-*********
-Overview:
-*********
+* We use a protocol similar to the TCP Handshake for establishing the connection
+* However, our protocol has two different requirements compared to TCP:
 
-- UDP Broadcast for the initial `PingMessage` with connection information for the receiving socket of the reliable network
-- After receiving `PingMessage`:
+  * Two peers can establish the connection at the same time
+  * In case of lost messages, one of the peers in a connection can successful terminate
 
-  - Create sending socket for peer to its receiving socket of the reliable network
-  - Send a `ReadyToReceiveMessage` with our connection information including the receiving socket port
-    over our sending socket for it to inform the peer that we are ready to receive from it
+* To handle, these two requirements, we add the following modification:
 
-- After receiving `ReadyToReceiveMessage` on our receiving socket:
+  * We allow both peers to send a synchronize at the same time
+  * When a peer receives the `SynchronizeConnectionMessage` from the second peer
 
-  - If not yet discovered, we create a sending socket for the peer to its receiving socket of the reliable network
-  - Send a `ReadyToReceiveMessage` with our connection information including the receiving socket port
-    over our sending socket for it, in case we didn't get its `PingMessage`.
-  - If we didn't get a `ReadyToReceiveMessage` message after a certain time ,
-    yet, we send a `AreYouReadyToReceiveMessage` to a discovered peer
+    * It sends first a `SynchronizeConnectionMessage` and `AcknowledgeConnectionMessage` back
+    * It can mark the second peer as ready, after it waited for the peer_is_ready_wait_time
 
-    - This should prevent a stuck handshake if we should lose a `ReadyToReceiveMessage` for whatever reason
+* Both peers register each other:
 
-- After receiving `AreYouReadyToReceiveMessage`:
+.. image:: establish_connection/sequence/both_peers_receive_register_peer.png
 
-  - If not yet discovered, we create a sending socket for the peer to its receiving socket of the reliable network
-  - Send a `ReadyToReceiveMessage` with our connection information including the receiving socket port
-    over our sending socket for it, in case we didn't get its `PingMessage`.
+* One peer registers the other peer:
 
-.. image:: udf_communication_simple_overview.drawio.png
+.. image:: establish_connection/sequence/one_peer_receives_register_peer.png
 
-********
-Details:
-********
+* Both peers register each other, one peer loses the `SynchronizeConnectionMessage`:
 
-We separated the Local Discovery into two components. The component `LocalDiscoveryStrategy` implements
-the discovery via UDP Broadcast. The component `PeerCommunicator` handles the reliable network.
+.. image:: establish_connection/sequence/both_peers_receive_register_peer_one_peer_loses_synchonize.png
 
-If the `LocalDiscoveryStrategy` receives a `PingMessage` via UDP it registers the connection info for
-the reliable network of the peer with the `PeerCommunicator`.
+* Both peers register each other, both lose the `SynchronizeConnectionMessage`:
 
-The `PeerCommunicator` then handles the reliable network communication.
-This includes sending and receiving the `ReadyToReceiveMessage` or `AreYouReadyToReceiveMessage`.
-It also provides an interface for the user of the library to check if all peers are connected, which peers are there
-and to send and receive message from these peers.
+.. image:: establish_connection/sequence/both_peers_receive_register_peer_both_peers_lose_synchonize.png
 
-The `PeerCommunicator` can be used with different discovery strategies.
-The `LocalDiscoveryStrategy` is one, but the `GlobalDiscoveryStrategy` can use it as well
-to form the reliable networks between the leaders.
+* State diagram:
 
-The current implementation of the `PeerCommunicator` use `ZMQ` for the reliable communication,
-because it abstracts away the low-level network. It provides:
+.. image:: establish_connection/state_diagram.png
 
-- A message-based interface, instead the stream-based interface of TCP.
-- Asynchronous message queue, instead of synchronous TCP socket
+========================
+Local Discovery Strategy
+========================
 
-  - Being asynchronous means that the timings of the physical connection setup and tear down,
-    reconnect and effective delivery are transparent to the user and organized by ZeroMQ itself.
-  - Further, messages may be queued in the event that a peer is unavailable to receive them.
+- The Local Discovery Strategy sends `PingMessage` with connection information
+  for establishing the connection via UDP Broadcast.
+- When a peer receives a `PingMessage` from another peer.
+  it registers the other peer and treis to establish a connection
+- The strategy sends and receives UDP Broadcast messages until all other peers are connected
 
-We further split up the `PeerCommunicator` into a frontend which is called `PeerCommunicator`
-and a `BackgroundListener` which runs in a thread. The `BackgroundListener` is also split into the
-`BackgroundListenerInterface` and the `BackgroundListenerThread` to simplify the interaction between it
-and the `PeerCommunicator`
+* Both peers receive `PingMessage`:
 
-The `BackgroundListenerThread` listens for incoming messages from other peers or the frontend and
-forwards messages to the frontend.
+.. image:: establish_connection/both_peer_receive_ping.png
 
-Here a detailed overview of the information flow:
+* One peer receive `PingMessage`:
 
-.. image:: udf_communication_detail_overview.drawio.png
+.. image:: establish_connection/one_peer_receives_ping.png
 
-Here the state machines for the BackgroundListener and Frontend
-
-.. image:: peer_communicator_state_machine.drawio.png

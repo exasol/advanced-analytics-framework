@@ -1,4 +1,4 @@
-import time
+from typing import Union, Optional
 from typing import Union, Optional
 from unittest.mock import create_autospec, MagicMock
 
