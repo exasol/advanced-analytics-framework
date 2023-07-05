@@ -1,0 +1,65 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+!include ../legend.puml
+
+box Node1
+    participant "DiscoveryStrategy" as DiscoveryStrategy
+    participant "PeerCommunicator\n(Formation Leader)" as Peer1
+end box
+
+box Node2
+    participant "PeerCommunicator" as Peer2
+end box
+
+box Node3
+    participant "PeerCommunicator" as Peer3
+end box
+
+box Node4
+    participant "PeerCommunicator" as Peer4
+end box
+
+DiscoveryStrategy -> Peer1: RegisterPeerMessage(Peer2)
+par
+    ref over Peer1, Peer2: Establish Connection\nbetween Peer1 and Peer2
+else
+    DiscoveryStrategy -> Peer1: RegisterPeerMessage(Peer3)
+    par
+        par
+            Peer1 -> Peer2: RegisterPeerMessage(Peer3)
+            par
+                Peer1 <- Peer2: AcknowledgeRegisterPeerMessage(Peer3)
+                Peer1 -> Peer2: RegisterPeerCompleteMessage(Peer3)
+            else
+                ref over Peer2, Peer3: Establish Connection\nbetween Peer2 and Peer3
+            end
+        else
+            ref over Peer1, Peer3: Establish Connection\nbetween Peer1 and Peer3
+        end
+    else
+        DiscoveryStrategy -> Peer1: RegisterPeerMessage(Peer4)
+        par
+            Peer1 -> Peer2: RegisterPeerMessage(Peer4)
+            par
+                Peer2 -> Peer3: RegisterPeerMessage(Peer4)
+                par
+                    Peer2 <- Peer3: AcknowledgeRegisterPeerMessage(Peer4)
+                    Peer2 -> Peer3: RegisterPeerCompleteMessage(Peer4)
+                else
+                    ref over Peer3, Peer4: Establish Connection\nbetween Peer3 and Peer4
+                end
+            else
+                Peer1 <- Peer2: AcknowledgeRegisterPeerMessage(Peer4)
+                Peer1 -> Peer2: RegisterPeerCompleteMessage(Peer4)
+            else
+                ref over Peer2, Peer4: Establish Connection\nbetween Peer2 and Peer4
+            end
+        else
+            ref over Peer1, Peer4: Establish Connection\nbetween Peer1 and Peer4
+        end
+    end
+end
+
+
+@enduml
