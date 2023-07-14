@@ -56,14 +56,11 @@ class DiscoveryStrategy:
 
     def _receive_pings(self, begin_time_ns: int):
         timeout_in_seconds = self._compute_receive_timeout_in_seconds(begin_time_ns)
-        while True:
+        while not self._peer_communicator.are_all_peers_connected():
             serialized_message = self._receive_message(timeout_in_seconds)
-            if serialized_message is not None:
-                timeout_in_seconds = self._handle_serialized_message(serialized_message)
-                if self._peer_communicator.are_all_peers_connected():
-                    break
-            else:
+            if serialized_message is None:
                 break
+            timeout_in_seconds = self._handle_serialized_message(serialized_message)
 
     def _compute_receive_timeout_in_seconds(self, begin_time_ns: int) -> float:
         time_left_until_timeout_in_seconds = \
