@@ -1,10 +1,13 @@
 import socket
-import time
-from typing import Optional
+
+import structlog
+from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 
 NANO_SECOND = 10 ** -9
+
+LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 
 class GlobalDiscoverySocket:
@@ -12,12 +15,19 @@ class GlobalDiscoverySocket:
     def __init__(self, ip_address: IPAddress, port: Port):
         self._port = port
         self._ip_address = ip_address
+        self._logger = LOGGER.bind(
+            ip_address=ip_address.dict(),
+            port=port.dict()
+        )
+        self._logger.info("create")
         self._udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 
     def bind(self):
+        self._logger.info("bind")
         self._udp_socket.bind((self._ip_address.ip_address, self._port.port))
 
     def send(self, message: bytes):
+        self._logger.debug("send", message=message)
         self._udp_socket.sendto(message, (self._ip_address.ip_address, self._port.port))
 
     def recvfrom(self, timeout_in_seconds: float) -> bytes:
@@ -29,13 +39,15 @@ class GlobalDiscoverySocket:
         adjusted_timeout = timeout_in_seconds + NANO_SECOND
         self._udp_socket.settimeout(adjusted_timeout)
         data = self._udp_socket.recv(1024)
+        self._logger.debug("recvfrom", data=data)
         return data
 
     def close(self):
+        self._logger.info("close")
         try:
             self._udp_socket.close()
-        except:
-            pass
+        except Exception as e:
+            self._logger.exception("Catched exception during self._udp_socket.close")
 
     def __del__(self):
         self.close()
