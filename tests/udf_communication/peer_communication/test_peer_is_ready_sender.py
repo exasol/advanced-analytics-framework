@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, Mock, create_autospec, call
 
 import pytest
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -12,7 +13,6 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pee
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
-from tests.udf_communication.test_messages import messages
 
 
 def mock_cast(obj: Any) -> Mock:

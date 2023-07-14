@@ -1,3 +1,5 @@
+from enum import IntFlag, auto
+
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -11,8 +13,16 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class PeerIsReadySender:
+class _States(IntFlag):
+    INIT = auto()
+    CONNECTION_SYNCHRONIZED = auto()
+    CONNECTION_ACKNOWLEDGED = auto()
+    REGISTER_PEER_ACKNOWLEDGED = auto()
+    REGISTER_PEER_COMPLETED = auto()
+    FINISHED = auto()
 
+
+class PeerIsReadySender:
 
     def __init__(self,
                  out_control_socket: Socket,
@@ -26,44 +36,40 @@ class PeerIsReadySender:
         self._timer = timer
         self._peer = peer
         self._out_control_socket = out_control_socket
-        self._finished = False
-        self._received_synchronize_connection = False
-        self._received_acknowledge_connection = False
-        self._received_acknowledge_register_peer = False
-        self._received_register_peer_complete = False
+        self._states = _States.INIT
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
             my_connection_info=my_connection_info.dict(),
             needs_acknowledge_register_peer=self._needs_acknowledge_register_peer,
             needs_register_peer_complete=self._needs_register_peer_complete
         )
-        self._logger.debug("init")
+        self._logger.debug("init", states=self._states)
 
     def received_synchronize_connection(self):
-        self._logger.debug("received_synchronize_connection")
-        self._received_synchronize_connection = True
+        self._states |= _States.CONNECTION_SYNCHRONIZED
+        self._logger.debug("received_synchronize_connection", states=self._states)
 
     def received_acknowledge_register_peer(self):
-        self._logger.debug("received_acknowledge_register_peer")
-        self._received_acknowledge_register_peer = True
+        self._states |= _States.REGISTER_PEER_ACKNOWLEDGED
+        self._logger.debug("received_register_peer_complete", states=self._states)
 
     def received_acknowledge_connection(self):
-        self._logger.debug("received_acknowledge_connection")
-        self._received_acknowledge_connection = True
+        self._states |= _States.CONNECTION_ACKNOWLEDGED
+        self._logger.debug("received_register_peer_complete", states=self._states)
 
     def received_register_peer_complete(self):
-        self._logger.debug("received_register_peer_complete")
-        self._received_register_peer_complete = True
+        self._states |= _States.REGISTER_PEER_COMPLETED
+        self._logger.debug("received_register_peer_complete", states=self._states)
 
     def reset_timer(self):
-        self._logger.debug("reset_timer")
+        self._logger.debug("reset_timer", states=self._states)
         self._timer.reset_timer()
 
     def try_send(self):
-        self._logger.debug("try_send")
+        self._logger.debug("try_send", states=self._states)
         should_we_send = self._should_we_send()
         if should_we_send:
-            self._finished = True
+            self._states |= _States.FINISHED
             self._send_peer_is_ready_to_frontend()
 
     def _should_we_send(self):
@@ -71,7 +77,7 @@ class PeerIsReadySender:
         is_enabled = self._is_enabled()
         send_independent_of_time = self._send_independent_of_time()
         result = (
-                not self._finished
+                not _States.FINISHED in self._states
                 and (
                         (is_time and is_enabled) or
                         send_independent_of_time
@@ -84,26 +90,23 @@ class PeerIsReadySender:
                            send_independent_of_time=send_independent_of_time,
                            needs_acknowledge_register_peer=self._needs_acknowledge_register_peer,
                            needs_register_peer_complete=self._needs_register_peer_complete,
-                           received_acknowledge_register_peer=self._received_acknowledge_register_peer,
-                           received_register_peer_complete=self._received_register_peer_complete,
-                           received_synchronize_connection=self._received_synchronize_connection,
-                           received_acknowledge_connection=self._received_acknowledge_connection)
+                           states=self._states)
         return result
 
     def _send_independent_of_time(self):
         received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
-                                              or self._received_acknowledge_register_peer)
+                                              or _States.REGISTER_PEER_ACKNOWLEDGED in self._states)
         received_register_peer_complete = (not self._needs_register_peer_complete
-                                           or self._received_register_peer_complete)
-        send_independent_of_time = (self._received_acknowledge_connection
+                                           or _States.REGISTER_PEER_COMPLETED in self._states)
+        send_independent_of_time = (_States.CONNECTION_ACKNOWLEDGED in self._states
                                     and received_acknowledge_register_peer
                                     and received_register_peer_complete)
         return send_independent_of_time
 
     def _is_enabled(self):
         received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
-                                              or self._received_acknowledge_register_peer)
-        is_enabled = (self._received_synchronize_connection
+                                              or _States.REGISTER_PEER_ACKNOWLEDGED in self._states)
+        is_enabled = (_States.CONNECTION_SYNCHRONIZED in self._states
                       and received_acknowledge_register_peer)
         return is_enabled
 
