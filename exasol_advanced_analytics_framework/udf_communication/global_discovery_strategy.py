@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.serialization import 
 NANOSECONDS_PER_SECOND = 10 ** 9
 
 
-def _convert_to_ping_message(serialized_message: bytes) -> PingMessage:
+def _to_ping_message(serialized_message: bytes) -> PingMessage:
     ping_message = cast(PingMessage, deserialize_message(serialized_message, PingMessage))
     return ping_message
 

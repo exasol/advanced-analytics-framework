@@ -202,11 +202,16 @@ class BackgroundPeerState:
 
     def resend_if_necessary(self):
         self._logger.debug("resend_if_necessary")
-        self._register_peer_sender.try_send()
-        self._synchronize_connection_sender.try_send()
-        self._abort_timeout_sender.try_send()
-        self._peer_is_ready_sender.try_send()
-        self._acknowledge_register_peer_sender.try_send()
+        senders = [
+            self._register_peer_sender,
+            self._synchronize_connection_sender,
+            self._abort_timeout_sender,
+            self._peer_is_ready_sender,
+            self._acknowledge_register_peer_sender
+        ]
+        for sender in sender:
+            try_send = getattr(sender, "try_send")
+            try_send()
 
     def received_synchronize_connection(self):
         self._logger.debug("received_synchronize_connection")

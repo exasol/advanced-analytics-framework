@@ -225,17 +225,25 @@ class BackgroundListenerThread:
         self._out_control_socket.send(serialize_message(message))
 
     def _handle_register_peer_message(self, message: RegisterPeerMessage):
-        if self._forward:
-            if self._register_peer_connection is None:
-                self._create_register_peer_connection(message)
-                self._add_peer(message.peer, acknowledge_register_peer=True,
-                               needs_register_peer_complete=True)
-            else:
-                self._add_peer(message.peer, forward_register_peer=True,
-                               acknowledge_register_peer=True,
-                               needs_register_peer_complete=True)
-        else:
+        if not self._forward:
             self._add_peer(message.peer)
+            return
+
+        if self._register_peer_connection is None:
+            self._create_register_peer_connection(message)
+            self._add_peer(
+                message.peer,
+                acknowledge_register_peer=True,
+                needs_register_peer_complete=True
+            )
+            return
+
+        self._add_peer(
+            message.peer,
+            forward_register_peer=True,
+            acknowledge_register_peer=True,
+            needs_register_peer_complete=True
+        )
 
     def _create_register_peer_connection(self, message: RegisterPeerMessage):
         successor_send_socket_factory = SendSocketFactory(
