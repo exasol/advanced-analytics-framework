@@ -6,13 +6,13 @@ import pytest
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
     PeerIsReadySender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from tests.udf_communication.test_messages import messages
 
 
 def mock_cast(obj: Any) -> Mock:
@@ -146,7 +146,7 @@ def test_try_send_after_synchronize_connection(
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -186,7 +186,7 @@ def test_try_send_after_synchronize_and_acknowledge_register_peer(
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -226,7 +226,7 @@ def test_try_send_after_synchronize_and_register_peer_complete(
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -267,7 +267,7 @@ def test_try_send_after_synchronize_and_register_peer_complete_and_acknowledge_r
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -399,7 +399,7 @@ def test_try_send_after_acknowledge_connection_and_acknowledge_register_peer(
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -439,7 +439,7 @@ def test_try_send_after_acknowledge_connection_and_register_peer_complete(
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )
@@ -480,7 +480,7 @@ def test_try_send_after_acknowledge_connection_and_acknowledge_register_peer_and
         assert (
                 test_setup.out_control_socket_mock.mock_calls ==
                 [
-                    call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
                 ]
                 and test_setup.timer_mock.mock_calls == [call.is_time()]
         )

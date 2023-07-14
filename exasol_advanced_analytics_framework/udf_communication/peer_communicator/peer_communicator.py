@@ -6,7 +6,6 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage, TimeoutMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
@@ -15,6 +14,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.fro
     FrontendPeerState
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     Frame
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -79,11 +79,11 @@ class PeerCommunicator:
             return
 
         for message in self._background_listener.receive_messages(timeout_in_milliseconds):
-            if isinstance(message, PeerIsReadyToReceiveMessage):
+            if isinstance(message, messages.PeerIsReadyToReceive):
                 peer = message.peer
                 self._add_peer_state(peer)
                 self._peer_states[peer].received_peer_is_ready_to_receive()
-            elif isinstance(message, TimeoutMessage):
+            elif isinstance(message, messages.Timeout):
                 raise TimeoutError()
             else:
                 self._logger.error("Unknown message", message=message.dict())

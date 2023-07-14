@@ -2,13 +2,13 @@ import contextlib
 from typing import Optional, Generator, List
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import PayloadMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
     get_peer_receive_socket_name
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, Frame, PollerFlag
+from tests.udf_communication.test_messages import messages
 
 
 class FrontendPeerState:
@@ -50,7 +50,7 @@ class FrontendPeerState:
     def send(self, payload: List[Frame]):
         send_socket: Socket
         with self._create_send_socket() as send_socket:
-            message = PayloadMessage(source=self._my_connection_info)
+            message = messages.Payload(source=self._my_connection_info)
             serialized_message = serialize_message(message)
             frame = self._socket_factory.create_frame(serialized_message)
             send_socket.send_multipart([frame] + payload)

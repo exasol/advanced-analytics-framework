@@ -2,9 +2,9 @@ import pytest
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeerMessage, Message, PingMessage, \
-    StopMessage, PayloadMessage, MyConnectionInfoMessage, \
-    PeerIsReadyToReceiveMessage
+from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeer, Message, Ping, \
+    Stop, Payload, MyConnectionInfo, \
+    PeerIsReadyToReceive
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
 
@@ -14,12 +14,12 @@ connection_info = ConnectionInfo(port=Port(port=10000), group_identifier="test",
 peer = Peer(connection_info=connection_info)
 
 messages = [
-    RegisterPeerMessage(peer=peer),
-    PingMessage(source=connection_info),
-    StopMessage(),
-    PayloadMessage(source=connection_info),
-    MyConnectionInfoMessage(my_connection_info=connection_info),
-    PeerIsReadyToReceiveMessage(peer=peer)
+    RegisterPeer(peer=peer),
+    Ping(source=connection_info),
+    Stop(),
+    Payload(source=connection_info),
+    MyConnectionInfo(my_connection_info=connection_info),
+    PeerIsReadyToReceive(peer=peer)
 ]
 
 

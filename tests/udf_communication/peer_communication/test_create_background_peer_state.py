@@ -6,27 +6,26 @@ import pytest
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import AcknowledgeConnectionMessage, Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
-    AbortTimeoutSender, AbortTimeoutSenderFactory
+    AbortTimeoutSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.acknowledge_register_peer_sender import \
-    AcknowledgeRegisterPeerSender, AcknowledgeRegisterPeerSenderFactory
+    AcknowledgeRegisterPeerSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState, BackgroundPeerStateFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
-    PeerIsReadySender, PeerIsReadySenderFactory
+    PeerIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
-    RegisterPeerSender, RegisterPeerSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender, SenderFactory
+    RegisterPeerSenderFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import SenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
-    SynchronizeConnectionSender, SynchronizeConnectionSenderFactory
+    SynchronizeConnectionSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
-    SocketFactory, SocketType
+    SocketFactory
 
 
 def mock_cast(obj: Any) -> Mock:

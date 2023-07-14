@@ -4,7 +4,6 @@ import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, AcknowledgeConnectionMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender, AbortTimeoutSenderFactory
@@ -25,6 +24,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.syn
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, Frame
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -113,7 +113,7 @@ class BackgroundPeerState:
             needs_acknowledge_register_peer=needs_acknowledge_register_peer
         )
         needs_register_peer_complete_and_predecessor_exists = (register_peer_connection is not None
-                                                               and register_peer_connection.predecssor is not None
+                                                               and register_peer_connection.predecessor is not None
                                                                and needs_register_peer_complete)
         peer_is_ready_sender_timer = timer_factory.create(clock=clock, timeout_in_ms=peer_is_ready_wait_time_in_ms)
         peer_is_ready_sender = peer_is_ready_sender_factory.create(
@@ -218,7 +218,7 @@ class BackgroundPeerState:
         self._peer_is_ready_sender.received_synchronize_connection()
         self._peer_is_ready_sender.reset_timer()
         self._abort_timeout_sender.received_synchronize_connection()
-        self._sender.send(Message(__root__=AcknowledgeConnectionMessage(source=self._my_connection_info)))
+        self._sender.send(messages.Message(__root__=messages.AcknowledgeConnection(source=self._my_connection_info)))
 
     def received_acknowledge_connection(self):
         self._logger.debug("received_acknowledge_connection")

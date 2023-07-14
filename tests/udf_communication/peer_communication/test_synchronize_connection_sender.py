@@ -4,14 +4,13 @@ from unittest.mock import MagicMock, create_autospec, call
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import SynchronizeConnectionMessage, \
-    Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from tests.udf_communication.peer_communication.mock_cast import mock_cast
+from tests.udf_communication.test_messages import messages
 
 
 @dataclasses.dataclass()
@@ -87,7 +86,8 @@ def test_try_send_after_init_and_is_time_false_and_force():
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -107,7 +107,8 @@ def test_try_send_after_init_and_is_time_true():
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -128,7 +129,8 @@ def test_try_send_twice_and_is_time_true():
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [

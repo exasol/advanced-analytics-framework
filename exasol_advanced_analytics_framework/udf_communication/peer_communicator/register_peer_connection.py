@@ -4,13 +4,12 @@ import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import RegisterPeerMessage, \
-    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -39,12 +38,12 @@ class RegisterPeerConnection:
         return self._successor
 
     @property
-    def predecssor(self) -> Optional[Peer]:
+    def predecessor(self) -> Optional[Peer]:
         return self._predecessor
 
     def forward(self, peer: Peer):
         self._logger.debug("forward", peer=peer.dict())
-        message = RegisterPeerMessage(
+        message = messages.RegisterPeer(
             peer=peer,
             source=Peer(connection_info=self._my_connection_info)
         )
@@ -54,7 +53,7 @@ class RegisterPeerConnection:
     def ack(self, peer: Peer):
         self._logger.debug("ack", peer=peer.dict())
         if self._predecessor_socket is not None:
-            message = AcknowledgeRegisterPeerMessage(
+            message = messages.AcknowledgeRegisterPeer(
                 peer=peer,
                 source=Peer(connection_info=self._my_connection_info)
             )
@@ -63,7 +62,7 @@ class RegisterPeerConnection:
 
     def complete(self, peer: Peer):
         self._logger.debug("complete", peer=peer.dict())
-        message = RegisterPeerCompleteMessage(
+        message = messages.RegisterPeerComplete(
             peer=peer,
             source=Peer(connection_info=self._my_connection_info)
         )

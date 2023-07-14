@@ -6,9 +6,6 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, StopMessage, RegisterPeerMessage, \
-    PayloadMessage, MyConnectionInfoMessage, SynchronizeConnectionMessage, AcknowledgeConnectionMessage, \
-    AcknowledgeRegisterPeerMessage, RegisterPeerCompleteMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -20,6 +17,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sen
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -130,11 +128,11 @@ class BackgroundListenerThread:
 
     def _handle_control_message(self, message: bytes) -> Status:
         try:
-            message_obj: Message = deserialize_message(message, Message)
+            message_obj: messages.Message = deserialize_message(message, messages.Message)
             specific_message_obj = message_obj.__root__
-            if isinstance(specific_message_obj, StopMessage):
+            if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
-            elif isinstance(specific_message_obj, RegisterPeerMessage):
+            elif isinstance(specific_message_obj, messages.RegisterPeer):
                 if self._forward and self._leader or not self._forward:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
@@ -179,38 +177,38 @@ class BackgroundListenerThread:
         )
         message_content_bytes = message[1].to_bytes()
         try:
-            message_obj: Message = deserialize_message(message_content_bytes, Message)
+            message_obj: messages.Message = deserialize_message(message_content_bytes, messages.Message)
             specific_message_obj = message_obj.__root__
-            if isinstance(specific_message_obj, SynchronizeConnectionMessage):
+            if isinstance(specific_message_obj, messages.SynchronizeConnection):
                 self._handle_synchronize_connection(specific_message_obj)
-            elif isinstance(specific_message_obj, AcknowledgeConnectionMessage):
+            elif isinstance(specific_message_obj, messages.AcknowledgeConnection):
                 self._handle_acknowledge_connection(specific_message_obj)
-            elif isinstance(specific_message_obj, RegisterPeerMessage):
+            elif isinstance(specific_message_obj, messages.RegisterPeer):
                 if not self._leader and self._forward:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
                     logger.error("RegisterPeerMessage message not allowed", message_obj=specific_message_obj.dict())
-            elif isinstance(specific_message_obj, AcknowledgeRegisterPeerMessage):
+            elif isinstance(specific_message_obj, messages.AcknowledgeRegisterPeer):
                 self._handle_acknowledge_register_peer_message(specific_message_obj)
-            elif isinstance(specific_message_obj, RegisterPeerCompleteMessage):
+            elif isinstance(specific_message_obj, messages.RegisterPeerComplete):
                 self._handle_register_peer_complete_message(specific_message_obj)
-            elif isinstance(specific_message_obj, PayloadMessage):
+            elif isinstance(specific_message_obj, messages.Payload):
                 self._handle_payload_message(specific_message_obj, message)
             else:
                 logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
             logger.exception("Exception during handling message", message_content=message_content_bytes)
 
-    def _handle_payload_message(self, message: PayloadMessage, frames: List[Frame]):
+    def _handle_payload_message(self, message: messages.Payload, frames: List[Frame]):
         peer = Peer(connection_info=message.source)
         self._peer_state[peer].forward_payload(frames[2:])
 
-    def _handle_synchronize_connection(self, message: SynchronizeConnectionMessage):
+    def _handle_synchronize_connection(self, message: messages.SynchronizeConnection):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
         self._peer_state[peer].received_synchronize_connection()
 
-    def _handle_acknowledge_connection(self, message: AcknowledgeConnectionMessage):
+    def _handle_acknowledge_connection(self, message: messages.AcknowledgeConnection):
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
         self._peer_state[peer].received_acknowledge_connection()
@@ -221,10 +219,10 @@ class BackgroundListenerThread:
             ipaddress=self._listen_ip,
             port=Port(port=port),
             group_identifier=self._group_identifier)
-        message = MyConnectionInfoMessage(my_connection_info=self._my_connection_info)
+        message = messages.MyConnectionInfo(my_connection_info=self._my_connection_info)
         self._out_control_socket.send(serialize_message(message))
 
-    def _handle_register_peer_message(self, message: RegisterPeerMessage):
+    def _handle_register_peer_message(self, message: messages.RegisterPeer):
         if not self._forward:
             self._add_peer(message.peer)
             return
@@ -245,7 +243,7 @@ class BackgroundListenerThread:
             needs_register_peer_complete=True
         )
 
-    def _create_register_peer_connection(self, message: RegisterPeerMessage):
+    def _create_register_peer_connection(self, message: messages.RegisterPeer):
         successor_send_socket_factory = SendSocketFactory(
             my_connection_info=self._my_connection_info,
             peer=message.peer,
@@ -267,14 +265,14 @@ class BackgroundListenerThread:
             my_connection_info=self._my_connection_info
         )
 
-    def _handle_acknowledge_register_peer_message(self, message: AcknowledgeRegisterPeerMessage):
+    def _handle_acknowledge_register_peer_message(self, message: messages.AcknowledgeRegisterPeer):
         if self._register_peer_connection.successor != message.source:
             self._logger.error("AcknowledgeRegisterPeerMessage message not from successor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_acknowledge_register_peer()
 
-    def _handle_register_peer_complete_message(self, message: RegisterPeerCompleteMessage):
-        if self._register_peer_connection.predecssor != message.source:
+    def _handle_register_peer_complete_message(self, message: messages.RegisterPeerComplete):
+        if self._register_peer_connection.predecessor != message.source:
             self._logger.error("RegisterPeerCompleteMessage message not from predecssor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_register_peer_complete()

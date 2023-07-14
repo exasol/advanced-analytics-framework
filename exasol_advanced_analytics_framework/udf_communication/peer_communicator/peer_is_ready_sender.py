@@ -2,11 +2,11 @@ import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -109,7 +109,7 @@ class PeerIsReadySender:
 
     def _send_peer_is_ready_to_frontend(self):
         self._logger.debug("send")
-        message = PeerIsReadyToReceiveMessage(peer=self._peer)
+        message = messages.PeerIsReadyToReceive(peer=self._peer)
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 

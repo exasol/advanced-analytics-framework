@@ -3,15 +3,15 @@ import time
 from typing import cast, Optional
 
 from exasol_advanced_analytics_framework.udf_communication.discovery.localhost import DiscoverySocket
-from exasol_advanced_analytics_framework.udf_communication.messages import PingMessage
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
+from tests.udf_communication.test_messages import messages
 
 NANOSECONDS_PER_SECOND = 10 ** 9
 
 
-def _convert_to_ping_message(serialized_message: bytes) -> PingMessage:
-    ping_message = cast(PingMessage, deserialize_message(serialized_message, PingMessage))
+def _convert_to_ping_message(serialized_message: bytes) -> messages.Ping:
+    ping_message = cast(messages.Ping, deserialize_message(serialized_message, messages.Ping))
     return ping_message
 
 
@@ -84,7 +84,7 @@ class DiscoveryStrategy:
         return serialized_message
 
     def _send_ping(self):
-        ping_message = PingMessage(
+        ping_message = messages.Ping(
             source=self._peer_communicator.my_connection_info
         )
         serialized_message = serialize_message(ping_message)

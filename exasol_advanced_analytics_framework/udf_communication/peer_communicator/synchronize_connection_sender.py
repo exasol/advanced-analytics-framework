@@ -2,15 +2,15 @@ import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import Message, SynchronizeConnectionMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
+from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class SynchronizeConnectionSender():
+class SynchronizeConnectionSender:
     def __init__(self,
                  my_connection_info: ConnectionInfo,
                  peer: Peer,
@@ -40,7 +40,7 @@ class SynchronizeConnectionSender():
     def _send(self):
         self._send_attempt_count += 1
         self._logger.debug("send", send_attempt_count=self._send_attempt_count)
-        message = Message(__root__=SynchronizeConnectionMessage(source=self._my_connection_info))
+        message = messages.Message(__root__=messages.SynchronizeConnection(source=self._my_connection_info))
         self._sender.send(message)
 
     def _should_we_send(self):
