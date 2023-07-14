@@ -70,11 +70,11 @@ class DiscoveryStrategy:
         return timeout_in_seconds
 
     def _handle_serialized_message(self, serialized_message) -> float:
+        TIMEOUT_IN_SECONDS = 0.0
         ping_message = _to_ping_message(serialized_message)
-        timeout_in_seconds = 0.0
         if ping_message is not None:
             self._peer_communicator.register_peer(ping_message.source)
-        return timeout_in_seconds
+        return TIMEOUT_IN_SECONDS
 
     def _receive_message(self, timeout_in_seconds: float) -> Optional[bytes]:
         try:
