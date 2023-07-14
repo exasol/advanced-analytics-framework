@@ -2,7 +2,7 @@ import socket
 import time
 from typing import cast, Optional
 
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocket
+from exasol_advanced_analytics_framework.udf_communication.discovery.localhost import DiscoverySocket
 from exasol_advanced_analytics_framework.udf_communication.messages import PingMessage
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
@@ -10,24 +10,23 @@ from exasol_advanced_analytics_framework.udf_communication.serialization import 
 NANOSECONDS_PER_SECOND = 10 ** 9
 
 
-def _to_ping_message(serialized_message: bytes) -> PingMessage:
+def _convert_to_ping_message(serialized_message: bytes) -> PingMessage:
     ping_message = cast(PingMessage, deserialize_message(serialized_message, PingMessage))
     return ping_message
 
 
-class GlobalDiscoveryStrategy:
+class DiscoveryStrategy:
 
     def __init__(self,
                  discovery_timeout_in_seconds: int,
                  time_between_ping_messages_in_seconds: float,
                  peer_communicator: PeerCommunicator,
-                 global_discovery_socket: GlobalDiscoverySocket):
+                 discovery_socket: DiscoverySocket
+                 ):
         self._time_between_ping_messages_in_seconds = float(time_between_ping_messages_in_seconds)
-        self._global_discovery_socket = global_discovery_socket
+        self._local_discovery_socket = discovery_socket
         self._peer_communicator = peer_communicator
         self._discovery_timeout_in_ns = discovery_timeout_in_seconds * NANOSECONDS_PER_SECOND
-        if not self._peer_communicator.forward_enabled:
-            raise ValueError("PeerCommunicator.forward_enabled needs to be true")
         self._discover_peers()
 
     def _has_discovery_timed_out(self, begin_time_ns: int) -> bool:
@@ -41,13 +40,10 @@ class GlobalDiscoveryStrategy:
         return max(0, time_left_until_timeout)
 
     def _discover_peers(self):
-        if self._peer_communicator.is_leader:
-            self._global_discovery_socket.bind()
         self._send_ping()
         begin_time_ns = time.monotonic_ns()
         while not self._should_discovery_end(begin_time_ns):
-            if self._peer_communicator.is_leader:
-                self._receive_pings(begin_time_ns)
+            self._receive_pings(begin_time_ns)
             self._send_ping()
 
     def _should_discovery_end(self, begin_time_ns: int) -> bool:
@@ -59,7 +55,7 @@ class GlobalDiscoveryStrategy:
         while True:
             serialized_message = self._receive_message(timeout_in_seconds)
             if serialized_message is not None:
-                timeout_in_seconds = self._handle_serialized_message(serialized_message)
+                timeout_in_seconds = self.handle_serialized_message(serialized_message)
                 if self._peer_communicator.are_all_peers_connected():
                     break
             else:
@@ -72,7 +68,7 @@ class GlobalDiscoveryStrategy:
                                  self._time_between_ping_messages_in_seconds)
         return timeout_in_seconds
 
-    def _handle_serialized_message(self, serialized_message) -> float:
+    def handle_serialized_message(self, serialized_message) -> float:
         ping_message = _convert_to_ping_message(serialized_message)
         timeout_in_seconds = 0.0
         if ping_message is not None:
@@ -82,7 +78,7 @@ class GlobalDiscoveryStrategy:
     def _receive_message(self, timeout_in_seconds: float) -> Optional[bytes]:
         try:
             serialized_message = \
-                self._global_discovery_socket.recvfrom(timeout_in_seconds=timeout_in_seconds)
+                self._local_discovery_socket.recvfrom(timeout_in_seconds=timeout_in_seconds)
         except socket.timeout as e:
             serialized_message = None
         return serialized_message
@@ -92,4 +88,4 @@ class GlobalDiscoveryStrategy:
             source=self._peer_communicator.my_connection_info
         )
         serialized_message = serialize_message(ping_message)
-        self._global_discovery_socket.send(serialized_message)
+        self._local_discovery_socket.send(serialized_message)

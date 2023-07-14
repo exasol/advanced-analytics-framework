@@ -10,9 +10,8 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
+from exasol_advanced_analytics_framework.udf_communication.discovery import localhost
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_socket import LocalDiscoverySocket
-from exasol_advanced_analytics_framework.udf_communication.local_discovery_strategy import LocalDiscoveryStrategy
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
@@ -38,7 +37,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
-    local_discovery_socket = LocalDiscoverySocket(Port(port=44444))
+    local_discovery_socket = localhost.DiscoverySocket(Port(port=44444))
     listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()
     socker_factory = ZMQSocketFactory(context)
@@ -49,10 +48,10 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         group_identifier=group_identifier,
         socket_factory=socker_factory)
     queue.put(peer_communicator.my_connection_info)
-    discovery = LocalDiscoveryStrategy(
+    discovery = localhost.DiscoveryStrategy(
         discovery_timeout_in_seconds=120,
         time_between_ping_messages_in_seconds=1,
-        local_discovery_socket=local_discovery_socket,
+        discovery_socket=local_discovery_socket,
         peer_communicator=peer_communicator
     )
     if peer_communicator.are_all_peers_connected():

@@ -10,7 +10,7 @@ NANO_SECOND = 10 ** -9
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 
-class GlobalDiscoverySocket:
+class DiscoverySocket:
 
     def __init__(self, ip_address: IPAddress, port: Port):
         self._port = port

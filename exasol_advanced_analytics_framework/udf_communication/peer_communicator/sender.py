@@ -7,8 +7,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
-    Socket, SocketType
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 

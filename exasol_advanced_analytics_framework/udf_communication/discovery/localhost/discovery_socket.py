@@ -3,7 +3,7 @@ import socket
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 
 
-class LocalDiscoverySocket:
+class DiscoverySocket:
 
     def __init__(self, port: Port):
         self._port = port

@@ -11,8 +11,6 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-import enum
-
 class PeerIsReadySender:
 
 

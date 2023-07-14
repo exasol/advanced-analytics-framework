@@ -209,7 +209,7 @@ class BackgroundPeerState:
             self._peer_is_ready_sender,
             self._acknowledge_register_peer_sender
         ]
-        for sender in sender:
+        for sender in senders:
             try_send = getattr(sender, "try_send")
             try_send()
 
