@@ -2,10 +2,10 @@ import socket
 import time
 from typing import cast, Optional
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.discovery.localhost import DiscoverySocket
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
-from tests.udf_communication.test_messages import messages
 
 NANOSECONDS_PER_SECOND = 10 ** 9
 

@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import structlog
 from structlog.types import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -17,7 +18,6 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sen
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
-from tests.udf_communication.test_messages import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -124,7 +124,6 @@ class BackgroundListenerThread:
                         peer_state.resend_if_necessary()
         except Exception as e:
             self._logger.exception("Exception in message loop")
-
 
     def _handle_control_message(self, message: bytes) -> Status:
         try:

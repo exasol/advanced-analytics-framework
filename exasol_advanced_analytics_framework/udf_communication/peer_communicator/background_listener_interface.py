@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clo
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag
-from tests.udf_communication.test_messages import messages
+from exasol_advanced_analytics_framework.udf_communication import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 

@@ -1,6 +1,7 @@
 import contextlib
 from typing import Optional, Generator, List
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
@@ -8,7 +9,6 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, Frame, PollerFlag
-from tests.udf_communication.test_messages import messages
 
 
 class FrontendPeerState:
