@@ -104,7 +104,7 @@ def create_test_setup(acknowledge_register_peer: bool,
     register_peer_connection_mock: Union[MagicMock, RegisterPeerConnection] = \
         create_autospec(RegisterPeerConnection, spec_set=True)
     if register_peer_connection_predecessor_is_none:
-        register_peer_connection_mock.predecssor = None
+        register_peer_connection_mock.predecessor = None
     acknowledge_register_peer_sender_factory_mock: Union[
         MagicMock, AcknowledgeRegisterPeerSenderFactory] = create_autospec(AcknowledgeRegisterPeerSenderFactory)
     timer_factory_mock: Union[MagicMock, TimerFactory] = create_autospec(TimerFactory)

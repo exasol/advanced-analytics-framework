@@ -2,6 +2,7 @@ import dataclasses
 from typing import Union, cast, Any
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -22,7 +23,6 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.syn
     SynchronizeConnectionSender
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
     SocketFactory, SocketType
-from tests.udf_communication.test_messages import messages
 
 
 def mock_cast(obj: Any) -> Mock:
