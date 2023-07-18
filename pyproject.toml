@@ -41,6 +41,7 @@ exasol-integration-test-docker-environment = "1.7.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest-repeat = "^0.9.1"
+elasticsearch = "^8.6.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

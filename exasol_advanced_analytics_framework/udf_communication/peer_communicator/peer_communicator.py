@@ -4,9 +4,9 @@ from typing import Optional, Dict, List
 import structlog
 from structlog.types import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage, TimeoutMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
@@ -38,13 +38,17 @@ class PeerCommunicator:
                  listen_ip: IPAddress,
                  group_identifier: str,
                  socket_factory: SocketFactory,
+                 is_leader: bool = False,
+                 forward_enabled: bool = False,
                  poll_timeout_in_ms: int = 500,
                  synchronize_timeout_in_ms: int = 1000,
-                 abort_timeout_in_ms: int = 120000,
-                 peer_is_ready_wait_time_in_ms: int = 2000,
+                 abort_timeout_in_ms: int = 240000,
+                 peer_is_ready_wait_time_in_ms: int = 10000,
                  send_socket_linger_time_in_ms: int = 100,
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
+        self._is_leader = is_leader
+        self._forward_enabled = forward_enabled
         self._socket_factory = socket_factory
         self._name = name
         self._logger = LOGGER.bind(
@@ -57,6 +61,8 @@ class PeerCommunicator:
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
+            leader=is_leader,
+            forward=forward_enabled,
             clock=clock,
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
@@ -73,11 +79,11 @@ class PeerCommunicator:
             return
 
         for message in self._background_listener.receive_messages(timeout_in_milliseconds):
-            if isinstance(message, PeerIsReadyToReceiveMessage):
+            if isinstance(message, messages.PeerIsReadyToReceive):
                 peer = message.peer
                 self._add_peer_state(peer)
                 self._peer_states[peer].received_peer_is_ready_to_receive()
-            elif isinstance(message, TimeoutMessage):
+            elif isinstance(message, messages.Timeout):
                 raise TimeoutError()
             else:
                 self._logger.error("Unknown message", message=message.dict())
@@ -126,6 +132,14 @@ class PeerCommunicator:
     @property
     def my_connection_info(self) -> ConnectionInfo:
         return self._my_connection_info
+
+    @property
+    def is_leader(self) -> bool:
+        return self._is_leader
+
+    @property
+    def forward_enabled(self) -> bool:
+        return self._forward_enabled
 
     def are_all_peers_connected(self) -> bool:
         self._handle_messages()

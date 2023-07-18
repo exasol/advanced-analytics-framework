@@ -2,9 +2,11 @@ import dataclasses
 from typing import Union, cast, Any
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
+import pytest
+
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import PeerIsReadyToReceiveMessage
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
     PeerIsReadySender
@@ -29,7 +31,7 @@ class TestSetup:
         self.timer_mock.reset_mock()
 
 
-def create_test_setup():
+def create_test_setup(*, needs_acknowledge_register_peer: bool, needs_register_peer_complete: bool):
     peer = Peer(
         connection_info=ConnectionInfo(
             name="t2",
@@ -49,7 +51,9 @@ def create_test_setup():
         peer=peer,
         my_connection_info=my_connection_info,
         out_control_socket=out_control_socket_mock,
-        timer=timer_mock
+        timer=timer_mock,
+        needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+        needs_register_peer_complete=needs_register_peer_complete
     )
     return TestSetup(
         peer=peer,
@@ -59,20 +63,51 @@ def create_test_setup():
     )
 
 
-def test_init():
-    test_setup = create_test_setup()
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_init(needs_acknowledge_register_peer: bool,
+              needs_register_peer_complete: bool,
+              is_time: bool):
+    test_setup = create_test_setup(
+        needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+        needs_register_peer_complete=needs_register_peer_complete)
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     assert (
             test_setup.out_control_socket_mock.mock_calls == []
             and test_setup.timer_mock.mock_calls == []
     )
 
 
-def test_send_if_necessary_after_init_and_is_time_false():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = False
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_try_send_after_init(needs_acknowledge_register_peer: bool,
+                             needs_register_peer_complete: bool,
+                             is_time: bool):
+    test_setup = create_test_setup(
+        needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+        needs_register_peer_complete=needs_register_peer_complete)
+    mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.reset_mock()
 
-    test_setup.peer_is_ready_sender.send_if_necessary()
+    test_setup.peer_is_ready_sender.try_send()
 
     assert (
             test_setup.out_control_socket_mock.mock_calls == []
@@ -82,46 +117,190 @@ def test_send_if_necessary_after_init_and_is_time_false():
     )
 
 
-def test_send_if_necessary_after_init_and_is_time_false_and_force():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = False
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, False),
+                             (True, True, False, False),
+                             (True, False, True, False),
+                             (True, False, False, False),
+                             (False, True, True, True),
+                             (False, True, False, False),
+                             (False, False, True, True),
+                             (False, False, False, False),
+                         ])
+def test_try_send_after_synchronize_connection(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(
+        needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+        needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
 
-    test_setup.peer_is_ready_sender.send_if_necessary(force=True)
+    test_setup.peer_is_ready_sender.try_send()
 
-    assert (
-            test_setup.out_control_socket_mock.mock_calls ==
-            [
-                call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
-            ]
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time()
-            ]
-    )
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
 
 
-def test_send_if_necessary_after_init_and_is_time_true():
-    test_setup = create_test_setup()
-    mock_cast(test_setup.timer_mock.is_time).return_value = True
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, True),
+                             (True, True, False, False),
+                             (True, False, True, True),
+                             (True, False, False, False),
+                             (False, True, True, True),
+                             (False, True, False, False),
+                             (False, False, True, True),
+                             (False, False, False, False),
+                         ])
+def test_try_send_after_synchronize_and_acknowledge_register_peer(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    test_setup.peer_is_ready_sender.received_acknowledge_register_peer()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
 
-    test_setup.peer_is_ready_sender.send_if_necessary()
+    test_setup.peer_is_ready_sender.try_send()
 
-    assert (
-            test_setup.out_control_socket_mock.mock_calls == []
-            and test_setup.timer_mock.mock_calls == [
-                call.is_time()
-            ]
-    )
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
 
 
-def test_send_if_necessary_after_enable_and_is_time_false():
-    test_setup = create_test_setup()
-    test_setup.peer_is_ready_sender.enable()
-    mock_cast(test_setup.timer_mock.is_time).return_value = False
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, False),
+                             (True, True, False, False),
+                             (True, False, True, False),
+                             (True, False, False, False),
+                             (False, True, True, True),
+                             (False, True, False, False),
+                             (False, False, True, True),
+                             (False, False, False, False),
+                         ])
+def test_try_send_after_synchronize_and_register_peer_complete(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    test_setup.peer_is_ready_sender.received_register_peer_complete()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.reset_mock()
 
-    test_setup.peer_is_ready_sender.send_if_necessary()
+    test_setup.peer_is_ready_sender.try_send()
+
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, True),
+                             (True, True, False, False),
+                             (True, False, True, True),
+                             (True, False, False, False),
+                             (False, True, True, True),
+                             (False, True, False, False),
+                             (False, False, True, True),
+                             (False, False, False, False),
+                         ])
+def test_try_send_after_synchronize_and_register_peer_complete_and_acknowledge_register_peer(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    test_setup.peer_is_ready_sender.received_register_peer_complete()
+    test_setup.peer_is_ready_sender.received_acknowledge_register_peer()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
+
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_try_send_twice_after_synchronize_connection(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.peer_is_ready_sender.try_send()
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
 
     assert (
             test_setup.out_control_socket_mock.mock_calls == []
@@ -129,31 +308,30 @@ def test_send_if_necessary_after_enable_and_is_time_false():
     )
 
 
-def test_send_if_necessary_after_enable_and_is_time_true():
-    test_setup = create_test_setup()
-    test_setup.peer_is_ready_sender.enable()
-    mock_cast(test_setup.timer_mock.is_time).return_value = True
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_try_send_twice_after_synchronize_connection_and_acknowledge_register_peer(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    test_setup.peer_is_ready_sender.received_acknowledge_register_peer()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.peer_is_ready_sender.try_send()
     test_setup.reset_mock()
 
-    test_setup.peer_is_ready_sender.send_if_necessary()
-
-    assert (
-            test_setup.out_control_socket_mock.mock_calls ==
-            [
-                call.send(serialize_message(PeerIsReadyToReceiveMessage(peer=test_setup.peer)))
-            ]
-            and test_setup.timer_mock.mock_calls == [call.is_time()]
-    )
-
-
-def test_send_if_necessary_after_enable_and_is_time_true_twice():
-    test_setup = create_test_setup()
-    test_setup.peer_is_ready_sender.enable()
-    mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.peer_is_ready_sender.send_if_necessary()
-    test_setup.reset_mock()
-
-    test_setup.peer_is_ready_sender.send_if_necessary()
+    test_setup.peer_is_ready_sender.try_send()
 
     assert (
             test_setup.out_control_socket_mock.mock_calls == []
@@ -161,8 +339,175 @@ def test_send_if_necessary_after_enable_and_is_time_true_twice():
     )
 
 
-def test_reset_timer():
-    test_setup = create_test_setup()
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_try_send_twice_after_synchronize_connection_and_register_peer_complete(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_synchronize_connection()
+    test_setup.peer_is_ready_sender.received_register_peer_complete()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.peer_is_ready_sender.try_send()
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
+
+    assert (
+            test_setup.out_control_socket_mock.mock_calls == []
+            and test_setup.timer_mock.mock_calls == [call.is_time()]
+    )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, False),
+                             (True, True, False, False),
+                             (True, False, True, True),
+                             (True, False, False, True),
+                             (False, True, True, False),
+                             (False, True, False, False),
+                             (False, False, True, True),
+                             (False, False, False, True),
+                         ])
+def test_try_send_after_acknowledge_connection_and_acknowledge_register_peer(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_acknowledge_connection()
+    test_setup.peer_is_ready_sender.received_acknowledge_register_peer()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
+
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, False),
+                             (True, True, False, False),
+                             (True, False, True, False),
+                             (True, False, False, False),
+                             (False, True, True, True),
+                             (False, True, False, True),
+                             (False, False, True, True),
+                             (False, False, False, True),
+                         ])
+def test_try_send_after_acknowledge_connection_and_register_peer_complete(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_acknowledge_connection()
+    test_setup.peer_is_ready_sender.received_register_peer_complete()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
+
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time,send_expected",
+                         [
+                             (True, True, True, True),
+                             (True, True, False, True),
+                             (True, False, True, True),
+                             (True, False, False, True),
+                             (False, True, True, True),
+                             (False, True, False, True),
+                             (False, False, True, True),
+                             (False, False, False, True),
+                         ])
+def test_try_send_after_acknowledge_connection_and_acknowledge_register_peer_and_register_peer_complete(
+        needs_acknowledge_register_peer: bool,
+        needs_register_peer_complete: bool,
+        is_time: bool,
+        send_expected: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    test_setup.peer_is_ready_sender.received_acknowledge_connection()
+    test_setup.peer_is_ready_sender.received_acknowledge_register_peer()
+    test_setup.peer_is_ready_sender.received_register_peer_complete()
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
+    test_setup.reset_mock()
+
+    test_setup.peer_is_ready_sender.try_send()
+
+    if send_expected:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls ==
+                [
+                    call.send(serialize_message(messages.PeerIsReadyToReceive(peer=test_setup.peer)))
+                ]
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+    else:
+        assert (
+                test_setup.out_control_socket_mock.mock_calls == []
+                and test_setup.timer_mock.mock_calls == [call.is_time()]
+        )
+
+
+@pytest.mark.parametrize("needs_acknowledge_register_peer,needs_register_peer_complete,is_time",
+                         [
+                             (True, True, True),
+                             (True, True, False),
+                             (True, False, True),
+                             (True, False, False),
+                             (False, True, True),
+                             (False, True, False),
+                             (False, False, True),
+                             (False, False, False),
+                         ])
+def test_reset_timer(needs_acknowledge_register_peer: bool,
+                     needs_register_peer_complete: bool,
+                     is_time: bool):
+    test_setup = create_test_setup(needs_acknowledge_register_peer=needs_acknowledge_register_peer,
+                                   needs_register_peer_complete=needs_register_peer_complete)
+    mock_cast(test_setup.timer_mock.is_time).return_value = is_time
     test_setup.peer_is_ready_sender.reset_timer()
     assert (
             test_setup.out_control_socket_mock.mock_calls == []

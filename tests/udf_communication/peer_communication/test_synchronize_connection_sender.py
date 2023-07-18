@@ -2,10 +2,9 @@ import dataclasses
 from typing import Union
 from unittest.mock import MagicMock, create_autospec, call
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import SynchronizeConnectionMessage, \
-    Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
@@ -64,12 +63,12 @@ def test_init():
     )
 
 
-def test_send_if_necessary_after_init_and_is_time_false():
+def test_try_send_after_init_and_is_time_false():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = False
     test_setup.reset_mocks()
 
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
 
     assert (
             test_setup.sender_mock.mock_calls == []
@@ -77,17 +76,18 @@ def test_send_if_necessary_after_init_and_is_time_false():
     )
 
 
-def test_send_if_necessary_after_init_and_is_time_false_and_force():
+def test_try_send_after_init_and_is_time_false_and_force():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = False
     test_setup.reset_mocks()
 
-    test_setup.synchronize_connection_sender.send_if_necessary(force=True)
+    test_setup.synchronize_connection_sender.try_send(force=True)
 
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -97,17 +97,18 @@ def test_send_if_necessary_after_init_and_is_time_false_and_force():
     )
 
 
-def test_send_if_necessary_after_init_and_is_time_true():
+def test_try_send_after_init_and_is_time_true():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.reset_mocks()
 
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
 
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -117,18 +118,19 @@ def test_send_if_necessary_after_init_and_is_time_true():
     )
 
 
-def test_send_if_necessary_twice_and_is_time_true():
+def test_try_send_twice_and_is_time_true():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
     test_setup.reset_mocks()
 
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
 
     assert (
             test_setup.sender_mock.mock_calls ==
             [
-                call.send(Message(__root__=SynchronizeConnectionMessage(source=test_setup.my_connection_info)))
+                call.send(
+                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -154,7 +156,7 @@ def test_received_acknowledge_connection_after_init():
 def test_received_acknowledge_connection_after_send():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
     test_setup.reset_mocks()
 
     test_setup.synchronize_connection_sender.stop()
@@ -165,13 +167,13 @@ def test_received_acknowledge_connection_after_send():
     )
 
 
-def test_send_if_necessary_after_received_acknowledge_connection_and_is_time_true():
+def test_try_send_after_received_acknowledge_connection_and_is_time_true():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_mock.is_time).return_value = True
     test_setup.synchronize_connection_sender.stop()
     test_setup.reset_mocks()
 
-    test_setup.synchronize_connection_sender.send_if_necessary()
+    test_setup.synchronize_connection_sender.try_send()
 
     assert (
             test_setup.sender_mock.mock_calls == []
