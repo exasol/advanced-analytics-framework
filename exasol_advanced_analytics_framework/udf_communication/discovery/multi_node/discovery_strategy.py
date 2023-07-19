@@ -3,9 +3,7 @@ import time
 from typing import cast, Optional
 
 from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node.discovery_socket import DiscoverySocket, \
-    DiscoverySocketFactory
+from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node import DiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message

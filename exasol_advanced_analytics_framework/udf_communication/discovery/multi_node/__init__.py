@@ -1,2 +1,2 @@
-from .discovery_socket import DiscoverySocket
+from .discovery_socket import DiscoverySocket, DiscoverySocketFactory
 from .discovery_strategy import DiscoveryStrategy

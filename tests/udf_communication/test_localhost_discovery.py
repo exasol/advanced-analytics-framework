@@ -12,8 +12,8 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
+from exasol_advanced_analytics_framework.udf_communication.local_peer_communicator import create_local_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
@@ -41,7 +41,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    local_discovery_socket_factory = localhost.DiscoverySocketFactory()
+    discovery_socket_factory = localhost.DiscoverySocketFactory()
     peer_communicator = create_local_peer_communicator(
         group_identifier=group_identifier,
         name=name,
@@ -49,7 +49,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         listen_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
-        local_discovery_socket_factory=local_discovery_socket_factory)
+        discovery_socket_factory=discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
     if peer_communicator.are_all_peers_connected():
         peers = peer_communicator.peers()

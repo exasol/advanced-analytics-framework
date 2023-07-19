@@ -54,5 +54,5 @@ class DiscoverySocket:
 
 
 class DiscoverySocketFactory:
-    def create(self, ip_address: IPAddress, port: Port) -> GlobalDiscoverySocket:
+    def create(self, ip_address: IPAddress, port: Port) -> DiscoverySocket:
         return DiscoverySocket(ip_address=ip_address, port=port)

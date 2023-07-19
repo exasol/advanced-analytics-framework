@@ -10,12 +10,11 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.discovery import multi_node
+from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node import DiscoverySocketFactory
 from exasol_advanced_analytics_framework.udf_communication.global_peer_communicator import \
     create_global_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
@@ -43,7 +42,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
     discovery_port = Port(port=44444)
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    global_discovery_socket_factory = GlobalDiscoverySocketFactory()
+    discovery_socket_factory = DiscoverySocketFactory()
     is_leader = False
     leader_name = "t0"
     if name == leader_name:
@@ -57,7 +56,7 @@ def run(name: str, group_identifier: str, number_of_instances: int, queue: Bidir
         discovery_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
-        global_discovery_socket_factory=global_discovery_socket_factory)
+        discovery_socket_factory=discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
     if peer_communicator.are_all_peers_connected():
         peers = peer_communicator.peers()

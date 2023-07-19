@@ -1,8 +1,7 @@
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_socket import GlobalDiscoverySocketFactory
-from exasol_advanced_analytics_framework.udf_communication.global_discovery_strategy import GlobalDiscoveryStrategy
+from exasol_advanced_analytics_framework.udf_communication.discovery import multi_node
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import SocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 
 def create_global_peer_communicator(
@@ -14,7 +13,7 @@ def create_global_peer_communicator(
         discovery_ip: IPAddress,
         discovery_port: Port,
         socket_factory: SocketFactory,
-        global_discovery_socket_factory: GlobalDiscoverySocketFactory):
+        discovery_socket_factory: multi_node.DiscoverySocketFactory):
     peer_communicator = PeerCommunicator(
         name=name,
         number_of_peers=number_of_instances,
@@ -24,13 +23,13 @@ def create_global_peer_communicator(
         is_forward_register_peer_enabled=True,
         socket_factory=socket_factory
     )
-    discovery = GlobalDiscoveryStrategy(
+    discovery = multi_node.DiscoveryStrategy(
         ip_address=discovery_ip,
         port=discovery_port,
         timeout_in_seconds=120,
         time_between_ping_messages_in_seconds=1,
         peer_communicator=peer_communicator,
-        global_discovery_socket_factory=global_discovery_socket_factory,
+        global_discovery_socket_factory=discovery_socket_factory,
     )
     discovery.discover_peers()
     return peer_communicator

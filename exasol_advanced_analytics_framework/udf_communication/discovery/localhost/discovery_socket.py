@@ -37,6 +37,6 @@ class DiscoverySocket:
         self.close()
 
 
-class LocalDiscoverySocketFactory:
-    def create(self, port: Port) -> LocalDiscoverySocket:
-        return LocalDiscoverySocket(port=port)
+class DiscoverySocketFactory:
+    def create(self, port: Port) -> DiscoverySocket:
+        return DiscoverySocket(port=port)
