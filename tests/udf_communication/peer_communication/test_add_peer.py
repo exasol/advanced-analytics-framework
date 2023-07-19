@@ -47,7 +47,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(seed))
+        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,

@@ -16,7 +16,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import FaultInjectionSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import \
+    FaultInjectionSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
 from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
@@ -45,7 +46,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(seed))
+        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         leader = False
         leader_name = "i0"
         if parameter.instance_name == leader_name:
