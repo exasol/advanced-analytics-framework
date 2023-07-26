@@ -11,8 +11,8 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node import DiscoverySocketFactory
-from exasol_advanced_analytics_framework.udf_communication.global_peer_communicator import \
-    create_global_peer_communicator
+from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node.communicator import \
+    CommunicatorFactory
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
@@ -48,7 +48,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
     leader_name = "i0"
     if parameter.instance_name == leader_name:
         is_leader = True
-    peer_communicator = create_global_peer_communicator(
+    peer_communicator = CommunicatorFactory().create(
         group_identifier=parameter.group_identifier,
         name=parameter.instance_name,
         number_of_instances=parameter.number_of_instances,

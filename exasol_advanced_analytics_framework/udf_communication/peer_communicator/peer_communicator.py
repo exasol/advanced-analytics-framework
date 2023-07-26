@@ -143,6 +143,14 @@ class PeerCommunicator:
         return self._my_connection_info
 
     @property
+    def peer(self) -> Peer:
+        return Peer(connection_info=self._my_connection_info)
+
+    @property
+    def rank(self) -> int:
+        return self.peers().index(self.peer)
+
+    @property
     def is_forward_register_peer_leader(self) -> bool:
         return self._is_forward_register_peer_leader
 

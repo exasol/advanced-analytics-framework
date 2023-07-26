@@ -11,8 +11,9 @@ from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost
+from exasol_advanced_analytics_framework.udf_communication.discovery.localhost.communicator import \
+    CommunicatorFactory
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.local_peer_communicator import create_local_peer_communicator
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
@@ -43,7 +44,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
     discovery_socket_factory = localhost.DiscoverySocketFactory()
-    peer_communicator = create_local_peer_communicator(
+    peer_communicator = CommunicatorFactory().create(
         group_identifier=parameter.group_identifier,
         name=parameter.instance_name,
         number_of_instances=parameter.number_of_instances,
