@@ -29,6 +29,7 @@ structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
         ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="ISO"),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -75,7 +76,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         traceback.print_exc()
         logger.exception("Exception during test", exception=e)
 
-@pytest.mark.skip # skip temporarily, to debug the CI
+
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
