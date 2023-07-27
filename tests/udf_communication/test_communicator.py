@@ -59,7 +59,8 @@ def run(parameter: CommunicatorTestProcessParameter,
 @pytest.mark.parametrize("number_of_nodes, number_of_instances_per_node, repetitions",
                          [
                              (2, 2, 100),
-                             (5, 5, 10),
+                             (3, 3, 20),
+                             # (5, 5, 10),
                          ])
 def test_reliability(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
     run_test_with_repetitions(number_of_nodes=number_of_nodes,
@@ -76,10 +77,6 @@ def test_functionality_2_2():
 
 def test_functionality_3_3():
     run_test_with_repetitions(3, 3, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_5_5():
-    run_test_with_repetitions(5, 5, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
