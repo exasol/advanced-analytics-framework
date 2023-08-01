@@ -40,7 +40,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
-    listen_ip = IPAddress(ip_address=f"127.1.0.1")
+    listen_ip = IPAddress(ip_address="127.1.0.1")
     discovery_port = Port(port=44444)
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
