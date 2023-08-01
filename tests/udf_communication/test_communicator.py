@@ -60,7 +60,6 @@ def run(parameter: CommunicatorTestProcessParameter,
                          [
                              (2, 2, 100),
                              (3, 3, 20),
-                             # (5, 5, 10),
                          ])
 def test_reliability(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
     run_test_with_repetitions(number_of_nodes=number_of_nodes,
