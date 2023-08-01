@@ -50,8 +50,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         leader = False
         leader_name = "i0"
-        if parameter.instance_name == leader_name:
-            leader = True
+        leader = parameter.instance_name == leader_name
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,
