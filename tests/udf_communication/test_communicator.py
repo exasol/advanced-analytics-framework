@@ -36,9 +36,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 def run(parameter: CommunicatorTestProcessParameter,
         queue: BidirectionalQueue):
-    is_discovery_leader_node = False
-    if parameter.node_name == "n0":
-        is_discovery_leader_node = True
+    is_discovery_leader_node = parameter.node_name == "n0"
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
     communicator = Communicator(
