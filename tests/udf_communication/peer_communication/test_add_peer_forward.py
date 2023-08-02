@@ -16,10 +16,12 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import FaultInjectionSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import \
+    FaultInjectionSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+    PeerCommunicatorTestProcessParameter
 
 structlog.configure(
     context_class=dict,
@@ -27,6 +29,7 @@ structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
         ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="ISO"),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -38,30 +41,29 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed):
-    logger = LOGGER.bind(group_identifier=group_identifier, name=name)
+def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
+    logger = LOGGER.bind(group_identifier=parameter.group_identifier, name=parameter.instance_name)
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
-        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(seed))
+        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         leader = False
-        leader_name = "t0"
-        if name == leader_name:
-            leader = True
+        leader_name = "i0"
+        leader = parameter.instance_name == leader_name
         com = PeerCommunicator(
-            name=name,
-            number_of_peers=number_of_instances,
+            name=parameter.instance_name,
+            number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
-            group_identifier=group_identifier,
-            is_leader=leader,
-            forward_enabled=True,
+            group_identifier=parameter.group_identifier,
+            is_forward_register_peer_leader=leader,
+            is_forward_register_peer_enabled=True,
             socket_factory=socket_factory
         )
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
-            if name == leader_name:
+            if parameter.instance_name == leader_name:
                 for index, connection_info in peer_connection_infos.items():
                     com.register_peer(connection_info)
             peers = com.peers(timeout_in_milliseconds=None)
@@ -88,6 +90,7 @@ def test_functionality_2():
 
 def test_functionality_3():
     run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
+
 
 def test_functionality_5():
     run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
@@ -125,8 +128,14 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 def run_test(group: str, number_of_instances: int, seed: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
-    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, seed=seed + i, run=run)
-                                    for i in range(number_of_instances)]
+    parameters = [
+        PeerCommunicatorTestProcessParameter(
+            instance_name=f"i{i}", group_identifier=group,
+            number_of_instances=number_of_instances,
+            seed=seed + i)
+        for i in range(number_of_instances)]
+    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
+        [TestProcess(parameter, run=run) for parameter in parameters]
     for i in range(number_of_instances):
         processes[i].start()
         connection_infos[i] = processes[i].get()
@@ -140,7 +149,6 @@ def run_test(group: str, number_of_instances: int, seed: int):
         i: sorted([
             Peer(connection_info=connection_info)
             for index, connection_info in connection_infos.items()
-            if index != i
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }

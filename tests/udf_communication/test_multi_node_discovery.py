@@ -10,14 +10,16 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.discovery import multi_node
+from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node import DiscoverySocketFactory
+from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node.communicator import \
+    CommunicatorFactory
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
-from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish
+from tests.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
+    PeerCommunicatorTestProcessParameter
 
 structlog.configure(
     context_class=dict,
@@ -25,6 +27,7 @@ structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
         ConditionalMethodDropper(method_name="debug"),
+        ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -36,31 +39,27 @@ structlog.configure(
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-def run(name: str, group_identifier: str, number_of_instances: int, queue: BidirectionalQueue, seed: int = 0):
-    listen_ip = IPAddress(ip_address=f"127.1.0.1")
-    global_discovery_socket = multi_node.DiscoverySocket(ip_address=listen_ip, port=Port(port=44444))
+def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
+    listen_ip = IPAddress(ip_address="127.1.0.1")
+    discovery_port = Port(port=44444)
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    leader = False
-    leader_name = "t0"
-    if name == leader_name:
-        leader = True
-    peer_communicator = PeerCommunicator(
-        name=name,
-        number_of_peers=number_of_instances,
+    discovery_socket_factory = DiscoverySocketFactory()
+    is_leader = False
+    leader_name = "i0"
+    if parameter.instance_name == leader_name:
+        is_leader = True
+    peer_communicator = CommunicatorFactory().create(
+        group_identifier=parameter.group_identifier,
+        name=parameter.instance_name,
+        number_of_instances=parameter.number_of_instances,
+        is_discovery_leader=is_leader,
         listen_ip=listen_ip,
-        group_identifier=group_identifier,
-        is_leader=leader,
-        forward_enabled=True,
-        socket_factory=socket_factory
-    )
+        discovery_ip=listen_ip,
+        discovery_port=discovery_port,
+        socket_factory=socket_factory,
+        discovery_socket_factory=discovery_socket_factory)
     queue.put(peer_communicator.my_connection_info)
-    discovery = multi_node.DiscoveryStrategy(
-        discovery_timeout_in_seconds=120,
-        time_between_ping_messages_in_seconds=1,
-        discovery_socket=global_discovery_socket,
-        peer_communicator=peer_communicator
-    )
     if peer_communicator.are_all_peers_connected():
         peers = peer_communicator.peers()
         queue.put(peers)
@@ -116,10 +115,17 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 def run_test(group: str, number_of_instances: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
-    processes: List[TestProcess] = [TestProcess(f"t{i}", group, number_of_instances, run=run)
-                                    for i in range(number_of_instances)]
+    parameters = [
+        PeerCommunicatorTestProcessParameter(
+            instance_name=f"i{i}", group_identifier=group,
+            number_of_instances=number_of_instances,
+            seed=0)
+        for i in range(number_of_instances)]
+    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
+        [TestProcess(parameter, run=run) for parameter in parameters]
     for i in range(number_of_instances):
         processes[i].start()
+    for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
@@ -129,7 +135,6 @@ def run_test(group: str, number_of_instances: int):
         i: sorted([
             Peer(connection_info=connection_info)
             for index, connection_info in connection_infos.items()
-            if index != i
         ], key=key_for_peer)
         for i in range(number_of_instances)
     }

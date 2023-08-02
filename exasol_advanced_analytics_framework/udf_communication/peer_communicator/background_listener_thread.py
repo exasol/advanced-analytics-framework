@@ -32,8 +32,8 @@ class BackgroundListenerThread:
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
-                 leader: bool,
-                 forward: bool,
+                 is_forward_register_peer_leader: bool,
+                 is_forward_register_peer_enabled: bool,
                  out_control_socket_address: str,
                  in_control_socket_address: str,
                  clock: Clock,
@@ -44,8 +44,8 @@ class BackgroundListenerThread:
                  send_socket_linger_time_in_ms: int,
                  trace_logging: bool):
         self._register_peer_connection: Optional[RegisterPeerConnection] = None
-        self._forward = forward
-        self._leader = leader
+        self._is_forward_register_peer_enabled = is_forward_register_peer_enabled
+        self._is_forward_register_peer_leader = is_forward_register_peer_leader
         self._send_socket_linger_time_in_ms = send_socket_linger_time_in_ms
         self._trace_logging = trace_logging
         self._clock = clock
@@ -56,8 +56,8 @@ class BackgroundListenerThread:
         self._logger = LOGGER.bind(
             name=self._name,
             group_identifier=group_identifier,
-            leader=self._leader,
-            forward=self._forward
+            is_forward_register_peer_leader=self._is_forward_register_peer_leader,
+            is_forward_register_peer_enabled=self._is_forward_register_peer_enabled
         )
         self._group_identifier = group_identifier
         self._listen_ip = listen_ip
@@ -132,7 +132,7 @@ class BackgroundListenerThread:
             if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
             elif isinstance(specific_message_obj, messages.RegisterPeer):
-                if self._forward and self._leader or not self._forward:
+                if self._is_forward_register_peer_enabled and self._is_forward_register_peer_leader or not self._is_forward_register_peer_enabled:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
                     self._logger.error("RegisterPeerMessage message not allowed",
@@ -183,7 +183,7 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, messages.AcknowledgeConnection):
                 self._handle_acknowledge_connection(specific_message_obj)
             elif isinstance(specific_message_obj, messages.RegisterPeer):
-                if not self._leader and self._forward:
+                if not self._is_forward_register_peer_leader and self._is_forward_register_peer_enabled:
                     self._handle_register_peer_message(specific_message_obj)
                 else:
                     logger.error("RegisterPeerMessage message not allowed", message_obj=specific_message_obj.dict())
@@ -222,7 +222,7 @@ class BackgroundListenerThread:
         self._out_control_socket.send(serialize_message(message))
 
     def _handle_register_peer_message(self, message: messages.RegisterPeer):
-        if not self._forward:
+        if not self._is_forward_register_peer_enabled:
             self._add_peer(message.peer)
             return
 

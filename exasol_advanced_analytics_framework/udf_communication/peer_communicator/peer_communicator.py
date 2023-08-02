@@ -38,8 +38,8 @@ class PeerCommunicator:
                  listen_ip: IPAddress,
                  group_identifier: str,
                  socket_factory: SocketFactory,
-                 is_leader: bool = False,
-                 forward_enabled: bool = False,
+                 is_forward_register_peer_leader: bool = False,
+                 is_forward_register_peer_enabled: bool = False,
                  poll_timeout_in_ms: int = 500,
                  synchronize_timeout_in_ms: int = 1000,
                  abort_timeout_in_ms: int = 240000,
@@ -47,22 +47,27 @@ class PeerCommunicator:
                  send_socket_linger_time_in_ms: int = 100,
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
-        self._is_leader = is_leader
-        self._forward_enabled = forward_enabled
+        self._is_forward_register_peer_leader = is_forward_register_peer_leader
+        self._is_forward_register_peer_enabled = is_forward_register_peer_enabled
         self._socket_factory = socket_factory
         self._name = name
+        self._group_identifier = group_identifier
+        self._number_of_peers = number_of_peers
         self._logger = LOGGER.bind(
             name=self._name,
-            group_identifier=group_identifier
+            group_identifier=self._group_identifier,
+            is_forward_register_peer_leader=self._is_forward_register_peer_leader,
+            is_forward_register_peer_enabled=self._is_forward_register_peer_enabled,
+            number_of_peers=self._number_of_peers,
         )
-        self._number_of_peers = number_of_peers
+        self._logger.info("init")
         self._background_listener = BackgroundListenerInterface(
             name=self._name,
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
-            group_identifier=group_identifier,
-            leader=is_leader,
-            forward=forward_enabled,
+            group_identifier=self._group_identifier,
+            is_forward_register_peer_leader=is_forward_register_peer_leader,
+            is_forward_register_peer_enabled=is_forward_register_peer_enabled,
             clock=clock,
             poll_timeout_in_ms=poll_timeout_in_ms,
             synchronize_timeout_in_ms=synchronize_timeout_in_ms,
@@ -72,6 +77,8 @@ class PeerCommunicator:
             trace_logging=trace_logging
         )
         self._my_connection_info = self._background_listener.my_connection_info
+        self._logger = self._logger.bind(my_connection_info=self._my_connection_info.dict())
+        self._logger.info("my_connection_info")
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
@@ -114,12 +121,14 @@ class PeerCommunicator:
     def peers(self, timeout_in_milliseconds: Optional[int] = None) -> Optional[List[Peer]]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
-            peers = [peer for peer in self._peer_states.keys()]
+            peers = [peer for peer in self._peer_states.keys()] + \
+                    [Peer(connection_info=self._my_connection_info)]
             return sorted(peers, key=key_for_peer)
         else:
             return None
 
     def register_peer(self, peer_connection_info: ConnectionInfo):
+        self._logger.info("register_peer", peer_connection_info=peer_connection_info.dict())
         self._handle_messages()
         if (peer_connection_info.group_identifier == self.my_connection_info.group_identifier
                 and peer_connection_info != self.my_connection_info):
@@ -134,12 +143,20 @@ class PeerCommunicator:
         return self._my_connection_info
 
     @property
-    def is_leader(self) -> bool:
-        return self._is_leader
+    def peer(self) -> Peer:
+        return Peer(connection_info=self._my_connection_info)
 
     @property
-    def forward_enabled(self) -> bool:
-        return self._forward_enabled
+    def rank(self) -> int:
+        return self.peers().index(self.peer)
+
+    @property
+    def is_forward_register_peer_leader(self) -> bool:
+        return self._is_forward_register_peer_leader
+
+    @property
+    def is_forward_register_peer_enabled(self) -> bool:
+        return self._is_forward_register_peer_enabled
 
     def are_all_peers_connected(self) -> bool:
         self._handle_messages()

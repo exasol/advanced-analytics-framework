@@ -51,3 +51,8 @@ class DiscoverySocket:
 
     def __del__(self):
         self.close()
+
+
+class DiscoverySocketFactory:
+    def create(self, ip_address: IPAddress, port: Port) -> DiscoverySocket:
+        return DiscoverySocket(ip_address=ip_address, port=port)
