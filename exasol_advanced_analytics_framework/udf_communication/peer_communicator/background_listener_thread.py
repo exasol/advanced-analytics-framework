@@ -179,9 +179,13 @@ class BackgroundListenerThread:
         return BackgroundListenerThread.Status.RUNNING
 
     def _is_register_peer_message_allowed_as_control_message(self):
-        return self._config.forward_register_peer_config.is_enabled \
-               and self._config.forward_register_peer_config.is_leader \
+        return (
+               (
+                       self._config.forward_register_peer_config.is_enabled 
+                       and self._config.forward_register_peer_config.is_leader
+               )
                or not self._config.forward_register_peer_config.is_enabled
+        )
 
     def _add_peer(self,
                   peer: Peer,
