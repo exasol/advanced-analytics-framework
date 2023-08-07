@@ -130,10 +130,11 @@ class ConnectionEstablisherBuilder:
                                      my_connection_info: ConnectionInfo, peer: Peer,
                                      clock: Clock, out_control_socket: Socket,
                                      parameter: ConnectionEstablisherBuilderParameter):
-        needs_register_peer_complete_and_predecessor_exists = \
-            (parameter.register_peer_connection is not None
+        needs_register_peer_complete_and_predecessor_exists = (
+             parameter.register_peer_connection is not None
              and parameter.register_peer_connection.predecessor is not None
-             and parameter.behavior_config.needs_register_peer_complete)
+             and parameter.behavior_config.needs_register_peer_complete
+         )
         peer_is_ready_sender_timer = self._timer_factory.create(
             clock=clock, timeout_in_ms=parameter.timeout_config.peer_is_ready_wait_time_in_ms)
         peer_is_ready_sender = self._peer_is_ready_sender_factory.create(
