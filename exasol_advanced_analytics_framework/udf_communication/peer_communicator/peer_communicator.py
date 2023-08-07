@@ -1,4 +1,5 @@
 import time
+from dataclasses import asdict
 from typing import Optional, Dict, List
 
 import structlog
@@ -10,11 +11,15 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
     BackgroundListenerInterface
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.frontend_peer_state import \
     FrontendPeerState
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
-    Frame
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract \
+    import SocketFactory, Frame
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -38,17 +43,10 @@ class PeerCommunicator:
                  listen_ip: IPAddress,
                  group_identifier: str,
                  socket_factory: SocketFactory,
-                 is_forward_register_peer_leader: bool = False,
-                 is_forward_register_peer_enabled: bool = False,
-                 poll_timeout_in_ms: int = 500,
-                 synchronize_timeout_in_ms: int = 1000,
-                 abort_timeout_in_ms: int = 240000,
-                 peer_is_ready_wait_time_in_ms: int = 10000,
-                 send_socket_linger_time_in_ms: int = 100,
+                 config: PeerCommunicatorConfig = PeerCommunicatorConfig(),
                  clock: Clock = Clock(),
                  trace_logging: bool = False):
-        self._is_forward_register_peer_leader = is_forward_register_peer_leader
-        self._is_forward_register_peer_enabled = is_forward_register_peer_enabled
+        self._config = config
         self._socket_factory = socket_factory
         self._name = name
         self._group_identifier = group_identifier
@@ -56,9 +54,8 @@ class PeerCommunicator:
         self._logger = LOGGER.bind(
             name=self._name,
             group_identifier=self._group_identifier,
-            is_forward_register_peer_leader=self._is_forward_register_peer_leader,
-            is_forward_register_peer_enabled=self._is_forward_register_peer_enabled,
             number_of_peers=self._number_of_peers,
+            config=asdict(config)
         )
         self._logger.info("init")
         self._background_listener = BackgroundListenerInterface(
@@ -66,15 +63,9 @@ class PeerCommunicator:
             socket_factory=self._socket_factory,
             listen_ip=listen_ip,
             group_identifier=self._group_identifier,
-            is_forward_register_peer_leader=is_forward_register_peer_leader,
-            is_forward_register_peer_enabled=is_forward_register_peer_enabled,
+            config=config,
             clock=clock,
-            poll_timeout_in_ms=poll_timeout_in_ms,
-            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
-            abort_timeout_in_ms=abort_timeout_in_ms,
-            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
-            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
-            trace_logging=trace_logging
+            trace_logging=trace_logging,
         )
         self._my_connection_info = self._background_listener.my_connection_info
         self._logger = self._logger.bind(my_connection_info=self._my_connection_info.dict())
@@ -95,7 +86,7 @@ class PeerCommunicator:
             else:
                 self._logger.error("Unknown message", message=message.dict())
 
-    def _add_peer_state(self, peer):
+    def _add_peer_state(self, peer: Peer):
         if peer not in self._peer_states:
             self._peer_states[peer] = FrontendPeerState(
                 my_connection_info=self.my_connection_info,
@@ -151,12 +142,8 @@ class PeerCommunicator:
         return self.peers().index(self.peer)
 
     @property
-    def is_forward_register_peer_leader(self) -> bool:
-        return self._is_forward_register_peer_leader
-
-    @property
-    def is_forward_register_peer_enabled(self) -> bool:
-        return self._is_forward_register_peer_enabled
+    def forward_register_peer_config(self) -> ForwardRegisterPeerConfig:
+        return self._config.forward_register_peer_config
 
     def are_all_peers_connected(self) -> bool:
         self._handle_messages()

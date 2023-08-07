@@ -41,14 +41,14 @@ class DiscoveryStrategy:
         return max(0, time_left_until_timeout)
 
     def discover_peers(self):
-        if not self._peer_communicator.is_forward_register_peer_enabled:
+        if not self._peer_communicator.forward_register_peer_config.is_enabled:
             raise ValueError("PeerCommunicator.is_forward_register_peer_enabled needs to be true")
-        if self._peer_communicator.is_forward_register_peer_leader:
+        if self._peer_communicator.forward_register_peer_config.is_leader:
             self._global_discovery_socket.bind()
         self._send_ping()
         begin_time_ns = time.monotonic_ns()
         while not self._should_discovery_end(begin_time_ns):
-            if self._peer_communicator.is_forward_register_peer_leader:
+            if self._peer_communicator.forward_register_peer_config.is_leader:
                 self._receive_pings(begin_time_ns)
             self._send_ping()
         if not self._peer_communicator.are_all_peers_connected():

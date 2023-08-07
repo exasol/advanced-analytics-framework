@@ -1,6 +1,10 @@
 from exasol_advanced_analytics_framework.udf_communication.discovery import multi_node
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+    ForwardRegisterPeerConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 
@@ -22,8 +26,12 @@ class CommunicatorFactory:
             number_of_peers=number_of_instances,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            is_forward_register_peer_leader=is_discovery_leader,
-            is_forward_register_peer_enabled=True,
+            config=PeerCommunicatorConfig(
+                forward_register_peer_config=ForwardRegisterPeerConfig(
+                    is_leader=is_discovery_leader,
+                    is_enabled=True,
+                )
+            ),
             socket_factory=socket_factory
         )
         discovery = multi_node.DiscoveryStrategy(

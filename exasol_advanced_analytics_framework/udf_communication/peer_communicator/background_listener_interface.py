@@ -1,4 +1,5 @@
 import threading
+from dataclasses import asdict
 from typing import Optional, Iterator
 
 import structlog
@@ -10,6 +11,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_thread import \
     BackgroundListenerThread
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+    PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag
@@ -25,20 +28,16 @@ class BackgroundListenerInterface:
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
-                 is_forward_register_peer_leader: bool,
-                 is_forward_register_peer_enabled: bool,
+                 config: PeerCommunicatorConfig,
                  clock: Clock,
-                 poll_timeout_in_ms: int,
-                 synchronize_timeout_in_ms: int,
-                 abort_timeout_in_ms: int,
-                 peer_is_ready_wait_time_in_ms: int,
-                 send_socket_linger_time_in_ms: int,
                  trace_logging: bool):
 
+        self._config = config
         self._name = name
         self._logger = LOGGER.bind(
             name=self._name,
-            group_identifier=group_identifier
+            group_identifier=group_identifier,
+            config=asdict(config)
         )
         out_control_socket_address = self._create_out_control_socket(socket_factory)
         in_control_socket_address = self._create_in_control_socket(socket_factory)
@@ -50,15 +49,9 @@ class BackgroundListenerInterface:
             group_identifier=group_identifier,
             out_control_socket_address=out_control_socket_address,
             in_control_socket_address=in_control_socket_address,
-            is_forward_register_peer_leader=is_forward_register_peer_leader,
-            is_forward_register_peer_enabled=is_forward_register_peer_enabled,
             clock=clock,
-            poll_timeout_in_ms=poll_timeout_in_ms,
-            synchronize_timeout_in_ms=synchronize_timeout_in_ms,
-            abort_timeout_in_ms=abort_timeout_in_ms,
-            peer_is_ready_wait_time_in_ms=peer_is_ready_wait_time_in_ms,
-            send_socket_linger_time_in_ms=send_socket_linger_time_in_ms,
-            trace_logging=trace_logging
+            config=config,
+            trace_logging=trace_logging,
         )
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
