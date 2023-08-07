@@ -23,9 +23,10 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 
 def _needs_acknowledge_register_peer(parameter: ConnectionEstablisherBuilderParameter):
-    needs_acknowledge_register_peer = \
-        (parameter.register_peer_connection is not None
-         and parameter.behavior_config.forward_register_peer)
+    needs_acknowledge_register_peer = (
+        parameter.register_peer_connection is not None
+        and parameter.behavior_config.forward_register_peer
+    )
     return needs_acknowledge_register_peer
 
 
