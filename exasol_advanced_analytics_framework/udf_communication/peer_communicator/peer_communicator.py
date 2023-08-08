@@ -82,7 +82,7 @@ class PeerCommunicator:
                 self._add_peer_state(peer)
                 self._peer_states[peer].received_peer_is_ready_to_receive()
             elif isinstance(message, messages.Timeout):
-                raise TimeoutError()
+                raise TimeoutError(message.reason)
             else:
                 self._logger.error("Unknown message", message=message.dict())
 
