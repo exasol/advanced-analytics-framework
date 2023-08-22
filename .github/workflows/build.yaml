@@ -28,8 +28,14 @@ jobs:
       - name: Build language container
         run: ./build_language_container.sh
 
+      - name: Run Python unit tests
+        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/unit_tests
+
+      - name: Run Python integration tests without db
+        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/integration_tests/without_db
+
       - name: Start test environment
         run: bash ./scripts/start_integration_test_environment.sh
 
-      - name: Run Python tests
-        run: ./scripts/run_in_dev_env.sh poetry run pytest tests
+      - name: Run Python integration tests with db
+        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/integration_tests/with_db
