@@ -11,9 +11,11 @@ runs:
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ inputs.python-version }}
+
     - uses: abatilo/actions-poetry@v2
       with:
         poetry-version: 1.4.0
+
     - name: Poetry install
       run: poetry install
       shell: bash

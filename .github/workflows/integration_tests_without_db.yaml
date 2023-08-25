@@ -1,0 +1,45 @@
+name: Run integration tests without DB
+
+on: [ push ]
+
+jobs:
+
+  prepare_matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ 3.8 ]
+    runs-on: ubuntu-latest
+    name: Prepare Matrix for integration tests without DB
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python & Poetry Environment
+        uses: ./.github/actions/prepare_poetry_env
+
+      - id: generate_integration_tests_without_db
+        name: "Generate list of integration tests without DB"
+        run: poetry run -- nox -s write_github_integration_tests_without_db_matrix
+    outputs:
+      test-path: ${{ steps.generate_integration_tests_without_db.outputs.matrix }}
+
+  run_test:
+    needs: prepare_matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ 3.8 ]
+        test-path: ${{ fromJSON(needs.prepare_matrix.outputs.test-path) }}
+    runs-on: ubuntu-latest
+    name: Run ${{ matrix.test-path.name }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python & Poetry Environment
+        uses: ./.github/actions/prepare_poetry_env
+
+      - name: Poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Run Python integration tests without db
+        run: poetry run -- nox -s run_python_test -- ${{ matrix.test-path.path }}
