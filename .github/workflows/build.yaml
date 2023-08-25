@@ -26,12 +26,9 @@ jobs:
         run: poetry run -- nox -s run_in_dev_env -- ./scripts/lua_tests.sh
 
       - name: Run Python unit tests
-        run: poetry run -- nox -s run_in_dev_env -- poetry run pytest tests/unit_tests
+        run: poetry run -- nox -s run_python_unit_tests
 
       - name: Run Python integration tests without db
-        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/integration_tests/without_db
-
-      - name: Run Python integration tests withou db
         run: poetry run -- nox -s run_python_integration_tests_without_db
 
       - name: Build language container
