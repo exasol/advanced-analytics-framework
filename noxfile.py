@@ -76,6 +76,17 @@ def generate_github_integration_tests_without_db_matrix_json(session: Session):
 
 
 @nox.session(python=False)
+def write_github_integration_tests_without_db_matrix(session: Session):
+    json_str = _generate_github_integration_tests_without_db_matrix()
+    github_output_definition = f'matrix={json_str}'
+    if "GITHUB_OUTPUT" in os.environ:
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            print(github_output_definition, file=fh)
+    else:
+        print(github_output_definition)
+
+
+@nox.session(python=False)
 def run_python_integration_tests_without_db(session: Session):
     integration_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
     _run_in_dev_env_poetry_call(session, "pytest", str(integration_test_directory))
