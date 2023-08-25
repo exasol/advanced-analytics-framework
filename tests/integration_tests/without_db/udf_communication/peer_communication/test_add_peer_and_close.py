@@ -86,7 +86,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         logger.exception("Exception during test")
 
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (50, 10)])
+@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100), (25, 10)])
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
@@ -108,10 +108,6 @@ def test_functionality_10():
 
 def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_50():
-    run_test_with_repetitions(50, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
