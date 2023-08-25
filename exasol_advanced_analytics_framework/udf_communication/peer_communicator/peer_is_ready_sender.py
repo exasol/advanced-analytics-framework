@@ -116,6 +116,9 @@ class PeerIsReadySender:
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 
+    def is_ready_to_stop(self):
+        return _States.FINISHED in self._states
+
 
 class PeerIsReadySenderFactory:
     def create(self,

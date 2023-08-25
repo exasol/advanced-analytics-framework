@@ -37,6 +37,11 @@ class Ping(BaseModel, frozen=True):
 class Stop(BaseModel, frozen=True):
     message_type: Literal["Stop"] = "Stop"
 
+class PrepareToStop(BaseModel, frozen=True):
+    message_type: Literal["PrepareToStop"] = "PrepareToStop"
+
+class IsReadyToStop(BaseModel, frozen=True):
+    message_type: Literal["IsReadyToStop"] = "IsReadyToStop"
 
 class Payload(BaseModel, frozen=True):
     message_type: Literal["Payload"] = "Payload"
@@ -69,6 +74,8 @@ class Message(BaseModel, frozen=True):
         AcknowledgeRegisterPeer,
         RegisterPeerComplete,
         Stop,
+        PrepareToStop,
+        IsReadyToStop,
         Payload,
         MyConnectionInfo,
         PeerIsReadyToReceive,

@@ -56,6 +56,11 @@ class AcknowledgeRegisterPeerSender():
         result = is_time and not self._finished
         return result
 
+    def is_ready_to_stop(self):
+        result = (self._finished and self._needs_to_send_for_peer) or not self._needs_to_send_for_peer
+        self._logger.debug("is_ready_to_stop", finished=self._finished, is_ready_to_stop=result)
+        return result
+
 
 class AcknowledgeRegisterPeerSenderFactory():
     def create(self,

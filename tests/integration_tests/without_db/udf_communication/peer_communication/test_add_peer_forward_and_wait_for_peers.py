@@ -1,4 +1,3 @@
-import sys
 import time
 import traceback
 from pathlib import Path
@@ -24,19 +23,20 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
-from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import ConditionalMethodDropper
-from tests.integration_tests.without_db.udf_communication.peer_communication.utils import TestProcess, BidirectionalQueue, assert_processes_finish, \
-    PeerCommunicatorTestProcessParameter
+from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
+    ConditionalMethodDropper
+from tests.integration_tests.without_db.udf_communication.peer_communication.utils import \
+    PeerCommunicatorTestProcessParameter, BidirectionalQueue, TestProcess, assert_processes_finish
 
 structlog.configure(
     context_class=dict,
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        ConditionalMethodDropper(method_name="debug"),
-        ConditionalMethodDropper(method_name="info"),
+        #ConditionalMethodDropper(method_name="debug"),
+        #ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(),
+        structlog.processors.TimeStamper(fmt="ISO"),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
         structlog.processors.CallsiteParameterAdder(),
         structlog.processors.JSONRenderer()
@@ -53,38 +53,39 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
         socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
+        leader = False
+        leader_name = "i0"
+        leader = parameter.instance_name == leader_name
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            socket_factory=socket_factory,
             config=PeerCommunicatorConfig(
                 forward_register_peer_config=ForwardRegisterPeerConfig(
-                    is_leader=False,
-                    is_enabled=False
-                )
+                    is_leader=leader,
+                    is_enabled=True
+                ),
             ),
+            socket_factory=socket_factory
         )
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
-            for index, connection_info in peer_connection_infos.items():
-                com.register_peer(connection_info)
+            if parameter.instance_name == leader_name:
+                for index, connection_info in peer_connection_infos.items():
+                    com.register_peer(connection_info)
             peers = com.peers(timeout_in_milliseconds=None)
-            logger.info("peers", number_of_peers=len(peers))
-            queue.put(peers)
+            logger.info("peers", peers=len(peers))
         finally:
-            com.close()
-            logger.info("after close")
-            context.destroy(linger=0)
-            logger.info("after destroy")
-            for frame in sys._current_frames().values():
-                stacktrace = traceback.format_stack(frame)
-                logger.info("Frame", stacktrace=stacktrace)
+            logger.info("com stop before")
+            com.stop()
+            logger.info("com stop after")
+        queue.put(peers)
     except Exception as e:
+        traceback.print_exc()
+        logger.exception("Exception during test", exception=e)
         queue.put([])
-        logger.exception("Exception during test")
 
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
@@ -92,15 +93,27 @@ def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 1
+REPETITIONS_FOR_FUNCTIONALITY = 3
 
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+def test_functionality_3():
+    run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_5():
+    run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
+
+
 def test_functionality_10():
     run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_15():
+    run_test_with_repetitions(15, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_25():
@@ -140,7 +153,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         connection_infos[i] = processes[i].get()
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
-    assert_processes_finish(processes, timeout_in_seconds=180)
+    assert_processes_finish(processes, timeout_in_seconds=300)
     peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
