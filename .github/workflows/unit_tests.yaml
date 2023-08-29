@@ -1,4 +1,4 @@
-name: Build and test project
+name: Run unit tests
 
 on: [ push ]
 
@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [3.8]
     runs-on: ubuntu-latest
 
     steps:
@@ -27,15 +27,3 @@ jobs:
 
       - name: Run Python unit tests
         run: poetry run -- nox -s run_python_unit_tests
-
-      - name: Run Python integration tests without db
-        run: poetry run -- nox -s run_python_integration_tests_without_db
-
-      - name: Build language container
-        run: poetry run -- nox -s build_language_container
-
-      - name: Start test environment
-        run: poetry run -- nox -s start_integration_test_environment
-
-      - name: Run Python integration tests with db
-        run: poetry run -- nox -s run_python_integration_tests_with_db
