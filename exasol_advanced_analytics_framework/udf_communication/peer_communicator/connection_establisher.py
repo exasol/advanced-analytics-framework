@@ -85,7 +85,7 @@ class ConnectionEstablisher:
         self._peer_is_ready_sender.try_send()
         self._acknowledge_register_peer_sender.try_send()
 
-    def is_ready_to_stop(self):
+    def is_ready_to_stop(self) -> bool:
         peer_is_ready_sender = self._peer_is_ready_sender.is_ready_to_stop()
         register_peer_sender = self._register_peer_sender.is_ready_to_stop()
         self._logger.debug("is_ready_to_stop",

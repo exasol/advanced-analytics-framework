@@ -162,7 +162,7 @@ class BackgroundListenerThread:
             if self._is_ready_to_stop():
                 self._out_control_socket.send(serialize_message(IsReadyToStop()))
 
-    def _is_ready_to_stop(self):
+    def _is_ready_to_stop(self) -> bool:
         peers_status = [peer_state.is_ready_to_stop()
                         for peer_state in self._peer_state.values()]
         is_ready_to_stop = all(peers_status) and len(peers_status) == self._number_of_peers - 1
@@ -202,7 +202,7 @@ class BackgroundListenerThread:
             self._logger.exception("Exception during handling message", message=message)
         return BackgroundListenerThread.Status.RUNNING
 
-    def _is_register_peer_message_allowed_as_control_message(self):
+    def _is_register_peer_message_allowed_as_control_message(self) -> bool:
         return (
                 (
                         self._config.forward_register_peer_config.is_enabled
@@ -263,7 +263,7 @@ class BackgroundListenerThread:
         except Exception as e:
             logger.exception("Exception during handling message", message_content=message_content_bytes)
 
-    def is_register_peer_message_allowed_as_listener_message(self):
+    def is_register_peer_message_allowed_as_listener_message(self) -> bool:
         return not self._config.forward_register_peer_config.is_leader \
                and self._config.forward_register_peer_config.is_enabled
 

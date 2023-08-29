@@ -72,7 +72,7 @@ class PeerIsReadySender:
             self._states |= _States.FINISHED
             self._send_peer_is_ready_to_frontend()
 
-    def _should_we_send(self):
+    def _should_we_send(self) -> bool:
         is_time = self._timer.is_time()
         is_enabled = self._is_enabled()
         send_independent_of_time = self._send_independent_of_time()
@@ -103,7 +103,7 @@ class PeerIsReadySender:
                                     and received_register_peer_complete)
         return send_independent_of_time
 
-    def _is_enabled(self):
+    def _is_enabled(self) -> bool:
         received_acknowledge_register_peer = (not self._needs_acknowledge_register_peer
                                               or _States.REGISTER_PEER_ACKNOWLEDGED in self._states)
         is_enabled = (_States.CONNECTION_SYNCHRONIZED in self._states
@@ -116,7 +116,7 @@ class PeerIsReadySender:
         serialized_message = serialize_message(message)
         self._out_control_socket.send(serialized_message)
 
-    def is_ready_to_stop(self):
+    def is_ready_to_stop(self) -> bool:
         return _States.FINISHED in self._states
 
 

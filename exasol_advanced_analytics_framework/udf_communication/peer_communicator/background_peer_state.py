@@ -64,5 +64,5 @@ class BackgroundPeerState:
     def stop(self):
         self._receive_socket.close(linger=0)
 
-    def is_ready_to_stop(self):
+    def is_ready_to_stop(self) -> bool:
         return self._connection_establisher.is_ready_to_stop()
