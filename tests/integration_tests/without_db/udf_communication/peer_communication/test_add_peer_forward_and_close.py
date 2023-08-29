@@ -52,10 +52,8 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         context = zmq.Context()
         socket_factory = ZMQSocketFactory(context)
         socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
-        leader = False
         leader_name = "i0"
-        if parameter.instance_name == leader_name:
-            leader = True
+        leader = True if parameter.instance_name == leader_name else False
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,
@@ -72,7 +70,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         try:
             queue.put(com.my_connection_info)
             peer_connection_infos = queue.get()
-            if parameter.instance_name == leader_name:
+            if leader:
                 for index, connection_info in peer_connection_infos.items():
                     com.register_peer(connection_info)
         finally:

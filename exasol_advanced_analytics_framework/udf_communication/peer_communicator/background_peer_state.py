@@ -43,7 +43,7 @@ class BackgroundPeerState:
         self._receive_socket.bind(receive_socket_address)
 
     def try_send(self):
-        self._logger.debug("resend_if_necessary")
+        self._logger.debug("try_send")
         self._connection_establisher.try_send()
 
     def received_synchronize_connection(self):
