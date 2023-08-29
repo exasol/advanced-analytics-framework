@@ -57,7 +57,7 @@ class RegisterPeerSender():
         return result
 
     def is_ready_to_stop(self):
-        return (self._finished and self._needs_to_send_for_peer) or not self._needs_to_send_for_peer
+        return self._finished or not self._needs_to_send_for_peer
 
 
 class RegisterPeerSenderFactory():
