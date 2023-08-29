@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
     runs-on: ubuntu-latest
 
     steps:
@@ -17,25 +17,25 @@ jobs:
         uses: ./.github/actions/prepare_poetry_env
 
       - name: Install Lua environment
-        run: ./scripts/install_lua_environment.sh
+        run: poetry run -- nox -s install_lua_environment
 
       - name: Poetry install
-        run: ./scripts/run_in_dev_env.sh poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
 
       - name: Run Lua unit tests and static code analyzer
-        run: ./scripts/run_in_dev_env.sh ./scripts/lua_tests.sh
-
-      - name: Build language container
-        run: ./build_language_container.sh
+        run: poetry run -- nox -s run_in_dev_env -- ./scripts/lua_tests.sh
 
       - name: Run Python unit tests
-        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/unit_tests
+        run: poetry run -- nox -s run_python_unit_tests
 
       - name: Run Python integration tests without db
-        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/integration_tests/without_db
+        run: poetry run -- nox -s run_python_integration_tests_without_db
+
+      - name: Build language container
+        run: poetry run -- nox -s build_language_container
 
       - name: Start test environment
-        run: bash ./scripts/start_integration_test_environment.sh
+        run: poetry run -- nox -s start_integration_test_environment
 
       - name: Run Python integration tests with db
-        run: ./scripts/run_in_dev_env.sh poetry run pytest tests/integration_tests/with_db
+        run: poetry run -- nox -s run_python_integration_tests_with_db
