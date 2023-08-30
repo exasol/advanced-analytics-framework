@@ -21,8 +21,8 @@ class RegisterPeerSender():
                  timer: Timer):
         self._needs_to_send_for_peer = needs_to_send_for_peer
         self._register_peer_connection = register_peer_connection
-        if self._needs_to_send_for_peer and self._register_peer_connection is None:
-            raise ValueError("_register_peer_connection is None while _needs_to_send_for_peer is true")
+        if needs_to_send_for_peer and self._register_peer_connection is None:
+            raise ValueError("_register_peer_connection is None while needs_to_send_for_peer is true")
         self._my_connection_info = my_connection_info
         self._timer = timer
         self._finished = False
@@ -51,10 +51,13 @@ class RegisterPeerSender():
         self._logger.debug("send", send_attempt_count=self._send_attempt_count)
         self._register_peer_connection.forward(self._peer)
 
-    def _should_we_send(self):
+    def _should_we_send(self) -> bool:
         is_time = self._timer.is_time()
         result = is_time and not self._finished
         return result
+
+    def is_ready_to_stop(self) -> bool:
+        return self._finished or not self._needs_to_send_for_peer
 
 
 class RegisterPeerSenderFactory():

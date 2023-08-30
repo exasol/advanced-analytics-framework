@@ -12,3 +12,4 @@ class PeerCommunicatorConfig:
     forward_register_peer_config: ForwardRegisterPeerConfig = ForwardRegisterPeerConfig()
     poll_timeout_in_ms: int = 200
     send_socket_linger_time_in_ms: int = 100
+    close_timeout_in_ms: int = 100000

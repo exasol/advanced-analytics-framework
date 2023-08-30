@@ -8,6 +8,7 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
+from exasol_advanced_analytics_framework.udf_communication.messages import IsReadyToStop, PrepareToStop
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSenderFactory
@@ -71,10 +72,12 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
 class BackgroundListenerThread:
     class Status(enum.Enum):
         RUNNING = enum.auto()
+        PREPARE_TO_STOP = enum.auto()
         STOPPED = enum.auto()
 
     def __init__(self,
                  name: str,
+                 number_of_peers: int,
                  socket_factory: SocketFactory,
                  listen_ip: IPAddress,
                  group_identifier: str,
@@ -84,6 +87,7 @@ class BackgroundListenerThread:
                  config: PeerCommunicatorConfig,
                  trace_logging: bool,
                  background_peer_state_factory: BackgroundPeerStateBuilder = create_background_peer_state_builder()):
+        self._number_of_peers = number_of_peers
         self._config = config
         self._background_peer_state_factory = background_peer_state_factory
         self._register_peer_connection: Optional[RegisterPeerConnection] = None
@@ -112,16 +116,16 @@ class BackgroundListenerThread:
         try:
             self._run_message_loop()
         finally:
-            self._close()
+            self._stop()
 
-    def _close(self):
+    def _stop(self):
         self._logger.info("start")
         if self._register_peer_connection is not None:
             self._register_peer_connection.close()
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
         for peer_state in self._peer_state.values():
-            peer_state.close()
+            peer_state.stop()
         self._listener_socket.close(linger=0)
         self._logger.info("end")
 
@@ -146,19 +150,37 @@ class BackgroundListenerThread:
 
     def _run_message_loop(self):
         try:
-            while self._status == BackgroundListenerThread.Status.RUNNING:
-                poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
-                if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-                    message = self._in_control_socket.receive()
-                    self._status = self._handle_control_message(message)
-                if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
-                    message = self._listener_socket.receive_multipart()
-                    self._handle_listener_message(message)
-                if self._status == BackgroundListenerThread.Status.RUNNING:
-                    for peer_state in self._peer_state.values():
-                        peer_state.resend_if_necessary()
+            while self._status != BackgroundListenerThread.Status.STOPPED:
+                self._handle_message()
+                self._try_send()
+                self._check_is_ready_to_stop()
         except Exception as e:
             self._logger.exception("Exception in message loop")
+
+    def _check_is_ready_to_stop(self):
+        if self._status == BackgroundListenerThread.Status.PREPARE_TO_STOP:
+            if self._is_ready_to_stop():
+                self._out_control_socket.send(serialize_message(IsReadyToStop()))
+
+    def _is_ready_to_stop(self) -> bool:
+        peers_status = [peer_state.is_ready_to_stop()
+                        for peer_state in self._peer_state.values()]
+        is_ready_to_stop = all(peers_status) and len(peers_status) == self._number_of_peers - 1
+        return is_ready_to_stop
+
+    def _try_send(self):
+        if self._status != BackgroundListenerThread.Status.STOPPED:
+            for peer_state in self._peer_state.values():
+                peer_state.try_send()
+
+    def _handle_message(self):
+        poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
+        if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
+            message = self._in_control_socket.receive()
+            self._status = self._handle_control_message(message)
+        if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
+            message = self._listener_socket.receive_multipart()
+            self._handle_listener_message(message)
 
     def _handle_control_message(self, message: bytes) -> Status:
         try:
@@ -166,25 +188,27 @@ class BackgroundListenerThread:
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
+            elif isinstance(specific_message_obj, PrepareToStop):
+                return BackgroundListenerThread.Status.PREPARE_TO_STOP
             elif isinstance(specific_message_obj, messages.RegisterPeer):
                 if self._is_register_peer_message_allowed_as_control_message():
                     self._handle_register_peer_message(specific_message_obj)
                 else:
-                    self._logger.error("RegisterPeerMessage message not allowed",
+                    self._logger.error("RegisterPeer message not allowed",
                                        message_obj=specific_message_obj.dict())
             else:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
             self._logger.exception("Exception during handling message", message=message)
-        return BackgroundListenerThread.Status.RUNNING
+        return self._status
 
-    def _is_register_peer_message_allowed_as_control_message(self):
+    def _is_register_peer_message_allowed_as_control_message(self) -> bool:
         return (
-               (
-                       self._config.forward_register_peer_config.is_enabled 
-                       and self._config.forward_register_peer_config.is_leader
-               )
-               or not self._config.forward_register_peer_config.is_enabled
+                (
+                        self._config.forward_register_peer_config.is_enabled
+                        and self._config.forward_register_peer_config.is_leader
+                )
+                or not self._config.forward_register_peer_config.is_enabled
         )
 
     def _add_peer(self,
@@ -227,7 +251,7 @@ class BackgroundListenerThread:
                 if self.is_register_peer_message_allowed_as_listener_message():
                     self._handle_register_peer_message(specific_message_obj)
                 else:
-                    logger.error("RegisterPeerMessage message not allowed", message_obj=specific_message_obj.dict())
+                    logger.error("RegisterPeer message not allowed", message_obj=specific_message_obj.dict())
             elif isinstance(specific_message_obj, messages.AcknowledgeRegisterPeer):
                 self._handle_acknowledge_register_peer_message(specific_message_obj)
             elif isinstance(specific_message_obj, messages.RegisterPeerComplete):
@@ -239,7 +263,7 @@ class BackgroundListenerThread:
         except Exception as e:
             logger.exception("Exception during handling message", message_content=message_content_bytes)
 
-    def is_register_peer_message_allowed_as_listener_message(self):
+    def is_register_peer_message_allowed_as_listener_message(self) -> bool:
         return not self._config.forward_register_peer_config.is_leader \
                and self._config.forward_register_peer_config.is_enabled
 
@@ -276,7 +300,7 @@ class BackgroundListenerThread:
             self._add_peer(
                 message.peer,
                 connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
-                    acknowledge_register_peer=True,
+                    acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
                     needs_register_peer_complete=True)
             )
             return
@@ -285,7 +309,7 @@ class BackgroundListenerThread:
             message.peer,
             connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
                 forward_register_peer=True,
-                acknowledge_register_peer=True,
+                acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
                 needs_register_peer_complete=True)
         )
 
@@ -313,12 +337,12 @@ class BackgroundListenerThread:
 
     def _handle_acknowledge_register_peer_message(self, message: messages.AcknowledgeRegisterPeer):
         if self._register_peer_connection.successor != message.source:
-            self._logger.error("AcknowledgeRegisterPeerMessage message not from successor", message_obj=message.dict())
+            self._logger.error("AcknowledgeRegisterPeer message not from successor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_acknowledge_register_peer()
 
     def _handle_register_peer_complete_message(self, message: messages.RegisterPeerComplete):
         if self._register_peer_connection.predecessor != message.source:
-            self._logger.error("RegisterPeerCompleteMessage message not from predecssor", message_obj=message.dict())
+            self._logger.error("RegisterPeerComplete message not from predecssor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_register_peer_complete()

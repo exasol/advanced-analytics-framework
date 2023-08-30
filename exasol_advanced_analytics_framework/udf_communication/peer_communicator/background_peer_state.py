@@ -42,8 +42,8 @@ class BackgroundPeerState:
         receive_socket_address = get_peer_receive_socket_name(self._peer)
         self._receive_socket.bind(receive_socket_address)
 
-    def resend_if_necessary(self):
-        self._logger.debug("resend_if_necessary")
+    def try_send(self):
+        self._logger.debug("try_send")
         self._connection_establisher.try_send()
 
     def received_synchronize_connection(self):
@@ -61,5 +61,8 @@ class BackgroundPeerState:
     def forward_payload(self, frames: List[Frame]):
         self._receive_socket.send_multipart(frames)
 
-    def close(self):
+    def stop(self):
         self._receive_socket.close(linger=0)
+
+    def is_ready_to_stop(self) -> bool:
+        return self._connection_establisher.is_ready_to_stop()
