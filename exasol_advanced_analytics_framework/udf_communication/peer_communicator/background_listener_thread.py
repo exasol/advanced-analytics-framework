@@ -200,7 +200,7 @@ class BackgroundListenerThread:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
             self._logger.exception("Exception during handling message", message=message)
-        return BackgroundListenerThread.Status.RUNNING
+        return self._status
 
     def _is_register_peer_message_allowed_as_control_message(self) -> bool:
         return (
