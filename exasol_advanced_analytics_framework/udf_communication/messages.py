@@ -48,8 +48,22 @@ class IsReadyToStop(BaseModel, frozen=True):
 
 
 class Payload(BaseModel, frozen=True):
-    message_type: Literal["Payload"] = "Payload"
-    source: ConnectionInfo
+    message_type: Literal["PayloadMessage"] = "PayloadMessage"
+    source: Peer
+    destination: Peer
+    sequence_number: int
+
+
+class AcknowledgePayload(BaseModel, frozen=True):
+    message_type: Literal["AcknowledgePayloadMessage"] = "AcknowledgePayloadMessage"
+    source: Peer
+    sequence_number: int
+
+
+class AbortPayload(BaseModel, frozen=True):
+    message_type: Literal["AbortPayloadMessage"] = "AbortPayloadMessage"
+    payload: Payload
+    reason: str
 
 
 class MyConnectionInfo(BaseModel, frozen=True):
@@ -88,6 +102,8 @@ class Message(BaseModel, frozen=True):
         PrepareToStop,
         IsReadyToStop,
         Payload,
+        AcknowledgePayload,
+        AbortPayload,
         MyConnectionInfo,
         ConnectionIsReady,
         SynchronizeConnection,
