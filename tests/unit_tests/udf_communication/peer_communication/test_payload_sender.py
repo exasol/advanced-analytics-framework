@@ -2,10 +2,9 @@ import dataclasses
 from typing import Union, Tuple, List
 from unittest.mock import create_autospec, MagicMock, call
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Payload, Message, \
-    AcknowledgePayload
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender import \
@@ -82,16 +81,16 @@ def create_test_setup(number_of_messages: int) -> TestSetup:
     )
 
 
-def create_acknowledge_payload_message(test_setup: TestSetup, message: Payload) -> Message:
-    acknowledge_message = Message(__root__=AcknowledgePayload(
+def create_acknowledge_payload_message(test_setup: TestSetup, message: messages.Payload) -> messages.Message:
+    acknowledge_message = messages.Message(__root__=messages.AcknowledgePayload(
         source=Peer(connection_info=test_setup.my_connection_info),
         sequence_number=message.sequence_number))
     return acknowledge_message
 
 
-def create_payload_message(test_setup: TestSetup, sequence_number: int) -> Tuple[Payload, List[Frame]]:
+def create_payload_message(test_setup: TestSetup, sequence_number: int) -> Tuple[messages.Payload, List[Frame]]:
     frames = [create_autospec(Frame)]
-    message = Payload(
+    message = messages.Payload(
         source=test_setup.peer,
         destination=Peer(connection_info=test_setup.my_connection_info),
         sequence_number=sequence_number

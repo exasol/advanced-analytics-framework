@@ -4,9 +4,8 @@ from typing import Dict, List
 import structlog
 from structlog.typing import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.messages import AcknowledgePayload, Payload, \
-    Message
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender import \
@@ -49,14 +48,14 @@ class PayloadSender:
         for payload_sender in self._payload_message_sender_dict.values():
             payload_sender.try_send()
 
-    def received_acknowledge_payload(self, message: AcknowledgePayload):
+    def received_acknowledge_payload(self, message: messages.AcknowledgePayload):
         self._logger.info("received_acknowledge_payload", message=message.dict())
         if message.sequence_number in self._payload_message_sender_dict:
             self._payload_message_sender_dict[message.sequence_number].stop()
             del self._payload_message_sender_dict[message.sequence_number]
-            self._out_control_socket.send(serialize_message(Message(__root__=message)))
+            self._out_control_socket.send(serialize_message(messages.Message(__root__=message)))
 
-    def send_payload(self, message: Payload, frames: List[Frame]):
+    def send_payload(self, message: messages.Payload, frames: List[Frame]):
         self._logger.info("send_payload", message=message.dict())
         self._payload_message_sender_dict[message.sequence_number] = \
             self._payload_message_sender_factory.create(

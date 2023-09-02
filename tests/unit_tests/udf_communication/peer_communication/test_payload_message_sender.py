@@ -4,9 +4,9 @@ from unittest.mock import create_autospec, MagicMock, call
 
 import pytest
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Payload, AbortPayload
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender import \
     PayloadMessageSender
@@ -24,7 +24,7 @@ class TestSetup:
     out_control_socket_mock: Union[Socket, MagicMock]
     retry_timer_mock: Union[Timer, MagicMock]
     frame_mocks: List[Union[Frame, MagicMock]]
-    message: Payload
+    message: messages.Payload
     payload_message_sender: PayloadMessageSender
 
     def reset_mocks(self):
@@ -42,7 +42,7 @@ def create_test_setup() -> TestSetup:
     out_control_socket_mock = create_autospec(Socket)
     retry_timer_mock = create_autospec(Timer)
     frame_mocks = [create_autospec(Frame)]
-    message = Payload(
+    message = messages.Payload(
         source=Peer(connection_info=ConnectionInfo(
             name="t1",
             ipaddress=IPAddress(ip_address="127.0.0.1"),
@@ -94,7 +94,7 @@ def test_try_send_abort_timer_is_time_true(is_retry_time: bool):
     mock_cast(test_setup.abort_time_mock.is_time).return_value = True
     mock_cast(test_setup.retry_timer_mock.is_time).return_value = is_retry_time
     test_setup.payload_message_sender.try_send()
-    abort_payload = AbortPayload(payload=test_setup.message, reason="Send timeout reached")
+    abort_payload = messages.AbortPayload(payload=test_setup.message, reason="Send timeout reached")
     assert mock_cast(test_setup.out_control_socket_mock.send).mock_calls == [call(serialize_message(abort_payload))] \
            and test_setup.sender_mock.mock_calls == [] \
            and test_setup.retry_timer_mock.mock_calls == [] \

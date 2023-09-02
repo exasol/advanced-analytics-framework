@@ -1,6 +1,6 @@
 from typing import List
 
-from exasol_advanced_analytics_framework.udf_communication.messages import Payload, AbortPayload
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
@@ -8,7 +8,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 
 class PayloadMessageSender:
-    def __init__(self, message: Payload,
+    def __init__(self, message: messages.Payload,
                  frames: List[Frame],
                  retry_timer: Timer,
                  abort_timer: Timer,
@@ -51,7 +51,7 @@ class PayloadMessageSender:
         return is_time and is_enabled
 
     def _send_abort(self):
-        abort_payload_message = AbortPayload(
+        abort_payload_message = messages.AbortPayload(
             payload=self._message,
             reason="Send timeout reached"
         )
