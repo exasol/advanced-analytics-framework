@@ -15,7 +15,9 @@ messages_under_test = [
     messages.RegisterPeer(peer=peer),
     messages.Ping(source=connection_info),
     messages.Stop(),
-    messages.Payload(source=connection_info),
+    messages.Payload(source=Peer(connection_info=connection_info),
+                     sequence_number=0,
+                     destination=Peer(connection_info=connection_info)),
     messages.MyConnectionInfo(my_connection_info=connection_info),
     messages.ConnectionIsReady(peer=peer)
 ]

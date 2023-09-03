@@ -48,20 +48,20 @@ class IsReadyToStop(BaseModel, frozen=True):
 
 
 class Payload(BaseModel, frozen=True):
-    message_type: Literal["PayloadMessage"] = "PayloadMessage"
+    message_type: Literal["Payload"] = "Payload"
     source: Peer
     destination: Peer
     sequence_number: int
 
 
 class AcknowledgePayload(BaseModel, frozen=True):
-    message_type: Literal["AcknowledgePayloadMessage"] = "AcknowledgePayloadMessage"
+    message_type: Literal["AcknowledgePayload"] = "AcknowledgePayload"
     source: Peer
     sequence_number: int
 
 
 class AbortPayload(BaseModel, frozen=True):
-    message_type: Literal["AbortPayloadMessage"] = "AbortPayloadMessage"
+    message_type: Literal["AbortPayload"] = "AbortPayload"
     payload: Payload
     reason: str
 
