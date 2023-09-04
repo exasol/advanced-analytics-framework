@@ -8,7 +8,8 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 
 class PayloadMessageSender:
-    def __init__(self, message: messages.Payload,
+    def __init__(self,
+                 message: messages.Payload,
                  frames: List[Frame],
                  retry_timer: Timer,
                  abort_timer: Timer,
@@ -27,7 +28,7 @@ class PayloadMessageSender:
         self._sender.send_multipart(self._frames)
 
     def try_send(self):
-        should_we_send_abort = self._should_we_abort()
+        should_we_send_abort = self._should_we_send_abort()
         if should_we_send_abort:
             self._send_abort()
             self._finished = True
@@ -40,7 +41,7 @@ class PayloadMessageSender:
     def stop(self):
         self._finished = True
 
-    def _should_we_abort(self):
+    def _should_we_send_abort(self):
         is_time = self._abort_timer.is_time()
         is_enabled = not self._finished
         return is_time and is_enabled
