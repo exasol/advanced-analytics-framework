@@ -143,5 +143,4 @@ class RegisterPeerForwarderBuilder:
             peer=peer,
             reason="Timeout occurred during sending register peer."
         )
-        abort_timeout_sender.stop()
         return abort_timeout_sender

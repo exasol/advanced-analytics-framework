@@ -51,7 +51,7 @@ def create_test_setup() -> TestSetup:
     )
     sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
     abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender] = create_autospec(AbortTimeoutSender)
-    peer_is_ready_sender_mock: Union[MagicMock, ConnectionIsReadySender] = create_autospec(ConnectionIsReadySender)
+    connection_is_ready_sender: Union[MagicMock, ConnectionIsReadySender] = create_autospec(ConnectionIsReadySender)
     synchronize_connection_sender_mock: Union[MagicMock, SynchronizeConnectionSender] = \
         create_autospec(SynchronizeConnectionSender)
     connection_establisher = ConnectionEstablisher(
@@ -59,7 +59,7 @@ def create_test_setup() -> TestSetup:
         peer=peer,
         sender=sender_mock,
         abort_timeout_sender=abort_timeout_sender_mock,
-        connection_is_ready_sender=peer_is_ready_sender_mock,
+        connection_is_ready_sender=connection_is_ready_sender,
         synchronize_connection_sender=synchronize_connection_sender_mock,
     )
     return TestSetup(
@@ -67,7 +67,7 @@ def create_test_setup() -> TestSetup:
         my_connection_info=my_connection_info,
         sender_mock=sender_mock,
         abort_timeout_sender_mock=abort_timeout_sender_mock,
-        connection_is_ready_sender_mock=peer_is_ready_sender_mock,
+        connection_is_ready_sender_mock=connection_is_ready_sender,
         synchronize_connection_sender_mock=synchronize_connection_sender_mock,
         connection_establisher=connection_establisher,
     )
