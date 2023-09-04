@@ -143,4 +143,6 @@ class RegisterPeerForwarderBuilder:
             peer=peer,
             reason="Timeout occurred during sending register peer."
         )
+        if not parameter.behavior_config.needs_to_send_register_peer:
+            abort_timeout_sender.stop()
         return abort_timeout_sender
