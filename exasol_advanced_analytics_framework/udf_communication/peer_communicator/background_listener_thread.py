@@ -280,7 +280,7 @@ class BackgroundListenerThread:
                and self._config.forward_register_peer_config.is_enabled
 
     def _handle_payload_message(self, message: messages.Payload, frames: List[Frame]):
-        peer = Peer(connection_info=message.source)
+        peer = message.source
         self._peer_state[peer].forward_payload(frames[2:])
 
     def _handle_synchronize_connection(self, message: messages.SynchronizeConnection):
