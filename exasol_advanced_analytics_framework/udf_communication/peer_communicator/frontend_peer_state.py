@@ -27,6 +27,7 @@ class FrontendPeerState:
         self._socket_factory = socket_factory
         self._connection_is_ready = False
         self._peer_register_forwarder_is_ready = False
+        self._sequence_number = 0
         self._create_receive_socket()
 
     def _create_receive_socket(self):
@@ -56,10 +57,17 @@ class FrontendPeerState:
     def receive_socket(self) -> Socket:
         return self._receive_socket
 
+    def _next_sequence_number(self):
+        result = self._sequence_number
+        self._sequence_number += 1
+        return result
+
     def send(self, payload: List[Frame]):
         send_socket: Socket
         with self._create_send_socket() as send_socket:
-            message = messages.Payload(source=self._my_connection_info)
+            message = messages.Payload(source=Peer(connection_info=self._my_connection_info),
+                                       destination=self._peer,
+                                       sequence_number=self._next_sequence_number())
             serialized_message = serialize_message(message)
             frame = self._socket_factory.create_frame(serialized_message)
             send_socket.send_multipart([frame] + payload)
