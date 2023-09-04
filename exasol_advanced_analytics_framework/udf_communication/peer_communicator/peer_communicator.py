@@ -76,10 +76,14 @@ class PeerCommunicator:
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
         for message_obj in self._background_listener.receive_messages(timeout_in_milliseconds):
             specific_message_obj = message_obj.__root__
-            if isinstance(specific_message_obj, messages.PeerIsReadyToReceive):
+            if isinstance(specific_message_obj, messages.ConnectionIsReady):
                 peer = specific_message_obj.peer
                 self._add_peer_state(peer)
-                self._peer_states[peer].received_peer_is_ready_to_receive()
+                self._peer_states[peer].received_connection_is_ready()
+            elif isinstance(specific_message_obj, messages.PeerRegisterForwarderIsReady):
+                peer = specific_message_obj.peer
+                self._add_peer_state(peer)
+                self._peer_states[peer].received_peer_register_forwarder_is_ready()
             elif isinstance(specific_message_obj, messages.Timeout):
                 raise TimeoutError(specific_message_obj.reason)
             else:

@@ -19,18 +19,22 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state_builder import \
     BackgroundPeerStateBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_behavior_config import \
-    ConnectionEstablisherBehaviorConfig
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_behavior_config \
+    import RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder_parameter import \
-    ConnectionEstablisherBuilderParameter
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_is_ready_sender import \
+    ConnectionIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_is_ready_sender import \
-    PeerIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder import \
+    RegisterPeerForwarderBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter import \
+    RegisterPeerForwarderBuilderParameter
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
+    RegisterPeerForwarderIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
     RegisterPeerSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
@@ -49,22 +53,29 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     timer_factory = TimerFactory()
     abort_timeout_sender_factory = AbortTimeoutSenderFactory()
-    acknowledge_register_peer_sender_factory = AcknowledgeRegisterPeerSenderFactory()
-    peer_is_ready_sender_factory = PeerIsReadySenderFactory()
-    register_peer_sender_factory = RegisterPeerSenderFactory()
+    peer_is_ready_sender_factory = ConnectionIsReadySenderFactory()
     synchronize_connection_sender_factory = SynchronizeConnectionSenderFactory()
-    connection_establisher_factory = ConnectionEstablisherBuilder(
+    acknowledge_register_peer_sender_factory = AcknowledgeRegisterPeerSenderFactory()
+    register_peer_sender_factory = RegisterPeerSenderFactory()
+    register_peer_forwarder_is_ready_sender_factory = RegisterPeerForwarderIsReadySenderFactory()
+    connection_establisher_builder = ConnectionEstablisherBuilder(
+        abort_timeout_sender_factory=abort_timeout_sender_factory,
+        synchronize_connection_sender_factory=synchronize_connection_sender_factory,
+        connection_is_ready_sender_factory=peer_is_ready_sender_factory,
+        timer_factory=timer_factory,
+    )
+    register_peer_forwarder_builder = RegisterPeerForwarderBuilder(
         abort_timeout_sender_factory=abort_timeout_sender_factory,
         register_peer_sender_factory=register_peer_sender_factory,
-        synchronize_connection_sender_factory=synchronize_connection_sender_factory,
         acknowledge_register_peer_sender_factory=acknowledge_register_peer_sender_factory,
-        peer_is_ready_sender_factory=peer_is_ready_sender_factory,
+        register_peer_forwarder_is_ready_sender_factory=register_peer_forwarder_is_ready_sender_factory,
         timer_factory=timer_factory,
     )
     sender_factory = SenderFactory()
     background_peer_state_factory = BackgroundPeerStateBuilder(
         sender_factory=sender_factory,
-        connection_establisher_factory=connection_establisher_factory,
+        connection_establisher_builder=connection_establisher_builder,
+        register_peer_forwarder_builder=register_peer_forwarder_builder,
     )
     return background_peer_state_factory
 
@@ -213,18 +224,18 @@ class BackgroundListenerThread:
 
     def _add_peer(self,
                   peer: Peer,
-                  connection_establisher_behavior_config: ConnectionEstablisherBehaviorConfig =
-                  ConnectionEstablisherBehaviorConfig()):
+                  register_peer_forwarder_behavior_config: RegisterPeerForwarderBehaviorConfig =
+                  RegisterPeerForwarderBehaviorConfig()):
         if peer.connection_info.group_identifier != self._my_connection_info.group_identifier:
             self._logger.error("Peer belongs to a different group",
                                my_connection_info=self._my_connection_info.dict(),
                                peer=peer.dict())
             raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
-            parameter = ConnectionEstablisherBuilderParameter(
+            parameter = RegisterPeerForwarderBuilderParameter(
                 register_peer_connection=self._register_peer_connection,
-                timeout_config=self._config.connection_establisher_timeout_config,
-                behavior_config=connection_establisher_behavior_config)
+                timeout_config=self._config.register_peer_forwarder_timeout_config,
+                behavior_config=register_peer_forwarder_behavior_config)
             self._peer_state[peer] = self._background_peer_state_factory.create(
                 my_connection_info=self._my_connection_info,
                 peer=peer,
@@ -232,7 +243,8 @@ class BackgroundListenerThread:
                 socket_factory=self._socket_factory,
                 clock=self._clock,
                 send_socket_linger_time_in_ms=self._config.send_socket_linger_time_in_ms,
-                connection_establisher_builder_parameter=parameter,
+                connection_establisher_timeout_config=self._config.connection_establisher_timeout_config,
+                register_peer_forwarder_builder_parameter=parameter,
             )
 
     def _handle_listener_message(self, message: List[Frame]):
@@ -299,18 +311,18 @@ class BackgroundListenerThread:
             self._create_register_peer_connection(message)
             self._add_peer(
                 message.peer,
-                connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
-                    acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
-                    needs_register_peer_complete=True)
+                register_peer_forwarder_behavior_config=RegisterPeerForwarderBehaviorConfig(
+                    needs_to_send_acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader
+                )
             )
             return
 
         self._add_peer(
             message.peer,
-            connection_establisher_behavior_config=ConnectionEstablisherBehaviorConfig(
-                forward_register_peer=True,
-                acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
-                needs_register_peer_complete=True)
+            register_peer_forwarder_behavior_config=RegisterPeerForwarderBehaviorConfig(
+                needs_to_send_register_peer=True,
+                needs_to_send_acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
+            )
         )
 
     def _create_register_peer_connection(self, message: messages.RegisterPeer):
