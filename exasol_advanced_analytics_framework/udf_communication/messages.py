@@ -5,88 +5,91 @@ from pydantic import BaseModel
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 
+class BaseMessage(BaseModel, frozen=True):
+    pass
 
-class RegisterPeer(BaseModel, frozen=True):
+
+class RegisterPeer(BaseMessage, frozen=True):
     message_type: Literal["RegisterPeer"] = "RegisterPeer"
     peer: Peer
     source: Optional["Peer"]
 
 
-class AcknowledgeRegisterPeer(BaseModel, frozen=True):
+class AcknowledgeRegisterPeer(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgeRegisterPeer"] = "AcknowledgeRegisterPeer"
     peer: Peer
     source: Peer
 
 
-class RegisterPeerComplete(BaseModel, frozen=True):
+class RegisterPeerComplete(BaseMessage, frozen=True):
     message_type: Literal["RegisterPeerComplete"] = "RegisterPeerComplete"
     peer: Peer
     source: Peer
 
 
-class PeerRegisterForwarderIsReady(BaseModel, frozen=True):
+class PeerRegisterForwarderIsReady(BaseMessage, frozen=True):
     message_type: Literal["PeerRegisterForwarderIsReady"] = \
         "PeerRegisterForwarderIsReady"
     peer: Peer
 
 
-class Ping(BaseModel, frozen=True):
+class Ping(BaseMessage, frozen=True):
     message_type: Literal["Ping"] = "Ping"
     source: ConnectionInfo
 
 
-class Stop(BaseModel, frozen=True):
+class Stop(BaseMessage, frozen=True):
     message_type: Literal["Stop"] = "Stop"
 
 
-class PrepareToStop(BaseModel, frozen=True):
+class PrepareToStop(BaseMessage, frozen=True):
     message_type: Literal["PrepareToStop"] = "PrepareToStop"
 
 
-class IsReadyToStop(BaseModel, frozen=True):
+class IsReadyToStop(BaseMessage, frozen=True):
     message_type: Literal["IsReadyToStop"] = "IsReadyToStop"
 
 
-class Payload(BaseModel, frozen=True):
+class Payload(BaseMessage, frozen=True):
     message_type: Literal["Payload"] = "Payload"
     source: Peer
     destination: Peer
     sequence_number: int
 
 
-class AcknowledgePayload(BaseModel, frozen=True):
+class AcknowledgePayload(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgePayload"] = "AcknowledgePayload"
     source: Peer
     sequence_number: int
 
 
-class AbortPayload(BaseModel, frozen=True):
+class AbortPayload(BaseMessage, frozen=True):
     message_type: Literal["AbortPayload"] = "AbortPayload"
     payload: Payload
     reason: str
 
 
-class MyConnectionInfo(BaseModel, frozen=True):
+class MyConnectionInfo(BaseMessage, frozen=True):
     message_type: Literal["MyConnectionInfo"] = "MyConnectionInfo"
     my_connection_info: ConnectionInfo
 
 
-class SynchronizeConnection(BaseModel, frozen=True):
+class SynchronizeConnection(BaseMessage, frozen=True):
     message_type: Literal["SynchronizeConnection"] = "SynchronizeConnection"
     source: ConnectionInfo
 
 
-class AcknowledgeConnection(BaseModel, frozen=True):
+class AcknowledgeConnection(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgeConnection"] = "AcknowledgeConnection"
     source: ConnectionInfo
 
 
-class ConnectionIsReady(BaseModel, frozen=True):
+class ConnectionIsReady(BaseMessage, frozen=True):
     message_type: Literal["ConnectionIsReady"] = "ConnectionIsReady"
     peer: Peer
 
 
-class Timeout(BaseModel, frozen=True):
+class Timeout(BaseMessage, frozen=True):
     message_type: Literal["Timeout"] = "Timeout"
     reason: str
 

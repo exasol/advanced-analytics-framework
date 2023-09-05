@@ -39,6 +39,7 @@ pytest-assume = "^2.4.3"
 exasol-udf-mock-python = { git = "https://github.com/exasol/udf-mock-python.git", branch = "main" }
 pytest-cov = "^3.0.0"
 exasol-integration-test-docker-environment = "1.7.1"
+polyfactory = "^2.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-repeat = "^0.9.1"
