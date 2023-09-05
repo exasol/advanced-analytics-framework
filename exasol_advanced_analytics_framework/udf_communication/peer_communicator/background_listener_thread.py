@@ -10,38 +10,26 @@ from exasol_advanced_analytics_framework.udf_communication.connection_info impor
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.messages import IsReadyToStop, PrepareToStop
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
-    AbortTimeoutSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.acknowledge_register_peer_sender import \
-    AcknowledgeRegisterPeerSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state_builder import \
     BackgroundPeerStateBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_behavior_config \
-    import RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_is_ready_sender import \
-    ConnectionIsReadySenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_behavior_config \
+    import RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder import \
     RegisterPeerForwarderBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter import \
     RegisterPeerForwarderBuilderParameter
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
-    RegisterPeerForwarderIsReadySenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
-    RegisterPeerSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import SenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
-    SynchronizeConnectionSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
@@ -52,26 +40,9 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     timer_factory = TimerFactory()
-    abort_timeout_sender_factory = AbortTimeoutSenderFactory()
-    peer_is_ready_sender_factory = ConnectionIsReadySenderFactory()
-    synchronize_connection_sender_factory = SynchronizeConnectionSenderFactory()
-    acknowledge_register_peer_sender_factory = AcknowledgeRegisterPeerSenderFactory()
-    register_peer_sender_factory = RegisterPeerSenderFactory()
-    register_peer_forwarder_is_ready_sender_factory = RegisterPeerForwarderIsReadySenderFactory()
-    connection_establisher_builder = ConnectionEstablisherBuilder(
-        abort_timeout_sender_factory=abort_timeout_sender_factory,
-        synchronize_connection_sender_factory=synchronize_connection_sender_factory,
-        connection_is_ready_sender_factory=peer_is_ready_sender_factory,
-        timer_factory=timer_factory,
-    )
-    register_peer_forwarder_builder = RegisterPeerForwarderBuilder(
-        abort_timeout_sender_factory=abort_timeout_sender_factory,
-        register_peer_sender_factory=register_peer_sender_factory,
-        acknowledge_register_peer_sender_factory=acknowledge_register_peer_sender_factory,
-        register_peer_forwarder_is_ready_sender_factory=register_peer_forwarder_is_ready_sender_factory,
-        timer_factory=timer_factory,
-    )
     sender_factory = SenderFactory()
+    connection_establisher_builder = ConnectionEstablisherBuilder(timer_factory=timer_factory)
+    register_peer_forwarder_builder = RegisterPeerForwarderBuilder(timer_factory=timer_factory)
     background_peer_state_factory = BackgroundPeerStateBuilder(
         sender_factory=sender_factory,
         connection_establisher_builder=connection_establisher_builder,
