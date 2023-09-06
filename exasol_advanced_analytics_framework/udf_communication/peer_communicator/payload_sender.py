@@ -67,5 +67,5 @@ class PayloadSender:
                 payload_message_sender_timeout_config=self._payload_message_sender_timeout_config,
             )
 
-    def is_ready_to_close(self):
+    def is_ready_to_stop(self):
         return len(self._payload_message_sender_dict) == 0
