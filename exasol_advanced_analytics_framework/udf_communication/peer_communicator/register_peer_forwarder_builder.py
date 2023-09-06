@@ -23,11 +23,13 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 class RegisterPeerForwarderBuilder:
 
     def __init__(self,
-                 abort_timeout_sender_factory: AbortTimeoutSenderFactory,
-                 acknowledge_register_peer_sender_factory: AcknowledgeRegisterPeerSenderFactory,
-                 register_peer_forwarder_is_ready_sender_factory: RegisterPeerForwarderIsReadySenderFactory,
-                 register_peer_sender_factory: RegisterPeerSenderFactory,
                  timer_factory: TimerFactory,
+                 abort_timeout_sender_factory: AbortTimeoutSenderFactory = AbortTimeoutSenderFactory(),
+                 acknowledge_register_peer_sender_factory: AcknowledgeRegisterPeerSenderFactory =
+                 AcknowledgeRegisterPeerSenderFactory(),
+                 register_peer_forwarder_is_ready_sender_factory: RegisterPeerForwarderIsReadySenderFactory =
+                 RegisterPeerForwarderIsReadySenderFactory(),
+                 register_peer_sender_factory: RegisterPeerSenderFactory = RegisterPeerSenderFactory(),
                  register_peer_forwarder_factory: RegisterPeerForwarderFactory =
                  RegisterPeerForwarderFactory()):
         self._register_peer_forwarder_factory = register_peer_forwarder_factory

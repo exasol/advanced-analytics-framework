@@ -21,10 +21,11 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 class ConnectionEstablisherBuilder:
 
     def __init__(self,
-                 abort_timeout_sender_factory: AbortTimeoutSenderFactory,
-                 connection_is_ready_sender_factory: ConnectionIsReadySenderFactory,
-                 synchronize_connection_sender_factory: SynchronizeConnectionSenderFactory,
                  timer_factory: TimerFactory,
+                 abort_timeout_sender_factory: AbortTimeoutSenderFactory = AbortTimeoutSenderFactory(),
+                 connection_is_ready_sender_factory: ConnectionIsReadySenderFactory = ConnectionIsReadySenderFactory(),
+                 synchronize_connection_sender_factory: SynchronizeConnectionSenderFactory =
+                 SynchronizeConnectionSenderFactory(),
                  connection_establisher_factory: ConnectionEstablisherFactory =
                  ConnectionEstablisherFactory()):
         self._connection_establisher_factory = connection_establisher_factory
