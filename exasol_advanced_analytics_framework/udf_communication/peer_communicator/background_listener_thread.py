@@ -222,7 +222,7 @@ class BackgroundListenerThread:
 
     def _handle_listener_message(self, frames: List[Frame]):
         logger = self._logger.bind(
-            sender=frames[0].to_bytes()
+            sender_queue_id=frames[0].to_bytes()
         )
         message_content_bytes = frames[1].to_bytes()
         try:
@@ -242,7 +242,7 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, messages.RegisterPeerComplete):
                 self._handle_register_peer_complete_message(specific_message_obj)
             elif isinstance(specific_message_obj, messages.Payload):
-                self._handle_payload_message(specific_message_obj, frames)
+                self._handle_payload_message(frames[1:])
             else:
                 logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
@@ -252,9 +252,8 @@ class BackgroundListenerThread:
         return not self._config.forward_register_peer_config.is_leader \
                and self._config.forward_register_peer_config.is_enabled
 
-    def _handle_payload_message(self, message: messages.Payload, frames: List[Frame]):
-        peer = message.source
-        self._peer_state[peer].forward_payload(frames[2:])
+    def _handle_payload_message(self, frames: List[Frame]):
+        self._out_control_socket.send_multipart(frames)
 
     def _handle_synchronize_connection(self, message: messages.SynchronizeConnection):
         peer = Peer(connection_info=message.source)

@@ -74,7 +74,7 @@ class PeerCommunicator:
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
-        for message_obj in self._background_listener.receive_messages(timeout_in_milliseconds):
+        for message_obj, frames in self._background_listener.receive_messages(timeout_in_milliseconds):
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, messages.ConnectionIsReady):
                 peer = specific_message_obj.peer
@@ -86,6 +86,8 @@ class PeerCommunicator:
                 self._peer_states[peer].received_peer_register_forwarder_is_ready()
             elif isinstance(specific_message_obj, messages.Timeout):
                 raise TimeoutError(specific_message_obj.reason)
+            elif isinstance(specific_message_obj, messages.Payload):
+                self._peer_states[specific_message_obj.source].received_payload_message(specific_message_obj, frames)
             else:
                 self._logger.error(
                     "Unknown message",
@@ -164,12 +166,18 @@ class PeerCommunicator:
         return result
 
     def send(self, peer: Peer, message: List[Frame]):
-        assert self.are_all_peers_connected()
+        self.wait_for_peers()
         self._peer_states[peer].send(message)
 
     def recv(self, peer: Peer, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
-        assert self.are_all_peers_connected()
-        return self._peer_states[peer].recv(timeout_in_milliseconds)
+        self.wait_for_peers()
+        peer_has_received_messages = \
+            self._wait_for_condition(self._peer_states[peer].has_received_messages,
+                                     timeout_in_milliseconds=timeout_in_milliseconds)
+        if peer_has_received_messages:
+            return self._peer_states[peer].recv()
+        else:
+            raise TimeoutError("Timeout occurred during waiting for messages.")
 
     def stop(self):
         self._logger.info("stop")
@@ -177,7 +185,7 @@ class PeerCommunicator:
             try:
                 self._stop_background_listener()
             finally:
-                self._stop_peer_states()
+                self._remove_peer_states()
 
     def _stop_background_listener(self):
         self._logger.info("stop background_listener")
@@ -192,10 +200,9 @@ class PeerCommunicator:
             self._background_listener.stop()
             self._background_listener = None
 
-    def _stop_peer_states(self):
+    def _remove_peer_states(self):
         self._logger.info("stop peer_states")
         for peer_state_key in list(self._peer_states.keys()):
-            self._peer_states[peer_state_key].stop()
             del self._peer_states[peer_state_key]
 
     def __del__(self):

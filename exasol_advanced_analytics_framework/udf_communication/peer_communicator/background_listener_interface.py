@@ -1,10 +1,11 @@
 import threading
 from dataclasses import asdict
-from typing import Optional, Iterator, List
+from typing import Optional, Iterator, List, Tuple
 
 import structlog
 from structlog.types import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
 from exasol_advanced_analytics_framework.udf_communication.messages import Message, IsReadyToStop, Stop, PrepareToStop
@@ -17,7 +18,6 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pee
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, PollerFlag, Frame
-from exasol_advanced_analytics_framework.udf_communication import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -98,25 +98,25 @@ class BackgroundListenerInterface:
         frame = self._socket_factory.create_frame(serialized_message)
         self._in_control_socket.send_multipart([frame] + payload)
 
-    def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[messages.Message]:
+    def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[Tuple[Message, List[Frame]]]:
         while PollerFlag.POLLIN in self._out_control_socket.poll(
                 flags=PollerFlag.POLLIN,
                 timeout_in_ms=timeout_in_milliseconds):
             message = None
             try:
                 timeout_in_milliseconds = 0
-                message = self._out_control_socket.receive()
-                message_obj: Message = deserialize_message(message, Message)
-                yield from self._handle_message(message_obj)
+                frames = self._out_control_socket.receive_multipart()
+                message_obj: Message = deserialize_message(frames[0].to_bytes(), Message)
+                yield from self._handle_message(message_obj, frames[1:])
             except Exception as e:
                 self._logger.exception("Exception", raw_message=message)
 
-    def _handle_message(self, message_obj: Message) -> Message:
+    def _handle_message(self, message_obj: Message, frames: List[Frame]) -> Tuple[Message, List[Frame]]:
         specific_message_obj = message_obj.__root__
         if isinstance(specific_message_obj, IsReadyToStop):
             self._is_ready_to_stop = True
         else:
-            yield message_obj
+            yield message_obj, frames
 
     def is_ready_to_stop(self):
         return self._is_ready_to_stop
