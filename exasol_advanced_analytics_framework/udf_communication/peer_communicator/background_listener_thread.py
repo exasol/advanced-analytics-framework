@@ -158,15 +158,15 @@ class BackgroundListenerThread:
     def _handle_message(self):
         poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
         if self._in_control_socket in poll and PollerFlag.POLLIN in poll[self._in_control_socket]:
-            message = self._in_control_socket.receive()
+            message = self._in_control_socket.receive_multipart()
             self._status = self._handle_control_message(message)
         if self._listener_socket in poll and PollerFlag.POLLIN in poll[self._listener_socket]:
             message = self._listener_socket.receive_multipart()
             self._handle_listener_message(message)
 
-    def _handle_control_message(self, message: bytes) -> Status:
+    def _handle_control_message(self, message: List[Frame]) -> Status:
         try:
-            message_obj: messages.Message = deserialize_message(message, messages.Message)
+            message_obj: messages.Message = deserialize_message(message[0].to_bytes(), messages.Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
@@ -178,6 +178,8 @@ class BackgroundListenerThread:
                 else:
                     self._logger.error("RegisterPeer message not allowed",
                                        message_obj=specific_message_obj.dict())
+            elif isinstance(specific_message_obj, messages.Payload):
+                self._peer_state[specific_message_obj.destination].send_payload(frames=message)
             else:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
