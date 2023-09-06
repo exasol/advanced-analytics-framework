@@ -25,7 +25,7 @@ class PayloadHandler:
     def try_send(self):
         self._payload_sender.try_send()
 
-    def is_ready_to_stop(self):
+    def is_ready_to_stop(self) -> bool:
         sender_is_ready_to_stop = self._payload_sender.is_ready_to_stop()
         receiver_is_ready_to_stop = self._payload_receiver.is_ready_to_stop()
         return sender_is_ready_to_stop and receiver_is_ready_to_stop

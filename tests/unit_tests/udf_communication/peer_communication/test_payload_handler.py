@@ -45,16 +45,19 @@ def test_init():
 
 
 def test_try_send():
-    test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup = create_resetted_test_setup()
     test_setup.payload_handler.try_send()
     assert test_setup.payload_receiver_mock.mock_calls == [] and \
            test_setup.payload_sender_mock.mock_calls == [call.try_send()]
 
 
-def test_send_payload():
+def create_resetted_test_setup():
     test_setup = create_test_setup()
-    test_setup.reset_mock()
+    return test_setup
+
+
+def test_send_payload():
+    test_setup = create_resetted_test_setup()
     frames = [create_autospec(Frame)]
     message = ModelFactory.create_factory(model=messages.Payload).build()
     test_setup.payload_handler.send_payload(message, frames)
@@ -63,8 +66,7 @@ def test_send_payload():
 
 
 def test_received_payload():
-    test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup = create_resetted_test_setup()
     frames = [create_autospec(Frame)]
     message = ModelFactory.create_factory(model=messages.Payload).build()
     test_setup.payload_handler.received_payload(message, frames)
@@ -73,8 +75,7 @@ def test_received_payload():
 
 
 def test_received_acknowledge_payload():
-    test_setup = create_test_setup()
-    test_setup.reset_mock()
+    test_setup = create_resetted_test_setup()
     message = ModelFactory.create_factory(model=messages.AcknowledgePayload).build()
     test_setup.payload_handler.received_acknowledge_payload(message)
     assert test_setup.payload_receiver_mock.mock_calls == [] and \
@@ -90,10 +91,9 @@ def test_received_acknowledge_payload():
 
                          ])
 def test_is_ready_to_stop(payload_receiver_answer: bool, payload_sender_answer: bool, expected: bool):
-    test_setup = create_test_setup()
+    test_setup = create_resetted_test_setup()
     mock_cast(test_setup.payload_sender_mock.is_ready_to_stop).return_value = payload_sender_answer
     mock_cast(test_setup.payload_receiver_mock.is_ready_to_stop).return_value = payload_receiver_answer
-    test_setup.reset_mock()
     result = test_setup.payload_handler.is_ready_to_stop()
     assert result == expected \
            and test_setup.payload_receiver_mock.mock_calls == [call.is_ready_to_stop()] \
