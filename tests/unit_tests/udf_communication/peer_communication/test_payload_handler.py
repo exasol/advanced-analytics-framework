@@ -53,6 +53,7 @@ def test_try_send():
 
 def create_resetted_test_setup():
     test_setup = create_test_setup()
+    test_setup.reset_mock()
     return test_setup
 
 
