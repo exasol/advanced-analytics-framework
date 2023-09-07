@@ -94,8 +94,8 @@ class BackgroundListenerInterface:
         self._in_control_socket.send(serialize_message(register_message))
 
     def send_payload(self, message: messages.Payload, payload: List[Frame]):
-        message = serialize_message(message)
-        frame = self._socket_factory.create_frame(message)
+        serialized_message = serialize_message(message)
+        frame = self._socket_factory.create_frame(serialized_message)
         self._in_control_socket.send_multipart([frame] + payload)
 
     def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[messages.Message]:
