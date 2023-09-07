@@ -1,4 +1,6 @@
+import sys
 import time
+import traceback
 from pathlib import Path
 from typing import Dict, Set, List
 
@@ -30,7 +32,7 @@ structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
         ConditionalMethodDropper(method_name="debug"),
-        ConditionalMethodDropper(method_name="info"),
+        # ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -43,37 +45,53 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
-    listen_ip = IPAddress(ip_address=f"127.1.0.1")
-    context = zmq.Context()
-    socker_factory = ZMQSocketFactory(context)
-    com = PeerCommunicator(
-        name=parameter.instance_name,
-        number_of_peers=parameter.number_of_instances,
-        listen_ip=listen_ip,
-        group_identifier=parameter.group_identifier,
-        socket_factory=socker_factory,
-        config=PeerCommunicatorConfig(
-            forward_register_peer_config=ForwardRegisterPeerConfig(
-                is_leader=False,
-                is_enabled=False
+    logger = LOGGER.bind(group_identifier=parameter.group_identifier, name=parameter.instance_name)
+    try:
+        listen_ip = IPAddress(ip_address=f"127.1.0.1")
+        context = zmq.Context()
+        socker_factory = ZMQSocketFactory(context)
+        com = PeerCommunicator(
+            name=parameter.instance_name,
+            number_of_peers=parameter.number_of_instances,
+            listen_ip=listen_ip,
+            group_identifier=parameter.group_identifier,
+            socket_factory=socker_factory,
+            config=PeerCommunicatorConfig(
+                forward_register_peer_config=ForwardRegisterPeerConfig(
+                    is_leader=False,
+                    is_enabled=False
+                ),
             ),
-        ),
-    )
-    queue.put(com.my_connection_info)
-    peer_connection_infos = queue.get()
-    for index, connection_infos in peer_connection_infos.items():
-        com.register_peer(connection_infos)
-    com.wait_for_peers()
-    LOGGER.info("Peer is ready", name=parameter.instance_name)
-    for peer in com.peers():
-        if peer != Peer(connection_info=com.my_connection_info):
-            com.send(peer, [socker_factory.create_frame(parameter.instance_name.encode("utf8"))])
-    received_values: Set[str] = set()
-    for peer in com.peers():
-        if peer != Peer(connection_info=com.my_connection_info):
-            value = com.recv(peer)
-            received_values.add(value[0].to_bytes().decode("utf8"))
-    queue.put(received_values)
+        )
+        try:
+            queue.put(com.my_connection_info)
+            peer_connection_infos = queue.get()
+            for index, connection_infos in peer_connection_infos.items():
+                com.register_peer(connection_infos)
+            com.wait_for_peers()
+            LOGGER.info("Peer is ready", name=parameter.instance_name)
+            for peer in com.peers():
+                if peer != Peer(connection_info=com.my_connection_info):
+                    com.send(peer, [socker_factory.create_frame(parameter.instance_name.encode("utf8"))])
+            received_values: Set[str] = set()
+            for peer in com.peers():
+                if peer != Peer(connection_info=com.my_connection_info):
+                    value = com.recv(peer)
+                    received_values.add(value[0].to_bytes().decode("utf8"))
+            queue.put(received_values)
+        finally:
+            try:
+                com.stop()
+            except:
+                logger.exception("Exception during stop")
+                queue.put("Failed")
+            context.destroy(linger=0)
+            for frame in sys._current_frames().values():
+                stacktrace = traceback.format_stack(frame)
+                logger.info("Frame", stacktrace=stacktrace)
+    except Exception as e:
+        queue.put("Failed")
+        logger.exception("Exception during test")
 
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
