@@ -166,7 +166,7 @@ class BackgroundListenerThread:
 
     def _handle_control_message(self, frames: List[Frame]) -> Status:
         try:
-            message_obj: messages.Message = deserialize_message(message[0].to_bytes(), messages.Message)
+            message_obj: messages.Message = deserialize_message(frames[0].to_bytes(), messages.Message)
             specific_message_obj = message_obj.__root__
             if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
@@ -179,11 +179,11 @@ class BackgroundListenerThread:
                     self._logger.error("RegisterPeer message not allowed",
                                        message_obj=specific_message_obj.dict())
             elif isinstance(specific_message_obj, messages.Payload):
-                self._peer_state[specific_message_obj.destination].send_payload(frames=message)
+                self._peer_state[specific_message_obj.destination].send_payload(frames=frames)
             else:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
-            self._logger.exception("Exception during handling message", message=message)
+            self._logger.exception("Exception during handling message", message=frames)
         return self._status
 
     def _is_register_peer_message_allowed_as_control_message(self) -> bool:
@@ -220,11 +220,11 @@ class BackgroundListenerThread:
                 register_peer_forwarder_builder_parameter=parameter,
             )
 
-    def _handle_listener_message(self, message: List[Frame]):
+    def _handle_listener_message(self, frames: List[Frame]):
         logger = self._logger.bind(
-            sender=message[0].to_bytes()
+            sender=frames[0].to_bytes()
         )
-        message_content_bytes = message[1].to_bytes()
+        message_content_bytes = frames[1].to_bytes()
         try:
             message_obj: messages.Message = deserialize_message(message_content_bytes, messages.Message)
             specific_message_obj = message_obj.__root__
@@ -242,7 +242,7 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, messages.RegisterPeerComplete):
                 self._handle_register_peer_complete_message(specific_message_obj)
             elif isinstance(specific_message_obj, messages.Payload):
-                self._handle_payload_message(specific_message_obj, message)
+                self._handle_payload_message(specific_message_obj, frames)
             else:
                 logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
