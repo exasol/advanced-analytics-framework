@@ -17,6 +17,12 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler_builder import \
+    PayloadHandlerBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender_factory import \
+    PayloadMessageSenderFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender_factory import \
+    PayloadSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
@@ -25,8 +31,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.reg
     import RegisterPeerForwarderBehaviorConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder import \
     RegisterPeerForwarderBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter import \
-    RegisterPeerForwarderBuilderParameter
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_builder_parameter \
+    import RegisterPeerForwarderBuilderParameter
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.send_socket_factory import \
     SendSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import SenderFactory
@@ -43,10 +49,14 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     sender_factory = SenderFactory()
     connection_establisher_builder = ConnectionEstablisherBuilder(timer_factory=timer_factory)
     register_peer_forwarder_builder = RegisterPeerForwarderBuilder(timer_factory=timer_factory)
+    payload_message_sender_factory = PayloadMessageSenderFactory(timer_factory=timer_factory)
+    payload_sender_factory = PayloadSenderFactory(payload_message_sender_factory=payload_message_sender_factory)
+    payload_handler_builder = PayloadHandlerBuilder(payload_sender_factory=payload_sender_factory)
     background_peer_state_factory = BackgroundPeerStateBuilder(
         sender_factory=sender_factory,
         connection_establisher_builder=connection_establisher_builder,
         register_peer_forwarder_builder=register_peer_forwarder_builder,
+        payload_handler_builder=payload_handler_builder
     )
     return background_peer_state_factory
 
@@ -218,6 +228,7 @@ class BackgroundListenerThread:
                 send_socket_linger_time_in_ms=self._config.send_socket_linger_time_in_ms,
                 connection_establisher_timeout_config=self._config.connection_establisher_timeout_config,
                 register_peer_forwarder_builder_parameter=parameter,
+                payload_message_sender_timeout_config=self._config.payload_message_sender_timeout_config
             )
 
     def _handle_listener_message(self, frames: List[Frame]):
@@ -327,6 +338,6 @@ class BackgroundListenerThread:
 
     def _handle_register_peer_complete_message(self, message: messages.RegisterPeerComplete):
         if self._register_peer_connection.predecessor != message.source:
-            self._logger.error("RegisterPeerComplete message not from predecssor", message_obj=message.dict())
+            self._logger.error("RegisterPeerComplete message not from predecessor", message_obj=message.dict())
         peer = message.peer
         self._peer_state[peer].received_register_peer_complete()

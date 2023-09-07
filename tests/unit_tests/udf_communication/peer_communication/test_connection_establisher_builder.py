@@ -195,7 +195,7 @@ def assert_timer_mocks(test_setup):
 def assert_sender_factory(test_setup):
     mock_cast(test_setup.sender_factory_mock.create).assert_called_once_with(
         my_connection_info=test_setup.my_connection_info,
-        socket_factory=test_setup.socket_factory_mock,
+        socket_factory=test_setup.payload_handler_mock,
         peer=test_setup.peer,
         send_socket_linger_time_in_ms=test_setup.send_socket_linger_time_in_ms
     )

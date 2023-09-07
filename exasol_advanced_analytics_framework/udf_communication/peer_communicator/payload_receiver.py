@@ -14,11 +14,13 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class PayloadReceiver:
-    def __init__(self,
-                 peer: Peer,
-                 my_connection_info: ConnectionInfo,
-                 out_control_socket: Socket,
-                 sender: Sender):
+    def __init__(
+            self,
+            peer: Peer,
+            my_connection_info: ConnectionInfo,
+            out_control_socket: Socket,
+            sender: Sender
+    ):
         self._peer = peer
         self._my_connection_info = my_connection_info
         self._out_control_socket = out_control_socket
