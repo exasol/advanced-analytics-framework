@@ -164,7 +164,7 @@ class BackgroundListenerThread:
             message = self._listener_socket.receive_multipart()
             self._handle_listener_message(message)
 
-    def _handle_control_message(self, message: List[Frame]) -> Status:
+    def _handle_control_message(self, frames: List[Frame]) -> Status:
         try:
             message_obj: messages.Message = deserialize_message(message[0].to_bytes(), messages.Message)
             specific_message_obj = message_obj.__root__
