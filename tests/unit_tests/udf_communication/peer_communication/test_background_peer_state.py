@@ -13,8 +13,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pay
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder import \
     RegisterPeerForwarder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
-    Frame
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Frame
 from tests.mock_cast import mock_cast
 
 

@@ -139,26 +139,6 @@ def test_create():
     assert_connection_is_ready_sender_factory_mock(test_setup)
 
 
-def assert_acknowledge_register_peer_sender_factory_mock(test_setup):
-    mock_cast(test_setup.acknowledge_register_peer_sender_factory_mock.create).assert_called_once_with(
-        my_connection_info=test_setup.my_connection_info,
-        peer=test_setup.peer,
-        register_peer_connection=test_setup.parameter.register_peer_connection,
-        needs_to_send_for_peer=test_setup.parameter.behavior_config._needs_to_receive_register_peer_complete,
-        timer=test_setup.timer_mocks[4]
-    )
-
-
-def assert_register_peer_sender_factory_mock(test_setup):
-    mock_cast(test_setup.register_peer_sender_factory_mock.create).assert_called_once_with(
-        my_connection_info=test_setup.my_connection_info,
-        peer=test_setup.peer,
-        register_peer_connection=test_setup.parameter.register_peer_connection,
-        needs_to_send_for_peer=test_setup.parameter.behavior_config.needs_to_send_register_peer,
-        timer=test_setup.timer_mocks[3]
-    )
-
-
 def assert_connection_is_ready_sender_factory_mock(test_setup):
     mock_cast(test_setup.connection_is_ready_sender_factory_mock.create).assert_called_once_with(
         my_connection_info=test_setup.my_connection_info,
@@ -190,15 +170,6 @@ def assert_synchronize_connection_sender_factory_mock(test_setup):
 def assert_timer_mocks(test_setup):
     for timer_mock in test_setup.timer_mocks:
         timer_mock.assert_not_called()
-
-
-def assert_sender_factory(test_setup):
-    mock_cast(test_setup.sender_factory_mock.create).assert_called_once_with(
-        my_connection_info=test_setup.my_connection_info,
-        socket_factory=test_setup.payload_handler_mock,
-        peer=test_setup.peer,
-        send_socket_linger_time_in_ms=test_setup.send_socket_linger_time_in_ms
-    )
 
 
 def assert_timer_factory(test_setup):
