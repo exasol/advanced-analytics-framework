@@ -96,7 +96,8 @@ class PeerCommunicator:
             self._peer_states[peer] = FrontendPeerState(
                 my_connection_info=self.my_connection_info,
                 socket_factory=self._socket_factory,
-                peer=peer
+                peer=peer,
+                background_listener=self._background_listener
             )
 
     def _wait_for_condition(self, condition: Callable[[], bool],

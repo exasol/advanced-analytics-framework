@@ -1,6 +1,6 @@
 import threading
 from dataclasses import asdict
-from typing import Optional, Iterator
+from typing import Optional, Iterator, List
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -16,7 +16,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pee
     PeerCommunicatorConfig
 from exasol_advanced_analytics_framework.udf_communication.serialization import deserialize_message, serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
-    SocketType, Socket, PollerFlag
+    SocketType, Socket, PollerFlag, Frame
 from exasol_advanced_analytics_framework.udf_communication import messages
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
@@ -33,7 +33,7 @@ class BackgroundListenerInterface:
                  config: PeerCommunicatorConfig,
                  clock: Clock,
                  trace_logging: bool):
-
+        self._socket_factory = socket_factory
         self._config = config
         self._name = name
         self._logger = LOGGER.bind(
@@ -92,6 +92,11 @@ class BackgroundListenerInterface:
     def register_peer(self, peer: Peer):
         register_message = messages.RegisterPeer(peer=peer)
         self._in_control_socket.send(serialize_message(register_message))
+
+    def send_payload(self, message: messages.Payload, payload: List[Frame]):
+        serialized_message = serialize_message(message)
+        frame = self._socket_factory.create_frame(serialized_message)
+        self._in_control_socket.send_multipart([frame] + payload)
 
     def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[messages.Message]:
         while PollerFlag.POLLIN in self._out_control_socket.poll(

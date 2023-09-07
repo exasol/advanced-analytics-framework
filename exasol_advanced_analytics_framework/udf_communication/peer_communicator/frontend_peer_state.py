@@ -1,15 +1,15 @@
-import contextlib
-from typing import Optional, Generator, List
+from typing import Optional, List
 
-from exasol_advanced_analytics_framework.udf_communication import messages
 import structlog
 from structlog.typing import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_listener_interface import \
+    BackgroundListenerInterface
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.get_peer_receive_socket_name import \
     get_peer_receive_socket_name
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, \
     SocketType, Socket, Frame, PollerFlag
 
@@ -21,7 +21,9 @@ class FrontendPeerState:
     def __init__(self,
                  my_connection_info: ConnectionInfo,
                  socket_factory: SocketFactory,
+                 background_listener: BackgroundListenerInterface,
                  peer: Peer):
+        self._background_listener = background_listener
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._socket_factory = socket_factory
@@ -29,19 +31,12 @@ class FrontendPeerState:
         self._peer_register_forwarder_is_ready = False
         self._sequence_number = 0
         self._create_receive_socket()
+        self._logger = LOGGER.bind(peer=peer.dict(), my_connection_info=my_connection_info.dict())
 
     def _create_receive_socket(self):
         self._receive_socket = self._socket_factory.create_socket(SocketType.PAIR)
         receive_socket_address = get_peer_receive_socket_name(self._peer)
         self._receive_socket.connect(receive_socket_address)
-
-    @contextlib.contextmanager
-    def _create_send_socket(self) -> Generator[Socket, None, None]:
-        send_socket: Socket
-        with self._socket_factory.create_socket(SocketType.DEALER) as send_socket:
-            send_socket.connect(
-                f"tcp://{self._peer.connection_info.ipaddress.ip_address}:{self._peer.connection_info.port.port}")
-            yield send_socket
 
     def received_connection_is_ready(self):
         self._connection_is_ready = True
@@ -63,15 +58,12 @@ class FrontendPeerState:
         return result
 
     def send(self, payload: List[Frame]):
-        send_socket: Socket
-        with self._create_send_socket() as send_socket:
-            message = messages.Payload(source=Peer(connection_info=self._my_connection_info),
-                                       destination=self._peer,
-                                       sequence_number=self._next_sequence_number())
-            serialized_message = serialize_message(message)
-            frame = self._socket_factory.create_frame(serialized_message)
-            send_socket.send_multipart([frame] + payload)
-            send_socket.close(linger=100)
+        message = messages.Payload(source=Peer(connection_info=self._my_connection_info),
+                                   destination=self._peer,
+                                   sequence_number=self._next_sequence_number())
+        self._logger.debug("send", message=message.dict())
+        self._background_listener.send_payload(message=message, payload=payload)
+        return message.sequence_number
 
     def recv(self, timeout_in_milliseconds: Optional[int] = None) -> List[Frame]:
         if self._receive_socket.poll(flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds) != 0:

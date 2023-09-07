@@ -180,3 +180,11 @@ def test_close():
             and mock_cast(test_setup.socket_factory_mock.create_socket).mock_calls == []
             and test_setup.receive_socket_mock.mock_calls == [call.close(linger=0)]
     )
+
+
+def test_send_payload():
+    test_setup = create_test_setup()
+    test_setup.reset_mocks()
+    frames = [create_autospec(Frame)]
+    test_setup.background_peer_state.send_payload(frames=frames)
+    assert mock_cast(test_setup.sender_mock.send_multipart).mock_calls == [call(frames)]

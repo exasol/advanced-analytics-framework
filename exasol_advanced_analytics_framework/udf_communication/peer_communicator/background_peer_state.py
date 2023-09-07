@@ -74,3 +74,6 @@ class BackgroundPeerState:
                 and self._register_peer_forwarder.is_ready_to_stop()
         )
         return is_ready_to_stop
+
+    def send_payload(self, frames: List[Frame]):
+        self._sender.send_multipart(frames)
