@@ -7,6 +7,7 @@ from typing import Dict, Set, List
 import pytest
 import structlog
 import zmq
+from numpy.random import RandomState
 from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger
@@ -19,6 +20,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.for
     ForwardRegisterPeerConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import \
+    FaultInjectionSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
@@ -49,13 +52,14 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
-        socker_factory = ZMQSocketFactory(context)
+        socket_factory = ZMQSocketFactory(context)
+        socket_factory = FaultInjectionSocketFactory(socket_factory, 0.01, RandomState(parameter.seed))
         com = PeerCommunicator(
             name=parameter.instance_name,
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
-            socket_factory=socker_factory,
+            socket_factory=socket_factory,
             config=PeerCommunicatorConfig(
                 forward_register_peer_config=ForwardRegisterPeerConfig(
                     is_leader=False,
@@ -72,7 +76,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             LOGGER.info("Peer is ready", name=parameter.instance_name)
             for peer in com.peers():
                 if peer != Peer(connection_info=com.my_connection_info):
-                    com.send(peer, [socker_factory.create_frame(parameter.instance_name.encode("utf8"))])
+                    com.send(peer, [socket_factory.create_frame(parameter.instance_name.encode("utf8"))])
             received_values: Set[str] = set()
             for peer in com.peers():
                 if peer != Peer(connection_info=com.my_connection_info):

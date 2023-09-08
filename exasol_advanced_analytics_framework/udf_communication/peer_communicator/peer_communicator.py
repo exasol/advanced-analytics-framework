@@ -92,6 +92,11 @@ class PeerCommunicator:
                 raise TimeoutError(specific_message_obj.reason)
             elif isinstance(specific_message_obj, messages.Payload):
                 self._peer_states[specific_message_obj.source].received_payload_message(specific_message_obj, frames)
+            elif isinstance(specific_message_obj, messages.AcknowledgePayload):
+                self._peer_states[specific_message_obj.source].received_acknowledge_payload_message(
+                    specific_message_obj)
+            elif isinstance(specific_message_obj, messages.AbortPayload):
+                raise TimeoutError(specific_message_obj.reason)
             else:
                 self._logger.error(
                     "Unknown message",

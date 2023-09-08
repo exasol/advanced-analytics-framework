@@ -3,7 +3,9 @@ from typing import List
 import structlog
 from structlog.typing import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
     background_thread.connection_closer.connection_closer import ConnectionCloser
@@ -49,6 +51,7 @@ class BackgroundPeerState:
         self._logger.debug("try_send")
         self._connection_establisher.try_send()
         self._register_peer_forwarder.try_send()
+        self._payload_handler.try_send()
         if self._should_we_close_connection():
             self._connection_closer.try_send()
 
@@ -71,6 +74,15 @@ class BackgroundPeerState:
     def received_register_peer_complete(self):
         self._register_peer_forwarder.received_register_peer_complete()
 
+    def send_payload(self, message: messages.Payload, frames: List[Frame]):
+        self._payload_handler.send_payload(message, frames)
+
+    def received_payload(self, message: messages.Payload, frames: List[Frame]):
+        self._payload_handler.received_payload(message, frames)
+
+    def received_acknowledge_payload(self, message: messages.AcknowledgePayload):
+        self._payload_handler.received_acknowledge_payload(message=message)
+
     def prepare_to_stop(self):
         self._logger.info("prepare_to_stop")
         self._prepare_to_stop = True
@@ -83,9 +95,6 @@ class BackgroundPeerState:
                            connection_establisher_is_ready=connection_establisher_is_ready,
                            register_peer_forwarder_is_ready=register_peer_forwarder_is_ready)
         return is_ready_to_stop
-
-    def send_payload(self, frames: List[Frame]):
-        self._sender.send_multipart(frames)
 
     def received_close_connection(self):
         self._connection_closer.received_close_connection()

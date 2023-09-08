@@ -181,7 +181,7 @@ class BackgroundListenerThread:
                     self._logger.error("RegisterPeer message not allowed",
                                        message_obj=specific_message_obj.dict())
             elif isinstance(specific_message_obj, messages.Payload):
-                self._peer_state[specific_message_obj.destination].send_payload(frames=frames)
+                self.send_payload(payload=specific_message_obj, frames=frames)
             else:
                 self._logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
@@ -196,6 +196,10 @@ class BackgroundListenerThread:
                 )
                 or not self._config.forward_register_peer_config.is_enabled
         )
+
+    def send_payload(self, payload: messages.Payload, frames: List[Frame]):
+        self._peer_state[payload.destination].send_payload(
+            message=payload, frames=frames)
 
     def _add_peer(self,
                   peer: Peer,
@@ -250,7 +254,9 @@ class BackgroundListenerThread:
             elif isinstance(specific_message_obj, messages.RegisterPeerComplete):
                 self._handle_register_peer_complete_message(specific_message_obj)
             elif isinstance(specific_message_obj, messages.Payload):
-                self._handle_payload_message(frames[1:])
+                self._handle_payload_message(specific_message_obj, frames[1:])
+            elif isinstance(specific_message_obj, messages.AcknowledgePayload):
+                self._handle_acknowledge_payload_message(specific_message_obj)
             else:
                 logger.error("Unknown message type", message_obj=specific_message_obj.dict())
         except Exception as e:
@@ -260,8 +266,11 @@ class BackgroundListenerThread:
         return not self._config.forward_register_peer_config.is_leader \
                and self._config.forward_register_peer_config.is_enabled
 
-    def _handle_payload_message(self, frames: List[Frame]):
-        self._out_control_socket.send_multipart(frames)
+    def _handle_payload_message(self, payload: messages.Payload, frames: List[Frame]):
+        self._peer_state[payload.source].received_payload(payload, frames=frames)
+
+    def _handle_acknowledge_payload_message(self, acknowledge_payload: messages.AcknowledgePayload):
+        self._peer_state[acknowledge_payload.source].received_acknowledge_payload(acknowledge_payload)
 
     def _handle_synchronize_connection(self, message: messages.SynchronizeConnection):
         peer = Peer(connection_info=message.source)
