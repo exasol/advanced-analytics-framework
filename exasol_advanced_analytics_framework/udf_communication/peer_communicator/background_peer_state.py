@@ -90,10 +90,16 @@ class BackgroundPeerState:
     def _is_ready_to_stop(self):
         connection_establisher_is_ready = self._connection_establisher.is_ready_to_stop()
         register_peer_forwarder_is_ready = self._register_peer_forwarder.is_ready_to_stop()
-        is_ready_to_stop = connection_establisher_is_ready and register_peer_forwarder_is_ready
+        payload_handler_is_ready = self._payload_handler.is_ready_to_stop()
+        is_ready_to_stop = (
+                connection_establisher_is_ready
+                and register_peer_forwarder_is_ready
+                and payload_handler_is_ready
+        )
         self._logger.debug("background_peer_state_is_ready_to_stop",
                            connection_establisher_is_ready=connection_establisher_is_ready,
-                           register_peer_forwarder_is_ready=register_peer_forwarder_is_ready)
+                           register_peer_forwarder_is_ready=register_peer_forwarder_is_ready,
+                           payload_handler_is_ready=payload_handler_is_ready)
         return is_ready_to_stop
 
     def received_close_connection(self):

@@ -4,6 +4,9 @@ from unittest.mock import MagicMock, create_autospec, call
 
 import pytest
 
+from polyfactory.factories.pydantic_factory import ModelFactory
+
+from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
@@ -91,66 +94,80 @@ def test_init():
 
 
 @pytest.mark.parametrize(
-    "connection_establisher_ready,register_peer_forwarder_ready",
+    "connection_establisher_ready,register_peer_forwarder_ready,payload_handler_ready",
     [
-        (True, True),
-        (True, False),
-        (False, True),
-        (False, False)
+        (True, True, True),
+        (True, True, False),
+        (True, False, True),
+        (True, False, False),
+        (False, True, True),
+        (False, True, False),
+        (False, False, True),
+        (False, False, False)
     ]
 )
-def test_resend_if_necessary_no_prepare_close(connection_establisher_ready: bool, register_peer_forwarder_ready: bool):
+def test_try_send_no_prepare_close(connection_establisher_ready: bool,
+                                   register_peer_forwarder_ready: bool,
+                                   payload_handler_ready: bool):
     test_setup = create_test_setup()
     test_setup.reset_mocks()
     mock_cast(test_setup.connection_establisher_mock.is_ready_to_stop).return_value = connection_establisher_ready
     mock_cast(test_setup.register_peer_forwarder_mock.is_ready_to_stop).return_value = register_peer_forwarder_ready
+    mock_cast(test_setup.payload_handler_mock.is_ready_to_stop).return_value = payload_handler_ready
     test_setup.background_peer_state.try_send()
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.register_peer_forwarder_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.sender_mock.mock_calls == []
-            and test_setup.payload_handler_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.connection_closer_mock.mock_calls == []
     )
 
 
 @pytest.mark.parametrize(
-    "connection_establisher_ready,register_peer_forwarder_ready",
+    "connection_establisher_ready,register_peer_forwarder_ready,payload_handler_ready",
     [
-        (True, False),
-        (False, True),
-        (False, False)
+        (True, True, False),
+        (True, False, True),
+        (True, False, False),
+        (False, True, True),
+        (False, True, False),
+        (False, False, True),
+        (False, False, False)
     ]
 )
-def test_resend_if_necessary_prepare_close_not_ready(connection_establisher_ready: bool,
-                                                     register_peer_forwarder_ready: bool):
+def test_try_send_prepare_close_not_ready(connection_establisher_ready: bool,
+                                          register_peer_forwarder_ready: bool,
+                                          payload_handler_ready: bool):
     test_setup = create_test_setup()
     test_setup.background_peer_state.prepare_to_stop()
     test_setup.reset_mocks()
     mock_cast(test_setup.connection_establisher_mock.is_ready_to_stop).return_value = connection_establisher_ready
     mock_cast(test_setup.register_peer_forwarder_mock.is_ready_to_stop).return_value = register_peer_forwarder_ready
+    mock_cast(test_setup.payload_handler_mock.is_ready_to_stop).return_value = payload_handler_ready
     test_setup.background_peer_state.try_send()
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.register_peer_forwarder_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.sender_mock.mock_calls == []
-            and test_setup.payload_handler_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.connection_closer_mock.mock_calls == []
     )
 
 
-def test_resend_if_necessary_prepare_close_ready():
+def test_try_send_prepare_close_ready():
     test_setup = create_test_setup()
     test_setup.background_peer_state.prepare_to_stop()
     test_setup.reset_mocks()
     mock_cast(test_setup.connection_establisher_mock.is_ready_to_stop).return_value = True
     mock_cast(test_setup.register_peer_forwarder_mock.is_ready_to_stop).return_value = True
+    mock_cast(test_setup.payload_handler_mock.is_ready_to_stop).return_value = True
     test_setup.background_peer_state.try_send()
     assert (
             test_setup.connection_establisher_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.register_peer_forwarder_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.sender_mock.mock_calls == []
-            and test_setup.payload_handler_mock.mock_calls == []
+            and test_setup.payload_handler_mock.mock_calls == [call.try_send(), call.is_ready_to_stop()]
             and test_setup.connection_closer_mock.mock_calls == [call.try_send()]
     )
 
@@ -207,5 +224,6 @@ def test_send_payload():
     test_setup = create_test_setup()
     test_setup.reset_mocks()
     frames = [create_autospec(Frame)]
-    test_setup.background_peer_state.send_payload(frames=frames)
-    assert mock_cast(test_setup.sender_mock.send_multipart).mock_calls == [call(frames)]
+    payload = ModelFactory.create_factory(model=messages.Payload).build()
+    test_setup.background_peer_state.send_payload(message=payload, frames=frames)
+    assert mock_cast(test_setup.payload_handler_mock.send_payload).mock_calls == [call(payload, frames)]

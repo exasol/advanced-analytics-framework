@@ -29,12 +29,12 @@ def create_test_setup() -> TestSetup:
     payload_receiver_mock = create_autospec(PayloadReceiver)
     payload_handler = PayloadHandler(
         payload_sender=payload_sender_mock,
-        payload_receiver=payload_receiver_mock
+        payload_receiver=payload_receiver_mock,
     )
     return TestSetup(
         payload_handler=payload_handler,
         payload_sender_mock=payload_sender_mock,
-        payload_receiver_mock=payload_receiver_mock
+        payload_receiver_mock=payload_receiver_mock,
     )
 
 
@@ -83,13 +83,12 @@ def test_received_acknowledge_payload():
            test_setup.payload_sender_mock.mock_calls == [call.received_acknowledge_payload(message)]
 
 
-@pytest.mark.parametrize("payload_receiver_answer,payload_sender_answer,expected",
+@pytest.mark.parametrize("payload_receiver_answer,payload_sender_answer, expected",
                          [
                              (True, True, True),
                              (True, False, False),
                              (False, True, False),
-                             (True, False, False),
-
+                             (False, False, False),
                          ])
 def test_is_ready_to_stop(payload_receiver_answer: bool, payload_sender_answer: bool, expected: bool):
     test_setup = create_resetted_test_setup()
