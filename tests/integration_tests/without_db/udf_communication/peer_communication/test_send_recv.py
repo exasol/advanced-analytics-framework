@@ -49,6 +49,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
     logger = LOGGER.bind(group_identifier=parameter.group_identifier, name=parameter.instance_name)
+    received_values: Set[str] = set()
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
@@ -77,12 +78,10 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             for peer in com.peers():
                 if peer != Peer(connection_info=com.my_connection_info):
                     com.send(peer, [socket_factory.create_frame(parameter.instance_name.encode("utf8"))])
-            received_values: Set[str] = set()
             for peer in com.peers():
                 if peer != Peer(connection_info=com.my_connection_info):
                     value = com.recv(peer)
                     received_values.add(value[0].to_bytes().decode("utf8"))
-            queue.put(received_values)
         finally:
             try:
                 com.stop()
@@ -94,9 +93,9 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
                 stacktrace = traceback.format_stack(frame)
                 logger.info("Frame", stacktrace=stacktrace)
     except Exception as e:
-        queue.put("Failed")
         logger.exception("Exception during test")
-
+        queue.put("Failed")
+    queue.put(received_values)
 
 @pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(number_of_instances: int, repetitions: int):
@@ -108,6 +107,10 @@ REPETITIONS_FOR_FUNCTIONALITY = 1
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
+
+
+def test_functionality_5():
+    run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_10():
@@ -126,7 +129,7 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
                     number_of_instances=number_of_instances)
         start_time = time.monotonic()
         group = f"{time.monotonic_ns()}"
-        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances)
+        expected_peers_of_threads, peers_of_threads = run_test(group, number_of_instances, seed=i)
         assert expected_peers_of_threads == peers_of_threads
         end_time = time.monotonic()
         LOGGER.info(f"Finish iteration",
@@ -136,13 +139,13 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
                     duration=end_time - start_time)
 
 
-def run_test(group: str, number_of_instances: int):
+def run_test(group: str, number_of_instances: int, seed: int):
     connection_infos: Dict[int, ConnectionInfo] = {}
     parameters = [
         PeerCommunicatorTestProcessParameter(
             instance_name=f"i{i}", group_identifier=group,
             number_of_instances=number_of_instances,
-            seed=0)
+            seed=seed + i)
         for i in range(number_of_instances)]
     processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = \
         [TestProcess(parameter, run=run) for parameter in parameters]
