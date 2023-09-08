@@ -11,14 +11,14 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pay
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender_factory import \
     PayloadSenderFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket, \
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, \
     SocketFactory
 
 
 class PayloadHandlerBuilder:
     def __init__(self,
                  payload_sender_factory: PayloadSenderFactory,
-                 payload_receiver_factory: PayloadReceiverFactory,
+                 payload_receiver_factory: PayloadReceiverFactory = PayloadReceiverFactory(),
                  payload_handler_factory: PayloadHandlerFactory = PayloadHandlerFactory()):
         self._payload_handler_factory = payload_handler_factory
         self._payload_receiver_factory = payload_receiver_factory
@@ -44,7 +44,7 @@ class PayloadHandlerBuilder:
             my_connection_info=my_connection_info,
             peer=peer,
             sender=sender,
-            socket_factory=socket_factory,
+            out_control_socket=out_control_socket
         )
         payload_handler = self._payload_handler_factory.create(
             payload_sender=payload_sender,

@@ -17,9 +17,9 @@ from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import TestProcess, \
@@ -32,7 +32,7 @@ structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
         ConditionalMethodDropper(method_name="debug"),
-        # ConditionalMethodDropper(method_name="info"),
+        ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),

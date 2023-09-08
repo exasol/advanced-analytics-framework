@@ -7,7 +7,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.pay
     import PayloadMessageSenderTimeoutConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender import PayloadSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract_socket_factory import Socket
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
 
 
 class PayloadSenderFactory:
