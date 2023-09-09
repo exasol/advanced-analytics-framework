@@ -24,9 +24,7 @@ class ConnectionIsReadySender:
     def __init__(self,
                  out_control_socket: Socket,
                  peer: Peer,
-                 my_connection_info: ConnectionInfo,
-                 timer: Timer):
-        self._timer = timer
+                 my_connection_info: ConnectionInfo):
         self._peer = peer
         self._out_control_socket = out_control_socket
         self._states = _States.INIT
@@ -39,7 +37,6 @@ class ConnectionIsReadySender:
     def received_synchronize_connection(self):
         self._logger.debug("received_synchronize_connection", states=self._states)
         self._states |= _States.RECEIVED_SYNCHRONIZE_CONNECTION
-        self._timer.reset_timer()
 
     def received_acknowledge_connection(self):
         self._logger.debug("received_acknowledge_connection", states=self._states)
@@ -53,22 +50,12 @@ class ConnectionIsReadySender:
             self._send_connection_is_ready_to_frontend()
 
     def _should_we_send(self):
-        is_time = self._timer.is_time()
-        send_time_dependent = _States.RECEIVED_SYNCHRONIZE_CONNECTION in self._states
-        send_time_independent = _States.RECEIVED_ACKKNOWLEDGE_CONNECTION in self._states
+        should_we_send = _States.RECEIVED_ACKKNOWLEDGE_CONNECTION in self._states
         finished = _States.FINISHED in self._states
-        result = (
-                not finished
-                and (
-                        (is_time and send_time_dependent) or
-                        send_time_independent
-                )
-        )
+        result = not finished and should_we_send
         self._logger.debug("_should_we_send",
                            result=result,
-                           is_time=is_time,
-                           send_time_dependent=send_time_dependent,
-                           send_time_independent=send_time_independent,
+                           should_we_send=should_we_send,
                            states=self._states)
         return result
 
@@ -86,11 +73,9 @@ class ConnectionIsReadySenderFactory:
     def create(self,
                out_control_socket: Socket,
                peer: Peer,
-               my_connection_info: ConnectionInfo,
-               timer: Timer) -> ConnectionIsReadySender:
+               my_connection_info: ConnectionInfo) -> ConnectionIsReadySender:
         peer_is_ready_sender = ConnectionIsReadySender(
             out_control_socket=out_control_socket,
-            timer=timer,
             peer=peer,
             my_connection_info=my_connection_info,
         )

@@ -73,11 +73,8 @@ class ConnectionEstablisherBuilder:
                                            my_connection_info: ConnectionInfo, peer: Peer,
                                            clock: Clock, out_control_socket: Socket,
                                            timeout_config: ConnectionEstablisherTimeoutConfig):
-        connection_is_ready_sender_timer = self._timer_factory.create(
-            clock=clock, timeout_in_ms=timeout_config.connection_is_ready_wait_time_in_ms)
         connection_is_ready_sender = self._connection_is_ready_sender_factory.create(
             out_control_socket=out_control_socket,
-            timer=connection_is_ready_sender_timer,
             peer=peer,
             my_connection_info=my_connection_info,
         )
