@@ -4,6 +4,10 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state_factory import \
     BackgroundPeerStateFactory
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+    background_thread.connection_closer.connection_closer_builder import ConnectionCloserBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+    background_thread.connection_closer.connection_closer_timeout_config import ConnectionCloserTimeoutConfig
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
@@ -26,10 +30,12 @@ class BackgroundPeerStateBuilder:
 
     def __init__(self,
                  connection_establisher_builder: ConnectionEstablisherBuilder,
+                 connection_closer_builder: ConnectionCloserBuilder,
                  register_peer_forwarder_builder: RegisterPeerForwarderBuilder,
                  payload_handler_builder: PayloadHandlerBuilder,
                  sender_factory: SenderFactory,
                  background_peer_state_factory: BackgroundPeerStateFactory = BackgroundPeerStateFactory()):
+        self._connection_closer_builder = connection_closer_builder
         self._payload_handler_builder = payload_handler_builder
         self._connection_establisher_builder = connection_establisher_builder
         self._register_peer_forwarder_builder = register_peer_forwarder_builder
@@ -46,6 +52,7 @@ class BackgroundPeerStateBuilder:
             send_socket_linger_time_in_ms: int,
             register_peer_forwarder_builder_parameter: RegisterPeerForwarderBuilderParameter,
             connection_establisher_timeout_config: ConnectionEstablisherTimeoutConfig,
+            connection_closer_timeout_config: ConnectionCloserTimeoutConfig,
             payload_message_sender_timeout_config: PayloadMessageSenderTimeoutConfig
     ) -> BackgroundPeerState:
         sender = self._sender_factory.create(
@@ -60,6 +67,14 @@ class BackgroundPeerStateBuilder:
             clock=clock,
             sender=sender,
             timeout_config=connection_establisher_timeout_config
+        )
+        connection_closer = self._connection_closer_builder.create(
+            peer=peer,
+            my_connection_info=my_connection_info,
+            out_control_socket=out_control_socket,
+            clock=clock,
+            sender=sender,
+            timeout_config=connection_closer_timeout_config
         )
         register_peer_forwarder = self._register_peer_forwarder_builder.create(
             peer=peer,
@@ -83,6 +98,7 @@ class BackgroundPeerStateBuilder:
             peer=peer,
             sender=sender,
             connection_establisher=connection_establisher,
+            connection_closer=connection_closer,
             register_peer_forwarder=register_peer_forwarder,
             payload_handler=payload_handler
         )

@@ -14,6 +14,8 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.bac
     BackgroundPeerState
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state_builder import \
     BackgroundPeerStateBuilder
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+    background_thread.connection_closer.connection_closer_builder import ConnectionCloserBuilder
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
@@ -48,6 +50,7 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     timer_factory = TimerFactory()
     sender_factory = SenderFactory()
     connection_establisher_builder = ConnectionEstablisherBuilder(timer_factory=timer_factory)
+    connection_closer_builder = ConnectionCloserBuilder(timer_factory=timer_factory)
     register_peer_forwarder_builder = RegisterPeerForwarderBuilder(timer_factory=timer_factory)
     payload_message_sender_factory = PayloadMessageSenderFactory(timer_factory=timer_factory)
     payload_sender_factory = PayloadSenderFactory(payload_message_sender_factory=payload_message_sender_factory)
@@ -55,6 +58,7 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     background_peer_state_factory = BackgroundPeerStateBuilder(
         sender_factory=sender_factory,
         connection_establisher_builder=connection_establisher_builder,
+        connection_closer_builder=connection_closer_builder,
         register_peer_forwarder_builder=register_peer_forwarder_builder,
         payload_handler_builder=payload_handler_builder
     )
@@ -227,6 +231,7 @@ class BackgroundListenerThread:
                 clock=self._clock,
                 send_socket_linger_time_in_ms=self._config.send_socket_linger_time_in_ms,
                 connection_establisher_timeout_config=self._config.connection_establisher_timeout_config,
+                connection_closer_timeout_config=self._config.connection_closer_timeout_config,
                 register_peer_forwarder_builder_parameter=parameter,
                 payload_message_sender_timeout_config=self._config.payload_message_sender_timeout_config
             )
