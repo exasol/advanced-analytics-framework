@@ -80,6 +80,10 @@ class PeerCommunicator:
                 peer = specific_message_obj.peer
                 self._add_peer_state(peer)
                 self._peer_states[peer].received_connection_is_ready()
+            elif isinstance(specific_message_obj, messages.ConnectionIsClosed):
+                peer = specific_message_obj.peer
+                self._add_peer_state(peer)
+                self._peer_states[peer].received_connection_is_closed()
             elif isinstance(specific_message_obj, messages.PeerRegisterForwarderIsReady):
                 peer = specific_message_obj.peer
                 self._add_peer_state(peer)
@@ -192,13 +196,18 @@ class PeerCommunicator:
         self._background_listener.prepare_to_stop()
         try:
             is_ready_to_stop = \
-                self._wait_for_condition(self._background_listener.is_ready_to_stop,
+                self._wait_for_condition(self._are_all_peers_disconnected,
                                          timeout_in_milliseconds=self._config.close_timeout_in_ms)
             if not is_ready_to_stop:
                 raise TimeoutError("Timeout expired, could not gracefully stop PeerCommuincator.")
         finally:
             self._background_listener.stop()
             self._background_listener = None
+
+    def _are_all_peers_disconnected(self):
+        all_peers_ready = all(peer_state.connection_is_closed for peer_state in self._peer_states.values())
+        result = len(self._peer_states) == self._number_of_peers - 1 and all_peers_ready
+        return result
 
     def _remove_peer_states(self):
         self._logger.info("stop peer_states")

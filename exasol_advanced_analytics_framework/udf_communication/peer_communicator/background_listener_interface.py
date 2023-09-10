@@ -107,19 +107,9 @@ class BackgroundListenerInterface:
                 timeout_in_milliseconds = 0
                 frames = self._out_control_socket.receive_multipart()
                 message_obj: Message = deserialize_message(frames[0].to_bytes(), Message)
-                yield from self._handle_message(message_obj, frames[1:])
+                yield message_obj, frames
             except Exception as e:
                 self._logger.exception("Exception", raw_message=message)
-
-    def _handle_message(self, message_obj: Message, frames: List[Frame]) -> Tuple[Message, List[Frame]]:
-        specific_message_obj = message_obj.__root__
-        if isinstance(specific_message_obj, IsReadyToStop):
-            self._is_ready_to_stop = True
-        else:
-            yield message_obj, frames
-
-    def is_ready_to_stop(self):
-        return self._is_ready_to_stop
 
     def stop(self):
         self._logger.info("start")

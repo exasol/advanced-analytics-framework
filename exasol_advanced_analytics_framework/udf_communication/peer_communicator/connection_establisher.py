@@ -41,7 +41,12 @@ class ConnectionEstablisher:
 
     def received_synchronize_connection(self):
         self._logger.debug("received_synchronize_connection")
-        self._sender.send(Message(__root__=messages.AcknowledgeConnection(source=self._my_connection_info)))
+        self._sender.send(
+            Message(
+                __root__=messages.AcknowledgeConnection(
+                    source=self._my_connection_info,
+                    destination=self._peer
+                )))
         self._connection_is_ready_sender.received_synchronize_connection()
         self._abort_timeout_sender.stop()
 

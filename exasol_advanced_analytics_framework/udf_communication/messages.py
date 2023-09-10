@@ -78,11 +78,13 @@ class MyConnectionInfo(BaseMessage, frozen=True):
 class SynchronizeConnection(BaseMessage, frozen=True):
     message_type: Literal["SynchronizeConnection"] = "SynchronizeConnection"
     source: ConnectionInfo
+    destination: Peer
 
 
 class AcknowledgeConnection(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgeConnection"] = "AcknowledgeConnection"
     source: ConnectionInfo
+    destination: Peer
 
 
 class ConnectionIsReady(BaseMessage, frozen=True):
@@ -93,11 +95,13 @@ class ConnectionIsReady(BaseMessage, frozen=True):
 class CloseConnection(BaseMessage, frozen=True):
     message_type: Literal["CloseConnection"] = "CloseConnection"
     source: ConnectionInfo
+    destination: Peer
 
 
 class AcknowledgeCloseConnection(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgeCloseConnection"] = "AcknowledgeCloseConnection"
     source: ConnectionInfo
+    destination: Peer
 
 
 class ConnectionIsClosed(BaseMessage, frozen=True):

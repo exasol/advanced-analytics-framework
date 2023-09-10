@@ -26,7 +26,6 @@ class ConnectionCloser:
                  close_connection_sender: CloseConnectionSender):
         self._close_connection_sender = close_connection_sender
         self._connection_is_closed_sender = connection_is_closed_sender
-        self._abort_timeout_sender = abort_timeout_sender
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._sender = sender
@@ -34,24 +33,20 @@ class ConnectionCloser:
             peer=self._peer.dict(),
             my_connection_info=self._my_connection_info.dict(),
         )
-        self._send_initial_messages()
-
-    def _send_initial_messages(self):
-        self._close_connection_sender.try_send(force=True)
 
     def received_close_connection(self):
         self._logger.debug("received_synchronize_connection")
-        self._sender.send(Message(__root__=messages.AcknowledgeCloseConnection(source=self._my_connection_info)))
+        self._sender.send(Message(
+            __root__=messages.AcknowledgeCloseConnection(
+                source=self._my_connection_info,
+                destination=self._peer)))
         self._connection_is_closed_sender.received_close_connection()
-        self._abort_timeout_sender.stop()
 
     def received_acknowledge_close_connection(self):
         self._logger.debug("received_acknowledge_connection")
         self._connection_is_closed_sender.received_acknowledge_close_connection()
         self._close_connection_sender.stop()
-        self._abort_timeout_sender.stop()
 
     def try_send(self):
         self._close_connection_sender.try_send()
-        self._abort_timeout_sender.try_send()
         self._connection_is_closed_sender.try_send()

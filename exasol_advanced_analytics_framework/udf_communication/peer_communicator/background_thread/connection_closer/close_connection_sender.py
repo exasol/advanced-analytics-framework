@@ -21,6 +21,7 @@ class CloseConnectionSender:
         self._sender = sender
         self._finished = False
         self._send_attempt_count = 0
+        self._peer = peer
         self._logger = LOGGER.bind(
             peer=peer.dict(),
             my_connection_info=my_connection_info.dict())
@@ -40,7 +41,10 @@ class CloseConnectionSender:
     def _send(self):
         self._send_attempt_count += 1
         self._logger.debug("send", send_attempt_count=self._send_attempt_count)
-        message = messages.Message(__root__=messages.CloseConnection(source=self._my_connection_info))
+        message = messages.Message(
+            __root__=messages.CloseConnection(
+                source=self._my_connection_info,
+                destination=self._peer))
         self._sender.send(message)
 
     def _should_we_send(self):

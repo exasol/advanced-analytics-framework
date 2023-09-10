@@ -17,6 +17,7 @@ class SynchronizeConnectionSender:
                  sender: Sender,
                  timer: Timer):
         self._my_connection_info = my_connection_info
+        self._peer = peer
         self._timer = timer
         self._sender = sender
         self._finished = False
@@ -40,7 +41,11 @@ class SynchronizeConnectionSender:
     def _send(self):
         self._send_attempt_count += 1
         self._logger.debug("send", send_attempt_count=self._send_attempt_count)
-        message = messages.Message(__root__=messages.SynchronizeConnection(source=self._my_connection_info))
+        message = messages.Message(
+            __root__=messages.SynchronizeConnection(
+                source=self._my_connection_info,
+                destination=self._peer
+            ))
         self._sender.send(message)
 
     def _should_we_send(self):

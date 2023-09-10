@@ -8,7 +8,7 @@ from structlog.types import FilteringBoundLogger
 from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import IsReadyToStop, PrepareToStop
+from exasol_advanced_analytics_framework.udf_communication.messages import PrepareToStop
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
@@ -120,8 +120,6 @@ class BackgroundListenerThread:
             self._register_peer_connection.close()
         self._out_control_socket.close(linger=0)
         self._in_control_socket.close(linger=0)
-        for peer_state in self._peer_state.values():
-            peer_state.stop()
         self._listener_socket.close(linger=0)
         self._logger.info("end")
 
@@ -149,24 +147,14 @@ class BackgroundListenerThread:
             while self._status != BackgroundListenerThread.Status.STOPPED:
                 self._handle_message()
                 self._try_send()
-                self._check_is_ready_to_stop()
         except Exception as e:
             self._logger.exception("Exception in message loop")
-
-    def _check_is_ready_to_stop(self):
-        if self._status == BackgroundListenerThread.Status.PREPARE_TO_STOP:
-            if self._is_ready_to_stop():
-                self._out_control_socket.send(serialize_message(IsReadyToStop()))
-
-    def _is_ready_to_stop(self) -> bool:
-        peers_status = [peer_state.is_ready_to_stop()
-                        for peer_state in self._peer_state.values()]
-        is_ready_to_stop = all(peers_status) and len(peers_status) == self._number_of_peers - 1
-        return is_ready_to_stop
 
     def _try_send(self):
         if self._status != BackgroundListenerThread.Status.STOPPED:
             for peer_state in self._peer_state.values():
+                if self._status == BackgroundListenerThread.Status.PREPARE_TO_STOP:
+                    peer_state.prepare_to_stop()
                 peer_state.try_send()
 
     def _handle_message(self):
@@ -248,6 +236,10 @@ class BackgroundListenerThread:
                 self._handle_synchronize_connection(specific_message_obj)
             elif isinstance(specific_message_obj, messages.AcknowledgeConnection):
                 self._handle_acknowledge_connection(specific_message_obj)
+            elif isinstance(specific_message_obj, messages.CloseConnection):
+                self._handle_close_connection(specific_message_obj)
+            elif isinstance(specific_message_obj, messages.AcknowledgeCloseConnection):
+                self._handle_acknowledge_close_connection(specific_message_obj)
             elif isinstance(specific_message_obj, messages.RegisterPeer):
                 if self.is_register_peer_message_allowed_as_listener_message():
                     self._handle_register_peer_message(specific_message_obj)
@@ -280,6 +272,16 @@ class BackgroundListenerThread:
         peer = Peer(connection_info=message.source)
         self._add_peer(peer)
         self._peer_state[peer].received_acknowledge_connection()
+
+    def _handle_close_connection(self, message: messages.CloseConnection):
+        peer = Peer(connection_info=message.source)
+        self._add_peer(peer)
+        self._peer_state[peer].received_close_connection()
+
+    def _handle_acknowledge_close_connection(self, message: messages.AcknowledgeCloseConnection):
+        peer = Peer(connection_info=message.source)
+        self._add_peer(peer)
+        self._peer_state[peer].received_acknowledge_close_connection()
 
     def _set_my_connection_info(self, port: int):
         self._my_connection_info = ConnectionInfo(
