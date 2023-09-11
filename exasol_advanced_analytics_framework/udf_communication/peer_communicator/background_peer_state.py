@@ -5,6 +5,8 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+    background_thread.connection_closer.connection_closer import ConnectionCloser
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher import \
     ConnectionEstablisher
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler import PayloadHandler
@@ -25,9 +27,11 @@ class BackgroundPeerState:
             peer: Peer,
             sender: Sender,
             connection_establisher: ConnectionEstablisher,
+            connection_closer: ConnectionCloser,
             register_peer_forwarder: RegisterPeerForwarder,
             payload_handler: PayloadHandler
     ):
+        self._connection_closer = connection_closer
         self._payload_handler = payload_handler
         self._register_peer_forwarder = register_peer_forwarder
         self._connection_establisher = connection_establisher

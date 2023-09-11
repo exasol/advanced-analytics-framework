@@ -7,6 +7,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import IPA
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+    background_thread.connection_closer.connection_closer import ConnectionCloser
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher import \
     ConnectionEstablisher
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler import PayloadHandler
@@ -24,6 +26,7 @@ class TestSetup:
     payload_handler_mock: Union[MagicMock, PayloadHandler]
     sender_mock: Union[MagicMock, Sender]
     connection_establisher_mock: Union[MagicMock, ConnectionEstablisher]
+    connection_closer_mock: Union[MagicMock, ConnectionCloser]
     register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder]
     background_peer_state: BackgroundPeerState
 
@@ -31,6 +34,7 @@ class TestSetup:
         self.sender_mock.reset_mock()
         self.payload_handler_mock.reset_mock()
         self.connection_establisher_mock.reset_mock()
+        self.connection_closer_mock.reset_mock()
         self.register_peer_forwarder_mock.reset_mock()
 
 
@@ -51,6 +55,7 @@ def create_test_setup() -> TestSetup:
     payload_handler_mock: Union[MagicMock, PayloadHandler] = create_autospec(PayloadHandler)
     sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
     connection_establisher_mock: Union[MagicMock, ConnectionEstablisher] = create_autospec(ConnectionEstablisher)
+    connection_closer_mock: Union[MagicMock, ConnectionCloser] = create_autospec(ConnectionCloser)
     register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder] = create_autospec(RegisterPeerForwarder)
     background_peer_state = BackgroundPeerState(
         my_connection_info=my_connection_info,
@@ -58,7 +63,8 @@ def create_test_setup() -> TestSetup:
         sender=sender_mock,
         connection_establisher=connection_establisher_mock,
         register_peer_forwarder=register_peer_forwarder_mock,
-        payload_handler=payload_handler_mock
+        payload_handler=payload_handler_mock,
+        connection_closer=connection_closer_mock
     )
     return TestSetup(
         peer=peer,
@@ -67,7 +73,8 @@ def create_test_setup() -> TestSetup:
         sender_mock=sender_mock,
         background_peer_state=background_peer_state,
         connection_establisher_mock=connection_establisher_mock,
-        register_peer_forwarder_mock=register_peer_forwarder_mock
+        register_peer_forwarder_mock=register_peer_forwarder_mock,
+        connection_closer_mock=connection_closer_mock
     )
 
 
