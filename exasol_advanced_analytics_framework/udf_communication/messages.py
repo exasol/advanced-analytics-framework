@@ -117,6 +117,14 @@ class Timeout(BaseMessage, frozen=True):
     reason: str
 
 
+class Gather(BaseMessage, frozen=True):
+    message_type: Literal["Gather"] = "Gather"
+    source: Peer
+    destination: Peer
+    sequence_number: int
+    position: int
+
+
 class Message(BaseModel, frozen=True):
     __root__: Union[
         Ping,

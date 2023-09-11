@@ -149,6 +149,10 @@ class PeerCommunicator:
                 self._handle_messages()
 
     @property
+    def number_of_peers(self) -> int:
+        return self._number_of_peers
+
+    @property
     def my_connection_info(self) -> ConnectionInfo:
         return self._my_connection_info
 
