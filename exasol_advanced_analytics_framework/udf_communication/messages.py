@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 
+
 class BaseMessage(BaseModel, frozen=True):
     pass
 
@@ -89,6 +90,21 @@ class ConnectionIsReady(BaseMessage, frozen=True):
     peer: Peer
 
 
+class CloseConnection(BaseMessage, frozen=True):
+    message_type: Literal["CloseConnection"] = "CloseConnection"
+    source: ConnectionInfo
+
+
+class AcknowledgeCloseConnection(BaseMessage, frozen=True):
+    message_type: Literal["AcknowledgeCloseConnection"] = "AcknowledgeCloseConnection"
+    source: ConnectionInfo
+
+
+class ConnectionIsClosed(BaseMessage, frozen=True):
+    message_type: Literal["ConnectionIsClosed"] = "ConnectionIsClosed"
+    peer: Peer
+
+
 class Timeout(BaseMessage, frozen=True):
     message_type: Literal["Timeout"] = "Timeout"
     reason: str
@@ -111,5 +127,8 @@ class Message(BaseModel, frozen=True):
         ConnectionIsReady,
         SynchronizeConnection,
         AcknowledgeConnection,
+        CloseConnection,
+        AcknowledgeCloseConnection,
+        ConnectionIsClosed,
         Timeout
     ]
