@@ -15,6 +15,7 @@ from tests.utils.mock_cast import mock_cast
 
 @dataclasses.dataclass()
 class TestSetup:
+    peer: Peer
     my_connection_info: ConnectionInfo
     timer_mock: Union[MagicMock, Timer]
     sender_mock: Union[MagicMock, Sender]
@@ -48,6 +49,7 @@ def create_test_setup():
         peer=peer
     )
     return TestSetup(
+        peer=peer,
         sender_mock=sender_mock,
         timer_mock=timer_mock,
         my_connection_info=my_connection_info,
@@ -87,7 +89,10 @@ def test_try_send_after_init_and_is_time_false_and_force():
             test_setup.sender_mock.mock_calls ==
             [
                 call.send(
-                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
+                    messages.Message(__root__=messages.SynchronizeConnection(
+                        source=test_setup.my_connection_info,
+                        destination=test_setup.peer
+                    )))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -108,7 +113,10 @@ def test_try_send_after_init_and_is_time_true():
             test_setup.sender_mock.mock_calls ==
             [
                 call.send(
-                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
+                    messages.Message(__root__=messages.SynchronizeConnection(
+                        source=test_setup.my_connection_info,
+                        destination=test_setup.peer
+                    )))
             ]
             and test_setup.timer_mock.mock_calls ==
             [
@@ -130,7 +138,10 @@ def test_try_send_twice_and_is_time_true():
             test_setup.sender_mock.mock_calls ==
             [
                 call.send(
-                    messages.Message(__root__=messages.SynchronizeConnection(source=test_setup.my_connection_info)))
+                    messages.Message(__root__=messages.SynchronizeConnection(
+                        source=test_setup.my_connection_info,
+                        destination=test_setup.peer
+                    )))
             ]
             and test_setup.timer_mock.mock_calls ==
             [

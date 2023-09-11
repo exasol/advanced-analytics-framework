@@ -9,13 +9,13 @@ from exasol_advanced_analytics_framework.udf_communication.messages import Messa
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender
+from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_thread.connection_closer.close_connection_sender import \
+    CloseConnectionSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
     background_thread.connection_closer.connection_closer import ConnectionCloser
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
     background_thread.connection_closer.connection_is_closed_sender import ConnectionIsClosedSender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
-    SynchronizeConnectionSender
 
 
 @dataclasses.dataclass()
@@ -25,7 +25,7 @@ class TestSetup:
     sender_mock: Union[MagicMock, Sender]
     abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender]
     connection_is_closed_sender_mock: Union[MagicMock, ConnectionIsClosedSender]
-    close_connection_sender_mock: Union[MagicMock, SynchronizeConnectionSender]
+    close_connection_sender_mock: Union[MagicMock, CloseConnectionSender]
 
     connection_closer: ConnectionCloser
 
@@ -53,8 +53,8 @@ def create_test_setup() -> TestSetup:
     sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
     abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender] = create_autospec(AbortTimeoutSender)
     connection_is_closed_sender: Union[MagicMock, ConnectionIsClosedSender] = create_autospec(ConnectionIsClosedSender)
-    close_connection_sender_mock: Union[MagicMock, SynchronizeConnectionSender] = \
-        create_autospec(SynchronizeConnectionSender)
+    close_connection_sender_mock: Union[MagicMock, CloseConnectionSender] = \
+        create_autospec(CloseConnectionSender)
     connection_closer = ConnectionCloser(
         my_connection_info=my_connection_info,
         peer=peer,
@@ -77,7 +77,7 @@ def create_test_setup() -> TestSetup:
 def test_init():
     test_setup = create_test_setup()
     assert (
-            test_setup.close_connection_sender_mock.mock_calls == [call.try_send(force=True)]
+            test_setup.close_connection_sender_mock.mock_calls == []
             and test_setup.connection_is_closed_sender_mock.mock_calls == []
             and test_setup.abort_timeout_sender_mock.mock_calls == []
             and test_setup.sender_mock.mock_calls == []
@@ -91,31 +91,33 @@ def test_try_send():
     assert (
             test_setup.close_connection_sender_mock.mock_calls == [call.try_send()]
             and test_setup.connection_is_closed_sender_mock.mock_calls == [call.try_send()]
-            and test_setup.abort_timeout_sender_mock.mock_calls == [call.try_send()]
+            and test_setup.abort_timeout_sender_mock.mock_calls == []
             and test_setup.sender_mock.mock_calls == []
     )
 
 
-def test_received_synchronize_connection():
+def test_received_close_connection():
     test_setup = create_test_setup()
     test_setup.reset_mock()
     test_setup.connection_closer.received_close_connection()
     assert (
             test_setup.close_connection_sender_mock.mock_calls == []
             and test_setup.connection_is_closed_sender_mock.mock_calls == [call.received_close_connection()]
-            and test_setup.abort_timeout_sender_mock.mock_calls == [call.stop()]
+            and test_setup.abort_timeout_sender_mock.mock_calls == []
             and test_setup.sender_mock.mock_calls == [
-                call.send(Message(__root__=messages.AcknowledgeCloseConnection(source=test_setup.my_connection_info)))]
+                call.send(Message(__root__=messages.AcknowledgeCloseConnection(
+                    source=test_setup.my_connection_info, destination=test_setup.peer
+                )))]
     )
 
 
-def test_received_acknowledge_connection():
+def test_received_acknowledge_close_connection():
     test_setup = create_test_setup()
     test_setup.reset_mock()
     test_setup.connection_closer.received_acknowledge_close_connection()
     assert (
             test_setup.close_connection_sender_mock.mock_calls == [call.stop()]
             and test_setup.connection_is_closed_sender_mock.mock_calls == [call.received_acknowledge_close_connection()]
-            and test_setup.abort_timeout_sender_mock.mock_calls == [call.stop()]
+            and test_setup.abort_timeout_sender_mock.mock_calls == []
             and test_setup.sender_mock.mock_calls == []
     )
