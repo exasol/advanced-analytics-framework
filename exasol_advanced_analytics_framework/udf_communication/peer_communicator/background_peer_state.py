@@ -72,7 +72,7 @@ class BackgroundPeerState:
         self._register_peer_forwarder.received_register_peer_complete()
 
     def prepare_to_stop(self):
-        self._logger.info("start")
+        self._logger.info("prepare_to_stop")
         self._prepare_to_stop = True
 
     def _is_ready_to_stop(self):
