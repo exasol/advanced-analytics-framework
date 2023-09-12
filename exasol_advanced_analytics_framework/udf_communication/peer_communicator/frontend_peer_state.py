@@ -22,6 +22,7 @@ class FrontendPeerState:
                  socket_factory: SocketFactory,
                  background_listener: BackgroundListenerInterface,
                  peer: Peer):
+        self._connection_is_closed = False
         self._received_messages: Deque[List[Frame]] = deque()
         self._background_listener = background_listener
         self._my_connection_info = my_connection_info
@@ -48,7 +49,7 @@ class FrontendPeerState:
             raise RuntimeError(f"Received message from wrong peer. "
                                f"Expected peer is {self._peer}, but got {message_obj.source}."
                                f"Message was: {message_obj}")
-        self._received_messages.append(frames)
+        self._received_messages.append(frames[1:])
 
     @property
     def peer_is_ready(self) -> bool:
@@ -70,3 +71,10 @@ class FrontendPeerState:
             return self._received_messages.pop()
         else:
             raise RuntimeError("No messages to receive.")
+
+    def received_connection_is_closed(self):
+        self._connection_is_closed = True
+
+    @property
+    def connection_is_closed(self) -> bool:
+        return self._connection_is_closed

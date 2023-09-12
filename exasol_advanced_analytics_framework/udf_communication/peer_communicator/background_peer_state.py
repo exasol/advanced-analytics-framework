@@ -38,6 +38,7 @@ class BackgroundPeerState:
         self._my_connection_info = my_connection_info
         self._peer = peer
         self._sender = sender
+        self._prepare_to_stop = False
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
             my_connection_info=self._my_connection_info.dict(),
@@ -48,6 +49,15 @@ class BackgroundPeerState:
         self._logger.debug("try_send")
         self._connection_establisher.try_send()
         self._register_peer_forwarder.try_send()
+        if self._should_we_close_connection():
+            self._connection_closer.try_send()
+
+    def _should_we_close_connection(self):
+        is_ready_to_stop = self._is_ready_to_stop()
+        self._logger.debug("_should_we_send_close_connection",
+                           is_ready_to_stop=is_ready_to_stop,
+                           prepare_to_stop=self._prepare_to_stop)
+        return self._prepare_to_stop and is_ready_to_stop
 
     def received_synchronize_connection(self):
         self._connection_establisher.received_synchronize_connection()
@@ -61,15 +71,24 @@ class BackgroundPeerState:
     def received_register_peer_complete(self):
         self._register_peer_forwarder.received_register_peer_complete()
 
-    def is_ready_to_stop(self):
-        is_ready_to_stop = (
-                self._connection_establisher.is_ready_to_stop()
-                and self._register_peer_forwarder.is_ready_to_stop()
-        )
+    def prepare_to_stop(self):
+        self._logger.info("prepare_to_stop")
+        self._prepare_to_stop = True
+
+    def _is_ready_to_stop(self):
+        connection_establisher_is_ready = self._connection_establisher.is_ready_to_stop()
+        register_peer_forwarder_is_ready = self._register_peer_forwarder.is_ready_to_stop()
+        is_ready_to_stop = connection_establisher_is_ready and register_peer_forwarder_is_ready
+        self._logger.debug("background_peer_state_is_ready_to_stop",
+                           connection_establisher_is_ready=connection_establisher_is_ready,
+                           register_peer_forwarder_is_ready=register_peer_forwarder_is_ready)
         return is_ready_to_stop
 
     def send_payload(self, frames: List[Frame]):
         self._sender.send_multipart(frames)
 
-    def stop(self):
-        pass
+    def received_close_connection(self):
+        self._connection_closer.received_close_connection()
+
+    def received_acknowledge_close_connection(self):
+        self._connection_closer.received_acknowledge_close_connection()

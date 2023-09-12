@@ -104,7 +104,10 @@ def test_received_synchronize_connection():
             and test_setup.connection_is_ready_sender_mock.mock_calls == [call.received_synchronize_connection()]
             and test_setup.abort_timeout_sender_mock.mock_calls == [call.stop()]
             and test_setup.sender_mock.mock_calls == [
-                call.send(Message(__root__=AcknowledgeConnection(source=test_setup.my_connection_info)))]
+                call.send(Message(__root__=AcknowledgeConnection(
+                    source=test_setup.my_connection_info,
+                    destination=test_setup.peer
+                )))]
     )
 
 
