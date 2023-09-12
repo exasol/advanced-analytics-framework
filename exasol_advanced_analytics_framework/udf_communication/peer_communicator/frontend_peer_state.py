@@ -81,4 +81,3 @@ class FrontendPeerState:
 
     def received_acknowledge_payload_message(self, acknowledge_payload: messages.AcknowledgePayload):
         """ Not yet implemented and for that reason we ignore the input"""
-        pass

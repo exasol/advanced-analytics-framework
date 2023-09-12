@@ -170,17 +170,18 @@ def test_is_ready_to_stop_after_received_payload_in_reverse_sequence(number_of_m
     assert is_ready_to_stop
 
 
-@pytest.mark.parametrize("number_of_messages, duplicated_message",
+@pytest.mark.parametrize("number_of_messages, duplicated_message_sequence_number",
                          [(i, j) for i in range(1, 10) for j in range(0, i)])
-def test_is_ready_to_stop_payload_in_sequence_multiple_times(number_of_messages: int, duplicated_message: int):
+def test_is_ready_to_stop_payload_in_sequence_multiple_times(number_of_messages: int,
+                                                             duplicated_message_sequence_number: int):
     test_setup = create_test_setup()
     for sequence_number in range(number_of_messages):
         message, frames = create_payload_message(test_setup, sequence_number)
         test_setup.payload_receiver.received_payload(message, frames)
     test_setup.reset_mock()
-    sequence_number = duplicated_message
-    message, frames = create_payload_message(test_setup, sequence_number)
-    test_setup.payload_receiver.received_payload(message, frames)
+    for sequence_number in range(duplicated_message_sequence_number):
+        message, frames = create_payload_message(test_setup, sequence_number)
+        test_setup.payload_receiver.received_payload(message, frames)
     is_ready_to_stop = test_setup.payload_receiver.is_ready_to_stop()
     assert is_ready_to_stop
 
