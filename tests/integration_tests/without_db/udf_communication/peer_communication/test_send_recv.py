@@ -85,19 +85,22 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
         finally:
             try:
                 com.stop()
-            except:
+            except Exception as e:
                 logger.exception("Exception during stop")
-                queue.put("Failed")
+                queue.put(f"Failed: {e}")
             context.destroy(linger=0)
             for frame in sys._current_frames().values():
                 stacktrace = traceback.format_stack(frame)
                 logger.info("Frame", stacktrace=stacktrace)
     except Exception as e:
         logger.exception("Exception during test")
-        queue.put("Failed")
+        queue.put(f"Failed: {e}")
     queue.put(received_values)
 
-@pytest.mark.parametrize("number_of_instances, repetitions", [(2, 1000), (10, 100)])
+
+@pytest.mark.parametrize("number_of_instances, repetitions", [
+    (2, 1000), (10, 100)
+])
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
 

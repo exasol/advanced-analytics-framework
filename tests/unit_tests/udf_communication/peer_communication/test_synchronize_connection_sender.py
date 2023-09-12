@@ -91,7 +91,8 @@ def test_try_send_after_init_and_is_time_false_and_force():
                 call.send(
                     messages.Message(__root__=messages.SynchronizeConnection(
                         source=test_setup.my_connection_info,
-                        destination=test_setup.peer
+                        destination=test_setup.peer,
+                        attempt=1
                     )))
             ]
             and test_setup.timer_mock.mock_calls ==
@@ -115,7 +116,8 @@ def test_try_send_after_init_and_is_time_true():
                 call.send(
                     messages.Message(__root__=messages.SynchronizeConnection(
                         source=test_setup.my_connection_info,
-                        destination=test_setup.peer
+                        destination=test_setup.peer,
+                        attempt=1
                     )))
             ]
             and test_setup.timer_mock.mock_calls ==
@@ -140,7 +142,8 @@ def test_try_send_twice_and_is_time_true():
                 call.send(
                     messages.Message(__root__=messages.SynchronizeConnection(
                         source=test_setup.my_connection_info,
-                        destination=test_setup.peer
+                        destination=test_setup.peer,
+                        attempt=2
                     )))
             ]
             and test_setup.timer_mock.mock_calls ==

@@ -1,10 +1,15 @@
 from typing import List
 
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Frame, Socket
+
+LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class PayloadMessageSender:
@@ -15,6 +20,7 @@ class PayloadMessageSender:
                  abort_timer: Timer,
                  sender: Sender,
                  out_control_socket: Socket):
+        self._logger = LOGGER.bind(message=message)
         self._abort_timer = abort_timer
         self._out_control_socket = out_control_socket
         self._sender = sender
@@ -22,9 +28,16 @@ class PayloadMessageSender:
         self._frames = frames
         self._message = message
         self._finished = False
+        self._send_attempt_count = 0
         self._send_payload()
 
     def _send_payload(self):
+        self._send_attempt_count += 1
+        if self._send_attempt_count < 2:
+            self._logger.debug("send", send_attempt_count=self._send_attempt_count)
+        else:
+            self._logger.warning("resend", send_attempt_count=self._send_attempt_count)
+
         self._sender.send_multipart(self._frames)
 
     def try_send(self):
@@ -39,6 +52,8 @@ class PayloadMessageSender:
             self._retry_timer.reset_timer()
 
     def stop(self):
+        if self._send_attempt_count > 1:
+            self._logger.warning("stop payload message sender", message=self._message)
         self._finished = True
 
     def _should_we_send_abort(self):

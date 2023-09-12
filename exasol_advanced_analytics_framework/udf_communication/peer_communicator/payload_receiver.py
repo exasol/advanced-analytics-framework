@@ -38,7 +38,7 @@ class PayloadReceiver:
         if message.sequence_number == self._next_received_payload_sequence_number:
             self._forward_new_message_directly(message, frames)
             self._forward_messages_from_buffer()
-        else:
+        elif message.sequence_number > self._next_received_payload_sequence_number:
             self._add_new_message_to_buffer(message, frames)
 
     def _add_new_message_to_buffer(self, message: messages.Payload, frames: List[Frame]):
@@ -60,7 +60,8 @@ class PayloadReceiver:
     def _send_acknowledge_payload_message(self, sequence_number: int):
         acknowledge_payload_message = messages.AcknowledgePayload(
             source=Peer(connection_info=self._my_connection_info),
-            sequence_number=sequence_number
+            sequence_number=sequence_number,
+            destination=self._peer
         )
         self._logger.info("_send_acknowledge_payload_message", message=acknowledge_payload_message.dict())
         self._sender.send(message=messages.Message(__root__=acknowledge_payload_message))
@@ -70,4 +71,6 @@ class PayloadReceiver:
         self._next_received_payload_sequence_number += 1
 
     def is_ready_to_stop(self) -> bool:
-        return len(self._received_payload_dict) == 0
+        is_ready = len(self._received_payload_dict) == 0
+        self._logger.debug("payload_receiver_is_ready", is_ready=is_ready)
+        return is_ready
