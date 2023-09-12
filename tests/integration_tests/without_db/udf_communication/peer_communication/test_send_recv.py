@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import traceback
@@ -119,7 +120,9 @@ def test_functionality_5():
 def test_functionality_10():
     run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
 
-
+@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ,
+                    reason="This test is unstable on Github Action, "
+                           "because of the limited number of cores on the default runners.")
 def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
 
