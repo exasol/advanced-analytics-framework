@@ -53,7 +53,9 @@ def create_test_setup() -> TestSetup:
 def create_acknowledge_payload_message(test_setup: TestSetup, message: messages.Payload) -> messages.Message:
     acknowledge_message = messages.Message(__root__=messages.AcknowledgePayload(
         source=Peer(connection_info=test_setup.my_connection_info),
-        sequence_number=message.sequence_number))
+        sequence_number=message.sequence_number,
+        destination=test_setup.peer
+    ))
     return acknowledge_message
 
 
@@ -164,6 +166,22 @@ def test_is_ready_to_stop_after_received_payload_in_reverse_sequence(number_of_m
         frames_of_previous_message.append(frames)
         test_setup.payload_receiver.received_payload(message, frames)
     test_setup.reset_mock()
+    is_ready_to_stop = test_setup.payload_receiver.is_ready_to_stop()
+    assert is_ready_to_stop
+
+
+@pytest.mark.parametrize("number_of_messages, duplicated_message_sequence_number",
+                         [(i, j) for i in range(1, 10) for j in range(0, i)])
+def test_is_ready_to_stop_payload_in_sequence_multiple_times(number_of_messages: int,
+                                                             duplicated_message_sequence_number: int):
+    test_setup = create_test_setup()
+    for sequence_number in range(number_of_messages):
+        message, frames = create_payload_message(test_setup, sequence_number)
+        test_setup.payload_receiver.received_payload(message, frames)
+    test_setup.reset_mock()
+    for sequence_number in range(duplicated_message_sequence_number):
+        message, frames = create_payload_message(test_setup, sequence_number)
+        test_setup.payload_receiver.received_payload(message, frames)
     is_ready_to_stop = test_setup.payload_receiver.is_ready_to_stop()
     assert is_ready_to_stop
 

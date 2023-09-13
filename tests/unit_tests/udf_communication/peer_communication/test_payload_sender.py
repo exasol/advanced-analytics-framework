@@ -84,7 +84,9 @@ def create_test_setup(number_of_messages: int) -> TestSetup:
 def create_acknowledge_payload_message(test_setup: TestSetup, message: messages.Payload) -> messages.Message:
     acknowledge_message = messages.Message(__root__=messages.AcknowledgePayload(
         source=Peer(connection_info=test_setup.my_connection_info),
-        sequence_number=message.sequence_number))
+        sequence_number=message.sequence_number,
+        destination=test_setup.peer
+    ))
     return acknowledge_message
 
 

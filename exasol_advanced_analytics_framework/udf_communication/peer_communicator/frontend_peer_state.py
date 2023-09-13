@@ -78,3 +78,6 @@ class FrontendPeerState:
     @property
     def connection_is_closed(self) -> bool:
         return self._connection_is_closed
+
+    def received_acknowledge_payload_message(self, acknowledge_payload: messages.AcknowledgePayload):
+        """ Not yet implemented and for that reason we ignore the input"""

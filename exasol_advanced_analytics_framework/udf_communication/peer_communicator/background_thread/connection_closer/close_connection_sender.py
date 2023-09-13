@@ -40,11 +40,15 @@ class CloseConnectionSender:
 
     def _send(self):
         self._send_attempt_count += 1
-        self._logger.debug("send", send_attempt_count=self._send_attempt_count)
+        if self._send_attempt_count < 2:
+            self._logger.debug("send", send_attempt_count=self._send_attempt_count)
+        else:
+            self._logger.warning("resend", send_attempt_count=self._send_attempt_count)
         message = messages.Message(
             __root__=messages.CloseConnection(
                 source=self._my_connection_info,
-                destination=self._peer))
+                destination=self._peer,
+                attempt=self._send_attempt_count))
         self._sender.send(message)
 
     def _should_we_send(self):

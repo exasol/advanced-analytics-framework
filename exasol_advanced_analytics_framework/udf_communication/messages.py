@@ -61,6 +61,7 @@ class Payload(BaseMessage, frozen=True):
 class AcknowledgePayload(BaseMessage, frozen=True):
     message_type: Literal["AcknowledgePayload"] = "AcknowledgePayload"
     source: Peer
+    destination: Peer
     sequence_number: int
 
 
@@ -79,6 +80,7 @@ class SynchronizeConnection(BaseMessage, frozen=True):
     message_type: Literal["SynchronizeConnection"] = "SynchronizeConnection"
     source: ConnectionInfo
     destination: Peer
+    attempt: int
 
 
 class AcknowledgeConnection(BaseMessage, frozen=True):
@@ -96,6 +98,7 @@ class CloseConnection(BaseMessage, frozen=True):
     message_type: Literal["CloseConnection"] = "CloseConnection"
     source: ConnectionInfo
     destination: Peer
+    attempt: int
 
 
 class AcknowledgeCloseConnection(BaseMessage, frozen=True):

@@ -18,6 +18,9 @@ class Frame(abstract.Frame):
     def to_bytes(self) -> bytes:
         return self._internal_frame.to_bytes()
 
+    def __str__(self):
+        return self.to_bytes().decode("UTF-8")
+
 
 def _is_address_inproc(address):
     return address.startswith("inproc")
@@ -47,7 +50,7 @@ class Socket(abstract.Socket):
 
     def send(self, message: bytes):
         if self._is_fault():
-            self._logger.info("Fault injected", message=message)
+            self._logger.warning("Fault injected", message=message)
             return
         self._internal_socket.send(message)
 
