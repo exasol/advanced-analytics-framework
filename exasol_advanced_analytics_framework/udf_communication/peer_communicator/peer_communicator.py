@@ -188,6 +188,23 @@ class PeerCommunicator:
         else:
             raise TimeoutError("Timeout occurred during waiting for messages.")
 
+    def poll_peers(
+            self, peers: Optional[List[Peer]] = None,
+            timeout_in_milliseconds: Optional[int] = None
+    ) -> List[Peer]:
+        self.wait_for_peers()
+
+        if peers is None:
+            peers = self._peer_states.keys()
+
+        def have_peers_received_messages() -> bool:
+            result = any(self._peer_states[peer].has_received_messages() for peer in peers)
+            return result
+
+        self._wait_for_condition(have_peers_received_messages,
+                                 timeout_in_milliseconds=timeout_in_milliseconds)
+        return [peer for peer in peers if self._peer_states[peer].has_received_messages()]
+
     def stop(self):
         self._logger.info("stop")
         if self._background_listener is not None:
