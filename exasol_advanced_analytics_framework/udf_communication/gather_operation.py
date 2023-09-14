@@ -12,6 +12,8 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
+LOCALHOST_LEADER_RANK = 0
+MULTI_NODE__LEADER_RANK = 0
 
 class GatherOperation:
 
@@ -33,7 +35,7 @@ class GatherOperation:
         )
 
     def __call__(self) -> Optional[List[bytes]]:
-        if self._localhost_communicator.rank > 0:
+        if self._localhost_communicator.rank > LOCALHOST_LEADER_RANK:
             return self._send_to_localhost_leader()
         return self._handle_messages_from_local_peers()
 
@@ -73,7 +75,7 @@ class GatherOperation:
                                         value_frame=frames[1])
 
     def _send_local_leader_message_to_multi_node_leader(self):
-        local_position = 0
+        local_position = LOCALHOST_LEADER_RANK
         value_frame = self._socket_factory.create_frame(self._value)
         self._send_to_multi_node_leader(local_position=local_position, value_frame=value_frame)
 
@@ -102,7 +104,7 @@ class GatherOperation:
     def _handle_messages_from_all_nodes(self) -> List[bytes]:
         number_of_instances_in_cluster = self._multi_node_communicator.number_of_peers \
                                          * self._number_of_instances_per_node
-        result: Dict[int, bytes] = {0: self._value}
+        result: Dict[int, bytes] = {MULTI_NODE__LEADER_RANK: self._value}
         localhost_messages_are_done = False
         multi_node_messages_are_done = False
         while not self._is_result_complete(result, number_of_instances_in_cluster):
@@ -160,7 +162,8 @@ class GatherOperation:
                 f"but we got {local_position} in message {specific_message_obj}")
         return local_position
 
-    def _get_and_check_multi_node_position(self, specific_message_obj: Gather, number_of_instances_in_cluster: int) -> int:
+    def _get_and_check_multi_node_position(self, specific_message_obj: Gather,
+                                           number_of_instances_in_cluster: int) -> int:
         position = specific_message_obj.position
         if not (self._number_of_instances_per_node <= position < number_of_instances_in_cluster):
             raise RuntimeError(

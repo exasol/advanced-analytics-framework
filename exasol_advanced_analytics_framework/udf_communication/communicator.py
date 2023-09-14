@@ -6,6 +6,8 @@ from exasol_advanced_analytics_framework.udf_communication.ip_address import Por
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
+LOCALHOST_LEADER_RANK = 0
+MULTI_NODE__LEADER_RANK = 0
 
 class Communicator:
 
@@ -50,9 +52,12 @@ class Communicator:
     def _create_multi_node_communicator(self) -> Optional[PeerCommunicator]:
         multi_node_name = f"{self._name}_global"
         multi_node_group_identifier = f"{self._group_identifier}_global"
-        if self._localhost_communicator.rank == 0:
+        if self._localhost_communicator.rank == LOCALHOST_LEADER_RANK:
             discovery_socket_factory = multi_node.DiscoverySocketFactory()
-            is_discovery_leader = self._localhost_communicator.rank == 0 and self._is_discovery_leader_node
+            is_discovery_leader = (
+                    self._localhost_communicator.rank == LOCALHOST_LEADER_RANK
+                    and self._is_discovery_leader_node
+            )
             peer_communicator = self._multi_node_communicator_factory.create(
                 group_identifier=multi_node_group_identifier,
                 name=multi_node_name,
@@ -92,6 +97,6 @@ class Communicator:
 
     def is_multi_node_leader(self):
         if self._multi_node_communicator is not None:
-            return self._multi_node_communicator.rank == 0
+            return self._multi_node_communicator.rank == MULTI_NODE_LEADER_RANK
         else:
-            return self._localhost_communicator.rank == 0
+            return self._localhost_communicator.rank == LOCALHOST_LEADER_RANK

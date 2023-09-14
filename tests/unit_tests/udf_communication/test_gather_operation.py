@@ -14,7 +14,7 @@ from tests.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)
-class TestSetup:
+class Fixture:
     sequence_number: int
     value: bytes
     number_of_instances_per_node: int
@@ -29,7 +29,7 @@ class TestSetup:
         self.multi_node_communicator_mock.reset_mock()
 
 
-def create_setup(number_of_instances_per_node: int) -> TestSetup:
+def create_setup(number_of_instances_per_node: int) -> Fixture:
     sequence_number = 0
     value = b"0"
     localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(PeerCommunicator)
@@ -43,7 +43,7 @@ def create_setup(number_of_instances_per_node: int) -> TestSetup:
         multi_node_communicator=multi_node_communicator_mock,
         socket_factory=socket_factory_mock
     )
-    test_setup = TestSetup(
+    test_setup = Fixture(
         sequence_number=sequence_number,
         value=value,
         number_of_instances_per_node=number_of_instances_per_node,
