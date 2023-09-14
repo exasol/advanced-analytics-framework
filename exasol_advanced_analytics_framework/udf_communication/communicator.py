@@ -1,90 +1,10 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost, multi_node
+from exasol_advanced_analytics_framework.udf_communication.gather_operation import GatherOperation
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.messages import Gather
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, Frame
-
-
-class GatherRunner:
-
-    def __init__(self,
-                 sequence_number: int,
-                 value: bytes,
-                 localhost_communicator: PeerCommunicator,
-                 multi_node_communicator: PeerCommunicator,
-                 socket_factory: SocketFactory,
-                 number_of_instances_per_node: int):
-        self._socket_factory = socket_factory
-        self._value = value
-        self._sequence_number = sequence_number
-        self._multi_node_communicator = multi_node_communicator
-        self._localhost_communicator = localhost_communicator
-
-    def __call__(self) -> Optional[List[bytes]]:
-        if self._localhost_communicator.rank > 0:
-            return self._send_to_localhost_leader()
-        else:
-            return self._handle_messages_from_local_peers()
-
-    def _send_to_localhost_leader(self) -> None:
-        peers = self._localhost_communicator.peers()
-        leader = peers[0]
-        position = self._localhost_communicator.rank
-        source = self._localhost_communicator.peer
-        value_frame = self._socket_factory.create_frame(self._value)
-        frames = self._construct_gather_message(leader=leader, source=source,
-                                                position=position, value_frame=value_frame)
-        self._localhost_communicator.send(peer=leader, message=frames)
-        return None
-
-    def _handle_messages_from_local_peers(self) -> Optional[List[bytes]]:
-        if self._multi_node_communicator.rank > 0:
-            return self._forward_to_multi_node_leader()
-        else:
-            return self._handle_messages_from_all_nodes()
-
-    def _forward_to_multi_node_leader(self) -> None:
-        self._send_local_leader_message_to_multi_node_leader()
-        message_received_from = {self._localhost_communicator.peer}
-        peers = set(self._localhost_communicator.peers())
-        while message_received_from != peers:
-            # TODO poll
-            # TODO receive
-            pass
-        return None
-
-    def _send_local_leader_message_to_multi_node_leader(self):
-        local_position = 0
-        value_frame = self._socket_factory.create_frame(self._value)
-        self.send_to_multi_node_leader(local_position=local_position, value_frame=value_frame)
-
-    def send_to_multi_node_leader(self, local_position: int, value_frame: Frame):
-        peers = self._multi_node_communicator.peers()
-        leader = peers[0]
-        source = self._multi_node_communicator.peer
-        base_position = self._multi_node_communicator.rank * self._localhost_communicator.number_of_peers
-        position = base_position + local_position
-        frames = self._construct_gather_message(leader=leader, source=source,
-                                                position=position, value_frame=value_frame)
-        self._multi_node_communicator.send(peer=leader, message=frames)
-
-    def _construct_gather_message(self, leader, position, source, value_frame):
-        message = Gather(sequence_number=self._sequence_number,
-                         destination=leader,
-                         source=source,
-                         position=position)
-        serialized_message = serialize_message(message)
-        frames = [
-            self._socket_factory.create_frame(serialized_message),
-            value_frame
-        ]
-        return frames
-
-    def _handle_messages_from_all_nodes(self) -> List[bytes]:
-        return
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 
 class Communicator:
@@ -163,8 +83,15 @@ class Communicator:
 
     def gather(self, value: bytes) -> Optional[List[bytes]]:
         sequence_number = self._next_sequence_number()
-        gather = GatherRunner(sequence_number=sequence_number, value=value,
-                              localhost_communicator=self._localhost_communicator,
-                              multi_node_communicator=self._multi_node_communicator,
-                              socket_factory=self._socket_factory)
+        gather = GatherOperation(sequence_number=sequence_number, value=value,
+                                 localhost_communicator=self._localhost_communicator,
+                                 multi_node_communicator=self._multi_node_communicator,
+                                 socket_factory=self._socket_factory,
+                                 number_of_instances_per_node=self._number_of_instances_per_node)
         return gather()
+
+    def is_multi_node_leader(self):
+        if self._multi_node_communicator is not None:
+            return self._multi_node_communicator.rank == 0
+        else:
+            return self._localhost_communicator.rank == 0

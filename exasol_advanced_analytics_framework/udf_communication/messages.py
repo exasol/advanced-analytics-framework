@@ -145,5 +145,6 @@ class Message(BaseModel, frozen=True):
         CloseConnection,
         AcknowledgeCloseConnection,
         ConnectionIsClosed,
-        Timeout
+        Timeout,
+        Gather
     ]

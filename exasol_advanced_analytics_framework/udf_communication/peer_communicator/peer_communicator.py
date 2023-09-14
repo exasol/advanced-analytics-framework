@@ -161,6 +161,10 @@ class PeerCommunicator:
         return Peer(connection_info=self._my_connection_info)
 
     @property
+    def leader(self) -> Peer:
+        return self.peers()[0]
+
+    @property
     def rank(self) -> int:
         return self.peers().index(self.peer)
 
