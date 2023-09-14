@@ -31,7 +31,7 @@ class TestSetup:
 
 def create_setup(number_of_instances_per_node: int) -> TestSetup:
     sequence_number = 0
-    value = "0".encode("utf-8")
+    value = b"0"
     localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(PeerCommunicator)
     multi_node_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(PeerCommunicator)
     socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(SocketFactory)
@@ -57,10 +57,11 @@ def create_setup(number_of_instances_per_node: int) -> TestSetup:
 
 def test_init():
     test_setup = create_setup(number_of_instances_per_node=2)
-    assert test_setup.multi_node_communicator_mock.mock_calls == [] \
-           and test_setup.localhost_communicator_mock.mock_calls == [] \
-           and test_setup.socket_factory_mock.mock_calls == []
-
+    assert (
+        test_setup.multi_node_communicator_mock.mock_calls == [] 
+        and test_setup.localhost_communicator_mock.mock_calls == [] 
+        and test_setup.socket_factory_mock.mock_calls == []
+     )
 
 def test_call_localhost_rank_greater_zero():
     test_setup = create_setup(number_of_instances_per_node=2)

@@ -35,8 +35,7 @@ class GatherOperation:
     def __call__(self) -> Optional[List[bytes]]:
         if self._localhost_communicator.rank > 0:
             return self._send_to_localhost_leader()
-        else:
-            return self._handle_messages_from_local_peers()
+        return self._handle_messages_from_local_peers()
 
     def _send_to_localhost_leader(self) -> None:
         leader = self._localhost_communicator.leader
@@ -47,13 +46,11 @@ class GatherOperation:
                                                 position=position, value_frame=value_frame)
         self._logger.info("_send_to_localhost_leader", frame=frames[0].to_bytes())
         self._localhost_communicator.send(peer=leader, message=frames)
-        return None
 
     def _handle_messages_from_local_peers(self) -> Optional[List[bytes]]:
         if self._multi_node_communicator.rank > 0:
             return self._forward_to_multi_node_leader()
-        else:
-            return self._handle_messages_from_all_nodes()
+        return self._handle_messages_from_all_nodes()
 
     def _forward_to_multi_node_leader(self) -> None:
         self._send_local_leader_message_to_multi_node_leader()
@@ -64,7 +61,6 @@ class GatherOperation:
             for peer in peers_with_messages:
                 self._forward_message_for_peer(peer)
                 peers_without_message.remove(peer)
-        return None
 
     def _forward_message_for_peer(self, peer: Peer):
         frames = self._localhost_communicator.recv(peer)
@@ -151,11 +147,11 @@ class GatherOperation:
         is_done = set(positions_required_from_other_nodes).issubset(result.keys())
         return is_done
 
-    def _is_result_complete(self, result: Dict[int, bytes], number_of_instances_in_cluster: int):
+    def _is_result_complete(self, result: Dict[int, bytes], number_of_instances_in_cluster: int) -> bool:
         complete = len(result) == number_of_instances_in_cluster
         return complete
 
-    def _get_and_check_local_position(self, specific_message_obj: Gather):
+    def _get_and_check_local_position(self, specific_message_obj: Gather) -> int:
         local_position = specific_message_obj.position
         if not (0 < local_position < self._number_of_instances_per_node):
             raise RuntimeError(
@@ -164,7 +160,7 @@ class GatherOperation:
                 f"but we got {local_position} in message {specific_message_obj}")
         return local_position
 
-    def _get_and_check_multi_node_position(self, specific_message_obj: Gather, number_of_instances_in_cluster: int):
+    def _get_and_check_multi_node_position(self, specific_message_obj: Gather, number_of_instances_in_cluster: int) -> int:
         position = specific_message_obj.position
         if not (self._number_of_instances_per_node <= position < number_of_instances_in_cluster):
             raise RuntimeError(

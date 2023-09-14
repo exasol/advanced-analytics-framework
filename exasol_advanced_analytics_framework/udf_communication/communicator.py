@@ -43,9 +43,9 @@ class Communicator:
         self._sequence_number = 0
 
     def _next_sequence_number(self) -> int:
-        result = self._sequence_number
+        sequence_number = self._sequence_number
         self._sequence_number += 1
-        return result
+        return sequence_number
 
     def _create_multi_node_communicator(self) -> Optional[PeerCommunicator]:
         multi_node_name = f"{self._name}_global"
