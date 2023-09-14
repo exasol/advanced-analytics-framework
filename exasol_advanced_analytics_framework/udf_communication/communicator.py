@@ -7,7 +7,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator imp
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 
 LOCALHOST_LEADER_RANK = 0
-MULTI_NODE__LEADER_RANK = 0
+MULTI_NODE_LEADER_RANK = 0
 
 class Communicator:
 

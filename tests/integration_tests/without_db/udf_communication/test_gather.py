@@ -2,7 +2,6 @@ import time
 from pathlib import Path
 from typing import List, Dict, Tuple
 
-import pytest
 import structlog
 import zmq
 from structlog import WriteLoggerFactory

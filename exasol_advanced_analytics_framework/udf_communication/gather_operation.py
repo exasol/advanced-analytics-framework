@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 LOCALHOST_LEADER_RANK = 0
-MULTI_NODE__LEADER_RANK = 0
+MULTI_NODE_LEADER_RANK = 0
 
 class GatherOperation:
 
@@ -104,7 +104,7 @@ class GatherOperation:
     def _handle_messages_from_all_nodes(self) -> List[bytes]:
         number_of_instances_in_cluster = self._multi_node_communicator.number_of_peers \
                                          * self._number_of_instances_per_node
-        result: Dict[int, bytes] = {MULTI_NODE__LEADER_RANK: self._value}
+        result: Dict[int, bytes] = {MULTI_NODE_LEADER_RANK: self._value}
         localhost_messages_are_done = False
         multi_node_messages_are_done = False
         while not self._is_result_complete(result, number_of_instances_in_cluster):
