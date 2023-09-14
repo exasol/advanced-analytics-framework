@@ -1,11 +1,16 @@
 from typing import Optional, List, Dict
 
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication import messages
 from exasol_advanced_analytics_framework.udf_communication.messages import Gather
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, Frame
+
+LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 
 class GatherOperation:
@@ -23,6 +28,9 @@ class GatherOperation:
         self._sequence_number = sequence_number
         self._multi_node_communicator = multi_node_communicator
         self._localhost_communicator = localhost_communicator
+        self._logger = LOGGER.bind(
+            sequence_number=self._sequence_number,
+        )
 
     def __call__(self) -> Optional[List[bytes]]:
         if self._localhost_communicator.rank > 0:
@@ -37,6 +45,7 @@ class GatherOperation:
         value_frame = self._socket_factory.create_frame(self._value)
         frames = self._construct_gather_message(source=source, leader=leader,
                                                 position=position, value_frame=value_frame)
+        self._logger.info("_send_to_localhost_leader", frame=frames[0].to_bytes())
         self._localhost_communicator.send(peer=leader, message=frames)
         return None
 
@@ -63,6 +72,7 @@ class GatherOperation:
         specific_message_obj = self._get_and_check_specific_message_obj(message)
         self._check_sequence_number(specific_message_obj)
         local_position = self._get_and_check_local_position(specific_message_obj)
+        self._logger.info("_forward_message_for_peer", local_position=local_position, peer=peer)
         self._send_to_multi_node_leader(local_position=local_position,
                                         value_frame=frames[1])
 
@@ -78,6 +88,7 @@ class GatherOperation:
         position = base_position + local_position
         frames = self._construct_gather_message(source=source, leader=leader, position=position,
                                                 value_frame=value_frame)
+        self._logger.info("_send_to_multi_node_leader", frame=frames[0].to_bytes())
         self._multi_node_communicator.send(peer=leader, message=frames)
 
     def _construct_gather_message(self, source: Peer, leader: Peer, position: int, value_frame: Frame):
@@ -112,13 +123,15 @@ class GatherOperation:
         peers_with_messages = self._localhost_communicator.poll_peers()
         for peer in peers_with_messages:
             frames = self._localhost_communicator.recv(peer)
+            self._logger.info("_receive_localhost_messages", frame=frames[0].to_bytes())
             message = deserialize_message(frames[0].to_bytes(), messages.Message)
             specific_message_obj = self._get_and_check_specific_message_obj(message)
             self._check_sequence_number(specific_message_obj)
             local_position = self._get_and_check_local_position(specific_message_obj)
             self._check_if_position_is_already_set(local_position, result, specific_message_obj)
             result[local_position] = frames[1].to_bytes()
-        is_done = set(range(self._number_of_instances_per_node)).issubset(result.keys())
+        positions_required_by_localhost = range(self._number_of_instances_per_node)
+        is_done = set(positions_required_by_localhost).issubset(result.keys())
         return is_done
 
     def _receive_multi_node_messages(self, result: Dict[int, bytes], number_of_instances_in_cluster: int) -> bool:
@@ -127,13 +140,15 @@ class GatherOperation:
         peers_with_messages = self._multi_node_communicator.poll_peers()
         for peer in peers_with_messages:
             frames = self._multi_node_communicator.recv(peer)
+            self._logger.info("_receive_multi_node_messages", frame=frames[0].to_bytes())
             message = deserialize_message(frames[0].to_bytes(), messages.Message)
             specific_message_obj = self._get_and_check_specific_message_obj(message)
             self._check_sequence_number(specific_message_obj)
             position = self._get_and_check_multi_node_position(specific_message_obj, number_of_instances_in_cluster)
             self._check_if_position_is_already_set(position, result, specific_message_obj)
             result[position] = frames[1].to_bytes()
-        is_done = set(range(self._number_of_instances_per_node)).issubset(result.keys())
+        positions_required_from_other_nodes = range(self._number_of_instances_per_node, number_of_instances_in_cluster)
+        is_done = set(positions_required_from_other_nodes).issubset(result.keys())
         return is_done
 
     def _is_result_complete(self, result: Dict[int, bytes], number_of_instances_in_cluster: int):
