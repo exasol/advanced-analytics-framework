@@ -125,6 +125,13 @@ class Gather(BaseMessage, frozen=True):
     position: int
 
 
+class Broadcast(BaseMessage, frozen=True):
+    message_type: Literal["Broadcast"] = "Broadcast"
+    source: Peer
+    destination: Peer
+    sequence_number: int
+
+
 class Message(BaseModel, frozen=True):
     __root__: Union[
         Ping,
@@ -146,5 +153,6 @@ class Message(BaseModel, frozen=True):
         AcknowledgeCloseConnection,
         ConnectionIsClosed,
         Timeout,
-        Gather
+        Gather,
+        Broadcast
     ]

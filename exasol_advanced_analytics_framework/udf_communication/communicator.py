@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from exasol_advanced_analytics_framework.udf_communication.broadcast_operation import BroadcastOperation
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost, multi_node
 from exasol_advanced_analytics_framework.udf_communication.gather_operation import GatherOperation
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
@@ -8,6 +9,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 LOCALHOST_LEADER_RANK = 0
 MULTI_NODE_LEADER_RANK = 0
+
 
 class Communicator:
 
@@ -94,6 +96,14 @@ class Communicator:
                                  socket_factory=self._socket_factory,
                                  number_of_instances_per_node=self._number_of_instances_per_node)
         return gather()
+
+    def broadcast(self, value: Optional[bytes]) -> bytes:
+        sequence_number = self._next_sequence_number()
+        broadcast = BroadcastOperation(sequence_number=sequence_number, value=value,
+                                       localhost_communicator=self._localhost_communicator,
+                                       multi_node_communicator=self._multi_node_communicator,
+                                       socket_factory=self._socket_factory)
+        return broadcast()
 
     def is_multi_node_leader(self):
         if self._multi_node_communicator is not None:
