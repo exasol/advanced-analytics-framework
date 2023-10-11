@@ -63,6 +63,24 @@ class CommunicatorTestProcessParameter(TestProcessParameter):
         self.instance_name = instance_name
 
 
+class UDFCommunicatorTestProcessParameter(TestProcessParameter):
+    def __init__(self,
+                 node_name: int,
+                 instance_name: int,
+                 group_identifier: int,
+                 number_of_nodes: int,
+                 number_of_instances_per_node: int,
+                 local_discovery_port: Port,
+                 seed: int):
+        super().__init__(seed)
+        self.local_discovery_port = local_discovery_port
+        self.number_of_instances_per_node = number_of_instances_per_node
+        self.number_of_nodes = number_of_nodes
+        self.node_name = node_name
+        self.group_identifier = group_identifier
+        self.instance_name = instance_name
+
+
 T = TypeVar('T')
 
 

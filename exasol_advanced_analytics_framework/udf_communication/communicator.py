@@ -1,5 +1,8 @@
 from typing import Optional, List
 
+import structlog
+from structlog.typing import FilteringBoundLogger
+
 from exasol_advanced_analytics_framework.udf_communication.broadcast_operation import BroadcastOperation
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost, multi_node
 from exasol_advanced_analytics_framework.udf_communication.gather_operation import GatherOperation
@@ -9,6 +12,8 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 LOCALHOST_LEADER_RANK = 0
 MULTI_NODE_LEADER_RANK = 0
+
+LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 class Communicator:
@@ -42,6 +47,19 @@ class Communicator:
         self._listen_ip = listen_ip
         self._localhost_listen_ip = IPAddress(ip_address="127.1.0.1")
         self._name = f"{node_name}_{instance_name}"
+        self._logger = LOGGER.bind(
+            name=self._name,
+            node_name=self._node_name,
+            instance_name=instance_name,
+            listen_ip=self._listen_ip.dict(),
+            localhost_listen_ip=self._localhost_listen_ip.dict(),
+            multi_node_discovery_ip=self._multi_node_discovery_ip.dict(),
+            multi_node_discovery_port=self._multi_node_discovery_port.dict(),
+            is_discovery_leader_node=self._is_discovery_leader_node,
+            group_identifier=self._group_identifier,
+            number_of_nodes=self._number_of_nodes,
+            number_of_instances_per_node=self._number_of_instances_per_node
+        )
         self._localhost_communicator = self._create_localhost_communicator()
         self._multi_node_communicator = self._create_multi_node_communicator()
         self._sequence_number = 0
@@ -60,6 +78,7 @@ class Communicator:
                     self._localhost_communicator.rank == LOCALHOST_LEADER_RANK
                     and self._is_discovery_leader_node
             )
+            self._logger.info("multi_node_communicator discovery start")
             peer_communicator = self._multi_node_communicator_factory.create(
                 group_identifier=multi_node_group_identifier,
                 name=multi_node_name,
@@ -70,6 +89,7 @@ class Communicator:
                 discovery_port=self._multi_node_discovery_port,
                 socket_factory=self._socket_factory,
                 discovery_socket_factory=discovery_socket_factory)
+            self._logger.info("multi_nodet_communicator discovery end")
             return peer_communicator
         else:
             return None
@@ -78,6 +98,7 @@ class Communicator:
         localhost_group_identifier = f"{self._group_identifier}_{self._node_name}_local"
         localhost_name = f"{self._name}_local"
         discovery_socket_factory = localhost.DiscoverySocketFactory()
+        self._logger.info("localhost_communicator discovery start")
         peer_communicator = self._localhost_communicator_factory.create(
             group_identifier=localhost_group_identifier,
             name=localhost_name,
@@ -86,6 +107,7 @@ class Communicator:
             discovery_port=self._localhost_discovery_port,
             socket_factory=self._socket_factory,
             discovery_socket_factory=discovery_socket_factory)
+        self._logger.info("localhost_communicator discovery end")
         return peer_communicator
 
     def gather(self, value: bytes) -> Optional[List[bytes]]:
@@ -110,3 +132,12 @@ class Communicator:
             return self._multi_node_communicator.rank == MULTI_NODE_LEADER_RANK
         else:
             return self._localhost_communicator.rank == LOCALHOST_LEADER_RANK
+
+    def stop(self):
+        self._localhost_communicator.stop()
+        if self._multi_node_communicator is not None:
+            self._multi_node_communicator.stop()
+
+    @property
+    def listen_ip(self) -> IPAddress:
+        return self._listen_ip

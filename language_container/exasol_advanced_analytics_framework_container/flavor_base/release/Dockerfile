@@ -5,7 +5,7 @@ RUN apt-get update && \
     apt-get install -y git
 
 COPY release/dist /project
-RUN python3.8 -m pip install --use-deprecated=legacy-resolver /project/*.whl
+RUN python3.8 -m pip install /project/*.whl
 
 RUN mkdir -p /build_info/actual_installed_packages/release && \
     /scripts/list_installed_scripts/list_installed_apt.sh > /build_info/actual_installed_packages/release/apt_get_packages && \

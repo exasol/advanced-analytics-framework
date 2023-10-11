@@ -45,7 +45,7 @@ def run(parameter: CommunicatorTestProcessParameter,
         multi_node_discovery_ip=IPAddress(ip_address="127.0.0.1"),
         node_name=parameter.node_name,
         instance_name=parameter.instance_name,
-        listen_ip=IPAddress(ip_address="127.0.0.1"),
+        listen_ip=IPAddress(ip_address="0.0.0.0"),
         group_identifier=parameter.group_identifier,
         number_of_nodes=parameter.number_of_nodes,
         number_of_instances_per_node=parameter.number_of_instances_per_node,
@@ -66,6 +66,10 @@ def test_reliability(number_of_nodes: int, number_of_instances_per_node: int, re
 
 
 REPETITIONS_FOR_FUNCTIONALITY = 1
+
+def test_functionality_1_1():
+    run_test_with_repetitions(1, 1, REPETITIONS_FOR_FUNCTIONALITY)
+
 
 def test_functionality_2_1():
     run_test_with_repetitions(2, 1, REPETITIONS_FOR_FUNCTIONALITY)
