@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator imp
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, Frame
 
-LOGGER: FilteringBoundLogger = structlog.getLogger()
+_LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 LOCALHOST_LEADER_RANK = 0
 MULTI_NODE_LEADER_RANK = 0
@@ -56,12 +56,16 @@ class BroadcastOperation:
         self._logger.info("_forward_from_multi_node_leader")
         value_frame = self.receive_value_frame_from_multi_node_leader()
         leader = self._localhost_communicator.leader
-        for peer in self._localhost_communicator.peers():
-            if peer != leader:
-                frames = self._construct_broadcast_message(destination=peer,
-                                                           leader=leader,
-                                                           value_frame=value_frame)
-                self._localhost_communicator.send(peer=peer, message=frames)
+        peers = [peer in self._localhost_communicator.peers() if peer != leader]
+
+        for peer in peers:
+            frames = self._construct_broadcast_message(
+                destination=peer,
+                leader=leader,
+                value_frame=value_frame
+            )
+            self._localhost_communicator.send(peer=peer, message=frames)
+
         return value_frame.to_bytes()
 
     def receive_value_frame_from_multi_node_leader(self) -> Frame:
@@ -79,27 +83,34 @@ class BroadcastOperation:
         return self._value
 
     def _send_messages_to_local_leaders(self):
-        if self._multi_node_communicator is not None:
-            self._logger.info("_send_messages_to_local_leaders")
-            leader = self._multi_node_communicator.leader
-            for peer in self._multi_node_communicator.peers():
-                if peer != leader:
-                    value_frame = self._socket_factory.create_frame(self._value)
-                    frames = self._construct_broadcast_message(destination=peer,
-                                                               leader=leader,
-                                                               value_frame=value_frame)
-                    self._multi_node_communicator.send(peer=peer, message=frames)
+        if self._multi_node_communicator is None:
+            return
+
+        self._logger.info("_send_messages_to_local_leaders")
+        leader = self._multi_node_communicator.leader
+        peers = [peer for peer in self._multi_node_communicator.peers() if peer != leader]
+
+        for peer in peers:
+            value_frame = self._socket_factory.create_frame(self._value)
+            frames = self._construct_broadcast_message(
+                destination=peer,
+                leader=leader,
+                value_frame=value_frame
+            )
+            self._multi_node_communicator.send(peer=peer, message=frames)
 
     def _send_messages_to_local_peers_from_multi_node_leaders(self):
         self._logger.info("_send_messages_to_local_peers_from_multi_node_leaders")
         leader = self._localhost_communicator.leader
-        for peer in self._localhost_communicator.peers():
-            if peer != leader:
-                value_frame = self._socket_factory.create_frame(self._value)
-                frames = self._construct_broadcast_message(destination=peer,
-                                                           leader=leader,
-                                                           value_frame=value_frame)
-                self._localhost_communicator.send(peer=peer, message=frames)
+        peers = [p for p in self._localhost_communicator.peers() if p != leader]
+        for peer in peers:
+            value_frame = self._socket_factory.create_frame(self._value)
+            frames = self._construct_broadcast_message(
+                destination=peer,
+                leader=leader,
+                value_frame=value_frame
+            )
+            self._localhost_communicator.send(peer=peer, message=frames)
 
     def _check_sequence_number(self, specific_message_obj: messages.Broadcast):
         if specific_message_obj.sequence_number != self._sequence_number:

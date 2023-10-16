@@ -99,11 +99,11 @@ class Communicator:
 
     def broadcast(self, value: Optional[bytes]) -> bytes:
         sequence_number = self._next_sequence_number()
-        broadcast = BroadcastOperation(sequence_number=sequence_number, value=value,
+        operation = BroadcastOperation(sequence_number=sequence_number, value=value,
                                        localhost_communicator=self._localhost_communicator,
                                        multi_node_communicator=self._multi_node_communicator,
                                        socket_factory=self._socket_factory)
-        return broadcast()
+        return operation()
 
     def is_multi_node_leader(self):
         if self._multi_node_communicator is not None:
