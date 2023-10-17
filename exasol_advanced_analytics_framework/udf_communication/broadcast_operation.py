@@ -1,10 +1,9 @@
-from typing import Optional, List, Dict
+from typing import Optional
 
 import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.messages import Gather
 from exasol_advanced_analytics_framework.udf_communication.peer import Peer
 from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
 from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
@@ -29,7 +28,7 @@ class BroadcastOperation:
         self._sequence_number = sequence_number
         self._multi_node_communicator = multi_node_communicator
         self._localhost_communicator = localhost_communicator
-        self._logger = LOGGER.bind(
+        self._logger = _LOGGER.bind(
             sequence_number=self._sequence_number,
         )
 
@@ -56,7 +55,7 @@ class BroadcastOperation:
         self._logger.info("_forward_from_multi_node_leader")
         value_frame = self.receive_value_frame_from_multi_node_leader()
         leader = self._localhost_communicator.leader
-        peers = [peer in self._localhost_communicator.peers() if peer != leader]
+        peers = [peer for peer in self._localhost_communicator.peers() if peer != leader]
 
         for peer in peers:
             frames = self._construct_broadcast_message(
