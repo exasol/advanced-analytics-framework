@@ -33,6 +33,7 @@ typeguard = "<3.0.0"
 nox = "^2023.4.22"
 tensorflow = "^2.13.0"
 ifaddr = "^0.2.0"
+python-hosts = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

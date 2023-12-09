@@ -2304,6 +2304,18 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-hosts"
+version = "1.0.5"
+description = "A hosts file manager library written in python"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python-hosts-1.0.5.tar.gz", hash = "sha256:c5a6db1a7bf35cd884d24a1056af5d98489be42bfb920d498e9640c9bec864cd"},
+    {file = "python_hosts-1.0.5-py3-none-any.whl", hash = "sha256:66200fe9adf248bf10593078139ef88bf45c709c24f1a8de943daab9ae0c1de3"},
+]
+
+[[package]]
 name = "pytz"
 version = "2023.3.post1"
 description = "World timezone definitions, modern and historical"
@@ -3198,4 +3210,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.9"
-content-hash = "c8a3d73f5b8b76ff23f458749a5fac83b11c62bc373734a3c40d9642782d11a4"
+content-hash = "1847705f6324a53f25fe2c0a847d1c8762fd0f709c8b3df99e797e12a77e6d5f"
