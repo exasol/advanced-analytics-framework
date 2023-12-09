@@ -1,4 +1,3 @@
-import dataclasses
 import time
 from pathlib import Path
 from typing import List, Dict, Tuple, Union
@@ -13,13 +12,14 @@ from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.udf_communicator import udf_communicator, \
-    UDFCommunicatorConfig, HostIPAddresses
+    UDFCommunicatorConfig
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import \
-    CommunicatorTestProcessParameter, TestProcess, assert_processes_finish, BidirectionalQueue, \
+    TestProcess, assert_processes_finish, BidirectionalQueue, \
     UDFCommunicatorTestProcessParameter
 from tests.mock_cast import mock_cast
 
@@ -106,7 +106,7 @@ def test_functionality_2_2():
 
 def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
     for i in range(repetitions):
-        group = f"{time.monotonic_ns()}"
+        group = time.monotonic_ns()
         LOGGER.info(f"Start iteration",
                     iteration=i + 1,
                     repetitions=repetitions,
@@ -129,7 +129,7 @@ def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node
                     duration=end_time - start_time)
 
 
-def run_test(group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int):
+def run_test(group_identifier: int, number_of_nodes: int, number_of_instances_per_node: int):
     parameters = [
         UDFCommunicatorTestProcessParameter(
             node_name=n + 1,

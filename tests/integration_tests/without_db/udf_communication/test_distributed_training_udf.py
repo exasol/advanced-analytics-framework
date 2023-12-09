@@ -15,9 +15,9 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.tensorflow.distributed_training_udf import DistributedTrainingUDF
+from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.udf_communicator import UDFCommunicatorConfig, \
-    HostIPAddresses
+from exasol_advanced_analytics_framework.udf_communication.udf_communicator import UDFCommunicatorConfig
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import \
@@ -89,14 +89,16 @@ def run(parameter: UDFCommunicatorTestProcessParameter,
         host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
         mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
             IPAddress(ip_address=f"127.0.0.{parameter.node_name}", network_prefix=8)]
-        offset = parameter.node_name * parameter.instance_name * 100
+        number_of_rows_per_partition = 100
+        offset = parameter.node_name * parameter.instance_name * number_of_rows_per_partition
+        max_value = parameter.number_of_nodes * number_of_rows_per_partition + 1
         ctx = MockContext(
             input_groups=iter([Group(
                 rows=[
                     (parameter.instance_name,
-                     float(i / 100),
-                     float((i / 100) ** 2))
-                    for i in range(1 + offset, 100 + offset)
+                     float(i / max_value),
+                     float((i / max_value) ** 2))
+                    for i in range(1 + offset, number_of_rows_per_partition + offset)
                 ]
             )]),
             metadata=metadata)
@@ -118,13 +120,13 @@ def test_functionality_1_2():
     run_test_with_repetitions(1, 2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
-# def test_functionality_2_2():
-#    run_test_with_repetitions(2, 2, REPETITIONS_FOR_FUNCTIONALITY)
+def test_functionality_1_3():
+    run_test_with_repetitions(1, 3, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node: int, repetitions: int):
     for i in range(repetitions):
-        group = f"{time.monotonic_ns()}"
+        group = time.monotonic_ns()
         LOGGER.info(f"Start iteration",
                     iteration=i + 1,
                     repetitions=repetitions,
@@ -147,7 +149,7 @@ def run_test_with_repetitions(number_of_nodes: int, number_of_instances_per_node
                     duration=end_time - start_time)
 
 
-def run_test(group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int):
+def run_test(group_identifier: int, number_of_nodes: int, number_of_instances_per_node: int):
     parameters = [
         UDFCommunicatorTestProcessParameter(
             node_name=n + 1,
