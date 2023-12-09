@@ -1,17 +1,16 @@
 import contextlib
-from ipaddress import ip_network
-from typing import List
+from typing import Iterator, Optional, Protocol
 
 import structlog
 import zmq
 from pydantic import BaseModel
 from structlog.typing import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
+from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator, CommunicatorFactory
+from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port, are_ips_in_same_network
+from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
+from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
 from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
-
-import ifaddr
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -23,43 +22,80 @@ class UDFCommunicatorConfig(BaseModel):
     group_identifier_suffix: str
 
 
-class HostIPAddresses:
-    def get_all_ip_addresses(self) -> List[IPAddress]:
-        ip_adresses = [IPAddress(ip_address=ip.ip, network_prefix=ip.network_prefix)
-                       for adapter in ifaddr.get_adapters()
-                       for ip in adapter.ips
-                       if ip.is_IPv4 and ip.ip]
-        return ip_adresses
+class SocketFactoryContextManager(Protocol):
+
+    def __enter__(self) -> SocketFactory:
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
+class SocketFactoryContextManagerFactory(Protocol):
+
+    def create(self) -> SocketFactoryContextManager:
+        pass
+
+
+class ZMQSocketFactoryContextManager:
+    def __init__(self):
+        self._context: Optional[zmq.Context] = None
+
+    def __enter__(self) -> SocketFactory:
+        self._context = zmq.Context()
+        return ZMQSocketFactory(self._context)
+
+    def _close(self):
+        if self._context is not None:
+            self._context.destroy()
+            self._context = None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._close()
+
+    def __del__(self):
+        self._close()
+
+
+class ZMQSocketFactoryContextManagerFactory:
+
+    def create(self) -> SocketFactoryContextManager:
+        return ZMQSocketFactoryContextManager()
 
 
 @contextlib.contextmanager
-def udf_communicator(exa, connection_name: str, host_ip_addresses: HostIPAddresses = HostIPAddresses()) -> Communicator:
+def udf_communicator(exa, connection_name: str,
+                     host_ip_addresses: HostIPAddresses = HostIPAddresses(),
+                     communicator_factory: CommunicatorFactory = CommunicatorFactory(),
+                     socket_factory_context_manager_factory: SocketFactoryContextManagerFactory =
+                     ZMQSocketFactoryContextManagerFactory()
+                     ) -> Communicator:
     connection = exa.get_connection(connection_name)
     config = UDFCommunicatorConfig.parse_raw(connection.address)
-    context = zmq.Context()
-    socket_factory = ZMQSocketFactory(context)
-    listen_ip = IPAddress(ip_address="0.0.0.0")
-    node_name = exa.meta.node_id
-    instance_name = exa.meta.vm_id
-    group_identifier = f"{exa.meta.session_id}_{exa.meta.statement_id}_{config.group_identifier_suffix}"
-    number_of_nodes = exa.meta.node_count
-    host_ip_address = find_host_ip_address_in_multi_node_discovery_subnet(config, host_ip_addresses)
-    is_discovery_leader_node = host_ip_address == config.multi_node_discovery_ip
-    communicator = Communicator(
-        multi_node_discovery_ip=config.multi_node_discovery_ip,
-        socket_factory=socket_factory,
-        node_name=node_name,
-        instance_name=instance_name,
-        listen_ip=host_ip_address,
-        group_identifier=group_identifier,
-        number_of_nodes=number_of_nodes,
-        number_of_instances_per_node=config.number_of_instances_per_node,
-        is_discovery_leader_node=is_discovery_leader_node,
-        multi_node_discovery_port=config.listen_port,
-        local_discovery_port=config.listen_port
-    )
-    yield communicator
-    communicator.stop()
+    with socket_factory_context_manager_factory.create() as socket_factory:
+        node_name = exa.meta.node_id
+        instance_name = exa.meta.vm_id
+        group_identifier = f"{exa.meta.session_id}_{exa.meta.statement_id}_{config.group_identifier_suffix}"
+        number_of_nodes = exa.meta.node_count
+        host_ip_address = find_host_ip_address_in_multi_node_discovery_subnet(config, host_ip_addresses)
+        is_discovery_leader_node = host_ip_address == config.multi_node_discovery_ip
+        communicator = communicator_factory.create(
+            multi_node_discovery_ip=config.multi_node_discovery_ip,
+            socket_factory=socket_factory,
+            node_name=node_name,
+            instance_name=instance_name,
+            listen_ip=host_ip_address,
+            group_identifier=group_identifier,
+            number_of_nodes=number_of_nodes,
+            number_of_instances_per_node=config.number_of_instances_per_node,
+            is_discovery_leader_node=is_discovery_leader_node,
+            multi_node_discovery_port=config.listen_port,
+            local_discovery_port=config.listen_port
+        )
+        try:
+            yield communicator
+        finally:
+            communicator.stop()
 
 
 def find_host_ip_address_in_multi_node_discovery_subnet(
@@ -71,9 +107,3 @@ def find_host_ip_address_in_multi_node_discovery_subnet(
         if are_ips_in_same_network(config.multi_node_discovery_ip, host_ip_address):
             return host_ip_address
     raise RuntimeError("No compatible IP address found")
-
-
-def are_ips_in_same_network(ip_address1: IPAddress, ip_address2: IPAddress):
-    ip_network1 = ip_network(f"{ip_address1.ip_address}/{ip_address1.network_prefix}", strict=False)
-    ip_network2 = ip_network(f"{ip_address2.ip_address}/{ip_address2.network_prefix}", strict=False)
-    return ip_network1.network_address == ip_network2.network_address

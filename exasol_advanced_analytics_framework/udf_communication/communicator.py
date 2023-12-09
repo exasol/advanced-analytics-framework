@@ -141,3 +141,32 @@ class Communicator:
     @property
     def listen_ip(self) -> IPAddress:
         return self._listen_ip
+
+
+class CommunicatorFactory:
+
+    def create(self,
+               multi_node_discovery_ip: IPAddress,
+               multi_node_discovery_port: Port,
+               local_discovery_port: Port,
+               node_name: str,
+               instance_name: str,
+               listen_ip: IPAddress,
+               group_identifier: str,
+               number_of_nodes: int,
+               number_of_instances_per_node: int,
+               is_discovery_leader_node: bool,
+               socket_factory: SocketFactory) -> Communicator:
+        return Communicator(
+            multi_node_discovery_ip=multi_node_discovery_ip,
+            multi_node_discovery_port=multi_node_discovery_port,
+            local_discovery_port=local_discovery_port,
+            node_name=node_name,
+            instance_name=instance_name,
+            listen_ip=listen_ip,
+            group_identifier=group_identifier,
+            number_of_nodes=number_of_nodes,
+            number_of_instances_per_node=number_of_instances_per_node,
+            is_discovery_leader_node=is_discovery_leader_node,
+            socket_factory=socket_factory
+        )
