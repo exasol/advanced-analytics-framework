@@ -15,6 +15,7 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.tensorflow.distributed_training_udf import DistributedTrainingUDF
+from exasol_advanced_analytics_framework.udf_communication.distributed_udf import DistributedUDFRunner
 from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
 from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
 from exasol_advanced_analytics_framework.udf_communication.udf_communicator import UDFCommunicatorConfig
@@ -30,8 +31,8 @@ structlog.configure(
     logger_factory=WriteLoggerFactory(file=Path(__file__).with_suffix(".log").open("wt")),
     processors=[
         structlog.contextvars.merge_contextvars,
-        ConditionalMethodDropper(method_name="debug"),
-        # ConditionalMethodDropper(method_name="info"),
+        #ConditionalMethodDropper(method_name="debug"),
+        #ConditionalMethodDropper(method_name="info"),
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(),
         structlog.processors.ExceptionRenderer(exception_formatter=ExceptionDictTransformer(locals_max_string=320)),
@@ -103,7 +104,7 @@ def run(parameter: UDFCommunicatorTestProcessParameter,
             )]),
             metadata=metadata)
         ctx._next_group()
-        distributed_training_udf = DistributedTrainingUDF()
+        distributed_training_udf = DistributedUDFRunner(DistributedTrainingUDF())
         distributed_training_udf.run(ctx=ctx, exa=exa, connection_name=MY_CONN)
         for row in ctx._output_groups[0].rows:
             LOGGER.info("row", row=row)

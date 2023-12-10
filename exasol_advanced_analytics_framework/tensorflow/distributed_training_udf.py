@@ -1,6 +1,7 @@
 import contextlib
 import socket
-from typing import List, Tuple
+from typing import Iterator
+from typing import List
 
 import structlog
 import tensorflow as tf
@@ -10,9 +11,9 @@ from tensorflow.python.distribute.cluster_resolver import SimpleClusterResolver,
 from tensorflow.python.keras import activations
 from tensorflow.python.training.server_lib import ClusterSpec
 
-from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator
+from exasol_advanced_analytics_framework.udf_communication.distributed_udf import DistributedUDF, \
+    exchange_cluster_information, UDFCommunicatorFactory
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.udf_communicator import udf_communicator
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -26,7 +27,8 @@ class ClusterInformation(BaseModel):
     workers: List[WorkerAddress]
 
 
-def reserve_port(ip: IPAddress) -> Port:
+@contextlib.contextmanager
+def reserve_port(ip: IPAddress) -> Iterator[Port]:
     def new_socket():
         return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -42,43 +44,36 @@ def reserve_port(ip: IPAddress) -> Port:
         port_number = acquire_port_number(sock, ip)
         port = Port(port=port_number)
         LOGGER.info("reserve_port", ip=ip, port=port)
-        return port
+        yield port
 
 
-class DistributedTrainingUDF:
+class DistributedTrainingUDF(DistributedUDF):
 
-    def run(self, ctx, exa, connection_name: str):
-        with udf_communicator(exa, connection_name) as communicator:
+    def run(self, ctx, exa, udf_communicator_factory: UDFCommunicatorFactory):
+        with udf_communicator_factory.create() as communicator:
             ip = communicator.listen_ip
-            port = reserve_port(ip)
-            cluster_information, worker_address = self._exchange_cluster_information(communicator, ip, port)
-        tf_cluster_resolver = self._create_tf_cluster_resolver(cluster_information, worker_address)
-        instance = ctx.i
+            with reserve_port(ip) as port:
+                worker_address = WorkerAddress(ip_address=ip, port=port)
+                cluster_information = exchange_cluster_information(communicator, worker_address)
+                LOGGER.info("after exchange_cluster_information", worker_address=worker_address)
+                tf_cluster_resolver = self._create_tf_cluster_resolver(cluster_information, worker_address)
+                instance = ctx.i
+        # We can only create the tensorflow cluster after we closed the communicator,
+        # because otherwise the communicator might loose messages, it is not clear why this happens,
+        # but it seeems tensorflow interferes somehow. Other, loads like computations or sleeping doesn't interfere.
+        # A potential reason for the interfences could be that tensorflow waits inside of a native function
+        # for the connection, which would block the BackgroundThread from working.
         self._train_distributed(tf_cluster_resolver, ctx, instance)
-
-    def _exchange_cluster_information(self, communicator: Communicator, ip: IPAddress, port: Port) \
-            -> Tuple[ClusterInformation, WorkerAddress]:
-        worker_address = WorkerAddress(ip_address=ip, port=port)
-        workers_messages = communicator.gather(worker_address.json().encode("UTF-8"))
-        broadcast_value = None
-        if communicator.is_multi_node_leader():
-            workers = [WorkerAddress.parse_raw(message.decode("UTF-8")) for message in workers_messages]
-            cluster_information = ClusterInformation(workers=workers)
-            broadcast_value = cluster_information.json().encode("UTF-8")
-        broadcast_result = communicator.broadcast(broadcast_value)
-        cluster_information = ClusterInformation.parse_raw(broadcast_result.decode("UTF-8"))
-        return cluster_information, worker_address
 
     def _train_distributed(self, cluster_resolver: ClusterResolver, ctx, instance):
         strategy = self._create_distribution_strategy(cluster_resolver)
         with strategy.scope():
             self._train(ctx, instance)
 
-
     def _train(self, ctx, instance):
         train_dataset = self._get_train_dataset(ctx)
         model = self._build_and_compile_model()
-        history = model.fit(train_dataset, epochs=100)
+        history = model.fit(train_dataset, epochs=1)
         for loss in history.history["loss"]:
             ctx.emit(instance, loss)
 
