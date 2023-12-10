@@ -39,5 +39,5 @@ class RetrieveExasolNodeIPAddressUDF:
                 f"No or multiple possible IP addresses for current node found: {current_node_ip_addresses}\n"
                 f"Hosts entries: {hosts_entries}\n"
                 f"IP addresses: {ip_addresses}\n")
-
-        ctx.emit(current_node_ip_addresses[0].ip_address)
+        current_node_ip_address = current_node_ip_addresses[0]
+        ctx.emit(current_node_ip_address.ip_address, current_node_ip_address.network_prefix)

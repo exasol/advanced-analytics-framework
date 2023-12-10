@@ -16,8 +16,8 @@ from tests.mock_cast import mock_cast
 def test_ip_address_found():
     host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
     mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1"),
-        IPAddress(ip_address="193.169.0.1")
+        IPAddress(ip_address="192.168.0.1", network_prefix=16),
+        IPAddress(ip_address="193.169.0.1", network_prefix=16)
     ]
     hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
     hosts_mock.entries = [
@@ -30,13 +30,13 @@ def test_ip_address_found():
     )
     ctx = Mock()
     udf.run(ctx)
-    assert ctx.mock_calls == [call.emit('192.168.0.1')]
+    assert ctx.mock_calls == [call.emit('192.168.0.1', 16)]
 
 
 def test_ip_address_not_found():
     host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
     mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="193.169.0.1")
+        IPAddress(ip_address="193.169.0.1", network_prefix=16)
     ]
     hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
     hosts_mock.entries = [
@@ -53,7 +53,7 @@ def test_ip_address_not_found():
                 """
                 No or multiple possible IP addresses for current node found: []
                 Hosts entries: [HostsEntry(entry_type='ipv4', address='192.168.0.1', names=['n11'], comment=None), HostsEntry(entry_type='ipv4', address='192.168.0.2', names=['n12'], comment=None)]
-                IP addresses: [IPAddress(ip_address='193.169.0.1', network_prefix=None)]
+                IP addresses: [IPAddress(ip_address='193.169.0.1', network_prefix=16)]
                 """
             ).strip()
     )):
@@ -63,7 +63,7 @@ def test_ip_address_not_found():
 def test_no_exasol_node_in_hosts():
     host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
     mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1")
+        IPAddress(ip_address="192.168.0.1", network_prefix=16)
     ]
     hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
     hosts_mock.entries = [
@@ -79,7 +79,7 @@ def test_no_exasol_node_in_hosts():
                 """
                 No or multiple possible IP addresses for current node found: []
                 Hosts entries: [HostsEntry(entry_type='ipv4', address='192.168.0.1', names=['test'], comment=None)]
-                IP addresses: [IPAddress(ip_address='192.168.0.1', network_prefix=None)]
+                IP addresses: [IPAddress(ip_address='192.168.0.1', network_prefix=16)]
                 """
             ).strip()
     )):
@@ -89,8 +89,8 @@ def test_no_exasol_node_in_hosts():
 def test_udf_host_file(tmp_path):
     host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
     mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1"),
-        IPAddress(ip_address="193.169.0.1"),
+        IPAddress(ip_address="192.168.0.1", network_prefix=16),
+        IPAddress(ip_address="193.169.0.1", network_prefix=16),
     ]
     host_file_str = textwrap.dedent(
         """
@@ -109,4 +109,4 @@ def test_udf_host_file(tmp_path):
     )
     ctx = Mock()
     udf.run(ctx)
-    assert ctx.mock_calls == [call.emit('192.168.0.1')]
+    assert ctx.mock_calls == [call.emit('192.168.0.1', 16)]

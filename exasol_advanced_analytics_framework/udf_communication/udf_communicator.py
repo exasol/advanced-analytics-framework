@@ -65,4 +65,6 @@ def find_host_ip_address_in_multi_node_discovery_subnet(
     for host_ip_address in ip_addresses:
         if are_ips_in_same_network(config.multi_node_discovery_ip, host_ip_address):
             return host_ip_address
-    raise RuntimeError("No compatible IP address found")
+    raise RuntimeError("No compatible IP address found\n"
+                       f"HostIPAddresses: {ip_addresses}\n"
+                       f"UDFCommunicatorConfig: {config}")
