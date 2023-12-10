@@ -3,7 +3,9 @@ from typing import Optional, List
 import structlog
 from structlog.typing import FilteringBoundLogger
 
+from exasol_advanced_analytics_framework.udf_communication.all_gather_operation import AllGatherOperation
 from exasol_advanced_analytics_framework.udf_communication.broadcast_operation import BroadcastOperation
+from exasol_advanced_analytics_framework.udf_communication.communicator_protocol import CommunicatorProtocol
 from exasol_advanced_analytics_framework.udf_communication.discovery import localhost, multi_node
 from exasol_advanced_analytics_framework.udf_communication.gather_operation import GatherOperation
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
@@ -16,7 +18,7 @@ MULTI_NODE_LEADER_RANK = 0
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
-class Communicator:
+class Communicator(CommunicatorProtocol):
 
     def __init__(self,
                  multi_node_discovery_ip: IPAddress,
@@ -126,6 +128,10 @@ class Communicator:
                                        multi_node_communicator=self._multi_node_communicator,
                                        socket_factory=self._socket_factory)
         return broadcast()
+
+    def all_gather(self, value: bytes) -> List[bytes]:
+        all_gather = AllGatherOperation(communicator=self, value=value)
+        return all_gather()
 
     def is_multi_node_leader(self):
         if self._multi_node_communicator is not None:
