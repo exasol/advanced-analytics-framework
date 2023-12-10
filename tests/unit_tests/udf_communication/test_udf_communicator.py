@@ -12,7 +12,9 @@ from exasol_advanced_analytics_framework.udf_communication.communicator import C
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
 from exasol_advanced_analytics_framework.udf_communication.udf_communicator import udf_communicator, \
-    UDFCommunicatorConfig, SocketFactoryContextManagerFactory, SocketFactoryContextManager
+    UDFCommunicatorConfig
+from exasol_advanced_analytics_framework.udf_communication.socket_factory_context_manager_factory import \
+    SocketFactoryContextManagerFactory, SocketFactoryContextManager
 from tests.mock_cast import mock_cast
 
 MY_CONN = "my_conn"

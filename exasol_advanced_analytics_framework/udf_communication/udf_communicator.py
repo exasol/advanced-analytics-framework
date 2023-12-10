@@ -1,16 +1,16 @@
 import contextlib
-from typing import Iterator, Optional, Protocol
 
 import structlog
-import zmq
 from pydantic import BaseModel
 from structlog.typing import FilteringBoundLogger
 
 from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator, CommunicatorFactory
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port, are_ips_in_same_network
 from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
+from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port, are_ips_in_same_network
+from exasol_advanced_analytics_framework.udf_communication.socket_factory_context_manager_factory import \
+    SocketFactoryContextManagerFactory
+from exasol_advanced_analytics_framework.udf_communication.zmq_socket_factory_context_manager_factory import \
+    ZMQSocketFactoryContextManagerFactory
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -20,47 +20,6 @@ class UDFCommunicatorConfig(BaseModel):
     listen_port: Port
     number_of_instances_per_node: int
     group_identifier_suffix: str
-
-
-class SocketFactoryContextManager(Protocol):
-
-    def __enter__(self) -> SocketFactory:
-        pass
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
-class SocketFactoryContextManagerFactory(Protocol):
-
-    def create(self) -> SocketFactoryContextManager:
-        pass
-
-
-class ZMQSocketFactoryContextManager:
-    def __init__(self):
-        self._context: Optional[zmq.Context] = None
-
-    def __enter__(self) -> SocketFactory:
-        self._context = zmq.Context()
-        return ZMQSocketFactory(self._context)
-
-    def _close(self):
-        if self._context is not None:
-            self._context.destroy()
-            self._context = None
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._close()
-
-    def __del__(self):
-        self._close()
-
-
-class ZMQSocketFactoryContextManagerFactory:
-
-    def create(self) -> SocketFactoryContextManager:
-        return ZMQSocketFactoryContextManager()
 
 
 @contextlib.contextmanager
