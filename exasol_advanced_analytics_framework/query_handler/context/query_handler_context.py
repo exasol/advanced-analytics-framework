@@ -27,6 +27,16 @@ class QueryHandlerContext(ABC):
         pass
 
     @abc.abstractmethod
+    def get_temporary_udf_name(self) -> ViewName:
+        """
+        This function registers a new temporary script without creating it.
+        After the release of this context the framework will issue a cleanup query.
+        """
+
+        pass
+
+
+    @abc.abstractmethod
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
         """
         This function registers a new temporary bucketfs file without creating it.
