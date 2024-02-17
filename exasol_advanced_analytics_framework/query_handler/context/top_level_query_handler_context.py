@@ -126,7 +126,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def _get_temporary_connection_name(self) -> ConnectionName:
         self._check_if_released()
         temporary_name = self._get_temporary_db_object_name()
-        temporary_connection_name = ConnectionNameImpl(name=temporary_name)
+        temporary_connection_name = ConnectionNameImpl(connection_name=temporary_name)
         return temporary_connection_name
 
     def _get_temporary_db_object_name(self) -> str:
@@ -169,8 +169,8 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def get_temporary_connection_name(self) -> ConnectionName:
         self._check_if_released()
         temporary_connection_name = self._get_temporary_connection_name()
-        object_proxy = ConnectionNameProxy(temporary_connection_name,
-                                           self._global_temporary_object_counter.get_current_value())
+        object_proxy = ConnectionNameProxy(connection_name=temporary_connection_name,
+                                           global_counter_value=self._global_temporary_object_counter.get_current_value())
         self._own_object(object_proxy)
         return object_proxy
 
