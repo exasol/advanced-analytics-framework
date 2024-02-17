@@ -2,6 +2,7 @@ import abc
 from abc import ABC
 
 from exasol_data_science_utils_python.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.udf_name import UDFName
 from exasol_data_science_utils_python.schema.view_name import ViewName
 
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
@@ -27,14 +28,13 @@ class QueryHandlerContext(ABC):
         pass
 
     @abc.abstractmethod
-    def get_temporary_udf_name(self) -> ViewName:
+    def get_temporary_udf_name(self) -> UDFName:
         """
         This function registers a new temporary script without creating it.
         After the release of this context the framework will issue a cleanup query.
         """
 
         pass
-
 
     @abc.abstractmethod
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
@@ -43,4 +43,3 @@ class QueryHandlerContext(ABC):
         After the release of this context the framework will remove it.
         """
         pass
-
