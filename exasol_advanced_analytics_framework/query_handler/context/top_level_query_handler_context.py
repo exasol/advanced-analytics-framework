@@ -12,6 +12,8 @@ from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuil
 from exasol_data_science_utils_python.schema.view_name import ViewName
 from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 
+from exasol_advanced_analytics_framework.query_handler.context.connection_name_proxy import ConnectionName, \
+    ConnectionNameProxy, ConnectionNameImpl
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
@@ -121,6 +123,12 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             schema=SchemaName(schema_name=self._temporary_schema_name))
         return temporary_script_name
 
+    def _get_temporary_connection_name(self) -> ConnectionName:
+        self._check_if_released()
+        temporary_name = self._get_temporary_db_object_name()
+        temporary_connection_name = ConnectionNameImpl(name=temporary_name)
+        return temporary_connection_name
+
     def _get_temporary_db_object_name(self) -> str:
         temporary_name = f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
         return temporary_name
@@ -128,6 +136,11 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def _own_object(self, object_proxy: ObjectProxy):
         self._register_object(object_proxy)
         self._owned_object_proxies.add(object_proxy)
+
+    def get_temporary_name(self) -> str:
+        self._check_if_released()
+        temporary_name = self._get_temporary_db_object_name()
+        return temporary_name
 
     def get_temporary_table_name(self) -> TableName:
         self._check_if_released()
@@ -150,6 +163,14 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         temporary_script_name = self._get_temporary_udf_name()
         object_proxy = UDFNameProxy(temporary_script_name,
                                     self._global_temporary_object_counter.get_current_value())
+        self._own_object(object_proxy)
+        return object_proxy
+
+    def get_temporary_connection_name(self) -> ConnectionName:
+        self._check_if_released()
+        temporary_connection_name = self._get_temporary_connection_name()
+        object_proxy = ConnectionNameProxy(temporary_connection_name,
+                                           self._global_temporary_object_counter.get_current_value())
         self._own_object(object_proxy)
         return object_proxy
 
