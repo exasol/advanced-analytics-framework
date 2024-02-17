@@ -13,6 +13,10 @@ class ConnectionName(DBObjectName):
 
 class ConnectionNameImpl(DBObjectNameImpl, ConnectionName):
 
+    @property
+    def fully_qualified(self) -> str:
+        return self.quoted_name
+
     @typechecked
     def __init__(self, connection_name: str):
         super().__init__(connection_name)

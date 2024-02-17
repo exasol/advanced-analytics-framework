@@ -1,10 +1,10 @@
-from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName
+from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName, ConnectionNameImpl
 from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
 from exasol_advanced_analytics_framework.query_handler.query.drop_connection_query import DropConnectionQuery
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
 
-class ConnectionNameProxy(DBObjectNameProxy[ConnectionName], ConnectionName):
+class ConnectionNameProxy(DBObjectNameProxy[ConnectionName], ConnectionName, ConnectionNameImpl):
 
     def get_cleanup_query(self) -> Query:
         return DropConnectionQuery(self._db_object_name)
