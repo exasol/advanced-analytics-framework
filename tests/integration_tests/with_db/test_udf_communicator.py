@@ -2,6 +2,9 @@ from typing import Tuple
 
 import dill
 import pytest
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
+from exasol_data_science_utils_python.schema.udf_name import UDFName
+from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 
 from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
 from exasol_advanced_analytics_framework.udf_communication.retrieve_exasol_node_ip_address_udf_deployer import \
@@ -16,8 +19,10 @@ def deploy_retrieve_exasol_node_ip_address_udf(setup_database,
     bucketfs_connection_name, schema_name = setup_database
     udf_name = f"RETRIEVE_EXASOL_NODE_IP_ADDRESS"
     udf_create_statement = \
-        RetrieveExasolNodeIPAddressUDFDeployer.render_udf_create_statement(
-            schema_name=schema_name, udf_name=udf_name)
+        RetrieveExasolNodeIPAddressUDFDeployer().render_udf_create_statement(
+            udf_name=UDFNameBuilder().create(udf_name, SchemaName(schema_name)),
+            language_alias="PYTHON3_AAF"
+        )
     pyexasol_connection.execute(udf_create_statement)
     return schema_name, udf_name
 

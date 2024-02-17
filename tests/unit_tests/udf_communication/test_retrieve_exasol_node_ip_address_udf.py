@@ -1,112 +1,23 @@
-import re
-import textwrap
-from typing import Union
-from unittest.mock import create_autospec, MagicMock, Mock, call
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
+from exasol_data_science_utils_python.schema.udf_name import UDFName
+from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 
-import pytest
-from python_hosts import Hosts, HostsEntry
-
-from exasol_advanced_analytics_framework.udf_communication.host_ip_addresses import HostIPAddresses
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.retrieve_exasol_node_ip_address_udf import \
-    RetrieveExasolNodeIPAddressUDF
-from tests.mock_cast import mock_cast
+from exasol_advanced_analytics_framework.udf_communication.retrieve_exasol_node_ip_address_udf_deployer import \
+    RetrieveExasolNodeIPAddressUDFDeployer
 
 
-def test_ip_address_found():
-    host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
-    mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1", network_prefix=16),
-        IPAddress(ip_address="193.169.0.1", network_prefix=16)
-    ]
-    hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
-    hosts_mock.entries = [
-        HostsEntry(entry_type="ipv4", address="192.168.0.1", names=["n11"]),
-        HostsEntry(entry_type="ipv4", address="192.168.0.2", names=["n12"])
-    ]
-    udf = RetrieveExasolNodeIPAddressUDF(
-        host_ip_addresses=host_ip_addresses_mock,
-        hosts=hosts_mock
-    )
-    ctx = Mock()
-    udf.run(ctx)
-    assert ctx.mock_calls == [call.emit('192.168.0.1', 16)]
+def test():
+    udf_name = UDFNameBuilder().create(name="RETRIEVE_EXASOL_NODE_IP_ADDRESS",
+                                       schema=SchemaName("MY_SCHEMA"))
+    udf_create_statement = \
+        RetrieveExasolNodeIPAddressUDFDeployer().render_udf_create_statement(udf_name=udf_name,
+                                                                             language_alias="PYTHON3_AAF")
+    assert udf_create_statement == """
+CREATE OR REPLACE  PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."RETRIEVE_EXASOL_NODE_IP_ADDRESS"(ignored INTEGER)
+EMITS (ip_address VARCHAR(10), network_prefix INTEGER) AS
+from exasol_advanced_analytics_framework.udf_communication.retrieve_exasol_node_ip_address_udf import RetrieveExasolNodeIPAddressUDF
 
-
-def test_ip_address_not_found():
-    host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
-    mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="193.169.0.1", network_prefix=16)
-    ]
-    hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
-    hosts_mock.entries = [
-        HostsEntry(entry_type="ipv4", address="192.168.0.1", names=["n11"]),
-        HostsEntry(entry_type="ipv4", address="192.168.0.2", names=["n12"])
-    ]
-    udf = RetrieveExasolNodeIPAddressUDF(
-        host_ip_addresses=host_ip_addresses_mock,
-        hosts=hosts_mock
-    )
-    ctx = Mock()
-    with pytest.raises(RuntimeError, match=re.escape(
-            textwrap.dedent(
-                """
-                No or multiple possible IP addresses for current node found: []
-                Hosts entries: [HostsEntry(entry_type='ipv4', address='192.168.0.1', names=['n11'], comment=None), HostsEntry(entry_type='ipv4', address='192.168.0.2', names=['n12'], comment=None)]
-                IP addresses: [IPAddress(ip_address='193.169.0.1', network_prefix=16)]
-                """
-            ).strip()
-    )):
-        udf.run(ctx)
-
-
-def test_no_exasol_node_in_hosts():
-    host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
-    mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1", network_prefix=16)
-    ]
-    hosts_mock: Union[Hosts, MagicMock] = create_autospec(Hosts)
-    hosts_mock.entries = [
-        HostsEntry(entry_type="ipv4", address="192.168.0.1", names=["test"]),
-    ]
-    udf = RetrieveExasolNodeIPAddressUDF(
-        host_ip_addresses=host_ip_addresses_mock,
-        hosts=hosts_mock
-    )
-    ctx = Mock()
-    with pytest.raises(RuntimeError, match=re.escape(
-            textwrap.dedent(
-                """
-                No or multiple possible IP addresses for current node found: []
-                Hosts entries: [HostsEntry(entry_type='ipv4', address='192.168.0.1', names=['test'], comment=None)]
-                IP addresses: [IPAddress(ip_address='192.168.0.1', network_prefix=16)]
-                """
-            ).strip()
-    )):
-        udf.run(ctx)
-
-
-def test_udf_host_file(tmp_path):
-    host_ip_addresses_mock: Union[HostIPAddresses, MagicMock] = create_autospec(HostIPAddresses)
-    mock_cast(host_ip_addresses_mock.get_all_ip_addresses).return_value = [
-        IPAddress(ip_address="192.168.0.1", network_prefix=16),
-        IPAddress(ip_address="193.169.0.1", network_prefix=16),
-    ]
-    host_file_str = textwrap.dedent(
-        """
-        # hosts is generated by exaconf
-        127.0.0.1 localhost localhost.localdomain
-        192.168.0.1 n11
-        192.168.0.2 n12
-        """
-    )
-    tmp_host_file = tmp_path / "hosts"
-    tmp_host_file.write_text(host_file_str)
-    hosts = Hosts(path=tmp_host_file)
-    udf = RetrieveExasolNodeIPAddressUDF(
-        host_ip_addresses=host_ip_addresses_mock,
-        hosts=hosts
-    )
-    ctx = Mock()
-    udf.run(ctx)
-    assert ctx.mock_calls == [call.emit('192.168.0.1', 16)]
+def run(ctx):
+    RetrieveExasolNodeIPAddressUDF().run(ctx)
+/
+"""

@@ -12,7 +12,8 @@ def test(setup_database, pyexasol_connection, upload_language_container):
     udf_name = UDFNameBuilder().create(name="RETRIEVE_EXASOL_NODE_IP_ADDRESS",
                                        schema=SchemaName(schema_name))
     udf_create_statement = \
-        RetrieveExasolNodeIPAddressUDFDeployer().render_udf_create_statement(udf_name)
+        RetrieveExasolNodeIPAddressUDFDeployer().render_udf_create_statement(udf_name=udf_name,
+                                                                             language_alias="PYTHON3_AAF")
     pyexasol_connection.execute(udf_create_statement)
     rs = pyexasol_connection.execute(
         f"""
