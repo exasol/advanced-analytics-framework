@@ -12,8 +12,8 @@ from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuil
 from exasol_data_science_utils_python.schema.view_name import ViewName
 from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 
-from exasol_advanced_analytics_framework.query_handler.context.connection_name_proxy import ConnectionName, \
-    ConnectionNameProxy, ConnectionNameImpl
+from exasol_advanced_analytics_framework.query_handler.context.connection_name_proxy import ConnectionNameProxy
+from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName, ConnectionNameImpl
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
