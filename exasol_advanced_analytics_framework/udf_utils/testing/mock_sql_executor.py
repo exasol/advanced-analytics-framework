@@ -7,13 +7,13 @@ from exasol_data_science_utils_python.udf_utils.testing.mock_result_set import M
 
 
 @dataclasses.dataclass
-class ExpectedQuey:
+class ExpectedQuery:
     expected_query: str
     mock_result_set: MockResultSet
 
 
 class MockSQLExecutor(SQLExecutor):
-    def __init__(self, expected_queries: Optional[List[ExpectedQuey]] = None):
+    def __init__(self, expected_queries: Optional[List[ExpectedQuery]] = None):
         self._expected_queries = expected_queries
         self._expected_query_iterator = iter(expected_queries)
 
