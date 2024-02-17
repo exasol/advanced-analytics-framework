@@ -4,7 +4,11 @@ from exasol_advanced_analytics_framework.query_handler.query.drop_connection_que
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
 
-class ConnectionNameProxy(DBObjectNameProxy[ConnectionName], ConnectionName, ConnectionNameImpl):
+class ConnectionNameProxy(DBObjectNameProxy[ConnectionName], ConnectionName):
+
+    @property
+    def fully_qualified(self) -> str:
+        return self.quoted_name
 
     def get_cleanup_query(self) -> Query:
         return DropConnectionQuery(self._db_object_name)
