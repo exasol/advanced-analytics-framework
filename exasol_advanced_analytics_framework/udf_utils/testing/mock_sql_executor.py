@@ -30,5 +30,6 @@ class MockSQLExecutor(SQLExecutor):
 {next_expected_query.expected_query}
 but got
 {sql}"""))
+                return next_expected_query.mock_result_set
             except StopIteration as e:
                 raise RuntimeError(f"No result set found for query {sql}")
