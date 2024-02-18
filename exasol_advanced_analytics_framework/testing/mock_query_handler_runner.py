@@ -101,7 +101,7 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
         temporary_view_name = self._state.input_query_query_handler_context.get_temporary_view_name()
         input_query_create_view_string = cleandoc(
             f"""
-CREATE VIEW {temporary_view_name.fully_qualified} AS 
+CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS 
 {input_query.query_string};
 """)
         full_qualified_columns = [col.name.fully_qualified
