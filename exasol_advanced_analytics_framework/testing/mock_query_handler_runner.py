@@ -1,4 +1,6 @@
 import logging
+import textwrap
+from inspect import cleandoc
 from typing import Callable, TypeVar, Generic, Tuple, Union, List
 
 from exasol_data_science_utils_python.udf_utils.sql_executor import SQLExecutor
@@ -97,12 +99,18 @@ class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
 
     def _wrap_return_query(self, input_query: SelectQueryWithColumnDefinition) -> Tuple[str, str]:
         temporary_view_name = self._state.input_query_query_handler_context.get_temporary_view_name()
-        input_query_create_view_string = \
-            f"CREATE VIEW {temporary_view_name.fully_qualified} AS {input_query.query_string};"
+        input_query_create_view_string = cleandoc(
+            f"""
+CREATE VIEW {temporary_view_name.fully_qualified} AS 
+{input_query.query_string};
+""")
         full_qualified_columns = [col.name.fully_qualified
                                   for col in input_query.output_columns]
-        columns_str = ",".join(full_qualified_columns)
-        input_query_string = \
-            f"SELECT {columns_str} " \
-            f"FROM {temporary_view_name.fully_qualified};"
+        columns_str = ",\n".join(full_qualified_columns)
+        input_query_string = cleandoc(
+            f"""
+SELECT 
+{textwrap.indent(columns_str, " " * 4)}
+FROM {temporary_view_name.fully_qualified};
+""")
         return input_query_create_view_string, input_query_string
