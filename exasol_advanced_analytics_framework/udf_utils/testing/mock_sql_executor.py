@@ -47,4 +47,4 @@ Diff:
 """)
                 return next_expected_query.mock_result_set
             except StopIteration as e:
-                raise RuntimeError(f"No result set found for query {sql}")
+                raise RuntimeError(f"No result set found for query {actual_query}")
