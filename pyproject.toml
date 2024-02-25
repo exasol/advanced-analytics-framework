@@ -20,8 +20,8 @@ keywords = ['exasol']
 python = ">=3.8,<3.9"
 Jinja2 = "^3.0.3"
 importlib-resources = "^5.4.0"
-exasol-bucketfs = "^0.6.0"
-exasol-data-science-utils-python = {git = "https://github.com/exasol/data-science-utils-python.git", rev = "main"}
+exasol-bucketfs = {git = "https://github.com/exasol/bucketfs-python.git", rev = "feature/add_download_fileobj_to_bucketfs_location"}
+exasol-data-science-utils-python = {git = "https://github.com/exasol/data-science-utils-python.git", rev = "refactoring/update_bucketfs_python"}
 click = "^8.0.4"
 pyexasol = "^0.25.0"
 pandas = "^1.1.0"
@@ -29,7 +29,6 @@ pydantic = "^1.10.2"
 pyzmq = "^24.0.1"
 sortedcontainers = "^2.4.0"
 structlog = "^22.1.0"
-typeguard = "<3.0.0"
 nox = "^2023.4.22"
 ifaddr = "^0.2.0"
 python-hosts = "^1.0.5"
