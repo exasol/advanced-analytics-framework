@@ -26,7 +26,7 @@ class MockSQLExecutor(SQLExecutor):
                 next_expected_query = next(self._expected_query_iterator)
                 expected_query = next_expected_query.expected_query
                 diff = "\n".join(
-                    difflib.unified_diff(expected_query.split("\n"), actual_query.split("\n"),
+                    difflib.unified_diff(str(expected_query).split("\n"), actual_query.split("\n"),
                                          "Expected Query", "Actual Query"))
                 assert expected_query == actual_query, \
                     cleandoc(f"""Expected and actual query don't match:
