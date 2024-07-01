@@ -471,8 +471,11 @@ name = "docutils"
 version = "0.20.1"
 description = "Docutils -- Python Documentation Utilities"
 optional = false
-python-versions = "*"
-files = []
+python-versions = ">=3.7"
+files = [
+    {file = "docutils-0.20.1-py3-none-any.whl", hash = "sha256:96f387a2c5562db4476f09f13bbab2192e764cac08ebbf3a34a95d9b1e4a59d6"},
+    {file = "docutils-0.20.1.tar.gz", hash = "sha256:f08a4e276c3a1583a86dce3e34aba3fe04d02bba2dd51ed16106244e8a923e3b"},
+]
 
 [[package]]
 name = "elastic-transport"
@@ -529,20 +532,33 @@ requests = ">=2.24.0"
 typeguard = ">=2.11.1,<3.0.0"
 
 [[package]]
+name = "exasol-error-reporting"
+version = "0.4.0"
+description = "Exasol Python Error Reporting"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "exasol_error_reporting-0.4.0-py3-none-any.whl", hash = "sha256:851aed9fd95bc3c6a566ba174a8052897442bfe503c9b8858faab26e3d6f0153"},
+    {file = "exasol_error_reporting-0.4.0.tar.gz", hash = "sha256:a0bc5056aa23df97eb47d2da95d112d9b2dcd5295016fdefac2fc7aa5e7eea19"},
+]
+
+[[package]]
 name = "exasol-integration-test-docker-environment"
-version = "1.7.1"
+version = "3.1.0"
 description = "Integration Test Docker Environment for Exasol"
 optional = false
-python-versions = ">=3.8,<4"
+python-versions = "<4,>=3.8"
 files = [
-    {file = "exasol_integration_test_docker_environment-1.7.1-py3-none-any.whl", hash = "sha256:531bf53a5c60c422850472710d3ad11983d8636cb5edfbb705c86f0a4a69a125"},
-    {file = "exasol_integration_test_docker_environment-1.7.1.tar.gz", hash = "sha256:7fb6b2e225673c124e1ebecd1bbc03d313bf56d3915d526496f21ba0ca9fa816"},
+    {file = "exasol_integration_test_docker_environment-3.1.0-py3-none-any.whl", hash = "sha256:ce3cf917bd660ef5e1c59281ba0c1ea7c7dc3c43c9454040a6e1a3d90124a1e4"},
+    {file = "exasol_integration_test_docker_environment-3.1.0.tar.gz", hash = "sha256:dbcbb967bb3458f74c8764a1cfc4f62ab215b79ee754bb4d17d4ef54c74f7f0a"},
 ]
 
 [package.dependencies]
 click = ">=7.0"
-docker = {version = ">=4.0.0", markers = "sys_platform != \"win32\""}
+docker = {version = ">=4.0.0,<7.0.0 || >7.0.0", markers = "sys_platform != \"win32\""}
+docutils = "<=0.20.1"
 exasol-bucketfs = ">=0.6.0,<2.0.0"
+exasol-error-reporting = ">=0.4.0,<0.5.0"
 fabric = ">=3.0.1,<4.0.0"
 gitpython = ">=2.1.0"
 humanfriendly = ">=4.18"
@@ -554,8 +570,6 @@ netaddr = ">=0.7.19"
 networkx = ">=2.3"
 portalocker = ">=2.7.0,<3.0.0"
 pydot = ">=1.4.0"
-pyexasol = ">=0.25.2,<0.26.0"
-pytest = ">=7.2.2,<8.0.0"
 requests = ">=2.21.0"
 simplejson = ">=3.16.0"
 "stopwatch.py" = ">=1.0.0"
@@ -1322,13 +1336,13 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "7.4.4"
+version = "8.2.2"
 description = "pytest: simple powerful testing with Python"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pytest-7.4.4-py3-none-any.whl", hash = "sha256:b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8"},
-    {file = "pytest-7.4.4.tar.gz", hash = "sha256:2cf0005922c6ace4a3e2ec8b4080eb0d9753fdc93107415332f50ce9e7994280"},
+    {file = "pytest-8.2.2-py3-none-any.whl", hash = "sha256:c434598117762e2bd304e526244f67bf66bbd7b5d6cf22138be51ff661980343"},
+    {file = "pytest-8.2.2.tar.gz", hash = "sha256:de4bb8104e201939ccdc688b27a89a7be2079b22e2bd2b07f806b6ba71117977"},
 ]
 
 [package.dependencies]
@@ -1336,11 +1350,11 @@ colorama = {version = "*", markers = "sys_platform == \"win32\""}
 exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
 iniconfig = "*"
 packaging = "*"
-pluggy = ">=0.12,<2.0"
-tomli = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
+pluggy = ">=1.5,<2.0"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 
 [package.extras]
-testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pytest-assume"
@@ -1997,4 +2011,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "904af5902f634f7dab9684d2f13b4b6f1411d6e0b26266532a8c17e452da1f13"
+content-hash = "5845fe4891fd712fbdfec29012abcc505b072c4e4408227d6a57c0e7b007298a"
