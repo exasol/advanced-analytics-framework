@@ -155,3 +155,6 @@ doc/_build
 # vagrant
 
 .vagrant
+
+# emacs
+TAGS
