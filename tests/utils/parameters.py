@@ -31,7 +31,7 @@ class BucketFSParams:
 
 db_params = DBParams(
     host="127.0.0.1",
-    port="9563",
+    port="8888", #    port="9563",
     user="sys",
     password="exasol")
 
