@@ -1,4 +1,4 @@
-FROM exasol/script-language-container:python-3.8-minimal-EXASOL-6.2.0-build_run_DPUTJLTDYQ7Q3JW4EDOJAWGSIXZVBTQQ4BZWHVCIPT7P5E7A3B2A
+FROM exasol/script-language-container:template-Exasol-all-python-3.10-release_BFRSH344TDRPT7LK2FBOJK4KBIDW6A253FFPYEUYT4O2ERFMTCNA
 
 RUN apt-get update && \
     apt-get upgrade -y && \
