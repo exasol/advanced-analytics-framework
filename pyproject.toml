@@ -3,6 +3,11 @@ name = "exasol-advanced-analytics-framework"
 version = "0.1.0"
 description = "Framework for building complex data analysis algorithms with Exasol"
 
+packages = [
+  {include = "exasol_advanced_analytics_framework"},
+  {include = "exasol_data_science_utils_python"},
+]
+
 authors = [
     	"Umit Buyuksahin <umit.buyuksahin@exasol.com>",
     	"Torsten Kilias <torsten.kilias@exasol.com>"
@@ -13,32 +18,29 @@ readme = 'README.md'
 repository = "https://github.com/exasol/advanced-analytics-framework"
 homepage = "https://github.com/exasol/advanced-analytics-framework"
 
-
 keywords = ['exasol']
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.8,<3.12"
 Jinja2 = "^3.0.3"
-importlib-resources = "^5.4.0"
-exasol-bucketfs = "^0.6.0"
-exasol-data-science-utils-python = {git = "https://github.com/exasol/data-science-utils-python.git", rev = "main"}
+importlib-resources = "^6.4.0"
+exasol-bucketfs = ">=0.6.0,<1.0.0"
 click = "^8.0.4"
 pyexasol = "^0.25.0"
 pandas = "^1.1.0"
 pydantic = "^1.10.2"
-pyzmq = "^24.0.1"
+pyzmq = "^26.0.3"
 sortedcontainers = "^2.4.0"
-structlog = "^22.1.0"
+structlog = "^24.2.0"
 typeguard = "<3.0.0"
-nox = "^2023.4.22"
+nox = "^2024.4.15"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-poethepoet = "^0.13.0"
+pytest = ">=7.2.2"
 pytest-assume = "^2.4.3"
-exasol-udf-mock-python = { git = "https://github.com/exasol/udf-mock-python.git", branch = "main" }
-pytest-cov = "^3.0.0"
-exasol-integration-test-docker-environment = "1.7.1"
+exasol-udf-mock-python = ">=0.2.0,<1.0.0"
+pytest-cov = "^5.0.0"
+exasol-integration-test-docker-environment = "3.1.0"
 polyfactory = "^2.8.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -48,6 +50,3 @@ elasticsearch = "^8.6.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poe.tasks]
-lua-tests = {"shell" = "bash ./scripts/lua_tests.sh"}
