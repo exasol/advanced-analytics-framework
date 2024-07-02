@@ -8,7 +8,7 @@ For this project you need
 
 - Lua 5.4
 - Luarocks 3.*
-- Python 3.8
+- Python 3.10
 - Poetry
 
 ### Install on a desktop machine
