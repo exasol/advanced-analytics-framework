@@ -38,7 +38,7 @@ db_params = DBParams(
 bucketfs_params = BucketFSParams(
     host="127.0.0.1",
     port="6666",
-    real_port="6583",
+    real_port="6666", # real_port="6583",
     user="w",
     password="write",
     name="bfsdefault",
