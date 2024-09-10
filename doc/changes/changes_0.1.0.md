@@ -1,5 +1,6 @@
-# advanced-analytics-framework 0.1.0, released XXXX-XX-XX
+# advanced-analytics-framework 0.1.0, released TBD
 
+Code name:
 
 ## Summary
 
@@ -42,8 +43,8 @@
 * #88: Introduced an abstraction for ZMQ in UDF Communication
 * #95: Remove setup.py
 * #114: Refactored BackgroundPeerState and introduced parameter objects
+* #173: Introduced Python Toolbox
 
 ### Documentation
 
 * #9: Added README file
-  
