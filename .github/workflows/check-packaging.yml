@@ -26,9 +26,13 @@ jobs:
       run: ./scripts/run_in_dev_env.sh poetry install
 
     - name: Run packaging update
+      # re-generates / amalgate the lua script
+      # refactor pre-commit as nox task
+      # and call in pre-commit
       run: bash ./githooks/pre-commit
 
     - name: Show changes on working copy
+      # check if re-generated lua script is still up-to-date
       run: git status --porcelain=v1 -uno
 
     - name: Show diff on working copy

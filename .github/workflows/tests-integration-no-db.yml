@@ -1,16 +1,20 @@
 name: Run integration tests without DB
 
-on: [ push ]
+on:
+  workflow_call:
+    inputs:
+      slow-tests:
+        type: boolean
+        default: false
+      python-version:
+        type: string
+        required: true
 
 jobs:
 
   prepare_matrix:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.10" ]
-    runs-on: ubuntu-latest
     name: Prepare Matrix for integration tests without DB
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -28,11 +32,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10" ]
         test-path: ${{ fromJSON(needs.prepare_matrix.outputs.test-path) }}
     runs-on: ubuntu-latest
     name: Run ${{ matrix.test-path.name }}
     steps:
+      - name: Set pytest markers
+        id: pytest-markers
+        if: ${{ ! inputs.slow-tests }}
+        run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
@@ -40,6 +48,11 @@ jobs:
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
+        # Open issues:
+        # - should/can we use PTB here?
+        # - how to pass python version
 
       - name: Run Python integration tests without db
         run: poetry run -- nox -s run_python_test -- ${{ matrix.test-path.path }}
+        env:
+          PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'

@@ -1,16 +1,27 @@
 name: Run integration tests with DB
 
-on: [ push ]
+on:
+  workflow_call:
+    inputs:
+      slow-tests:
+        type: boolean
+        default: false
+      python-version:
+        type: string
+        required: true
+      exasol-version:
+        type: string
+        required: true
 
 jobs:
   build_and_test:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.10" ]
     runs-on: ubuntu-latest
-
     steps:
+
+      - name: Set pytest markers
+        id: pytest-markers
+        if: ${{ ! inputs.slow-tests }}
+        run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.0
@@ -33,6 +44,9 @@ jobs:
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
+        # Open issues:
+        # - should/can we use PTB here?
+        # - how to pass python version
 
       - name: Build language container
         run: poetry run -- nox -s build_language_container
@@ -42,3 +56,5 @@ jobs:
 
       - name: Run Python integration tests with db
         run: poetry run -- nox -s run_python_integration_tests_with_db
+        env:
+          PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'
