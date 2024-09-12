@@ -60,7 +60,7 @@ jobs:
         run: poetry run nox -s type-check
 
   tests-job:
-    name: Tests (Python-${{ matrix.python-version }}, Exasol-${{ matrix.exasol-version}})
+    name: Tests # (Python ${{ matrix.python-version }}, Exasol ${{ matrix.exasol-version}})
     needs: [lint-job, type-check-job]
     strategy:
       fail-fast: false

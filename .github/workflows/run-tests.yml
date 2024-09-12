@@ -16,12 +16,14 @@ on:
 jobs:
 
   unit-tests:
+    name: Unit
     uses: ./.github/workflows/tests-unit.yml
     secrets: inherit
     with:
       python-version: ${{ inputs.python-version }}
 
   integration-tests-without-db:
+    name: iTests (no DB)
     uses: ./.github/workflows/tests-integration-no-db.yml
     secrets: inherit
     with:
@@ -29,6 +31,7 @@ jobs:
       python-version: ${{ inputs.python-version }}
 
   integration-tests-with-db:
+    name: iTests with DB
     uses: ./.github/workflows/tests-integration-db.yml
     secrets: inherit
     with:
