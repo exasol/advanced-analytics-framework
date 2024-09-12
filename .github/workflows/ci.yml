@@ -23,14 +23,14 @@ jobs:
       - name: Branch Protection
         run: true
 
-  slow-test-detection:
-    name: Run Slow or Expensive Tests (e.g. SaaS)?
-    runs-on: ubuntu-latest
-    steps:
-      - name: Detect Slow Tests
-        run: true
-    environment:
-      slow-tests
+  # slow-test-detection:
+  #   name: Run Slow or Expensive Tests (e.g. SaaS)?
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Detect Slow Tests
+  #       run: true
+  #   environment:
+  #     slow-tests
 
   run-slow-tests:
     name: Run Slow or Expensive Tests (e.g. SaaS) if Requested
