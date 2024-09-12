@@ -40,6 +40,7 @@ jobs:
     with:
       slow-tests: true
       python-version: "3.10"
+      exasol-version: "7.1.19"
 
   gate-2:
     name: Gate 2 - Allow Merge
