@@ -17,22 +17,6 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
 
-  build-documentation-job:
-    name: Build Documentation
-    needs: [version-check-job]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: SCM Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
-
-      - name: Build Documentation
-        run: |
-          poetry run python -m nox -s build-docs
-
   lint-job:
     name: Linting (Python-${{ matrix.python-version }})
     needs: [version-check-job]
@@ -83,7 +67,7 @@ jobs:
 
   tests-job:
     name: Tests (Python-${{ matrix.python-version }}, Exasol-${{ matrix.exasol-version}})
-    needs: [build-documentation-job, lint-job, type-check-job]
+    needs: [lint-job, type-check-job]
     strategy:
       fail-fast: false
       matrix:
