@@ -27,7 +27,7 @@ jobs:
 #     with:
 #       slow-tests: inputs.slow-tests
 #       python-version: inputs.python-version
-# 
+#
 #   integration-tests-with-db:
 #     uses: ./.github/workflows/tests-integration-db.yml
 #     secrets: inherit
