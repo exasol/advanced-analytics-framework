@@ -9,3 +9,4 @@ set -euo pipefail
     --bucketfs-port-forward 6666 \
     --db-mem-size 4GB \
     --nameserver 8.8.8.8
+# --docker-db-image-version
