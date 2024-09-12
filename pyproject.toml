@@ -49,3 +49,14 @@ exasol-toolbox = ">=0.14.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[[tool.mypy.overrides]]
+module = [
+    "exasol_advanced_analytics_framework.*",
+    "exasol_data_science_utils_python.*",
+    "language_container.*",
+    "tests.*",
+    "noxfile",
+]
+ignore_errors = true
