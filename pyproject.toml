@@ -60,3 +60,6 @@ module = [
     "noxfile",
 ]
 ignore_errors = true
+
+[tool.pylint.master]
+fail-under = 6.0
