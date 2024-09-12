@@ -19,19 +19,19 @@ jobs:
     uses: ./.github/workflows/tests-unit.yml
     secrets: inherit
     with:
-      python-version: inputs.python-version
+      python-version: ${{ inputs.python-version }}
 
 #   integration-tests-without-db:
 #     uses: ./.github/workflows/tests-integration-no-db.yml
 #     secrets: inherit
 #     with:
-#       slow-tests: inputs.slow-tests
-#       python-version: inputs.python-version
+#       slow-tests: ${{ inputs.slow-tests }}
+#       python-version: ${{ inputs.python-version }}
 #
 #   integration-tests-with-db:
 #     uses: ./.github/workflows/tests-integration-db.yml
 #     secrets: inherit
 #     with:
-#       slow-tests: inputs.slow-tests
-#       python-version: inputs.python-version
-#       exasol-version: inputs.exasol-version
+#       slow-tests: ${{ inputs.slow-tests }}
+#       python-version: ${{ inputs.python-version }}
+#       exasol-version: ${{ inputs.exasol-version }}
