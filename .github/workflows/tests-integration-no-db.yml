@@ -46,7 +46,7 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ inputs.python-version }}
 
       # - name: Setup Python & Poetry Environment
       #   uses: ./.github/actions/prepare_poetry_env
