@@ -41,9 +41,6 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      # - name: Setup Python & Poetry Environment
-      #   uses: ./.github/actions/prepare_poetry_env
-
       - name: Install Lua environment
         run: poetry run -- nox -s install_lua_environment
 
