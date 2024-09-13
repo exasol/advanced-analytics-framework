@@ -12,7 +12,6 @@ from noxconfig import ROOT_DIR
 # default actions to be run if nothing is explicitly specified with the -s option
 nox.options.sessions = ["fix"]
 
-# ROOT_DIR = Path(__file__).parent
 SCRIPTS_DIRECTORY = ROOT_DIR / "scripts"
 RUN_IN_DEV_SCRIPT = SCRIPTS_DIRECTORY / "run_in_dev_env.sh"
 RUN_IN_DEV_SCRIPT_STR = str(RUN_IN_DEV_SCRIPT)
