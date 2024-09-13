@@ -44,6 +44,7 @@ Code name:
 * #95: Remove setup.py
 * #114: Refactored BackgroundPeerState and introduced parameter objects
 * #173: Introduced Python Toolbox
+* #174: Replaced Language Container Stuff with PEC
 
 ### Documentation
 
