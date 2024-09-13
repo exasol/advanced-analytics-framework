@@ -106,10 +106,12 @@ def start_integration_test_environment(session: Session):
     _run_in_dev_env_call(session, str(script_path))
 
 
+from exasol.python_extension_common.deployment.extract_validator import MANIFEST_FILE
 @nox.session(python=False)
 def build_language_container(session: Session):
     script_path = ROOT_DIR / "build_language_container.sh"
-    session.run(str(script_path))
+    print(f'{MANIFEST_FILE}')
+    # session.run(str(script_path))
 
 
 @nox.session(python=False)
