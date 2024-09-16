@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  ci-job:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
+    secrets: inherit
+
+  metrics:
+    needs: [ ci-job ]
+    uses: ./.github/workflows/report.yml
+
+  gate-1:
+    name: Gate 1 - Regular CI
+    needs: [ ci-job ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Branch Protection
+        run: true
+
+  slow-test-detection:
+    name: Run Slow or Expensive Tests (e.g. SaaS)?
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect Slow Tests
+        run: true
+    environment:
+      slow-tests
+
+  run-itests-no-db:
+    name: iTests (no DB)
+    uses: ./.github/workflows/tests-integration-no-db.yml
+    needs: [ slow-test-detection ]
+    secrets: inherit
+    with:
+      slow-tests: true
+      python-version: "3.10"
+
+  run-itests-with-db:
+    name: iTests (with DB)
+    uses: ./.github/workflows/tests-integration-db.yml
+    needs: [ slow-test-detection ]
+    secrets: inherit
+    with:
+      slow-tests: true
+      python-version: "3.10"
+
+  gate-2:
+    name: Gate 2 - Allow Merge
+    runs-on: ubuntu-latest
+    needs: [ run-itests-no-db, run-itests-with-db ]
+    steps:
+      - name: Branch Protection
+        run: true

@@ -153,8 +153,11 @@ doc/_build
 .*.swo
 
 # vagrant
-
 .vagrant
+
+# lint
+.lint.txt
+.lint.json
 
 # emacs
 TAGS
