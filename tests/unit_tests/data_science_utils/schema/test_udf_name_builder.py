@@ -4,10 +4,11 @@ from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.udf_name import UDFName
 from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 from exasol_data_science_utils_python.schema.udf_name_impl import UDFNameImpl
+from typeguard import TypeCheckError
 
 
 def test_using_empty_constructor():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         udf_name = UDFNameBuilder().build()
 
 

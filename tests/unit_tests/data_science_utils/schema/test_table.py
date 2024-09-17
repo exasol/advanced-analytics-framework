@@ -5,6 +5,7 @@ from exasol_data_science_utils_python.schema.column import ColumnType
 from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
 from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
+from typeguard import TypeCheckError
 
 
 def test_valid():
@@ -40,7 +41,7 @@ def test_set_new_columns_fail():
 
 
 def test_wrong_types_in_constructor():
-    with pytest.raises(TypeError) as c:
+    with pytest.raises(TypeCheckError) as c:
         column = Table("abc", "INTEGER")
 
 

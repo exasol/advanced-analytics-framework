@@ -4,10 +4,11 @@ from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.view_name import ViewName
 from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 from exasol_data_science_utils_python.schema.view_name_impl import ViewNameImpl
+from typeguard import TypeCheckError
 
 
 def test_using_empty_constructor():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         view_name = ViewNameBuilder().build()
 
 

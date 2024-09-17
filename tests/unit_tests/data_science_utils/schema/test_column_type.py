@@ -5,6 +5,7 @@ from exasol_data_science_utils_python.schema.column_type import ColumnType
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
 from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
+from typeguard import TypeCheckError
 
 
 def test_correct_types():
@@ -28,42 +29,42 @@ def test_name_missing():
 
 
 def test_name_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name=1)
 
 
 def test_precision_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", precision="")
 
 
 def test_scale_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", scale="")
 
 
 def test_size_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", size="")
 
 
 def test_characterSet_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", characterSet=1)
 
 
 def test_withLocalTimeZone_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", withLocalTimeZone=1)
 
 
 def test_fraction_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", fraction="")
 
 
 def test_srid_wrong_type():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         ColumnType(name="Test", fraction="")
 
 
