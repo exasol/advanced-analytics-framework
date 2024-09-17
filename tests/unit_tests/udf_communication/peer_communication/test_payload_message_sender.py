@@ -19,6 +19,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass(frozen=True)
 class TestSetup:
+    __test__ = False
     sender_mock: Union[Sender, MagicMock]
     abort_time_mock: Union[Timer, MagicMock]
     out_control_socket_mock: Union[Socket, MagicMock]

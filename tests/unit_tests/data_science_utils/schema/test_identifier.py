@@ -5,6 +5,7 @@ from exasol_data_science_utils_python.schema.exasol_identifier_impl import Exaso
 
 
 class TestSchemaElement(ExasolIdentifierImpl):
+    __test__ = False
 
     def __init__(self, name: str):
         super().__init__(name)

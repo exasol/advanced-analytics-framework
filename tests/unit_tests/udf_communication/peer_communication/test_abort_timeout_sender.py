@@ -21,6 +21,7 @@ def mock_cast(obj: Any) -> Mock:
 
 @dataclasses.dataclass()
 class TestSetup:
+    __test__ = False
     reason: str
     timer_mock: Union[MagicMock, Timer]
     out_control_socket_mock: Union[MagicMock, Socket]

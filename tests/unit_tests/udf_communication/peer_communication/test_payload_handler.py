@@ -15,6 +15,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     payload_sender_mock: Union[MagicMock, PayloadSender]
     payload_receiver_mock: Union[MagicMock, PayloadReceiver]
     payload_handler: PayloadHandler

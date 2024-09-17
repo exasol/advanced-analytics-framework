@@ -18,6 +18,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass()
 class TestSetup:
+    __test__ = False
     peer: Peer
     timer_mock: Union[MagicMock, Timer]
     out_control_socket_mock: Union[MagicMock, Socket]

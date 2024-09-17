@@ -20,6 +20,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     my_connection_info: ConnectionInfo
     peer: Peer
     timer_mock: Union[Timer, MagicMock]

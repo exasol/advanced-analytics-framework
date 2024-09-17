@@ -17,6 +17,7 @@ from exasol_advanced_analytics_framework.query_result.query_result import QueryR
 
 
 class TestQueryHandler(QueryHandler[Dict[str, Any], int]):
+    __test__ = False
 
     def __init__(self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)

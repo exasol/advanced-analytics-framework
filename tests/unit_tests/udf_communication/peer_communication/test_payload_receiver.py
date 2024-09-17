@@ -15,6 +15,7 @@ from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstra
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     sender_mock: Union[MagicMock, Sender]
     out_control_socket_mock: Union[MagicMock, Socket]
     my_connection_info: ConnectionInfo

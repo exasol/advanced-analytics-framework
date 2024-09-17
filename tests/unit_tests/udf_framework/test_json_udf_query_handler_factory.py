@@ -39,6 +39,7 @@ def top_level_query_handler_context(tmp_path,
 
 
 class TestJSONQueryHandler(JSONQueryHandler):
+    __test__ = False
     def __init__(self, parameter: JSONType, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
@@ -51,6 +52,7 @@ class TestJSONQueryHandler(JSONQueryHandler):
 
 
 class TestJsonUDFQueryHandlerFactory(JsonUDFQueryHandlerFactory):
+    __test__ = False
     def __init__(self):
         super().__init__(TestJSONQueryHandler)
 
