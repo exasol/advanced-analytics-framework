@@ -13,11 +13,10 @@ from tests.utils.parameters import bucketfs_params
 
 
 @pytest.fixture(scope="session")
-def slc_for_tests():
+def slc_builder_for_tests():
     test_package = find_path_backwards("tests/test_package", __file__)
     with custom_slc_builder() as builder:
         builder.prepare_flavor(test_package)
-        ii = builder.build()
         yield builder
 
 
@@ -56,7 +55,9 @@ def create_container_deployer(language_alias: str, pyexasol_connection: pyexasol
 # Actually this fixture should not use pyexasol_connection and itde.bucketfs
 # but rather something like "backend".
 # Do we need to support SaaS as a backend here?
-def uploaded_slc(pyexasol_connection, slc_for_tests) -> str:
+def uploaded_slc(pyexasol_connection, slc_builder_for_tests) -> str:
+    builder = slc_builder_for_tests
+    builder.build()
     export = builder.export()
     info = export.export_infos[str(builder.flavor_path)]["release"]
     exported_slc_file = Path(info.cache_file)
