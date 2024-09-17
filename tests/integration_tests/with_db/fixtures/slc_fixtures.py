@@ -50,7 +50,7 @@ def create_container_deployer(language_alias: str, pyexasol_connection: pyexasol
     return LanguageContainerDeployer(
         pyexasol_connection,
         language_alias,
-        container_bucketfs_location,
+        bucketfs_path,
     )
 
 
