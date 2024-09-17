@@ -5,7 +5,7 @@ from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 
 from tests.utils.parameters import bucketfs_params
 
-
+# obsolete
 @pytest.fixture(scope="session")
 def upload_language_container(pyexasol_connection, language_container) -> str:
     bucket_fs_factory = BucketFSFactory()
@@ -24,7 +24,7 @@ def upload_language_container(pyexasol_connection, language_container) -> str:
             "exasol_advanced_analytics_framework_container.tar.gz")
 
     result = pyexasol_connection.execute(
-        f"""SELECT "SYSTEM_VALUE" FROM SYS.EXA_PARAMETERS WHERE 
+        f"""SELECT "SYSTEM_VALUE" FROM SYS.EXA_PARAMETERS WHERE
         PARAMETER_NAME='SCRIPT_LANGUAGES'""").fetchall()
     original_alter_system = result[0][0]
     pyexasol_connection.execute(

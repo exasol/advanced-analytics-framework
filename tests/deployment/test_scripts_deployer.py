@@ -4,6 +4,7 @@ from tests.utils.db_queries import DBQueries
 from tests.utils.parameters import db_params
 
 
+@pytest.mark.skip(reason="No need to test deployer provided by PEC.")
 def test_scripts_deployer(upload_language_container,
                           pyexasol_connection, request):
 

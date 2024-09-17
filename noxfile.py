@@ -1,6 +1,8 @@
 import json
 import os
 from pathlib import Path
+from exasol_advanced_analytics_framework.slc import custom_slc_builder
+from datetime import datetime
 
 import nox
 from nox import Session
@@ -106,12 +108,17 @@ def start_integration_test_environment(session: Session):
     _run_in_dev_env_call(session, str(script_path))
 
 
-from exasol.python_extension_common.deployment.extract_validator import MANIFEST_FILE
 @nox.session(python=False)
 def build_language_container(session: Session):
-    script_path = ROOT_DIR / "build_language_container.sh"
-    print(f'{MANIFEST_FILE}')
-    # session.run(str(script_path))
+    export_path = ROOT_DIR / ".slc"
+    with custom_slc_builder() as builder:
+        builder.build()
+        builder.export(export_path)
+
+# @nox.session(python=False)
+# def build_language_container_old(session: Session):
+#     script_path = ROOT_DIR / "build_language_container.sh"
+#     session.run(str(script_path))
 
 
 @nox.session(python=False)

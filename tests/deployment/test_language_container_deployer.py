@@ -3,12 +3,12 @@ from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_advanced_analytics_framework.deployment.language_container_deployer \
     import LanguageContainerDeployer
 from tests.utils.parameters import bucketfs_params
-from tests.utils.revert_language_settings import revert_language_settings
+from tests.utils.revert_language_settings import revert_language_settings_old
 from tests.utils.db_queries import DBQueries
 from pathlib import Path
 
 
-@revert_language_settings
+@revert_language_settings_old
 def _call_deploy_language_container_deployer(
         language_alias, schema, db_conn, container_path, language_settings):
     db_conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")

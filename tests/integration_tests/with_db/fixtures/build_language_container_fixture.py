@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 import pytest
 
-
+# obsolete
 def find_script(script_name: str) -> Path:
     current_path = Path(__file__).parent
     script_path = None
@@ -17,6 +17,7 @@ def find_script(script_name: str) -> Path:
         raise RuntimeError(f"Could not find {script_name}")
 
 
+# obsolete
 @pytest.fixture(scope="session")
 def language_container() -> dict:
     script_dir = find_script("build_language_container.sh")

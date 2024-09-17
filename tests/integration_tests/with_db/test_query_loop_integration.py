@@ -11,7 +11,7 @@ from tests.utils.parameters import db_params
 
 QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
 QUERY_AUDIT_LOGS = """
-SELECT SQL_TEXT 
+SELECT SQL_TEXT
 FROM EXA_STATISTICS.EXA_DBA_AUDIT_SQL
 WHERE SESSION_ID = CURRENT_SESSION
 ORDER BY START_TIME DESC;
@@ -20,7 +20,7 @@ N_FETCHED_ROWS = 50
 
 
 def test_query_loop_integration_with_one_iteration(
-        setup_database, pyexasol_connection, upload_language_container):
+        setup_database, pyexasol_connection, uploaded_slc):
     bucketfs_connection_name, schema_name = setup_database
     args = json.dumps(
         {
@@ -51,7 +51,7 @@ def test_query_loop_integration_with_one_iteration(
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_child_query_handler_context(
-        setup_database, upload_language_container):
+        setup_database, uploaded_slc):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval
     conn = pyexasol.connect(
@@ -90,7 +90,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_temporary_object(
-        setup_database, upload_language_container):
+        setup_database, uploaded_slc):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(
@@ -140,7 +140,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
 
 
 def test_query_loop_integration_with_two_iteration(
-        setup_database, upload_language_container):
+        setup_database, uploaded_slc):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(
@@ -193,3 +193,8 @@ def test_query_loop_integration_with_two_iteration(
            and select_queries_from_query_handler == expected_query_list \
            and view_cleanup_query, \
         f"Not all required queries where executed {executed_queries}"
+
+
+# # from exasol_advanced_analytics_framework.slc
+# def test_x1(slc_for_tests, bfs_location):
+#     pass # print(f'bfs_location (type {type(bfs_location)}): {bfs_location}')

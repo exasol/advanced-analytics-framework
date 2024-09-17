@@ -3,12 +3,12 @@ import pyexasol
 from click.testing import CliRunner
 from exasol_advanced_analytics_framework import deploy
 from tests.utils.parameters import bucketfs_params, db_params
-from tests.utils.revert_language_settings import revert_language_settings
+from tests.utils.revert_language_settings import revert_language_settings_old
 from tests.utils.db_queries import DBQueries
 from pathlib import Path
 
 
-@revert_language_settings
+@revert_language_settings_old
 def _call_deploy_language_container_deployer_cli(
         language_alias, schema, db_conn, container_path, language_settings):
     db_conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
