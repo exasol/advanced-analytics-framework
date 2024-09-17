@@ -5,15 +5,18 @@ import exasol.bucketfs as bfs
 from dataclasses import dataclass
 from pathlib import Path
 from exasol_advanced_analytics_framework.slc import custom_slc_builder
-from exasol.python_extension_common.deployment.language_container_builder import find_path_backwards
+from exasol.python_extension_common.deployment.language_container_builder import (
+    find_path_backwards,
+    LanguageContainerBuilder,
+)
+from exasol.python_extension_common.deployment.language_container_deployer import LanguageContainerDeployer
 from tests.utils.revert_language_settings import revert_language_settings
 
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from tests.utils.parameters import bucketfs_params
 
-
 @pytest.fixture(scope="session")
-def slc_builder_for_tests():
+def slc_builder_for_tests() -> LanguageContainerBuilder:
     test_package = find_path_backwards("tests/test_package", __file__)
     with custom_slc_builder() as builder:
         builder.prepare_flavor(test_package)
