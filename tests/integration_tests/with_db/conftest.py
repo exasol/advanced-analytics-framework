@@ -14,5 +14,5 @@ def slc_builder() -> LanguageContainerBuilder:
     """
     test_package = find_path_backwards("tests/test_package", __file__)
     with custom_slc_builder() as builder:
-        # builder.prepare_flavor(test_package)
+        builder.prepare_flavor(test_package)
         yield builder

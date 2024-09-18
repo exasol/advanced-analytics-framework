@@ -200,5 +200,9 @@ def test_query_loop_integration_with_two_iteration(
 #     pass # print(f'bfs_location (type {type(bfs_location)}): {bfs_location}')
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-def test_x1():
+import subprocess
+def test_x1(slc_builder):
+    # print(f'reqs: "{slc_builder.pip_requirements.read_text()}"')
+    # wheel_target = slc_builder.flavor_base / "release" / "dist"
+    # subprocess.run(["ls", "-l", wheel_target])
     pass
