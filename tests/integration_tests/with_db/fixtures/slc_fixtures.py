@@ -4,11 +4,6 @@ import exasol.bucketfs as bfs
 
 from dataclasses import dataclass
 from pathlib import Path
-from exasol_advanced_analytics_framework.slc import custom_slc_builder
-from exasol.python_extension_common.deployment.language_container_builder import (
-    find_path_backwards,
-    LanguageContainerBuilder,
-)
 from exasol.python_extension_common.deployment.language_container_deployer import LanguageContainerDeployer
 from tests.utils.revert_language_settings import revert_language_settings
 
@@ -55,18 +50,15 @@ def create_container_deployer(language_alias: str, pyexasol_connection: pyexasol
 #         yield builder
 
 
-@pytest.fixture(scope="session")
-def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
-    """
-    Overrides default definition from pytest-exasol-slc.
-    """
-    if use_saas:
-        # SaaS not supported, yet
-        return None
-    test_package = find_path_backwards("tests/test_package", __file__)
-    with custom_slc_builder() as builder:
-        # builder.prepare_flavor(test_package)
-        yield builder
+# @pytest.fixture(scope="session")
+# def slc_builder() -> LanguageContainerBuilder:
+#     """
+#     Overrides default definition from pytest-exasol-slc.
+#     """
+#     test_package = find_path_backwards("tests/test_package", __file__)
+#     with custom_slc_builder() as builder:
+#         # builder.prepare_flavor(test_package)
+#         yield builder
 
 
 # @pytest.fixture(scope="session")
@@ -85,41 +77,3 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
 #         deployer.run(container_file=exported_slc_file, alter_system=True, allow_override=True)
 #         yield alias
 
-
-# use fixture upload_slc from pytest_exasol_slc
-# required our fixture slc_builder_for_tests
-# to be renamed to slc_builder
-
-# @pytest.fixture(scope="session")
-# def test_package_whl():
-#     """
-#     Build the wheel file for the the query_handler in the test package.
-#     """
-#     dir = find_script("tests/test_package")
-#     p = subprocess.run(
-#         ["poetry", "build"],
-#         cwd=dir,
-#         stdout=subprocess.PIPE,
-#         stderr=subprocess.STDOUT,
-#         encoding="UTF-8",
-#     )
-#     wheels = list((dir / "dist").glob("*.whl"))
-#     n = len(wheels)
-#     if n != 1:
-#         files = ", ".join(str(w) for w in wheels)
-#         raise RuntimeError(
-#             f"Expected 1 wheel file, while building project"
-#             f" in directory {dir} yielded {n} files: {files}.")
-#     return wheels[0]
-
-
-# @pytest.fixture(scope="session")
-# def slc_for_tests_1():
-#     project_directory = find_path_backwards("pyproject.toml", __file__).parent
-#     test_package = find_script("tests/test_package")
-#     with custom_slc_builder() as builder:
-#         builder.prepare_flavor(project_directory)
-#         builder.prepare_flavor(test_package)
-#         ii = builder.build()
-#         for k,v in ii.items():
-#             pprint.pp(vars(v["release"]))
