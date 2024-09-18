@@ -15,13 +15,6 @@ from tests.utils.revert_language_settings import revert_language_settings
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from tests.utils.parameters import bucketfs_params
 
-@pytest.fixture(scope="session")
-def slc_builder_for_tests() -> LanguageContainerBuilder:
-    test_package = find_path_backwards("tests/test_package", __file__)
-    with custom_slc_builder() as builder:
-        builder.prepare_flavor(test_package)
-        yield builder
-
 
 # Can be replaced by itde.config.BucketFs as soon as using pytest-plugin pytest-itde
 @dataclass
@@ -54,22 +47,48 @@ def create_container_deployer(language_alias: str, pyexasol_connection: pyexasol
     )
 
 
-@pytest.fixture(scope="session")
-# Actually this fixture should not use pyexasol_connection and itde.bucketfs
-# but rather something like "backend".
-# Do we need to support SaaS as a backend here?
-def uploaded_slc(pyexasol_connection, slc_builder_for_tests) -> str:
-    builder = slc_builder_for_tests
-    builder.build()
-    export = builder.export()
-    info = export.export_infos[str(builder.flavor_path)]["release"]
-    exported_slc_file = Path(info.cache_file)
-    alias = builder.language_alias
-    deployer = create_container_deployer(alias, pyexasol_connection)
-    with revert_language_settings(pyexasol_connection):
-        deployer.run(container_file=exported_slc_file, alter_system=True, allow_override=True)
-        yield alias
+# @pytest.fixture(scope="session")
+# def slc_builder_for_tests() -> LanguageContainerBuilder:
+#     test_package = find_path_backwards("tests/test_package", __file__)
+#     with custom_slc_builder() as builder:
+#         builder.prepare_flavor(test_package)
+#         yield builder
 
+
+@pytest.fixture(scope="session")
+def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
+    """
+    Overrides default definition from pytest-exasol-slc.
+    """
+    if use_saas:
+        # SaaS not supported, yet
+        return None
+    test_package = find_path_backwards("tests/test_package", __file__)
+    with custom_slc_builder() as builder:
+        # builder.prepare_flavor(test_package)
+        yield builder
+
+
+# @pytest.fixture(scope="session")
+# # Actually this fixture should not use pyexasol_connection and itde.bucketfs
+# # but rather something like "backend".
+# # Do we need to support SaaS as a backend here?
+# def uploaded_slc(pyexasol_connection, slc_builder_for_tests) -> str:
+#     builder = slc_builder_for_tests
+#     builder.build()
+#     export = builder.export()
+#     info = export.export_infos[str(builder.flavor_path)]["release"]
+#     exported_slc_file = Path(info.cache_file)
+#     alias = builder.language_alias
+#     deployer = create_container_deployer(alias, pyexasol_connection)
+#     with revert_language_settings(pyexasol_connection):
+#         deployer.run(container_file=exported_slc_file, alter_system=True, allow_override=True)
+#         yield alias
+
+
+# use fixture upload_slc from pytest_exasol_slc
+# required our fixture slc_builder_for_tests
+# to be renamed to slc_builder
 
 # @pytest.fixture(scope="session")
 # def test_package_whl():

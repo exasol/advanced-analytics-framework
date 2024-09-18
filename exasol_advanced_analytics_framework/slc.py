@@ -4,6 +4,8 @@ from exasol.python_extension_common.deployment.language_container_builder import
     find_path_backwards
 )
 
+# new comment to check Docker image
+
 # Prefering other name than slc_factory()
 # flavor path is predefined by exasol-python-extension-common
 @contextmanager

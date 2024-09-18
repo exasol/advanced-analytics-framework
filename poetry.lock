@@ -2079,6 +2079,38 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
+name = "pytest-exasol-backend"
+version = "0.2.1"
+description = ""
+optional = false
+python-versions = "<4,>=3.9"
+files = [
+    {file = "pytest_exasol_backend-0.2.1-py3-none-any.whl", hash = "sha256:dba4925f60ffe7306b7494aaef52d86e1c36d26e542eb52ba114f940970804dd"},
+    {file = "pytest_exasol_backend-0.2.1.tar.gz", hash = "sha256:176439cb59732e4b1f03c290c66c8b6799914615c8089dc4e901bdbbf50bf140"},
+]
+
+[package.dependencies]
+exasol-integration-test-docker-environment = ">=3.1.0,<4.0.0"
+exasol-saas-api = ">=0.6.0,<1.0.0"
+pytest = ">=7,<9"
+
+[[package]]
+name = "pytest-exasol-slc"
+version = "0.2.0"
+description = ""
+optional = false
+python-versions = "<4,>=3.10"
+files = [
+    {file = "pytest_exasol_slc-0.2.0-py3-none-any.whl", hash = "sha256:9b9d392332d2d104d46ae85ef7505ea2fe3f324ce4c77a0ba5ba09915cc457e1"},
+    {file = "pytest_exasol_slc-0.2.0.tar.gz", hash = "sha256:02c58ec952c10cd32d7ca6551f8474ccbed55916841a05b2d535e8f01eab0664"},
+]
+
+[package.dependencies]
+exasol-python-extension-common = ">=0.4.0"
+pytest = ">=7,<9"
+pytest-exasol-backend = ">=0.2.0"
+
+[[package]]
 name = "pytest-prysk"
 version = "0.2.0"
 description = "Pytest plugin for prysk"
@@ -3151,4 +3183,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "969314c7d00394895896ed7826f47a68d768878c8758543312e1d608f17887f7"
+content-hash = "053949cd8ec9f665f04ea31c10b982ae4e8793353982d4214b47b0fcd64e71bc"

@@ -48,6 +48,7 @@ elasticsearch = "^8.6.1"
 exasol-toolbox = ">=0.14.0"
 exasol-python-extension-common = ">=0.4.0"
 exasol-script-languages-container-tool = "<1.0.0"
+pytest-exasol-slc = ">=0.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
