@@ -2080,13 +2080,13 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
 name = "pytest-exasol-backend"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 optional = false
 python-versions = "<4,>=3.9"
 files = [
-    {file = "pytest_exasol_backend-0.2.1-py3-none-any.whl", hash = "sha256:dba4925f60ffe7306b7494aaef52d86e1c36d26e542eb52ba114f940970804dd"},
-    {file = "pytest_exasol_backend-0.2.1.tar.gz", hash = "sha256:176439cb59732e4b1f03c290c66c8b6799914615c8089dc4e901bdbbf50bf140"},
+    {file = "pytest_exasol_backend-0.3.0-py3-none-any.whl", hash = "sha256:57701d24fa963e08e742938440cdf87840f57d04d096f2cbff0fa0a0f95c75af"},
+    {file = "pytest_exasol_backend-0.3.0.tar.gz", hash = "sha256:165a3d47b309a1385d37e4b7908eaba832139e9683d7b30cbaaa7decd1052302"},
 ]
 
 [package.dependencies]
@@ -3183,4 +3183,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "053949cd8ec9f665f04ea31c10b982ae4e8793353982d4214b47b0fcd64e71bc"
+content-hash = "7309c055d0c2f5d1c9ff01498a8de4c0e9f8c379086191655d5bd4965c621ac7"
