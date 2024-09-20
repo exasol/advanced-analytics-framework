@@ -8,6 +8,8 @@ from exasol.python_extension_common.deployment.language_container_builder import
 
 import subprocess
 
+# Can be removed as soon as new version of PEC is available
+# incl. fix of https://github.com/exasol/python-extension-common/issues/60
 class IncrementalSlcBuilder(LanguageContainerBuilder):
     """
     This class extends LanguageContainerBuilder to enable adding multiple
@@ -34,23 +36,16 @@ class IncrementalSlcBuilder(LanguageContainerBuilder):
         before = (self.pip_requirements.read_text()
                   if self.pip_requirements.exists()
                   else "")
-        # print(f'former requirements: "{before}"')
         requirements = subprocess.check_output(
-            ["poetry", "export", "--without-hashes", "--without-urls",
-             # "--output", f'{dist_path}',
-             ],
+            ["poetry", "export", "--without-hashes", "--without-urls"],
             cwd=str(project_directory),
             encoding="UTF-8",
         )
-        # print(f'requirements for project {project_directory}: "{requirements}"')
         if requirement_filter is not None:
             requirements = "\n".join(filter(requirement_filter, requirements.splitlines()))
-        # print(f'additional requirements: "{requirements}"')
         self.pip_requirements.write_text(before + requirements)
 
 
-# Prefering other name than slc_factory()
-# flavor path is predefined by exasol-python-extension-common
 @contextmanager
 def custom_slc_builder() -> LanguageContainerBuilder:
     project_directory = find_path_backwards("pyproject.toml", __file__).parent
@@ -60,10 +55,3 @@ def custom_slc_builder() -> LanguageContainerBuilder:
     ) as builder:
         builder.prepare_flavor(project_directory)
         yield builder
-
-# if __name__ == "__main__":
-#     b = IncrementalSlcBuilder("container", "alias")
-#     b._root_path = Path("~/tmp/").expanduser()
-#     b.flavor_path = b._root_path / b.container_name
-#     # b.prepare_flavor("before")
-#     b.append_flavor("after")

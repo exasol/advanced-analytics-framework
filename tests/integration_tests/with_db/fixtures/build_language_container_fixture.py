@@ -1,4 +1,6 @@
-# file is obsolete
+# file is obsolete when removing
+# tests/deployment/test_scripts_deployer.py and
+# tests/deployment/test_scripts_deployer_cli.py and
 import subprocess
 from pathlib import Path
 import pytest

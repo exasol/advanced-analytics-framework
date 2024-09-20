@@ -110,15 +110,14 @@ def start_integration_test_environment(session: Session):
 
 @nox.session(python=False)
 def build_language_container(session: Session):
+    # Is this path OK?
+    # Which artifacts need to be included in releases of AAF?
+    # How should these artifacts be included?
+    # Just by uploading and adding to the GitHub release?
     export_path = ROOT_DIR / ".slc"
     with custom_slc_builder() as builder:
         builder.build()
         builder.export(export_path)
-
-# @nox.session(python=False)
-# def build_language_container_old(session: Session):
-#     script_path = ROOT_DIR / "build_language_container.sh"
-#     session.run(str(script_path))
 
 
 @nox.session(python=False)

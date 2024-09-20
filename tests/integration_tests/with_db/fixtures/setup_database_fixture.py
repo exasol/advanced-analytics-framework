@@ -2,7 +2,6 @@ import pytest
 import pyexasol
 from typing import Tuple
 from exasol_advanced_analytics_framework.deployment.scripts_deployer import ScriptsDeployer
-# from tests.utils.parameters import db_params, bucketfs_params
 
 
 BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
@@ -10,7 +9,6 @@ SCHEMA_NAME = "TEST_INTEGRATION"
 LANGUAGE_ALIAS = "PYTHON3_AAF"
 
 
-# new implementation
 @pytest.fixture(scope="session")
 def pyexasol_connection(backend_aware_database_params) -> pyexasol.ExaConnection:
     return pyexasol.connect(**backend_aware_database_params)
@@ -22,16 +20,6 @@ def _create_schema(db_conn) -> str:
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
     return schema
 
-
-# def _deploy_scripts() -> None:
-#     ScriptsDeployer.run(
-#         dsn=db_params.address(),
-#         user=db_params.user,
-#         password=db_params.password,
-#         schema=schema_name,
-#         language_alias=language_alias,
-#         develop=True)
-
 def _deploy_scripts(db_conn) -> None:
     ScriptsDeployer.run2(
         db_conn,
@@ -42,7 +30,8 @@ def _deploy_scripts(db_conn) -> None:
 
 # leave here, needed only for UDFs and similar
 # backend_aware_bucketfs_params
-# on prem:
+
+# bucketfs_params on prem:
 # https://github.com/exasol/pytest-plugins/blob/main/pytest-backend/exasol/pytest_backend/__init__.py#L282
 # {
 #     'backend': BACKEND_ONPREM,
@@ -53,7 +42,8 @@ def _deploy_scripts(db_conn) -> None:
 #     'bucket_name': 'default',
 #     'verify': False
 # }
-# saas:
+
+# bucketfs_params saas:
 # https://github.com/exasol/pytest-plugins/blob/main/pytest-backend/exasol/pytest_backend/__init__.py#L299
 # {
 #     'backend': BACKEND_SAAS,
@@ -63,19 +53,11 @@ def _deploy_scripts(db_conn) -> None:
 #     'pat': saas_pat
 # }
 
-# def _create_bucketfs_connection_old(db_conn) -> None:
-#     query = "CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
-#             "USER '{user}' IDENTIFIED BY '{pwd}'".format(
-#         name=bucketfs_connection_name,
-#         uri=bucketfs_params.address(bucketfs_params.real_port),
-#         user=bucketfs_params.user,
-#         pwd=bucketfs_params.password)
-#     db_conn.execute(query)
-
-
 def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params) -> str:
     name = BUCKETFS_CONNECTION_NAME
     if use_onprem:
+        # In general currently I disabled SaaS backend for AAF.
+        # Question: Should/Could this work for SaaS, too?
         uri = bucketfs_params.url
         user = bucketfs_params.username
         pwd = bucketfs_params.password
@@ -84,14 +66,6 @@ def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params) -> str:
             f"USER '{user}' IDENTIFIED BY '{pwd}'"
         )
     return name
-
-
-# @pytest.fixture(scope="module")
-# def setup_database_old(pyexasol_connection) -> Tuple[str, str]:
-#     _create_schema(pyexasol_connection)
-#     _deploy_scripts()
-#     _create_bucketfs_connection(pyexasol_connection)
-#     return bucketfs_connection_name, schema_name
 
 
 @pytest.fixture(scope="module")
