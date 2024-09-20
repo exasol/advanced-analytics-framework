@@ -20,8 +20,8 @@ N_FETCHED_ROWS = 50
 
 
 def test_query_loop_integration_with_one_iteration(
-        setup_database, pyexasol_connection, upload_slc):
-    bucketfs_connection_name, schema_name = setup_database
+        database_with_slc, pyexasol_connection):
+    bucketfs_connection_name, schema_name = database_with_slc
     args = json.dumps(
         {
             "query_handler": {
@@ -51,16 +51,18 @@ def test_query_loop_integration_with_one_iteration(
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_child_query_handler_context(
-        setup_database, upload_slc):
+        database_with_slc, backend_aware_database_params):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval
-    conn = pyexasol.connect(
-        dsn=db_params.address(),
-        user=db_params.user,
-        password=db_params.password)
+    conn = pyexasol.connect(**backend_aware_database_params)
+
+    # conn = pyexasol.connect(
+    #     dsn=db_params.address(),
+    #     user=db_params.user,
+    #     password=db_params.password)
 
     # execute query loop
-    bucketfs_connection_name, schema_name = setup_database
+    bucketfs_connection_name, schema_name = database_with_slc
     args = json.dumps(
         {
             "query_handler": {
@@ -90,16 +92,18 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
 
 
 def test_query_loop_integration_with_one_iteration_with_not_released_temporary_object(
-        setup_database, upload_slc):
+        database_with_slc, backend_aware_database_params):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
-    conn = pyexasol.connect(
-        dsn=db_params.address(),
-        user=db_params.user,
-        password=db_params.password)
+    conn = pyexasol.connect(**backend_aware_database_params)
+
+    # conn = pyexasol.connect(
+    #     dsn=db_params.address(),
+    #     user=db_params.user,
+    #     password=db_params.password)
 
     # execute query loop
-    bucketfs_connection_name, schema_name = setup_database
+    bucketfs_connection_name, schema_name = database_with_slc
     args = json.dumps(
         {
             "query_handler": {
@@ -140,16 +144,18 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
 
 
 def test_query_loop_integration_with_two_iteration(
-        setup_database, upload_slc):
+        database_with_slc, backend_aware_database_params):
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
-    conn = pyexasol.connect(
-        dsn=db_params.address(),
-        user=db_params.user,
-        password=db_params.password)
+    conn = pyexasol.connect(**backend_aware_database_params)
+
+    # conn = pyexasol.connect(
+    #     dsn=db_params.address(),
+    #     user=db_params.user,
+    #     password=db_params.password)
 
     # execute query loop
-    bucketfs_connection_name, schema_name = setup_database
+    bucketfs_connection_name, schema_name = database_with_slc
     args = json.dumps(
         {
             "query_handler": {
@@ -193,16 +199,3 @@ def test_query_loop_integration_with_two_iteration(
            and select_queries_from_query_handler == expected_query_list \
            and view_cleanup_query, \
         f"Not all required queries where executed {executed_queries}"
-
-
-# # from exasol_advanced_analytics_framework.slc
-# def test_x1(slc_for_tests, bfs_location):
-#     pass # print(f'bfs_location (type {type(bfs_location)}): {bfs_location}')
-
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-import subprocess
-def test_x1(slc_builder):
-    # print(f'reqs: "{slc_builder.pip_requirements.read_text()}"')
-    # wheel_target = slc_builder.flavor_base / "release" / "dist"
-    # subprocess.run(["ls", "-l", wheel_target])
-    pass

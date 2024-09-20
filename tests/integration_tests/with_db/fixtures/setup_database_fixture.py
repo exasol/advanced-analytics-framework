@@ -69,10 +69,11 @@ def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params) -> str:
 
 
 @pytest.fixture(scope="module")
-def setup_database(
+def database_with_slc(
         use_onprem,
         pyexasol_connection,
         backend_aware_bucketfs_params,
+        upload_slc,
 ) -> Tuple[str|None, str]:
     schema = _create_schema(pyexasol_connection)
     _deploy_scripts(pyexasol_connection)
