@@ -45,6 +45,6 @@ jobs:
         run: poetry run -- nox -s run_in_dev_env -- poetry install
 
       - name: Run Python integration tests with db
-        run: poetry run -- nox -s run_python_integration_tests_with_db -- --backend=onprem
+        run: poetry run -- nox -s run_python_integration_tests_with_db -- -- --backend=onprem
         env:
           PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'

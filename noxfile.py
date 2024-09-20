@@ -123,4 +123,20 @@ def build_language_container(session: Session):
 @nox.session(python=False)
 def run_python_integration_tests_with_db(session: Session):
     integration_test_directory = INTEGRATION_TEST_DIRECTORY / "with_db"
-    _run_in_dev_env_poetry_call(session, "pytest", str(integration_test_directory))
+    _run_in_dev_env_poetry_call(
+        session,
+        "pytest",
+        str(integration_test_directory),
+        *session.posargs,
+    )
+
+
+# @nox.session(python=False)
+# def x(session: Session):
+#     session.run(
+#         "poetry",
+#         "run",
+#         "pytest",
+#         "tests/unit_tests/test_x.py",
+#         *session.posargs,
+#     )
