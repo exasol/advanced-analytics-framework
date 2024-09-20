@@ -1,3 +1,4 @@
+# file is obsolete
 import pytest
 from pathlib import Path
 
