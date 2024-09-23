@@ -20,7 +20,8 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
     else:
         yield None
 
-
+import exasol.bucketfs as bfs
+from exasol.python_extension_common.deployment.language_container_deployer import LanguageContainerDeployer
 # can be removed as soon as the following issues is fixed and
 # a new version of PYTSLC is released
 # https://github.com/exasol/pytest-plugins/issues/58
