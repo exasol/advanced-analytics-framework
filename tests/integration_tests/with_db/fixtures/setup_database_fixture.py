@@ -54,16 +54,14 @@ def _deploy_scripts(db_conn) -> None:
 # }
 
 
-import re
 def _bucket_address(bucketfs_params: dict[str, Any]) -> str:
     # pytest-plugins/pytest-slc/exasol/pytest_slc/__init__.py defines
     BFS_CONTAINER_DIRECTORY = 'container'
-    host_and_port = bucketfs_params["url"]
-    port = ":6666" if not re.search(":[0-9]+$", host_and_port) else ""
+    url = bucketfs_params["url"]
     bucket_name = bucketfs_params["bucket_name"]
     path_in_bucket = BFS_CONTAINER_DIRECTORY
     service_name = bucketfs_params["service_name"]
-    return ( f"http://{host_and_port}{port}/{bucket_name}/"
+    return ( f"{url}/{bucket_name}/"
              f"{path_in_bucket};{service_name}" )
 
 
