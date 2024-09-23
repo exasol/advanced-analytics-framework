@@ -22,6 +22,7 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
 
 import exasol.bucketfs as bfs
 from exasol.python_extension_common.deployment.language_container_deployer import LanguageContainerDeployer
+# from pytest-plugins/pytest-slc/exasol/pytest_slc/__init__.py
 BFS_CONTAINER_DIRECTORY = 'container'
 # can be removed as soon as the following issues is fixed and
 # a new version of PYTSLC is released

@@ -53,12 +53,25 @@ def _deploy_scripts(db_conn) -> None:
 #     'pat': saas_pat
 # }
 
+
+def _bucket_address(bucketfs_params) -> str:
+    # pytest-plugins/pytest-slc/exasol/pytest_slc/__init__.py defines
+    BFS_CONTAINER_DIRECTORY = 'container'
+    host_and_port = bucketfs_params["url"]
+    bucket_name = bucketfs_params["bucket_name"]
+    path_in_bucket = BFS_CONTAINER_DIRECTORY
+    service_name = bucketfs_params["service_name"]
+    return ( f"http://{host_and_port}/{bucket_name}/"
+             f"{path_in_bucket};{service_name}" )
+
+
 def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params) -> str:
     name = BUCKETFS_CONNECTION_NAME
     if use_onprem:
         # In general currently I disabled SaaS backend for AAF.
         # Question: Should/Could this work for SaaS, too?
-        uri = bucketfs_params["url"]
+        uri = _bucket_address(bucketfs_params)
+        # uri = bucketfs_params["url"]
         user = bucketfs_params["username"]
         pwd = bucketfs_params["password"]
         db_conn.execute(

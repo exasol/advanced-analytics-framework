@@ -199,7 +199,3 @@ def test_query_loop_integration_with_two_iteration(
            and select_queries_from_query_handler == expected_query_list \
            and view_cleanup_query, \
         f"Not all required queries where executed {executed_queries}"
-
-
-def test_x(database_with_slc):
-    pass

@@ -51,7 +51,7 @@ def custom_slc_builder() -> LanguageContainerBuilder:
     project_directory = find_path_backwards("pyproject.toml", __file__).parent
     with IncrementalSlcBuilder( # LanguageContainerBuilder
         container_name="exasol_advanced_analytics_framework_container",
-        language_alias="PYTHON3_AAF",
+        language_alias="PYTHON3_AAF", # removed in PEC version 0.5.0
     ) as builder:
         builder.prepare_flavor(project_directory)
         yield builder

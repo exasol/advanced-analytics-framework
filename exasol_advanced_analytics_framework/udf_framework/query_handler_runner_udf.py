@@ -173,6 +173,8 @@ class QueryHandlerRunnerUDF:
 
     def _create_bucketfs_location(self):
         bucketfs_connection_obj = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
+        # causes IndexError: tuple index out of range
+        # in bucket_name = url_path.parts[1],
         bucketfs_location_from_con = BucketFSFactory().create_bucketfs_location(
             url=bucketfs_connection_obj.address,
             user=bucketfs_connection_obj.user,
