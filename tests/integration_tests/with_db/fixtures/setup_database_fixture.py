@@ -58,9 +58,9 @@ def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params) -> str:
     if use_onprem:
         # In general currently I disabled SaaS backend for AAF.
         # Question: Should/Could this work for SaaS, too?
-        uri = bucketfs_params.url
-        user = bucketfs_params.username
-        pwd = bucketfs_params.password
+        uri = bucketfs_params["url"]
+        user = bucketfs_params["username"]
+        pwd = bucketfs_params["password"]
         db_conn.execute(
             f"CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
             f"USER '{user}' IDENTIFIED BY '{pwd}'"
