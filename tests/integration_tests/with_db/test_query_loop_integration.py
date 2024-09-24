@@ -7,7 +7,6 @@ import pytest
 
 from tests.test_package.test_query_handlers.query_handler_test import \
     FINAL_RESULT, QUERY_LIST, TEST_INPUT
-from tests.utils.parameters import db_params
 
 QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
 QUERY_AUDIT_LOGS = """
