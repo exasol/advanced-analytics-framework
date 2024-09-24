@@ -65,13 +65,13 @@ def _create_bucketfs_connection(
 @pytest.fixture
 def my_bucketfs_connection_factory(
         use_onprem,
-        db_conn,
+        pyexasol_connection,
         backend_aware_bucketfs_params,
 ) -> Callable[[str, str|None], None]:
     def create(name, path_in_bucket):
         _create_bucketfs_connection(
             use_onprem,
-            db_conn,
+            pyexasol_connection,
             backend_aware_bucketfs_params,
             name,
             path_in_bucket,
