@@ -30,10 +30,11 @@ def _deploy_scripts(db_conn) -> None:
 
 def _bucket_address(bucketfs_params: dict[str, Any]) -> str:
     # pytest-plugins/pytest-slc/exasol/pytest_slc/__init__.py defines
-    BFS_CONTAINER_DIRECTORY = 'container'
+    # BFS_CONTAINER_DIRECTORY = 'container'
     url = bucketfs_params["url"]
     bucket_name = bucketfs_params["bucket_name"]
-    path_in_bucket = BFS_CONTAINER_DIRECTORY
+    # path_in_bucket = BFS_CONTAINER_DIRECTORY
+    path_in_bucket = "my-folder"
     service_name = bucketfs_params["service_name"]
     return ( f"{url}/{bucket_name}/"
              f"{path_in_bucket};{service_name}" )
@@ -56,16 +57,17 @@ def _create_bucketfs_connection(use_onprem, db_conn, bucketfs_params: dict[str, 
 def database_with_slc(
         use_onprem,
         pyexasol_connection,
-        # backend_aware_bucketfs_params,
-        bucketfs_connection_factory,
+        backend_aware_bucketfs_params,
+        # bucketfs_connection_factory,
         upload_slc,
 ) -> Tuple[str|None, str]:
     schema = _create_schema(pyexasol_connection)
     _deploy_scripts(pyexasol_connection)
-    bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
-    # bfs_conn = _create_bucketfs_connection(
-    #     use_onprem,
-    #     pyexasol_connection,
-    #     backend_aware_bucketfs_params,
-    # )
+    # this requires updating query_handler_runner_udf.py to the new bucketfs API, first:
+    # bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    bfs_conn = _create_bucketfs_connection(
+        use_onprem,
+        pyexasol_connection,
+        backend_aware_bucketfs_params,
+    )
     return BUCKETFS_CONNECTION_NAME, schema
