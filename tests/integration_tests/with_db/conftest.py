@@ -28,10 +28,10 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
 def language_alias():
     return LANGUAGE_ALIAS
 
-# TODO: replace by fixture deployed_slc from pytest-exasol-slc version >= 0.3.0
-@pytest.fixture(scope="session")
-def upload_slc(deploy_slc) -> None:
-    deploy_slc(LANGUAGE_ALIAS)
+# # TODO: replace by fixture deployed_slc from pytest-exasol-slc version >= 0.3.0
+# @pytest.fixture(scope="session")
+# def upload_slc(deploy_slc) -> None:
+#     deploy_slc(LANGUAGE_ALIAS)
 
 
 # import exasol.bucketfs as bfs

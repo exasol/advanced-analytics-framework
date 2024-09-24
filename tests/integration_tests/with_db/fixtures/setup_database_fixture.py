@@ -80,7 +80,7 @@ def database_with_slc(
         pyexasol_connection,
         bucketfs_connection_factory,
         my_bucketfs_connection_factory,
-        upload_slc,
+        deployed_slc,
 ) -> Tuple[str|None, str]:
     schema = _create_schema(pyexasol_connection)
     _deploy_scripts(pyexasol_connection)
