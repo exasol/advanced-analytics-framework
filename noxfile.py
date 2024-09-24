@@ -129,14 +129,3 @@ def run_python_integration_tests_with_db(session: Session):
         str(integration_test_directory),
         *session.posargs,
     )
-
-
-# @nox.session(python=False)
-# def x(session: Session):
-#     session.run(
-#         "poetry",
-#         "run",
-#         "pytest",
-#         "tests/unit_tests/test_x.py",
-#         *session.posargs,
-#     )

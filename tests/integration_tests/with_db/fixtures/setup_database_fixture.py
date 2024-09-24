@@ -34,8 +34,6 @@ def _bucket_address(
 ) -> str:
     url = bucketfs_params["url"]
     bucket_name = bucketfs_params["bucket_name"]
-    # path_in_bucket = BFS_CONTAINER_DIRECTORY
-    # path_in_bucket = "my-folder"
     service_name = bucketfs_params["service_name"]
     return ( f"{url}/{bucket_name}/"
              f"{path_in_bucket};{service_name}" )
@@ -80,7 +78,6 @@ def my_bucketfs_connection_factory(
 def database_with_slc(
         use_onprem,
         pyexasol_connection,
-        # backend_aware_bucketfs_params,
         bucketfs_connection_factory,
         my_bucketfs_connection_factory,
         upload_slc,
@@ -89,15 +86,5 @@ def database_with_slc(
     _deploy_scripts(pyexasol_connection)
     # this requires updating query_handler_runner_udf.py to the new bucketfs API, first:
     # bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
-    # my_factory = my_bucketfs_connection_factory(
-    #     use_onprem,
-    #     pyexasol_connection,
-    #     backend_aware_bucketfs_params,
-    # )
     my_bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
-    # bfs_conn = _create_bucketfs_connection(
-    #     use_onprem,
-    #     pyexasol_connection,
-    #     backend_aware_bucketfs_params,
-    # )
     return BUCKETFS_CONNECTION_NAME, schema

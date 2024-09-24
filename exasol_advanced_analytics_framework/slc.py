@@ -9,6 +9,8 @@ from exasol.python_extension_common.deployment.language_container_builder import
 import subprocess
 
 LANGUAGE_ALIAS = "PYTHON3_AAF"
+SLC_NAME = "exasol_advanced_analytics_framework_container.tar.gz"
+SLC_URL_FORMATTER = "https://github.com/exasol/advanced_analytics_framework/releases/download/{version}/" + SLC_NAME
 
 
 # Can be removed as soon as new version of PEC is available
