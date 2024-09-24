@@ -5,6 +5,8 @@ from exasol_advanced_analytics_framework.deployment.language_container_deployer 
     LanguageContainerDeployer
 
 
+# Do we still need this file?
+# Could we use the PEC SLC deployer instead?
 @click.command(name="language-container")
 @click.option('--bucketfs-name', type=str, required=True)
 @click.option('--bucketfs-host', type=str, required=True)

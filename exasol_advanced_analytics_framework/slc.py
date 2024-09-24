@@ -8,6 +8,9 @@ from exasol.python_extension_common.deployment.language_container_builder import
 
 import subprocess
 
+LANGUAGE_ALIAS = "PYTHON3_AAF"
+
+
 # Can be removed as soon as new version of PEC is available
 # incl. fix of https://github.com/exasol/python-extension-common/issues/60
 class IncrementalSlcBuilder(LanguageContainerBuilder):
@@ -51,7 +54,7 @@ def custom_slc_builder() -> LanguageContainerBuilder:
     project_directory = find_path_backwards("pyproject.toml", __file__).parent
     with IncrementalSlcBuilder( # LanguageContainerBuilder
         container_name="exasol_advanced_analytics_framework_container",
-        language_alias="PYTHON3_AAF", # removed in PEC version 0.5.0
+        language_alias=LANGUAGE_ALIAS, # removed in PEC version 0.5.0
     ) as builder:
         builder.prepare_flavor(project_directory)
         yield builder

@@ -10,6 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# Should this be replaced by PEC?
 class LanguageContainerDeployer:
     def __init__(self,
                  pyexasol_connection: pyexasol.ExaConnection,
@@ -82,7 +83,7 @@ class LanguageContainerDeployer:
 
     def _get_previous_language_settings(self, alter_type: str) -> str:
         result = self._pyexasol_conn.execute(
-            f"""SELECT "{alter_type}_VALUE" FROM SYS.EXA_PARAMETERS WHERE 
+            f"""SELECT "{alter_type}_VALUE" FROM SYS.EXA_PARAMETERS WHERE
             PARAMETER_NAME='SCRIPT_LANGUAGES'""").fetchall()
         return result[0][0]
 

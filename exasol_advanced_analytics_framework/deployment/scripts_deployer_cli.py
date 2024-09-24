@@ -2,14 +2,14 @@ import click
 from exasol_advanced_analytics_framework.deployment import utils
 from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
     ScriptsDeployer
-
+from exasol_advanced_analytics_framework.slc import LANGUAGE_ALIAS
 
 @click.command(name="scripts")
 @click.option('--dsn', type=str, required=True)
 @click.option('--user', type=str, required=True)
 @click.option('--pass', 'pwd', type=str)
 @click.option('--schema', type=str, required=True)
-@click.option('--language-alias', type=str, default="PYTHON3_AAF")
+@click.option('--language-alias', type=str, default=LANGUAGE_ALIAS)
 @click.option('--develop', type=bool, is_flag=True)
 def scripts_deployer_main(
         dsn: str, user: str, pwd: str, schema: str,
