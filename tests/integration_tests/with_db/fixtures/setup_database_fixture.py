@@ -8,6 +8,7 @@ from exasol_advanced_analytics_framework.slc import LANGUAGE_ALIAS
 BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
 SCHEMA_NAME = "TEST_INTEGRATION"
 
+
 @pytest.fixture(scope="session")
 def pyexasol_connection(backend_aware_database_params) -> pyexasol.ExaConnection:
     return pyexasol.connect(**backend_aware_database_params)
@@ -61,10 +62,10 @@ def database_with_slc(
 ) -> Tuple[str|None, str]:
     schema = _create_schema(pyexasol_connection)
     _deploy_scripts(pyexasol_connection)
-    bfs_conn = bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     # bfs_conn = _create_bucketfs_connection(
     #     use_onprem,
     #     pyexasol_connection,
     #     backend_aware_bucketfs_params,
     # )
-    return bfs_conn, schema
+    return BUCKETFS_CONNECTION_NAME, schema

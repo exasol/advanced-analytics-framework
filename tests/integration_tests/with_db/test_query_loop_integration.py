@@ -56,11 +56,6 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
     # into its own session, for easier retrieval
     conn = pyexasol.connect(**backend_aware_database_params)
 
-    # conn = pyexasol.connect(
-    #     dsn=db_params.address(),
-    #     user=db_params.user,
-    #     password=db_params.password)
-
     # execute query loop
     bucketfs_connection_name, schema_name = database_with_slc
     args = json.dumps(
@@ -96,11 +91,6 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(**backend_aware_database_params)
-
-    # conn = pyexasol.connect(
-    #     dsn=db_params.address(),
-    #     user=db_params.user,
-    #     password=db_params.password)
 
     # execute query loop
     bucketfs_connection_name, schema_name = database_with_slc
@@ -148,11 +138,6 @@ def test_query_loop_integration_with_two_iteration(
     # start a new db session, to isolate the EXECUTE SCRIPT and the QueryHandler queries
     # into its own session, for easier retrieval of the audit log
     conn = pyexasol.connect(**backend_aware_database_params)
-
-    # conn = pyexasol.connect(
-    #     dsn=db_params.address(),
-    #     user=db_params.user,
-    #     password=db_params.password)
 
     # execute query loop
     bucketfs_connection_name, schema_name = database_with_slc
