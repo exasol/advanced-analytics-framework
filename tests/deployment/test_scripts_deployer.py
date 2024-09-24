@@ -8,7 +8,7 @@ def test_scripts_deployer(deployed_slc, language_alias, pyexasol_connection, req
     schema_name = request.node.name
     pyexasol_connection.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;")
     ScriptsDeployer.run2(
-        pyexasol_connection
+        pyexasol_connection,
         # dsn=db_params.address(),
         # user=db_params.user,
         # password=db_params.password,
