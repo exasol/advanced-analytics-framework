@@ -32,8 +32,6 @@ def _bucket_address(
         bucketfs_params: dict[str, Any],
         path_in_bucket: str = "my-folder",
 ) -> str:
-    # pytest-plugins/pytest-slc/exasol/pytest_slc/__init__.py defines
-    # BFS_CONTAINER_DIRECTORY = 'container'
     url = bucketfs_params["url"]
     bucket_name = bucketfs_params["bucket_name"]
     # path_in_bucket = BFS_CONTAINER_DIRECTORY
@@ -50,7 +48,6 @@ def _create_bucketfs_connection(
         name: str = BUCKETFS_CONNECTION_NAME,
         path_in_bucket: str = "my-folder",
 ) -> str:
-    name = name
     if use_onprem:
         uri = _bucket_address(bucketfs_params, path_in_bucket)
         user = bucketfs_params["username"]
@@ -62,7 +59,7 @@ def _create_bucketfs_connection(
     return name
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def my_bucketfs_connection_factory(
         use_onprem,
         pyexasol_connection,
@@ -83,7 +80,7 @@ def my_bucketfs_connection_factory(
 def database_with_slc(
         use_onprem,
         pyexasol_connection,
-        backend_aware_bucketfs_params,
+        # backend_aware_bucketfs_params,
         bucketfs_connection_factory,
         my_bucketfs_connection_factory,
         upload_slc,
