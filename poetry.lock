@@ -770,20 +770,20 @@ simplejson = ">=3.16.0"
 
 [[package]]
 name = "exasol-python-extension-common"
-version = "0.4.0"
+version = "0.6.0"
 description = "A collection of common utilities for Exasol extensions."
 optional = false
 python-versions = "<4.0.0,>=3.10.0"
 files = [
-    {file = "exasol_python_extension_common-0.4.0-py3-none-any.whl", hash = "sha256:561120c634569edec3b5b0e02fed5a9826d5c8093ce8312ae33dedf88dcdbe34"},
-    {file = "exasol_python_extension_common-0.4.0.tar.gz", hash = "sha256:3d6a58018e78d0fa3de22b83a2857a8889460fd43ba4b3b8d19ac7e3c103d70e"},
+    {file = "exasol_python_extension_common-0.6.0-py3-none-any.whl", hash = "sha256:434c01936ab67ab00b1fc8f218d2eb90c415a93e9cef9fb9910fdbde6e02bc81"},
+    {file = "exasol_python_extension_common-0.6.0.tar.gz", hash = "sha256:c121153f6605601e22ddcd3f9afa9a24cb4f05c1de030c7871a594a419f17575"},
 ]
 
 [package.dependencies]
 click = ">=8.1.7,<9.0.0"
 exasol-bucketfs = ">=0.10.0"
 exasol-saas-api = ">=0.7.0,<1.0.0"
-exasol-script-languages-container-tool = ">=0.20.0"
+exasol-script-languages-container-tool = ">=1.0.0,<2.0.0"
 pyexasol = ">=0.25.0,<1.0.0"
 requests = ">=2.32.0"
 tenacity = ">=8.3.0,<9.0.0"
@@ -810,21 +810,21 @@ types-requests = ">=2.31.0.6,<3.0.0.0"
 
 [[package]]
 name = "exasol-script-languages-container-tool"
-version = "0.21.0"
+version = "1.0.0"
 description = "Script Languages Container Tool"
 optional = false
 python-versions = "<4,>=3.10"
 files = [
-    {file = "exasol_script_languages_container_tool-0.21.0-py3-none-any.whl", hash = "sha256:06a1c26dc819dc52ded6189f1944bd7f65a3af5f38e188c58ec092b9f4928c62"},
-    {file = "exasol_script_languages_container_tool-0.21.0.tar.gz", hash = "sha256:2336029332d849e9a1b08c7c642a70fd667374f17bb5576eed7f4439b3dc0468"},
+    {file = "exasol_script_languages_container_tool-1.0.0-py3-none-any.whl", hash = "sha256:8b87243782266f55b1bd6c153275cba1f55a8406bca99c2d4d37934b3e8bcad4"},
+    {file = "exasol_script_languages_container_tool-1.0.0.tar.gz", hash = "sha256:39f0da9e8a55bc0fec1477f5d6c03761ef0abbd841bfc5909253e12e1ae0bcc1"},
 ]
 
 [package.dependencies]
+exasol-bucketfs = ">=0.13.0,<0.14.0"
 exasol-integration-test-docker-environment = ">=3.1.0,<4.0.0"
 importlib_metadata = ">=4.6.0"
-importlib-resources = ">=5.4.0"
-networkx = ">=2.8.2,<3.0.0"
-requests = ">=2.31.0,<3.0.0"
+importlib-resources = ">=6.4.0"
+networkx = ">=3.3.0,<4.0.0"
 
 [[package]]
 name = "exasol-toolbox"
@@ -1496,21 +1496,21 @@ nicer-shell = ["ipython"]
 
 [[package]]
 name = "networkx"
-version = "2.8.8"
+version = "3.3"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "networkx-2.8.8-py3-none-any.whl", hash = "sha256:e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524"},
-    {file = "networkx-2.8.8.tar.gz", hash = "sha256:230d388117af870fce5647a3c52401fcf753e94720e6ea6b4197a5355648885e"},
+    {file = "networkx-3.3-py3-none-any.whl", hash = "sha256:28575580c6ebdaf4505b22c6256a2b9de86b316dc63ba9e93abde3d78dfdbcf2"},
+    {file = "networkx-3.3.tar.gz", hash = "sha256:0c127d8b2f4865f59ae9cb8aafcd60b5c70f3241ebd66f7defad7c4ab90126c9"},
 ]
 
 [package.extras]
-default = ["matplotlib (>=3.4)", "numpy (>=1.19)", "pandas (>=1.3)", "scipy (>=1.8)"]
-developer = ["mypy (>=0.982)", "pre-commit (>=2.20)"]
-doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.2)", "pydata-sphinx-theme (>=0.11)", "sphinx (>=5.2)", "sphinx-gallery (>=0.11)", "texext (>=0.6.6)"]
-extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.9)", "sympy (>=1.10)"]
-test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
+default = ["matplotlib (>=3.6)", "numpy (>=1.23)", "pandas (>=1.4)", "scipy (>=1.9,!=1.11.0,!=1.11.1)"]
+developer = ["changelist (==0.5)", "mypy (>=1.1)", "pre-commit (>=3.2)", "rtoml"]
+doc = ["myst-nb (>=1.0)", "numpydoc (>=1.7)", "pillow (>=9.4)", "pydata-sphinx-theme (>=0.14)", "sphinx (>=7)", "sphinx-gallery (>=0.14)", "texext (>=0.6.7)"]
+extra = ["lxml (>=4.6)", "pydot (>=2.0)", "pygraphviz (>=1.12)", "sympy (>=1.10)"]
+test = ["pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
 name = "nodeenv"
@@ -1931,17 +1931,17 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pylint"
-version = "3.3.0"
+version = "3.3.1"
 description = "python code static checker"
 optional = false
 python-versions = ">=3.9.0"
 files = [
-    {file = "pylint-3.3.0-py3-none-any.whl", hash = "sha256:02dce1845f68974b9b03045894eb3bf05a8b3c7da9fd10af4de3c91e69eb92f1"},
-    {file = "pylint-3.3.0.tar.gz", hash = "sha256:c685fe3c061ee5fb0ce7c29436174ab84a2f525fce2a268b1986e921e083fe22"},
+    {file = "pylint-3.3.1-py3-none-any.whl", hash = "sha256:2f846a466dd023513240bc140ad2dd73bfc080a5d85a710afdb728c420a5a2b9"},
+    {file = "pylint-3.3.1.tar.gz", hash = "sha256:9f3dcc87b1203e612b78d91a896407787e708b3f189b5fa0b307712d49ff0c6e"},
 ]
 
 [package.dependencies]
-astroid = ">=3.3.3,<=3.4.0-dev0"
+astroid = ">=3.3.4,<=3.4.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
@@ -2119,19 +2119,20 @@ pytest-exasol-backend = ">=0.2.0"
 
 [[package]]
 name = "pytest-exasol-slc"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 optional = false
 python-versions = "<4,>=3.10"
 files = [
-    {file = "pytest_exasol_slc-0.2.0-py3-none-any.whl", hash = "sha256:9b9d392332d2d104d46ae85ef7505ea2fe3f324ce4c77a0ba5ba09915cc457e1"},
-    {file = "pytest_exasol_slc-0.2.0.tar.gz", hash = "sha256:02c58ec952c10cd32d7ca6551f8474ccbed55916841a05b2d535e8f01eab0664"},
+    {file = "pytest_exasol_slc-0.3.0-py3-none-any.whl", hash = "sha256:5219eb310390337231e95844aae28bfe243a6b6fff2058f39033b3fd3c651357"},
+    {file = "pytest_exasol_slc-0.3.0.tar.gz", hash = "sha256:548705d34135bfefdfddb5a923540bde0b332d12e947a13ca0115f19cc84aa9b"},
 ]
 
 [package.dependencies]
-exasol-python-extension-common = ">=0.4.0"
+exasol-python-extension-common = ">=0.5.0"
 pytest = ">=7,<9"
-pytest-exasol-backend = ">=0.2.0"
+pytest-exasol-backend = ">=0.3.0"
+pytest-exasol-extension = ">=0.1.0"
 
 [[package]]
 name = "pytest-prysk"
@@ -3206,4 +3207,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "0e072eb9543b04c0d1f9a7d2a935fb5cecd6edc92c4c6dd6230e887736ff075c"
+content-hash = "601dc4649c8b0a8a0e4d725ffe2d44679cca31c477d96a84c8996cf5edd90fee"
