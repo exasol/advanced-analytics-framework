@@ -20,6 +20,7 @@ def _create_schema(db_conn) -> str:
     db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
     return schema
 
+
 def _deploy_scripts(db_conn) -> None:
     ScriptsDeployer.run(
         db_conn,
@@ -27,7 +28,8 @@ def _deploy_scripts(db_conn) -> None:
         language_alias=LANGUAGE_ALIAS,
         develop=True)
 
-
+# Can be removed after 
+# https://github.com/exasol/advanced-analytics-framework/issues/176
 def _bucket_address(
         bucketfs_params: dict[str, Any],
         path_in_bucket: str = "my-folder",
@@ -39,6 +41,8 @@ def _bucket_address(
              f"{path_in_bucket};{service_name}" )
 
 
+# Can be removed after 
+# https://github.com/exasol/advanced-analytics-framework/issues/176
 def _create_bucketfs_connection(
         use_onprem,
         db_conn,
@@ -57,6 +61,8 @@ def _create_bucketfs_connection(
     return name
 
 
+# Can be removed after 
+# https://github.com/exasol/advanced-analytics-framework/issues/176
 @pytest.fixture(scope='session')
 def my_bucketfs_connection_factory(
         use_onprem,
