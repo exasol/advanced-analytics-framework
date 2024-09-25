@@ -4,7 +4,6 @@ from exasol_data_science_utils_python.schema.column_name import ColumnName
 from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
 from exasol_data_science_utils_python.schema.connection_object_name_builder import ConnectionObjectNameBuilder
 from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
-from typeguard import TypeCheckError
 
 
 def test_using_empty_constructor():
