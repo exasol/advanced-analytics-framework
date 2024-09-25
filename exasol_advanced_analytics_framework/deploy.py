@@ -1,7 +1,7 @@
 import logging
 import click
 from exasol_advanced_analytics_framework.slc import (
-    SLC_NAME,
+    SLC_FILE_NAME,
     SLC_URL_FORMATTER,
 )
 from exasol_advanced_analytics_framework.deployment import (
@@ -21,7 +21,7 @@ def main():
 
 
 slc_parameter_formatters.set_formatter(CustomizableParameters.container_url, SLC_URL_FORMATTER)
-slc_parameter_formatters.set_formatter(CustomizableParameters.container_name, SLC_NAME)
+slc_parameter_formatters.set_formatter(CustomizableParameters.container_name, SLC_FILE_NAME)
 
 main.add_command(scripts_deployer_cli.scripts_deployer_main)
 main.add_command(language_container_deployer_cli.language_container_deployer_main)
