@@ -93,7 +93,7 @@ def my_bucketfs_connection_factory(
         uri = _bucket_address(bucketfs_params, path_in_bucket)
         user = bucketfs_params["username"]
         pwd = bucketfs_params["password"]
-        db_conn.execute(
+        pyexasol_connection.execute(
             f"CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
             f"USER '{user}' IDENTIFIED BY '{pwd}'"
         )
