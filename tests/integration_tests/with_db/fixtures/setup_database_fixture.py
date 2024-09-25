@@ -21,7 +21,7 @@ def _create_schema(db_conn) -> str:
     return schema
 
 def _deploy_scripts(db_conn) -> None:
-    ScriptsDeployer.run2(
+    ScriptsDeployer.run(
         db_conn,
         schema=SCHEMA_NAME,
         language_alias=LANGUAGE_ALIAS,
@@ -84,7 +84,9 @@ def database_with_slc(
 ) -> Tuple[str|None, str]:
     schema = _create_schema(pyexasol_connection)
     _deploy_scripts(pyexasol_connection)
-    # this requires updating query_handler_runner_udf.py to the new bucketfs API, first:
+    # this requires updating query_handler_runner_udf.py to the new bucketfs API, first,
+    # which is planned to be done in ticket
+    # https://github.com/exasol/advanced-analytics-framework/issues/176
     # bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     my_bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     return BUCKETFS_CONNECTION_NAME, schema

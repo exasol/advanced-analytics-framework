@@ -49,14 +49,14 @@ class ScriptsDeployer:
         self._deploy_lua_scripts()
         logger.debug(f"Scripts are deployed.")
 
-    @classmethod
-    def run(cls, dsn: str, user: str, password: str,
-            schema: str, language_alias: str, develop: bool):
-        pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
-        cls.run2(pyexasol_conn, schema, language_alias, develop)
+    # @classmethod
+    # def run_old(cls, dsn: str, user: str, password: str,
+    #         schema: str, language_alias: str, develop: bool):
+    #     pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
+    #     cls.run2(pyexasol_conn, schema, language_alias, develop)
 
     @classmethod
-    def run2(
+    def run(
             cls,
             pyexasol_conn: pyexasol.ExaConnection,
             schema: str,
