@@ -2,6 +2,8 @@ import pytest
 import pyexasol
 from typing import Any, Tuple, Callable
 from exasol_advanced_analytics_framework.deployment.scripts_deployer import ScriptsDeployer
+from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
+    save_aaf_query_loop_lua_script
 
 
 BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
@@ -17,11 +19,17 @@ def db_schema_name() -> str:
 
 @pytest.fixture(scope="module")
 def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> None:
-    ScriptsDeployer.run(
+    save_aaf_query_loop_lua_script()
+    ScriptsDeployer(
+        language_alias,
+        db_schema_name,
         pyexasol_connection,
-        schema=db_schema_name,
-        language_alias=language_alias,
-        develop=True)
+    ).deploy_scripts()
+    # ScriptsDeployer.run(
+    #     pyexasol_connection,
+    #     schema=db_schema_name,
+    #     language_alias=language_alias,
+    #     develop=True)
 
 
 # Can be removed after
