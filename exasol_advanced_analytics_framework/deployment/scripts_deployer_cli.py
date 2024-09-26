@@ -20,7 +20,7 @@ def scripts_deployer_main(
     ScriptsDeployer.run(
         dsn=dsn,
         user=user,
-        password=password
+        password=password,
         schema=schema,
         language_alias=language_alias,
         develop=develop,
