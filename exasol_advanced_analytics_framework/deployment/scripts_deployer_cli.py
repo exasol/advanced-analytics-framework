@@ -16,13 +16,21 @@ def scripts_deployer_main(
         language_alias: str, develop: bool):
     password = utils.get_password(
         pwd, user, utils.DB_PASSWORD_ENVIRONMENT_VARIABLE, "DB Password")
-    pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
+    # pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
     ScriptsDeployer.run(
-        pyexasol_conn,
+        dsn=dsn,
+        user=user,
+        password=password
         schema=schema,
         language_alias=language_alias,
-        develop=develop
+        develop=develop,
     )
+    # ScriptsDeployer.run(
+    #     pyexasol_conn,
+    #     schema=schema,
+    #     language_alias=language_alias,
+    #     develop=develop
+    # )
 
 
 if __name__ == '__main__':
