@@ -14,10 +14,5 @@ def test_scripts_deployer(deployed_slc, language_alias, pyexasol_connection, req
         schema_name,
         pyexasol_connection,
     ).deploy_scripts()
-    # ScriptsDeployer.run(
-    #     pyexasol_connection,
-    #     schema=schema_name,
-    #     language_alias=language_alias,
-    #     develop=True)
     assert DBQueries.check_all_scripts_deployed(
         pyexasol_connection, schema_name)

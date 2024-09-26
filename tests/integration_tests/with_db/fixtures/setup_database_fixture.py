@@ -25,11 +25,6 @@ def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> Non
         db_schema_name,
         pyexasol_connection,
     ).deploy_scripts()
-    # ScriptsDeployer.run(
-    #     pyexasol_connection,
-    #     schema=db_schema_name,
-    #     language_alias=language_alias,
-    #     develop=True)
 
 
 # Can be removed after
