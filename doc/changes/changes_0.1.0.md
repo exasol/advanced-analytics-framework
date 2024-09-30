@@ -46,7 +46,9 @@ Code name:
 * #173: Introduced Python Toolbox
 * #174: Replaced Language Container Stuff with PEC and SLC plugin
 * #183: Fixed warning on tests with `__init__` constructor
+* #180: Replace `start_integration_test_environment.sh` with `pytest-backend-plugin`
 * #184: Updated micromamba to the latest version 2.0.0
+* #176: Updated usage of `exasol-bucketfs` to new API
 
 ### Documentation
 
