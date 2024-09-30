@@ -9,7 +9,7 @@ from exasol_data_science_utils_python.utils.repr_generation_for_object import ge
 
 class ColumnName(ExasolIdentifierImpl):
     @typechecked
-    def __init__(self, name: str, table_like_name: TableLikeName = None):
+    def __init__(self, name: str, table_like_name: TableLikeName|None = None):
         super().__init__(name)
         self._table_like_name = table_like_name
 

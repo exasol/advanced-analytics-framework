@@ -27,6 +27,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass()
 class TestSetup:
+    __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
     out_control_socket_mock: Union[MagicMock, Socket]

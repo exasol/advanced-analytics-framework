@@ -26,13 +26,13 @@ jinja2 = "^3.0.3"
 importlib-resources = "^6.4.0"
 exasol-bucketfs = ">=0.6.0,<1.0.0"
 click = "^8.0.4"
-pyexasol = "^0.25.0"
+pyexasol = ">=0.25.0,<1.0.0"
 pandas = "^1.1.0"
 pydantic = "^1.10.2"
 pyzmq = "^26.0.3"
 sortedcontainers = "^2.4.0"
 structlog = "^24.2.0"
-typeguard = "<3.0.0"
+typeguard = "^4.0.0"
 nox = "^2024.4.15"
 
 [tool.poetry.group.dev.dependencies]
@@ -45,6 +45,11 @@ polyfactory = "^2.8.0"
 pytest-repeat = ">=0.9.1"
 elasticsearch = "^8.6.1"
 exasol-toolbox = ">=0.14.0"
+exasol-python-extension-common = ">=0.6.0,<1.0.0"
+exasol-script-languages-container-tool = "^1.0.0"
+pytest-exasol-slc = ">=0.1.0,<1.0.0"
+pytest-exasol-backend = ">=0.3.0,<1.0.0"
+pytest-exasol-extension = ">=0.1.0,<1.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

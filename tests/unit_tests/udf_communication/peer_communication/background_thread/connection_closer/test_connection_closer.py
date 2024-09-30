@@ -20,6 +20,7 @@ from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sen
 
 @dataclasses.dataclass()
 class TestSetup:
+    __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
     sender_mock: Union[MagicMock, Sender]

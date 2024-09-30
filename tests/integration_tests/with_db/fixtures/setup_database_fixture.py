@@ -1,43 +1,79 @@
 import pytest
-from typing import Tuple
-from exasol_advanced_analytics_framework.deployment.scripts_deployer import \
-    ScriptsDeployer
-from tests.utils.parameters import db_params, bucketfs_params
+import pyexasol
+from typing import Any, Tuple, Callable
+from exasol_advanced_analytics_framework.deployment.scripts_deployer import ScriptsDeployer
+from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
+    save_aaf_query_loop_lua_script
 
 
-bucketfs_connection_name = "TEST_AAF_BFS_CONN"
-schema_name = "TEST_INTEGRATION"
-language_alias = "PYTHON3_AAF"
+BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
 
 
-def _create_schema(db_conn) -> None:
-    db_conn.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;")
-    db_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name};")
-
-
-def _deploy_scripts() -> None:
-    ScriptsDeployer.run(
-        dsn=db_params.address(),
-        user=db_params.user,
-        password=db_params.password,
-        schema=schema_name,
-        language_alias=language_alias,
-        develop=True)
-
-
-def _create_bucketfs_connection(db_conn) -> None:
-    query = "CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
-            "USER '{user}' IDENTIFIED BY '{pwd}'".format(
-        name=bucketfs_connection_name,
-        uri=bucketfs_params.address(bucketfs_params.real_port),
-        user=bucketfs_params.user,
-        pwd=bucketfs_params.password)
-    db_conn.execute(query)
+@pytest.fixture(scope="session")
+def db_schema_name() -> str:
+    """
+    Overrides default fixture from pytest-exasol-extension.
+    """
+    return "TEST_INTEGRATION"
 
 
 @pytest.fixture(scope="module")
-def setup_database(pyexasol_connection) -> Tuple[str, str]:
-    _create_schema(pyexasol_connection)
-    _deploy_scripts()
-    _create_bucketfs_connection(pyexasol_connection)
-    return bucketfs_connection_name, schema_name
+def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> None:
+    save_aaf_query_loop_lua_script()
+    ScriptsDeployer(
+        language_alias,
+        db_schema_name,
+        pyexasol_connection,
+    ).deploy_scripts()
+
+
+# Can be removed after
+# https://github.com/exasol/advanced-analytics-framework/issues/176
+def _bucket_address(
+        bucketfs_params: dict[str, Any],
+        path_in_bucket: str = "my-folder",
+) -> str:
+    url = bucketfs_params["url"]
+    bucket_name = bucketfs_params["bucket_name"]
+    service_name = bucketfs_params["service_name"]
+    return ( f"{url}/{bucket_name}/"
+             f"{path_in_bucket};{service_name}" )
+
+
+# Can be removed after
+# https://github.com/exasol/advanced-analytics-framework/issues/176
+@pytest.fixture(scope='session')
+def my_bucketfs_connection_factory(
+        use_onprem,
+        pyexasol_connection,
+        backend_aware_bucketfs_params,
+) -> Callable[[str, str|None], None]:
+    def create(name, path_in_bucket):
+        if not use_onprem:
+            return
+        bucketfs_params = backend_aware_bucketfs_params
+        uri = _bucket_address(bucketfs_params, path_in_bucket)
+        user = bucketfs_params["username"]
+        pwd = bucketfs_params["password"]
+        pyexasol_connection.execute(
+            f"CREATE OR REPLACE  CONNECTION {name} TO '{uri}' " \
+            f"USER '{user}' IDENTIFIED BY '{pwd}'"
+        )
+    return create
+
+
+@pytest.fixture(scope="module")
+def database_with_slc(
+        pyexasol_connection,
+        deployed_scripts,
+        db_schema_name,
+        bucketfs_connection_factory,
+        my_bucketfs_connection_factory,
+        deployed_slc,
+) -> Tuple[str|None, str]:
+    # this requires updating query_handler_runner_udf.py to the new bucketfs API, first,
+    # which is planned to be done in ticket
+    # https://github.com/exasol/advanced-analytics-framework/issues/176
+    # bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    my_bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    return BUCKETFS_CONNECTION_NAME, db_schema_name

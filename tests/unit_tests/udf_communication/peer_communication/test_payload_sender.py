@@ -22,6 +22,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     sender_mock: Union[MagicMock, Sender]
     out_control_socket_mock: Union[MagicMock, Socket]
     clock_mock: Union[MagicMock, Clock]

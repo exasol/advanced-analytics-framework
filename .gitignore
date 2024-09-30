@@ -161,3 +161,6 @@ doc/_build
 
 # emacs
 TAGS
+
+# locally build script language container files
+.slc

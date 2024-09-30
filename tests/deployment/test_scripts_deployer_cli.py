@@ -1,22 +1,24 @@
 from click.testing import CliRunner
 from exasol_advanced_analytics_framework import deploy
 from tests.utils.db_queries import DBQueries
-from tests.utils.parameters import db_params
+from exasol_advanced_analytics_framework.slc import LANGUAGE_ALIAS
 
 
 def test_scripts_deployer_cli(upload_language_container,
+                              backend_aware_database_params,
                               pyexasol_connection, request):
     schema_name = request.node.name
     pyexasol_connection.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE;")
-
-    language_alias = "PYTHON3_AAF"
+    dsn = backend_aware_database_params["dsn"]
+    user = backend_aware_database_params["user"]
+    password = backend_aware_database_params["password"]
     args_list = [
         "scripts",
-        "--dsn", db_params.address(),
-        "--user", db_params.user,
-        "--pass", db_params.password,
+        "--dsn", dns,
+        "--user", user,
+        "--pass", password,
         "--schema", schema_name,
-        "--language-alias", language_alias
+        "--language-alias", LANGUAGE_ALIAS
     ]
     runner = CliRunner()
     result = runner.invoke(deploy.main, args_list)

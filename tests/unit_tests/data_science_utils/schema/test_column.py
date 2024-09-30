@@ -3,6 +3,7 @@ import pytest
 from exasol_data_science_utils_python.schema.column import Column
 from exasol_data_science_utils_python.schema.column import ColumnType
 from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
+from typeguard import TypeCheckError
 
 
 def test_set_new_type_fail():
@@ -18,7 +19,7 @@ def test_set_new_name_fail():
 
 
 def test_wrong_types_in_constructor():
-    with pytest.raises(TypeError) as c:
+    with pytest.raises(TypeCheckError) as c:
         column = Column("abc", "INTEGER")
 
 def test_equality():

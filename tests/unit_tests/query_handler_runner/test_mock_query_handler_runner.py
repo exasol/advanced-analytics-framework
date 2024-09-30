@@ -46,6 +46,7 @@ class TestInput:
 
 
 class TestOutput:
+    __test__ = False
     def __init__(self, test_input: TestInput):
         self.test_input = test_input
 

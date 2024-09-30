@@ -26,6 +26,7 @@ from tests.mock_cast import mock_cast
 
 @dataclasses.dataclass()
 class TestSetup:
+    __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
     payload_handler_mock: Union[MagicMock, PayloadHandler]

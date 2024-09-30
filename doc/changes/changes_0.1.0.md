@@ -44,7 +44,27 @@ Code name:
 * #95: Remove setup.py
 * #114: Refactored BackgroundPeerState and introduced parameter objects
 * #173: Introduced Python Toolbox
+* #174: Replaced Language Container Stuff with PEC and SLC plugin
+* #183: Fixed warning on tests with `__init__` constructor
+* #184: Updated micromamba to the latest version 2.0.0
 
 ### Documentation
 
 * #9: Added README file
+
+## Dependency Updates
+
+Compared to `main` branch this release updates the following dependencies:
+
+### File `pyproject.toml`
+
+* Updated dependency `exasol-bucketfs:0.8.0` to `0.13.0`
+* Updated dependency `pyexasol:0.25.2` to `0.27.0`
+* Updated dependency `typeguard:2.13.3` to `4.3.0`
+* Updated dependency `exasol-integration-test-docker-environment:3.1.0` to `3.2.0`
+* Updated dependency `polyfactory:2.16.2` to `2.17.0`
+* Added dependency `exasol-python-extension-common:0.6.0`
+* Added dependency `exasol-script-languages-container-tool:1.0.0`
+* Added dependency `pytest-exasol-slc:0.3.0`
+* Added dependency `pytest-exasol-backend:0.3.0`
+* Added dependency `pytest-exasol-extension:0.1.0`
