@@ -4,8 +4,6 @@
 # Modifications:
 # - removed functions dealing with specifics of transformers-extensions
 # - disabled support for Exasol SaaS instances
-# - added functions udf_mock_connection
-# - added functions for interaction with joblib
 
 from __future__ import annotations
 import tarfile
@@ -13,55 +11,16 @@ import tempfile
 from tempfile import NamedTemporaryFile
 from pathlib import PurePosixPath, Path
 from typing import Any, BinaryIO
-from exasol_udf_mock_python.connection import Connection
+# from exasol_udf_mock_python.connection import Connection
 
 
-import joblib
-import json
+# import joblib
+# import json
 import exasol.bucketfs as bfs
 # from exasol.saas.client.api_access import get_database_id   # type: ignore
 # from exasol_transformers_extension.utils.model_specification import ModelSpecification
 
-# --------------------------------------------------
-# added functions
-
-
-def mkjson(**kwargs):
-    return json.dumps(kwargs)
-
-
-def udf_mock_connection(user=None, password=None, **kwargs) -> Connection:
-    """
-    For MountedBucket provide kwargs backend="mounted", and base_path.
-    """
-    return Connection(
-        address=mkjson(**kwargs),
-        user=mkjson(username=user) if user else "{}",
-        password=mkjson(password=password) if password else "{}",
-    )
-
-
-def upload_via_joblib(location: bfs.path.PathLike, object: Any):
-    with NamedTemporaryFile() as temp_file:
-        joblib.dump(object, temp_file.name)
-        temp_file.flush()
-        temp_file.seek(0)
-        data = b''.join(temp_file)
-        # strangely location.write(temp_file) did not write any data to BFS
-        location.write(data)
-
-
-def read_via_joblib(location: bfs.path.PathLike) -> Any:
-    with NamedTemporaryFile() as temp_file:
-        for chunk in location.read():
-            temp_file.write(chunk)
-        temp_file.flush()
-        temp_file.seek(0)
-        return joblib.load(temp_file)
-
-# end of added functions
-# --------------------------------------------------
-
+# unused
 def create_bucketfs_location_from_conn_object(bfs_conn_obj: Connection) -> bfs.path.PathLike:
     bfs_params = json.loads(bfs_conn_obj.address)
     bfs_params.update(json.loads(bfs_conn_obj.user))
@@ -69,6 +28,7 @@ def create_bucketfs_location_from_conn_object(bfs_conn_obj: Connection) -> bfs.p
     return bfs.path.build_path(**bfs_params)
 
 
+# unused
 def create_bucketfs_location(
         path_in_bucket: str = '',
         bucketfs_name: str | None = None,

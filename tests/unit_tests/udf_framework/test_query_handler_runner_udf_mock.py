@@ -1,14 +1,9 @@
 import json
 import pytest
 import re
-import exasol.bucketfs as bfs
 
-from tempfile import TemporaryDirectory
-from pathlib import Path
-from exasol_advanced_analytics_framework import bucketfs_operations
 from typing import Any, Dict
 
-from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
 from exasol_udf_mock_python.connection import Connection
 from exasol_udf_mock_python.group import Group
@@ -16,7 +11,10 @@ from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
-from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf import QueryHandlerStatus
+from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf import (
+    QueryHandlerStatus,
+    create_bucketfs_location_from_conn_object,
+)
 from tests.unit_tests.udf_framework import mock_query_handlers
 from tests.unit_tests.udf_framework.mock_query_handlers import TEST_CONNECTION
 from tests.utils.test_utils import pytest_regex
@@ -29,15 +27,29 @@ BUCKETFS_DIRECTORY = "directory"
 BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
 
 
+def to_json_str(**kwargs):
+    return json.dumps(kwargs)
+
+
+def udf_mock_connection(user=None, password=None, **kwargs) -> Connection:
+    """
+    For MountedBucket provide kwargs backend="mounted", and base_path.
+    """
+    return Connection(
+        address=to_json_str(**kwargs),
+        user=to_json_str(username=user) if user else "{}",
+        password=to_json_str(password=password) if password else "{}",
+    )
+
+
 @pytest.fixture
 def query_handler_bfs_connection(tmp_path):
     path = tmp_path / "query_handler"
     path.mkdir()
-    return bucketfs_operations.udf_mock_connection(
+    return udf_mock_connection(
         backend="mounted",
         base_path=f"{path}",
     )
-
 
 def create_mocked_exa_env(bfs_connection, connections: Dict[str, Any] = {}):
     meta = create_mock_data()
@@ -228,8 +240,8 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
 
 
 def test_query_handler_udf_using_connection(query_handler_bfs_connection):
-    test_connection = bucketfs_operations.udf_mock_connection(
-        address=f"test_connection",
+    test_connection = udf_mock_connection(
+        address="test_connection",
         user="test_connection_user",
         password="test_connection_pwd",
     )
@@ -264,8 +276,7 @@ def test_query_handler_udf_using_connection(query_handler_bfs_connection):
 def _is_state_exist(
         iter_num: int,
         model_connection: Connection) -> bool:
-    bucketfs_location = bucketfs_operations.create_bucketfs_location_from_conn_object(
-        model_connection)
+    bucketfs_location = create_bucketfs_location_from_conn_object(model_connection)
     bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
     state_file = f"{str(iter_num)}.pkl"
     result = (bucketfs_location / bucketfs_path / state_file).exists()

@@ -1,22 +1,21 @@
 import dataclasses
 import importlib
+import json
+import joblib
 import logging
 import traceback
 from collections import OrderedDict
 from enum import Enum, auto
 from pathlib import PurePosixPath
-from typing import Tuple, List, Optional
+from typing import Any, Tuple, List, Optional
 
 import exasol.bucketfs as bfs
-from exasol_advanced_analytics_framework import bucketfs_operations
-from exasol_data_science_utils_python.schema.column import \
-    Column
-from exasol_data_science_utils_python.schema.column_name \
-    import ColumnName
-from exasol_data_science_utils_python.schema.column_type \
-    import ColumnType
-from exasol_data_science_utils_python.schema.schema_name \
-    import SchemaName
+from tempfile import NamedTemporaryFile
+
+from exasol_data_science_utils_python.schema.column import Column
+from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.column_type import ColumnType
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
@@ -31,6 +30,31 @@ from exasol_advanced_analytics_framework.query_result.udf_query_result \
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 from exasol_advanced_analytics_framework.udf_framework.udf_connection_lookup import UDFConnectionLookup
+
+def create_bucketfs_location_from_conn_object(bfs_conn_obj) -> bfs.path.PathLike:
+    bfs_params = json.loads(bfs_conn_obj.address)
+    bfs_params.update(json.loads(bfs_conn_obj.user))
+    bfs_params.update(json.loads(bfs_conn_obj.password))
+    return bfs.path.build_path(**bfs_params)
+
+
+def upload_via_joblib(location: bfs.path.PathLike, object: Any):
+    with NamedTemporaryFile() as temp_file:
+        joblib.dump(object, temp_file.name)
+        temp_file.flush()
+        temp_file.seek(0)
+        data = b''.join(temp_file)
+        # strangely location.write(temp_file) did not write any data to BFS
+        location.write(data)
+
+
+def read_via_joblib(location: bfs.path.PathLike) -> Any:
+    with NamedTemporaryFile() as temp_file:
+        for chunk in location.read():
+            temp_file.write(chunk)
+        temp_file.flush()
+        temp_file.seek(0)
+        return joblib.load(temp_file)
 
 
 @dataclasses.dataclass
@@ -173,7 +197,7 @@ class QueryHandlerRunnerUDF:
 
     def _create_bucketfs_location(self):
         bucketfs_connection_obj = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
-        bucketfs_location_from_con = bucketfs_operations.create_bucketfs_location_from_conn_object(
+        bucketfs_location_from_con = create_bucketfs_location_from_conn_object(
             bucketfs_connection_obj)
         self.bucketfs_location = bucketfs_location_from_con \
             .joinpath(self.parameter.temporary_bfs_location_directory) \
@@ -206,13 +230,13 @@ class QueryHandlerRunnerUDF:
 
     def _load_latest_state(self) -> QueryHandlerRunnerState:
         path = self._state_file_bucketfs_location()
-        state = bucketfs_operations.read_via_joblib(path)
+        state = read_via_joblib(path)
         state.connection_lookup.exa = self.exa
         return state
 
     def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:
         path = self._state_file_bucketfs_location(1)
-        bucketfs_operations.upload_via_joblib(path, current_state)
+        upload_via_joblib(path, current_state)
 
     def _remove_previous_state(self) -> None:
         self._state_file_bucketfs_location().rm()
