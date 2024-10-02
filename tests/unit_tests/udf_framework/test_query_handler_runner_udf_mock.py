@@ -178,7 +178,7 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
         bucketfs_location = create_bucketfs_location_from_conn_object(query_handler_bfs_connection)
         bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
         state_file = f"{str(iteration)}.pkl"
-        return (qubucketfs_location / bucketfs_path / state_file).exists()
+        return (bucketfs_location / bucketfs_path / state_file).exists()
 
     exa = create_mocked_exa_env(query_handler_bfs_connection)
     input_data = (
