@@ -174,6 +174,12 @@ def test_query_handler_udf_with_one_iteration_and_temp_table(mocked_exa_env):
 
 
 def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
+    def state_file_exists(iteration: int) -> bool:
+        bucketfs_location = create_bucketfs_location_from_conn_object(query_handler_bfs_connection)
+        bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
+        state_file = f"{str(iteration)}.pkl"
+        return (qubucketfs_location / bucketfs_path / state_file).exists()
+
     exa = create_mocked_exa_env(query_handler_bfs_connection)
     input_data = (
         0,
@@ -201,9 +207,13 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
                     [query.query_string for query in mock_query_handlers.QUERY_LIST]
     assert rows == expected_rows
 
-    prev_state_exist = _is_state_exist(0, query_handler_bfs_connection)
-    current_state_exist = _is_state_exist(1, query_handler_bfs_connection)
-    assert prev_state_exist == False and current_state_exist == True
+    previous = 0
+    current = 1
+    assert not state_file_exists(previous) and state_file_exists(current)
+
+    # prev_state_exists = _state_file_exists(0, query_handler_bfs_connection)
+    # current_state_exists = _state_file_exists(1, query_handler_bfs_connection)
+    # assert prev_state_exists == False and current_state_exists == True
 
     exa = MockExaEnvironment(
         metadata=MockMetaData(
@@ -271,13 +281,3 @@ def test_query_handler_udf_using_connection(query_handler_bfs_connection):
         ])
     ]
     assert rows == expected_rows
-
-
-def _is_state_exist(
-        iter_num: int,
-        model_connection: Connection) -> bool:
-    bucketfs_location = create_bucketfs_location_from_conn_object(model_connection)
-    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
-    state_file = f"{str(iter_num)}.pkl"
-    result = (bucketfs_location / bucketfs_path / state_file).exists()
-    return result
