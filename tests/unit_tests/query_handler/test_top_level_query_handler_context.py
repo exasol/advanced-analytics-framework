@@ -30,29 +30,25 @@ def test_cleanup_released_temporary_view_proxies(
 
 def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location_2: bfs.path.PathLike,
-        prefix: str):
+        bucketfs_location: bfs.path.PathLike):
     proxy = top_level_query_handler_context.get_temporary_bucketfs_location()
     # create dummy file with string content
     (proxy.bucketfs_location() / "test_file.txt").write("test".encode("utf-8"))
     top_level_query_handler_context.release()
     top_level_query_handler_context.cleanup_released_object_proxies()
-    assert not bucketfs_location_2.is_dir()
+    assert not bucketfs_location.is_dir()
 
 
 def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_release(
-        top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location_2: bfs.path.PathLike,
-        prefix: str):
+        top_level_query_handler_context: TopLevelQueryHandlerContext):
     _ = top_level_query_handler_context.get_temporary_bucketfs_location()
     top_level_query_handler_context.release()
     top_level_query_handler_context.cleanup_released_object_proxies()
 
 
+# bucketfs_location_2
 def test_cleanup_release_in_reverse_order_at_top_level(
-        top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location_2: bfs.path.PathLike,
-        prefix: str):
+        top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxies = [top_level_query_handler_context.get_temporary_table_name() for _ in range(10)]
     table_names = [proxy.fully_qualified for proxy in proxies]
     top_level_query_handler_context.release()
@@ -64,9 +60,7 @@ def test_cleanup_release_in_reverse_order_at_top_level(
 
 
 def test_cleanup_release_in_reverse_order_at_child(
-        top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location_2: bfs.path.PathLike,
-        prefix: str):
+        top_level_query_handler_context: TopLevelQueryHandlerContext):
     parent_proxies = [top_level_query_handler_context.get_temporary_table_name() for _ in range(10)]
 
     child = top_level_query_handler_context.get_child_query_handler_context()

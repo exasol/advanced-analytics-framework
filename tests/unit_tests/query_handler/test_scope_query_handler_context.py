@@ -38,11 +38,11 @@ def test_temporary_view_temporary_schema(scope_query_handler_context: ScopeQuery
     assert proxy.schema_name.name == schema
 
 
-def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location_2: bfs.path.PathLike,
+def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: bfs.path.PathLike,
                                                 scope_query_handler_context: ScopeQueryHandlerContext):
     proxy =  scope_query_handler_context.get_temporary_bucketfs_location()
     actual_path = proxy.bucketfs_location().as_udf_path()
-    expected_prefix_path = bucketfs_location_2.as_udf_path()
+    expected_prefix_path = bucketfs_location.as_udf_path()
     assert actual_path.startswith(expected_prefix_path)
 
 

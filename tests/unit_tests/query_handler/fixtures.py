@@ -62,7 +62,7 @@ def sample_mounted_bucket(tmp_path):
 
 
 @pytest.fixture
-def bucketfs_location_2(sample_mounted_bucket):
+def bucketfs_location(sample_mounted_bucket):
     return bfs.path.BucketPath("a/b", sample_mounted_bucket)
 
 
@@ -74,13 +74,13 @@ def mocked_temporary_bucketfs_location(tmp_path):
 
 @pytest.fixture
 def top_level_query_handler_context(
-        # bucketfs_location: BucketFSLocation,
-        bucketfs_location_2: bfs.path.PathLike,
+        # bucketfs_location_2: bfs.path.PathLike,
+        bucketfs_location: bfs.path.PathLike,
         prefix: str,
         schema: str,
         test_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=bucketfs_location_2,
+        temporary_bucketfs_location=bucketfs_location,
         temporary_db_object_name_prefix=prefix,
         connection_lookup=test_connection_lookup,
         temporary_schema_name=schema
