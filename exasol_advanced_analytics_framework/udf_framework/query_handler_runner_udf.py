@@ -7,8 +7,8 @@ from enum import Enum, auto
 from pathlib import PurePosixPath
 from typing import Tuple, List, Optional
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
+import exasol.bucketfs as bfs
+from exasol_advanced_analytics_framework import bucketfs_operations
 from exasol_data_science_utils_python.schema.column import \
     Column
 from exasol_data_science_utils_python.schema.column_name \
@@ -65,7 +65,7 @@ class QueryHandlerRunnerUDF:
 
     def __init__(self, exa):
         self.exa = exa
-        self.bucketfs_location: Optional[AbstractBucketFSLocation] = None
+        self.bucketfs_location: Optional[bfs.path.PathLike] = None
         self.parameter: Optional[UDFParameter] = None
 
     def run(self, ctx) -> None:
@@ -173,10 +173,8 @@ class QueryHandlerRunnerUDF:
 
     def _create_bucketfs_location(self):
         bucketfs_connection_obj = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
-        bucketfs_location_from_con = BucketFSFactory().create_bucketfs_location(
-            url=bucketfs_connection_obj.address,
-            user=bucketfs_connection_obj.user,
-            pwd=bucketfs_connection_obj.password)
+        bucketfs_location_from_con = bucketfs_operations.create_bucketfs_location_from_conn_object(
+            bucketfs_connection_obj)
         self.bucketfs_location = bucketfs_location_from_con \
             .joinpath(self.parameter.temporary_bfs_location_directory) \
             .joinpath(self.parameter.temporary_name_prefix)
@@ -209,18 +207,22 @@ class QueryHandlerRunnerUDF:
     def _load_latest_state(self) -> QueryHandlerRunnerState:
         state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
         query_handler_state: QueryHandlerRunnerState = \
-            self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
+            bucketfs_operations.read_via_joblib(
+                self.bucketfs_location / str(state_file_bucketfs_path)
+            )
         query_handler_state.connection_lookup.exa = self.exa
         return query_handler_state
 
     def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:
         next_state_file_bucketfs_path = self._generate_state_file_bucketfs_path(1)
-        self.bucketfs_location.upload_object_to_bucketfs_via_joblib(
-            current_state, str(next_state_file_bucketfs_path))
+        bucketfs_operations.upload_via_joblib(
+            self.bucketfs_location / str(next_state_file_bucketfs_path),
+            current_state,
+        )
 
     def _remove_previous_state(self) -> None:
         state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
-        self.bucketfs_location.delete_file_in_bucketfs(str(state_file_bucketfs_path))
+        (self.bucketfs_location / str(state_file_bucketfs_path)).rm()
 
     def _create_udf_query_result(
             self, ctx, query_columns: List[Column]) -> UDFQueryResult:

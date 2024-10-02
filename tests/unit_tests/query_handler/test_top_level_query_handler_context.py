@@ -1,5 +1,5 @@
 import pytest
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
+import exasol.bucketfs as bfs
 
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext, ChildContextNotReleasedError
@@ -30,20 +30,19 @@ def test_cleanup_released_temporary_view_proxies(
 
 def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location: AbstractBucketFSLocation,
+        bucketfs_location_2: bfs.path.PathLike,
         prefix: str):
     proxy = top_level_query_handler_context.get_temporary_bucketfs_location()
-    bucket_file_name = "test_file.txt"
-    proxy.bucketfs_location().upload_string_to_bucketfs(bucket_file_name, "test")
+    # create dummy file with string content
+    (proxy.bucketfs_location() / "test_file.txt").write("test".encode("utf-8"))
     top_level_query_handler_context.release()
     top_level_query_handler_context.cleanup_released_object_proxies()
-    file_list = bucketfs_location.list_files_in_bucketfs("")
-    assert file_list == []
+    assert not bucketfs_location_2.is_dir()
 
 
 def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_release(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location: AbstractBucketFSLocation,
+        bucketfs_location_2: bfs.path.PathLike,
         prefix: str):
     _ = top_level_query_handler_context.get_temporary_bucketfs_location()
     top_level_query_handler_context.release()
@@ -52,7 +51,7 @@ def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_re
 
 def test_cleanup_release_in_reverse_order_at_top_level(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location: AbstractBucketFSLocation,
+        bucketfs_location_2: bfs.path.PathLike,
         prefix: str):
     proxies = [top_level_query_handler_context.get_temporary_table_name() for _ in range(10)]
     table_names = [proxy.fully_qualified for proxy in proxies]
@@ -66,7 +65,7 @@ def test_cleanup_release_in_reverse_order_at_top_level(
 
 def test_cleanup_release_in_reverse_order_at_child(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
-        bucketfs_location: AbstractBucketFSLocation,
+        bucketfs_location_2: bfs.path.PathLike,
         prefix: str):
     parent_proxies = [top_level_query_handler_context.get_temporary_table_name() for _ in range(10)]
 

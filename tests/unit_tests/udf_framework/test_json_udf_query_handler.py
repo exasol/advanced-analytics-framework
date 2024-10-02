@@ -1,41 +1,19 @@
 import json
+
 from json import JSONDecodeError
-from pathlib import PurePosixPath
 from typing import Union
 
-import pytest
-from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
 from exasol_data_science_utils_python.schema.column import Column
 from exasol_data_science_utils_python.schema.column_name import ColumnName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
 from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.udf_framework.json_udf_query_handler_factory import JsonUDFQueryHandler
-
-
-@pytest.fixture()
-def temporary_schema_name():
-    return "temp_schema_name"
-
-
-@pytest.fixture()
-def top_level_query_handler_context(tmp_path,
-                                    temporary_schema_name,
-                                    test_connection_lookup):
-    top_level_query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=LocalFSMockBucketFSLocation(base_path=PurePosixPath(tmp_path) / "bucketfs"),
-        temporary_db_object_name_prefix="temp_db_object",
-        connection_lookup=test_connection_lookup,
-        temporary_schema_name=temporary_schema_name,
-    )
-    return top_level_query_handler_context
 
 
 class ConstructorTestJSONQueryHandler(JSONQueryHandler):

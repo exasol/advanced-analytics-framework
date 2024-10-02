@@ -1,5 +1,12 @@
+import json
+import pytest
 import re
+import exasol.bucketfs as bfs
+
 from tempfile import TemporaryDirectory
+from pathlib import Path
+from exasol_advanced_analytics_framework import bucketfs_operations
+from typing import Any, Dict
 
 from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
 from exasol_udf_mock_python.column import Column
@@ -14,11 +21,33 @@ from tests.unit_tests.udf_framework import mock_query_handlers
 from tests.unit_tests.udf_framework.mock_query_handlers import TEST_CONNECTION
 from tests.utils.test_utils import pytest_regex
 
+
 TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
 
 BUCKETFS_DIRECTORY = "directory"
 
 BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
+
+
+@pytest.fixture
+def query_handler_bfs_connection(tmp_path):
+    path = tmp_path / "query_handler"
+    path.mkdir()
+    return bucketfs_operations.udf_mock_connection(
+        backend="mounted",
+        base_path=f"{path}",
+    )
+
+
+def create_mocked_exa_env(bfs_connection, connections: Dict[str, Any] = {}):
+    meta = create_mock_data()
+    connections[BUCKETFS_CONNECTION_NAME] = bfs_connection
+    return MockExaEnvironment(metadata=meta, connections=connections)
+
+
+@pytest.fixture
+def mocked_exa_env(query_handler_bfs_connection):
+    return create_mocked_exa_env(query_handler_bfs_connection)
 
 
 def _udf_wrapper():
@@ -55,128 +84,85 @@ def create_mock_data():
     return meta
 
 
-def test_query_handler_udf_with_one_iteration():
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={"bucketfs_connection": bucketfs_connection})
-
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "MockQueryHandlerWithOneIterationFactory",
-            "tests.unit_tests.udf_framework.mock_query_handlers",
-            mock_query_handlers.TEST_INPUT
-        )
-        result = executor.run([Group([input_data])], exa)
-        rows = [row[0] for row in result[0].rows]
-        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT]
-        assert rows == expected_rows
+def test_query_handler_udf_with_one_iteration(mocked_exa_env):
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "MockQueryHandlerWithOneIterationFactory",
+        "tests.unit_tests.udf_framework.mock_query_handlers",
+        mock_query_handlers.TEST_INPUT
+    )
+    result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
+    rows = [row[0] for row in result[0].rows]
+    expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT]
+    assert rows == expected_rows
 
 
-def test_query_handler_udf_with_one_iteration_with_not_released_child_query_handler_context():
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={"bucketfs_connection": bucketfs_connection})
-
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory",
-            "tests.unit_tests.udf_framework.mock_query_handlers",
-            "{}"
-        )
-        result = executor.run([Group([input_data])], exa)
-        rows = [row[0] for row in result[0].rows]
-        expected_rows = [None,
-                         None,
-                         QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*The following child contexts were not released:*", re.DOTALL)]
-        assert rows == expected_rows
+def test_query_handler_udf_with_one_iteration_with_not_released_child_query_handler_context(mocked_exa_env):
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory",
+        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "{}"
+    )
+    result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
+    rows = [row[0] for row in result[0].rows]
+    expected_rows = [None,
+                     None,
+                     QueryHandlerStatus.ERROR.name,
+                     pytest_regex(r".*The following child contexts were not released:*", re.DOTALL)]
+    assert rows == expected_rows
 
 
-def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object():
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={"bucketfs_connection": bucketfs_connection})
-
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory",
-            "tests.unit_tests.udf_framework.mock_query_handlers",
-            "{}"
-        )
-        result = executor.run([Group([input_data])], exa)
-        rows = [row[0] for row in result[0].rows]
-        expected_rows = [None,
-                         None,
-                         QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*The following child contexts were not released.*", re.DOTALL),
-                         'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_2_1";']
-        assert rows == expected_rows
+def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object(mocked_exa_env):
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory",
+        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "{}"
+    )
+    result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
+    rows = [row[0] for row in result[0].rows]
+    expected_rows = [None,
+                     None,
+                     QueryHandlerStatus.ERROR.name,
+                     pytest_regex(r".*The following child contexts were not released.*", re.DOTALL),
+                     'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_2_1";']
+    assert rows == expected_rows
 
 
-def test_query_handler_udf_with_one_iteration_and_temp_table():
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={"bucketfs_connection": bucketfs_connection})
-
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "QueryHandlerTestWithOneIterationAndTempTableFactory",
-            "tests.unit_tests.udf_framework.mock_query_handlers",
-            "{}"
-        )
-        result = executor.run([Group([input_data])], exa)
-        rows = [row[0] for row in result[0].rows]
-        table_cleanup_query = 'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_1";'
-        expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT,
-                         table_cleanup_query]
-        assert rows == expected_rows
+def test_query_handler_udf_with_one_iteration_and_temp_table(mocked_exa_env):
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "QueryHandlerTestWithOneIterationAndTempTableFactory",
+        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "{}"
+    )
+    result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
+    rows = [row[0] for row in result[0].rows]
+    table_cleanup_query = 'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_1";'
+    expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT,
+                     table_cleanup_query]
+    assert rows == expected_rows
 
 
-def test_query_handler_udf_with_two_iteration(tmp_path):
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    bucketfs_connection = Connection(address=f"file://{tmp_path}/query_handler")
-    exa = MockExaEnvironment(
-        metadata=meta,
-        connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
-
+def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
+    exa = create_mocked_exa_env(query_handler_bfs_connection)
     input_data = (
         0,
         BUCKETFS_CONNECTION_NAME,
@@ -187,6 +173,7 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
         "tests.unit_tests.udf_framework.mock_query_handlers",
         "{}"
     )
+    executor = UDFMockExecutor()
     result = executor.run([Group([input_data])], exa)
     rows = [row[0] for row in result[0].rows]
     expected_return_query_view = 'CREATE VIEW "temp_schema"."temporary_name_prefix_2_1" AS ' \
@@ -202,8 +189,8 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
                     [query.query_string for query in mock_query_handlers.QUERY_LIST]
     assert rows == expected_rows
 
-    prev_state_exist = _is_state_exist(0, bucketfs_connection)
-    current_state_exist = _is_state_exist(1, bucketfs_connection)
+    prev_state_exist = _is_state_exist(0, query_handler_bfs_connection)
+    current_state_exist = _is_state_exist(1, query_handler_bfs_connection)
     assert prev_state_exist == False and current_state_exist == True
 
     exa = MockExaEnvironment(
@@ -222,7 +209,7 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
                 Column("outputs", str, "VARCHAR(2000000)")
             ],
             is_variadic_input=True),
-        connections={BUCKETFS_CONNECTION_NAME: bucketfs_connection})
+        connections={BUCKETFS_CONNECTION_NAME: query_handler_bfs_connection})
 
     input_data = (
         1,
@@ -240,50 +227,46 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
     assert rows == expected_rows
 
 
-def test_query_handler_udf_using_connection():
-    executor = UDFMockExecutor()
-    meta = create_mock_data()
-
-    with TemporaryDirectory() as path:
-        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
-        test_connection = Connection(address=f"test_connection",
-                                     user="test_connection_user",
-                                     password="test_connection_pwd")
-
-        exa = MockExaEnvironment(
-            metadata=meta,
-            connections={
-                "bucketfs_connection": bucketfs_connection,
-                TEST_CONNECTION: test_connection}
-        )
-
-        input_data = (
-            0,
-            BUCKETFS_CONNECTION_NAME,
-            BUCKETFS_DIRECTORY,
-            TEMPORARY_NAME_PREFIX,
-            "temp_schema",
-            "MockQueryHandlerUsingConnectionFactory",
-            "tests.unit_tests.udf_framework.mock_query_handlers",
-            "{}"
-        )
-        result = executor.run([Group([input_data])], exa)
-        rows = [row[0] for row in result[0].rows]
-        expected_rows = [
-            None, None, QueryHandlerStatus.FINISHED.name,
-            f"{TEST_CONNECTION},{test_connection.address},{test_connection.user},{test_connection.password}"
-        ]
-        assert rows == expected_rows
+def test_query_handler_udf_using_connection(query_handler_bfs_connection):
+    test_connection = bucketfs_operations.udf_mock_connection(
+        address=f"test_connection",
+        user="test_connection_user",
+        password="test_connection_pwd",
+    )
+    exa = create_mocked_exa_env(
+        query_handler_bfs_connection,
+        { TEST_CONNECTION: test_connection },
+    )
+    input_data = (
+        0,
+        BUCKETFS_CONNECTION_NAME,
+        BUCKETFS_DIRECTORY,
+        TEMPORARY_NAME_PREFIX,
+        "temp_schema",
+        "MockQueryHandlerUsingConnectionFactory",
+        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "{}"
+    )
+    result = UDFMockExecutor().run([Group([input_data])], exa)
+    rows = [row[0] for row in result[0].rows]
+    expected_rows = [
+        None, None, QueryHandlerStatus.FINISHED.name,
+        ",".join([
+            TEST_CONNECTION,
+            test_connection.address,
+            test_connection.user,
+            test_connection.password,
+        ])
+    ]
+    assert rows == expected_rows
 
 
 def _is_state_exist(
         iter_num: int,
         model_connection: Connection) -> bool:
-    bucketfs_location = BucketFSFactory().create_bucketfs_location(
-        url=model_connection.address,
-        user=model_connection.user,
-        pwd=model_connection.password)
-    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state/"
+    bucketfs_location = bucketfs_operations.create_bucketfs_location_from_conn_object(
+        model_connection)
+    bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
     state_file = f"{str(iter_num)}.pkl"
-    files = bucketfs_location.list_files_in_bucketfs(bucketfs_path)
-    return state_file in files
+    result = (bucketfs_location / bucketfs_path / state_file).exists()
+    return result

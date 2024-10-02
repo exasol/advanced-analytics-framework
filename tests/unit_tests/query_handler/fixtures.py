@@ -1,7 +1,5 @@
 import pytest
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-from exasol_bucketfs_utils_python.bucketfs_factory import BucketFSFactory
-from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+import exasol.bucketfs as bfs
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext, Connection
@@ -59,22 +57,30 @@ def test_connection_lookup(test_connection) -> ConnectionLookup:
 
 
 @pytest.fixture
-def bucketfs_location(tmp_path) -> AbstractBucketFSLocation:
-    bucketfs_location = BucketFSFactory().create_bucketfs_location(
-        url=f"file://{tmp_path}/data",
-        user=None,
-        pwd=None)
-    return bucketfs_location
+def sample_mounted_bucket(tmp_path):
+    return bfs.MountedBucket(base_path=str(tmp_path))
+
+
+@pytest.fixture
+def bucketfs_location_2(sample_mounted_bucket):
+    return bfs.path.BucketPath("a/b", sample_mounted_bucket)
+
+
+@pytest.fixture
+def mocked_temporary_bucketfs_location(tmp_path):
+    mounted_bucket = bfs.MountedBucket(base_path=str(tmp_path / "bucketfs"))
+    return bfs.path.BucketPath("", mounted_bucket)
 
 
 @pytest.fixture
 def top_level_query_handler_context(
-        bucketfs_location: BucketFSLocation,
+        # bucketfs_location: BucketFSLocation,
+        bucketfs_location_2: bfs.path.PathLike,
         prefix: str,
         schema: str,
         test_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=bucketfs_location,
+        temporary_bucketfs_location=bucketfs_location_2,
         temporary_db_object_name_prefix=prefix,
         connection_lookup=test_connection_lookup,
         temporary_schema_name=schema
