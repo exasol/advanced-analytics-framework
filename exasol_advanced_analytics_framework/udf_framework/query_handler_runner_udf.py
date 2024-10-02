@@ -205,24 +205,17 @@ class QueryHandlerRunnerUDF:
         return query_handler_state
 
     def _load_latest_state(self) -> QueryHandlerRunnerState:
-        state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
-        query_handler_state: QueryHandlerRunnerState = \
-            bucketfs_operations.read_via_joblib(
-                self.bucketfs_location / str(state_file_bucketfs_path)
-            )
-        query_handler_state.connection_lookup.exa = self.exa
-        return query_handler_state
+        path = self._state_file_bucketfs_location()
+        state = bucketfs_operations.read_via_joblib(path)
+        state.connection_lookup.exa = self.exa
+        return state
 
     def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:
-        next_state_file_bucketfs_path = self._generate_state_file_bucketfs_path(1)
-        bucketfs_operations.upload_via_joblib(
-            self.bucketfs_location / str(next_state_file_bucketfs_path),
-            current_state,
-        )
+        path = self._state_file_bucketfs_location(1)
+        bucketfs_operations.upload_via_joblib(path, current_state)
 
     def _remove_previous_state(self) -> None:
-        state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
-        (self.bucketfs_location / str(state_file_bucketfs_path)).rm()
+        self._state_file_bucketfs_location().rm()
 
     def _create_udf_query_result(
             self, ctx, query_columns: List[Column]) -> UDFQueryResult:
@@ -267,9 +260,9 @@ class QueryHandlerRunnerUDF:
                 Column(ColumnName(col_name), ColumnType(col_type)))
         return query_columns
 
-    def _generate_state_file_bucketfs_path(self, iter_offset: int = 0) -> PurePosixPath:
+    def _state_file_bucketfs_location(self, iter_offset: int = 0) -> bfs.path.PathLike:
         num_iter = self.parameter.iter_num + iter_offset
-        return PurePosixPath(f"state/{str(num_iter)}.pkl")
+        return self.bucketfs_location / f"state/{str(num_iter)}.pkl"
 
     @staticmethod
     def emit_udf_result(ctx, udf_result: UDFResult):

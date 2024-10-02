@@ -3,6 +3,7 @@
 
 # Modifications:
 # - removed functions dealing with specifics of transformers-extensions
+# - disabled support for Exasol SaaS instances
 # - added functions udf_mock_connection
 # - added functions for interaction with joblib
 
