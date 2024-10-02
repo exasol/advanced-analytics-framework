@@ -1,6 +1,10 @@
-# This file originally was copied from
+# This file originally was copied from transformers-extension
 # https://github.com/exasol/transformers-extension/blob/main/exasol_transformers_extension/utils/bucketfs_operations.py
-# then modified and added
+
+# Modifications:
+# - removed functions dealing with specifics of transformers-extensions
+# - added functions udf_mock_connection
+# - added functions for interaction with joblib
 
 from __future__ import annotations
 import tarfile
@@ -19,6 +23,7 @@ import exasol.bucketfs as bfs
 
 # --------------------------------------------------
 # added functions
+
 
 def mkjson(**kwargs):
     return json.dumps(kwargs)
@@ -161,5 +166,3 @@ def get_local_bucketfs_path(
 #     """
 #     model_specific_path_suffix = model_specification.get_model_specific_path_suffix()
 #     return Path(_tmpdir_name, "pretrained", model_specific_path_suffix)
-
-
