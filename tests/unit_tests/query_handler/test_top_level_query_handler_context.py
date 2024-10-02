@@ -46,7 +46,6 @@ def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_re
     top_level_query_handler_context.cleanup_released_object_proxies()
 
 
-# bucketfs_location_2
 def test_cleanup_release_in_reverse_order_at_top_level(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxies = [top_level_query_handler_context.get_temporary_table_name() for _ in range(10)]
