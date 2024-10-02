@@ -6,7 +6,6 @@ import logging
 import traceback
 from collections import OrderedDict
 from enum import Enum, auto
-from pathlib import PurePosixPath
 from typing import Any, Tuple, List, Optional
 
 import exasol.bucketfs as bfs
@@ -30,6 +29,7 @@ from exasol_advanced_analytics_framework.query_result.udf_query_result \
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
 from exasol_advanced_analytics_framework.udf_framework.udf_connection_lookup import UDFConnectionLookup
+
 
 def create_bucketfs_location_from_conn_object(bfs_conn_obj) -> bfs.path.PathLike:
     bfs_params = json.loads(bfs_conn_obj.address)
