@@ -74,7 +74,6 @@ def mocked_temporary_bucketfs_location(tmp_path):
 
 @pytest.fixture
 def top_level_query_handler_context(
-        # bucketfs_location_2: bfs.path.PathLike,
         bucketfs_location: bfs.path.PathLike,
         prefix: str,
         schema: str,

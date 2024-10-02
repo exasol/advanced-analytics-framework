@@ -74,6 +74,6 @@ def database_with_slc(
     # this requires updating query_handler_runner_udf.py to the new bucketfs API, first,
     # which is planned to be done in ticket
     # https://github.com/exasol/advanced-analytics-framework/issues/176
-    # bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
-    my_bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
+    # my_bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     return BUCKETFS_CONNECTION_NAME, db_schema_name
