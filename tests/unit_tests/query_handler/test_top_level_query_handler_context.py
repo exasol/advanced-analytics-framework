@@ -32,8 +32,8 @@ def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
         bucketfs_location: bfs.path.PathLike):
     proxy = top_level_query_handler_context.get_temporary_bucketfs_location()
-    # create dummy file with string content
-    (proxy.bucketfs_location() / "test_file.txt").write("test".encode("utf-8"))
+    # create dummy file with content "test"
+    (proxy.bucketfs_location() / "test_file.txt").write(b"test")
     top_level_query_handler_context.release()
     top_level_query_handler_context.cleanup_released_object_proxies()
     assert not bucketfs_location.is_dir()
