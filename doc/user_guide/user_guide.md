@@ -182,7 +182,7 @@ The algorithm should extend the `UDFQueryHandler` abstract class and then implem
 * `handle_query_result()` : This method is called at the following iterations to handle the return query. An example class definition is given below:
 
 ```python
-class CustomQueryHandler(UDFQueryHandler):
+class ExampleQueryHandler(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.parameter = parameter
