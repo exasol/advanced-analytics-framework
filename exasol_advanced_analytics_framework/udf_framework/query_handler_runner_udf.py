@@ -43,6 +43,8 @@ def upload_via_joblib(location: bfs.path.PathLike, object: Any):
         joblib.dump(object, temp_file.name)
         temp_file.flush()
         temp_file.seek(0)
+        # location.write(temp_file) does not write any data to BFS. Probably
+        # because the NamedTemporaryFile is not seen as a file-like object.
         location.write(temp_file.read())
 
 
