@@ -4,20 +4,72 @@ The Advanced Analytics Framework (AAF) provides a general framework to implement
 
 ## Table of Contents
 
-* [Getting Started](#getting-started)
 * [Setup](#setup)
 * [Usage](#usage)
 * [Implementation of Algorithms](#implementation-of-algorithms)
 
-## Getting Started
-
-* Exasol database
-  * The Exasol cluster must already be running with version 7.1 or later.
-  * Database connection information and credentials are needed.
-* TODO: Connection
-* TODO: Algorithm implementation
-
 ## Setup
+
+### Exasol database
+
+* The Exasol cluster must already be running with version 7.1 or later.
+* Database connection information and credentials are needed.
+
+### BucketFS Connection
+
+AAF employs some Lua scripts and User Defined Functions (UDFs).  The Lua
+scripts are orchestrating the UDFs while the UDFs are performing the actual
+analytic functions.
+
+AAF keeps a common state of execution and passes input data and results
+between Lua and UDFs via files in the Bucket File System (BucketFS) of the
+Exasol database.
+
+<!-- For keeping a common state of execution and passing input data and
+results between Lua and UDFs AAF requires to access the Bucket File System
+(BucketFS) of the Exasol database. -->
+
+The following SQL statements create such a connection to the BucketFS:
+
+```sql
+CREATE OR REPLACE CONNECTION '<CONNECTION_NAME>'
+TO '{
+  "backend": "<BACKEND>",
+  "url": "<HOST>:<PORT>",
+  "service_name": "<SERVICE_NAME>",
+  "bucket_name": "<BUCKET_NAME>",
+  "path": "<PATH>",
+  "verify": <VERIFY>,
+  "host": "<SAAS_HOST>",
+  "account_id": "<SAAS_ACCOUNT_ID>",
+  "database_id": "<SAAS_DATABASE_ID>",
+  "pat": "<SAAS_PAT>"
+  }'
+USER '{"username": "<USER_NAME>"}'
+IDENTIFIED BY '{ "password": "<PASSWORD>"}' ;
+```
+
+The list of elements in the connection's parameter called `TO` depends on the
+backend you want to use. There are two different backends: `onprem` and
+`saas`.
+
+The following table shows all elements for each of the backends.
+
+| Backend  | Parameter            | Required? | Default value  | Description                                                        |
+|----------|----------------------|-----------|----------------|--------------------------------------------------------------------|
+| (any)    | `<CONNECTION_NAME>`  | yes       | -              | Name of the connection                                             |
+| (any)    | `<USER_NAME>`        | -         | `true`         | Name of the user accessing the Bucket (requires  write permissions) |
+| (any)    | `<PASSWORD>`         | -         | `true`         | Password for accessing the Bucket (requires  write permissions)    |
+| (any)    | `<BACKEND>`          | yes       | -              | Which backend to use, must be either `onprem` or `saas`            |
+| `onprem` | `<HOST>`             | yes       | -              | Fully qualified Hostname or ip Address                             |
+| `onprem` | `<PORT>`             | -         | `2580`         | Port of the BucketFS Service                                       |
+| `onprem` | `<SERVICE_NAME>`     | yes       | `bfsdefault`   | Name of the BucketFS Service                                       |
+| `onprem` | `<BUCKET_NAME>`      | yes       | `default`      | Name of the Bucket                                                 |
+| `onprem` | `<PATH>`             | -         | (empty / root) | Path inside the Bucket                                             |
+| `onprem` | `<VERIFY>`           | -         | `true`         | Whether to apply TLS security to the connection                    |
+| `saas`   | `<SAAS_ACCOUNT_ID>`  | yes       | -              | Account ID for accessing an SaaS database instance                 |
+| `saas`   | `<SAAS_DATABASE_ID>` | yes       | -              | Database ID of an Exasol SaaS database instance                    |
+| `saas`   | `<SAAS_PAT>`         | yes       | -              | Personal access token for accessing an SaaS database instance      |
 
 ### The Python Package
 
