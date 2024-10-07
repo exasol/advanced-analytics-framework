@@ -11,6 +11,7 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf import QueryHandlerStatus
 from tests.unit_tests.udf_framework import mock_query_handlers
+from tests.unit_tests.udf_framework.mock_query_handlers import TEST_CONNECTION
 from tests.utils.test_utils import pytest_regex
 
 TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
@@ -105,7 +106,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_child_query_hand
         expected_rows = [None,
                          None,
                          QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*RuntimeError: Child contexts are not released.*", re.DOTALL)]
+                         pytest_regex(r".*The following child contexts were not released:*", re.DOTALL)]
         assert rows == expected_rows
 
 
@@ -134,7 +135,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object
         expected_rows = [None,
                          None,
                          QueryHandlerStatus.ERROR.name,
-                         pytest_regex(r".*RuntimeError: Child contexts are not released.*", re.DOTALL),
+                         pytest_regex(r".*The following child contexts were not released.*", re.DOTALL),
                          'DROP TABLE IF EXISTS "temp_schema"."temporary_name_prefix_2_1";']
         assert rows == expected_rows
 
@@ -237,6 +238,42 @@ def test_query_handler_udf_with_two_iteration(tmp_path):
     expected_rows = [None, None, QueryHandlerStatus.FINISHED.name, mock_query_handlers.FINAL_RESULT,
                      cleanup_return_query_view]
     assert rows == expected_rows
+
+
+def test_query_handler_udf_using_connection():
+    executor = UDFMockExecutor()
+    meta = create_mock_data()
+
+    with TemporaryDirectory() as path:
+        bucketfs_connection = Connection(address=f"file://{path}/query_handler")
+        test_connection = Connection(address=f"test_connection",
+                                     user="test_connection_user",
+                                     password="test_connection_pwd")
+
+        exa = MockExaEnvironment(
+            metadata=meta,
+            connections={
+                "bucketfs_connection": bucketfs_connection,
+                TEST_CONNECTION: test_connection}
+        )
+
+        input_data = (
+            0,
+            BUCKETFS_CONNECTION_NAME,
+            BUCKETFS_DIRECTORY,
+            TEMPORARY_NAME_PREFIX,
+            "temp_schema",
+            "MockQueryHandlerUsingConnectionFactory",
+            "tests.unit_tests.udf_framework.mock_query_handlers",
+            "{}"
+        )
+        result = executor.run([Group([input_data])], exa)
+        rows = [row[0] for row in result[0].rows]
+        expected_rows = [
+            None, None, QueryHandlerStatus.FINISHED.name,
+            f"{TEST_CONNECTION},{test_connection.address},{test_connection.user},{test_connection.password}"
+        ]
+        assert rows == expected_rows
 
 
 def _is_state_exist(

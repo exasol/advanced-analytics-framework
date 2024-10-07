@@ -305,6 +305,10 @@ local function insert_parameter_value_into_token_list(self, value)
             table.insert(self._tokens, "'")
         elseif type == "boolean" then
             table.insert(self._tokens, tostring(value))
+        elseif type == "table" or type == "thread" or type == "userdata" then
+            table.insert(self._tokens, "<")
+            table.insert(self._tokens, tostring(value))
+            table.insert(self._tokens, ">")
         else
             table.insert(self._tokens, value)
         end

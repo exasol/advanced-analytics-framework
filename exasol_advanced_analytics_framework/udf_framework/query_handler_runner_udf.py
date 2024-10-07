@@ -30,6 +30,7 @@ from exasol_advanced_analytics_framework.query_result.udf_query_result \
     import UDFQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state \
     import QueryHandlerRunnerState
+from exasol_advanced_analytics_framework.udf_framework.udf_connection_lookup import UDFConnectionLookup
 
 
 @dataclasses.dataclass
@@ -187,21 +188,29 @@ class QueryHandlerRunnerUDF:
             query_handler_state = self._create_state()
         return query_handler_state
 
-    def _create_state(self):
-        context = TopLevelQueryHandlerContext(self.bucketfs_location,
-                                              self.parameter.temporary_name_prefix,
-                                              self.parameter.temporary_schema_name)
+    def _create_state(self) -> QueryHandlerRunnerState:
+        connection_lookup = UDFConnectionLookup(self.exa)
+        context = TopLevelQueryHandlerContext(
+            self.bucketfs_location,
+            self.parameter.temporary_name_prefix,
+            self.parameter.temporary_schema_name,
+            connection_lookup
+        )
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_factory_class = getattr(module, self.parameter.python_class_name)
         query_handler_obj = query_handler_factory_class().create(self.parameter.parameters, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
-            query_handler=query_handler_obj)
+            query_handler=query_handler_obj,
+            connection_lookup=connection_lookup
+        )
         return query_handler_state
 
-    def _load_latest_state(self):
+    def _load_latest_state(self) -> QueryHandlerRunnerState:
         state_file_bucketfs_path = self._generate_state_file_bucketfs_path()
-        query_handler_state = self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
+        query_handler_state: QueryHandlerRunnerState = \
+            self.bucketfs_location.read_file_from_bucketfs_via_joblib(str(state_file_bucketfs_path))
+        query_handler_state.connection_lookup.exa = self.exa
         return query_handler_state
 
     def _save_current_state(self, current_state: QueryHandlerRunnerState) -> None:

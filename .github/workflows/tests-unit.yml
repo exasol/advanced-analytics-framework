@@ -1,0 +1,32 @@
+name: Run unit tests
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        required: true
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install Lua environment
+        run: poetry run -- nox -s install_lua_environment
+
+      - name: Poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Run Lua unit tests and static code analyzer
+        run: poetry run -- nox -s run_in_dev_env -- ./scripts/lua_tests.sh
+
+      - name: Run Python unit tests
+        run: poetry run -- nox -s run_python_unit_tests

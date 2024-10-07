@@ -19,17 +19,17 @@ class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):
 
     @property
     def name(self) -> str:
-        self._check_if_valid()
+        self._check_if_released()
         return self._db_object_name.name
 
     @property
     def quoted_name(self) -> str:
-        self._check_if_valid()
+        self._check_if_released()
         return self._db_object_name.quoted_name
 
     @property
     def fully_qualified(self) -> str:
-        self._check_if_valid()
+        self._check_if_released()
         return self._db_object_name.fully_qualified
 
     def __eq__(self, other):

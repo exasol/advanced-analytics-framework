@@ -2,11 +2,16 @@ from contextlib import contextmanager
 
 import pytest
 from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
+from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.column_type import ColumnType
 from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.view import View
 
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+    ScopeQueryHandlerContext, Connection
+from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
+    ChildContextNotReleasedError
 
 
 def test_temporary_table_prefix_in_name(scope_query_handler_context: ScopeQueryHandlerContext,
@@ -168,9 +173,9 @@ def test_transfer_between_siblings(scope_query_handler_context: ScopeQueryHandle
     child1.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _2 = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_siblings_check_ownership_transfer_to_target(scope_query_handler_context: ScopeQueryHandlerContext):
@@ -183,9 +188,9 @@ def test_transfer_siblings_check_ownership_transfer_to_target(scope_query_handle
     child2.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _ = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_child_parent_check_ownership_transfer_to_target(
@@ -241,9 +246,9 @@ def test_transfer_between_child_and_parent(scope_query_handler_context: ScopeQue
     child.release()
 
     with not_raises(Exception):
-        value = object_proxy1.name
+        _ = object_proxy1.name
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
-        value = object_proxy2.name
+        _ = object_proxy2.name
 
 
 def test_transfer_between_parent_and_child(scope_query_handler_context: ScopeQueryHandlerContext):
@@ -283,26 +288,89 @@ def test_release_parent_before_child_with_temporary_object_expect_exception(
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
     child = scope_query_handler_context.get_child_query_handler_context()
-    proxy = child.get_temporary_table_name()
-    with pytest.raises(RuntimeError, match=f"Child contexts are not released."):
+    _ = child.get_temporary_table_name()
+    with pytest.raises(ChildContextNotReleasedError):
         parent.release()
 
 
 def test_release_parent_before_child_without_temporary_object_expect_exception(
         scope_query_handler_context: ScopeQueryHandlerContext):
     parent = scope_query_handler_context
-    child = scope_query_handler_context.get_child_query_handler_context()
-    with pytest.raises(RuntimeError, match=f"Child contexts are not released."):
+    _ = scope_query_handler_context.get_child_query_handler_context()
+    with pytest.raises(ChildContextNotReleasedError):
         parent.release()
+
+
+def test_release_parent_before_grand_child_with_temporary_object_expect_exception(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child = scope_query_handler_context.get_child_query_handler_context()
+    grand_child = child.get_child_query_handler_context()
+    _ = grand_child.get_temporary_table_name()
+    with pytest.raises(ChildContextNotReleasedError):
+        parent.release()
+
+
+def test_release_parent_before_grand_child_without_temporary_object_expect_exception(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    parent = scope_query_handler_context
+    child = scope_query_handler_context.get_child_query_handler_context()
+    _ = child.get_child_query_handler_context()
+    with pytest.raises(ChildContextNotReleasedError):
+        parent.release()
+
+
+def test_cleanup_parent_before_grand_child_without_temporary_objects(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    child1 = scope_query_handler_context.get_child_query_handler_context()
+    child2 = scope_query_handler_context.get_child_query_handler_context()
+    _ = child1.get_child_query_handler_context()
+    _ = child2.get_child_query_handler_context()
+    _ = child1.get_child_query_handler_context()
+    _ = child2.get_child_query_handler_context()
+    with pytest.raises(ChildContextNotReleasedError) as e:
+        scope_query_handler_context.release()
+
+    not_released_contexts = e.value.get_all_not_released_contexts()
+    f = "f"
+    assert len(not_released_contexts) == 6
 
 
 def test_using_table_name_proxy_in_table(scope_query_handler_context: ScopeQueryHandlerContext):
     table_name = scope_query_handler_context.get_temporary_table_name()
-    table = Table(table_name, columns=[])
+    table = Table(table_name,
+                  columns=[
+                      (
+                          ColumnBuilder().
+                          with_name(ColumnName("COLUMN1"))
+                          .with_type(ColumnType("VARCHAR"))
+                          .build()
+                      )
+                  ])
     assert table.name is not None
 
 
 def test_using_view_name_proxy_in_view(scope_query_handler_context: ScopeQueryHandlerContext):
     view_name = scope_query_handler_context.get_temporary_view_name()
-    view = View(view_name, columns=[])
+    view = View(view_name, columns=[
+        (
+            ColumnBuilder().
+            with_name(ColumnName("COLUMN1"))
+            .with_type(ColumnType("VARCHAR"))
+            .build()
+        )])
     assert view.name is not None
+
+
+def test_get_connection_existing_connection(
+        scope_query_handler_context: ScopeQueryHandlerContext,
+        test_connection: Connection
+):
+    connection = scope_query_handler_context.get_connection("existing")
+    assert connection == connection
+
+
+def test_get_connection_not_existing_connection(
+        scope_query_handler_context: ScopeQueryHandlerContext):
+    with pytest.raises(KeyError):
+        scope_query_handler_context.get_connection("not_existing")

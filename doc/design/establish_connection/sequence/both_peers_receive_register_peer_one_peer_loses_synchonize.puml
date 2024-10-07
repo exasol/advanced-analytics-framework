@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+!include base.puml
+
+par
+    [-[$method_call]> Peer1Frontend: register_peer()
+    Peer1Frontend -[$zmq_inproc]>> Peer1Backend: RegisterPeerMessage
+    Peer1Backend -[$zmq_tcp_rd_no_con]>> Peer2Backend: SynchronizeConnectionMessage
+else
+    Peer2Frontend <[$method_call]-] : register_peer()
+    Peer2Backend <<[$zmq_inproc]- Peer2Frontend: RegisterPeerMessage
+    Peer1Backend x[$zmq_tcp_rd_no_con]- Peer2Backend : SynchronizeConnectionMessage
+end
+
+par
+    Peer1Backend <<[$zmq_tcp_rd_no_con]- Peer2Backend: AcknowledgeConnectionMessage
+    Peer1Backend -[$zmq_inproc]>> Peer1Frontend: PeerIsReadyMessage(Peer2)
+else
+    loop until peer_is_ready_wait_time
+        ...synchronize_timeout...
+        Peer1Backend x[$zmq_tcp_rd_no_con]- Peer2Backend : SynchronizeConnectionMessage
+    end
+end
+
+Peer2Backend -[$zmq_inproc]>> Peer2Frontend: PeerIsReadyMessage(Peer1)
+
+@enduml

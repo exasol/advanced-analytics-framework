@@ -1,0 +1,14 @@
+@startuml
+!$udp  = '#red'
+!$method_call  = '#green'
+!$zmq_inproc  = '#blue'
+!$zmq_tcp_rd_no_con = '#darkviolet'
+
+legend
+    |Color| Protocol |
+    |<$udp>| UDP |
+    |<$method_call>| method calls |
+    |<$zmq_inproc>| ZMQ inproc |
+    |<$zmq_tcp_rd_no_con>| ZMQ TCP Dealer/Router Connection Less |
+end legend
+@enduml

@@ -52,10 +52,8 @@ class ScriptsDeployer:
     @classmethod
     def run(cls, dsn: str, user: str, password: str,
             schema: str, language_alias: str, develop: bool):
-
         if develop:
             save_aaf_query_loop_lua_script()
-
         pyexasol_conn = pyexasol.connect(dsn=dsn, user=user, password=password)
         scripts_deployer = cls(language_alias, schema, pyexasol_conn)
         scripts_deployer.deploy_scripts()

@@ -26,10 +26,13 @@ def temporary_schema_name():
 
 
 @pytest.fixture()
-def top_level_query_handler_context(tmp_path, temporary_schema_name):
+def top_level_query_handler_context(tmp_path,
+                                    temporary_schema_name,
+                                    test_connection_lookup):
     top_level_query_handler_context = TopLevelQueryHandlerContext(
         temporary_bucketfs_location=LocalFSMockBucketFSLocation(base_path=PurePosixPath(tmp_path) / "bucketfs"),
         temporary_db_object_name_prefix="temp_db_object",
+        connection_lookup=test_connection_lookup,
         temporary_schema_name=temporary_schema_name,
     )
     return top_level_query_handler_context

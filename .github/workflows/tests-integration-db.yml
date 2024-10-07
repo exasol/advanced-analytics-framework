@@ -1,0 +1,50 @@
+name: Run integration tests with DB
+
+on:
+  workflow_call:
+    inputs:
+      slow-tests:
+        type: boolean
+        default: false
+      python-version:
+        type: string
+        required: true
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Set pytest markers
+        id: pytest-markers
+        if: ${{ ! inputs.slow-tests }}
+        run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.0
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install Lua environment
+        run: poetry run -- nox -s install_lua_environment
+
+      - name: Poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Run Python integration tests with db
+        run: poetry run -- nox -s run_python_integration_tests_with_db -- -- --setup-show --backend=onprem
+        env:
+          PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'

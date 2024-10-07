@@ -1,7 +1,31 @@
-from abc import abstractmethod
+import enum
+from abc import abstractmethod, ABC
 
 from exasol_advanced_analytics_framework.query_handler.context.query_handler_context import QueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
+
+
+class Connection(ABC):
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Name of the connection object"""
+
+    @property
+    @abstractmethod
+    def address(self) -> str:
+        """Address of the connection object"""
+
+    @property
+    @abstractmethod
+    def user(self) -> str:
+        """User of the connection object"""
+
+    @property
+    @abstractmethod
+    def password(self) -> str:
+        """Password of the connection object"""
 
 
 class ScopeQueryHandlerContext(QueryHandlerContext):
@@ -31,4 +55,7 @@ class ScopeQueryHandlerContext(QueryHandlerContext):
         but want to exchange some temporary objects between the query handlers. The parent query
         handler is always responsible for the transfer.
         """
+        pass
+
+    def get_connection(self, name: str) -> Connection:
         pass

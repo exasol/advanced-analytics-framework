@@ -1,12 +1,13 @@
+import pytest
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
+    TopLevelQueryHandlerContext, ChildContextNotReleasedError
 from exasol_advanced_analytics_framework.query_handler.query.drop_table_query import DropTableQuery
 from exasol_advanced_analytics_framework.query_handler.query.drop_view_query import DropViewQuery
 
 
-def test_cleanup_invalid_temporary_table_proxies_after_release(
+def test_cleanup_released_temporary_table_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxy = top_level_query_handler_context.get_temporary_table_name()
     proxy_fully_qualified = proxy.fully_qualified
@@ -16,7 +17,7 @@ def test_cleanup_invalid_temporary_table_proxies_after_release(
            and queries[0].query_string == f"DROP TABLE IF EXISTS {proxy_fully_qualified};"
 
 
-def test_cleanup_invalid_temporary_view_proxies_after_release(
+def test_cleanup_released_temporary_view_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext):
     proxy = top_level_query_handler_context.get_temporary_view_name()
     proxy_fully_qualified = proxy.fully_qualified
@@ -27,7 +28,7 @@ def test_cleanup_invalid_temporary_view_proxies_after_release(
            and queries[0].query_string == f"DROP VIEW IF EXISTS {proxy_fully_qualified};"
 
 
-def test_cleanup_invalid_bucketfs_object_proxies_after_release(
+def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(
         top_level_query_handler_context: TopLevelQueryHandlerContext,
         bucketfs_location: AbstractBucketFSLocation,
         prefix: str):
@@ -38,6 +39,15 @@ def test_cleanup_invalid_bucketfs_object_proxies_after_release(
     top_level_query_handler_context.cleanup_released_object_proxies()
     file_list = bucketfs_location.list_files_in_bucketfs("")
     assert file_list == []
+
+
+def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_release(
+        top_level_query_handler_context: TopLevelQueryHandlerContext,
+        bucketfs_location: AbstractBucketFSLocation,
+        prefix: str):
+    _ = top_level_query_handler_context.get_temporary_bucketfs_location()
+    top_level_query_handler_context.release()
+    top_level_query_handler_context.cleanup_released_object_proxies()
 
 
 def test_cleanup_release_in_reverse_order_at_top_level(
@@ -78,3 +88,25 @@ def test_cleanup_release_in_reverse_order_at_child(
                                for table_name in reversed(parent_table_names)]
     assert child_expected_queries == child_actual_queries and \
            parent_expected_queries == parent_actual_queries
+
+
+def test_cleanup_parent_before_grand_child_with_temporary_objects(
+        top_level_query_handler_context: TopLevelQueryHandlerContext):
+    _ = top_level_query_handler_context.get_temporary_table_name()
+    child1 = top_level_query_handler_context.get_child_query_handler_context()
+    _ = child1.get_temporary_table_name()
+    child2 = top_level_query_handler_context.get_child_query_handler_context()
+    _ = child2.get_temporary_table_name()
+    grand_child11 = child1.get_child_query_handler_context()
+    _ = grand_child11.get_temporary_table_name()
+    grand_child12 = child1.get_child_query_handler_context()
+    _ = grand_child12.get_temporary_table_name()
+    grand_child21 = child2.get_child_query_handler_context()
+    _ = grand_child21.get_temporary_table_name()
+    grand_child22 = child2.get_child_query_handler_context()
+    _ = grand_child22.get_temporary_table_name()
+
+    with pytest.raises(ChildContextNotReleasedError):
+        top_level_query_handler_context.release()
+    cleanup_queries = top_level_query_handler_context.cleanup_released_object_proxies()
+    assert len(cleanup_queries) == 7

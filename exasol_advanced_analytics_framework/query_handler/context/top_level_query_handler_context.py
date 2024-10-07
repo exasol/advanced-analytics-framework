@@ -1,5 +1,7 @@
+import textwrap
+import traceback
 from abc import ABC
-from typing import Set, List
+from typing import Set, List, Callable
 
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
@@ -15,7 +17,7 @@ from exasol_advanced_analytics_framework.query_handler.context.proxy.object_prox
 from exasol_advanced_analytics_framework.query_handler.context.proxy.table_name_proxy import TableNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.view_name_proxy import ViewNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+    ScopeQueryHandlerContext, Connection
 from exasol_advanced_analytics_framework.query_handler.query.query import Query
 
 
@@ -29,40 +31,71 @@ class TemporaryObjectCounter:
         return result
 
 
+class ChildContextNotReleasedError(Exception):
+
+    def __init__(self,
+                 not_released_child_contexts: List[ScopeQueryHandlerContext],
+                 exceptions_thrown_by_not_released_child_contexts: List["ChildContextNotReleasedError"]):
+        """
+        :param not_released_child_contexts: A list of child contexts which were not yet released
+        :param exceptions_thrown_by_not_released_child_contexts: A list of ChildContextNotReleasedError thrown by the
+                                                                 call to _invalidate of the child contexts
+        """
+        self.exceptions_thrown_by_not_released_child_contexts = exceptions_thrown_by_not_released_child_contexts
+        self.not_released_child_contexts = not_released_child_contexts
+        concatenated_contexts = "\n- ".join([str(c) for c in self.get_all_not_released_contexts()])
+        self.message = \
+            f"The following child contexts were not released,\n" \
+            f"please release all contexts to avoid ressource leakage:\n" \
+            f"- {concatenated_contexts}\n"
+        super(ChildContextNotReleasedError, self).__init__(self.message)
+
+    def get_all_not_released_contexts(self):
+        result = sum([e.get_all_not_released_contexts() for e in
+                      self.exceptions_thrown_by_not_released_child_contexts], [])
+        result = self.not_released_child_contexts + result
+        return result
+
+
+ConnectionLookup = Callable[[str], Connection]
+
+
 class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def __init__(self,
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter):
+        self._connection_lookup = connection_lookup
         self._global_temporary_object_counter = global_temporary_object_counter
         self._temporary_schema_name = temporary_schema_name
         self._temporary_bucketfs_location = temporary_bucketfs_location
         self._temporary_db_object_name_prefix = temporary_db_object_name_prefix
-        self._valid_object_proxies: Set[ObjectProxy] = set()
-        self._invalid_object_proxies: Set[ObjectProxy] = set()
+        self._not_released_object_proxies: Set[ObjectProxy] = set()
+        self._released_object_proxies: Set[ObjectProxy] = set()
         self._owned_object_proxies: Set[ObjectProxy] = set()
         self._counter = 0
         self._child_query_handler_context_list: List[_ChildQueryHandlerContext] = []
-        self._is_valid = True
+        self._not_released = True
 
     def release(self) -> None:
-        self._check_if_valid()
+        self._check_if_released()
         for object_proxy in list(self._owned_object_proxies):
             self._release_object(object_proxy)
-        if len(self._valid_object_proxies) > 0:
-            for object_proxy in list(self._valid_object_proxies):
+        if len(self._not_released_object_proxies) > 0:
+            for object_proxy in list(self._not_released_object_proxies):
                 self._release_object(object_proxy)
-            raise RuntimeError("Child contexts are not released.")
-        self._invalidate()
+        self._release()
+        self._check_if_children_released()
 
     def _get_counter_value(self) -> int:
-        self._check_if_valid()
+        self._check_if_released()
         self._counter += 1
         return self._counter
 
     def _get_temporary_table_name(self) -> TableName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_name = self._get_temporary_db_object_name()
         temporary_table_name = TableNameBuilder.create(
             name=temporary_name,
@@ -70,7 +103,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return temporary_table_name
 
     def _get_temporary_view_name(self) -> ViewName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_name = self._get_temporary_db_object_name()
         temporary_view_name = ViewNameBuilder.create(
             name=temporary_name,
@@ -86,7 +119,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._owned_object_proxies.add(object_proxy)
 
     def get_temporary_table_name(self) -> TableName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_table_name = self._get_temporary_table_name()
         object_proxy = TableNameProxy(temporary_table_name,
                                       self._global_temporary_object_counter.get_current_value())
@@ -94,7 +127,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return object_proxy
 
     def get_temporary_view_name(self) -> ViewName:
-        self._check_if_valid()
+        self._check_if_released()
         temporary_view_name = self._get_temporary_view_name()
         object_proxy = ViewNameProxy(temporary_view_name,
                                      self._global_temporary_object_counter.get_current_value())
@@ -102,26 +135,27 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         return object_proxy
 
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
-        self._check_if_valid()
-        temporary_path = self.get_temporary_path()
+        self._check_if_released()
+        temporary_path = self._get_temporary_path()
         child_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         object_proxy = BucketFSLocationProxy(child_bucketfs_location)
         self._own_object(object_proxy)
         return object_proxy
 
-    def get_temporary_path(self):
+    def _get_temporary_path(self):
         temporary_path = f"{self._get_counter_value()}"
         return temporary_path
 
     def get_child_query_handler_context(self) -> ScopeQueryHandlerContext:
-        self._check_if_valid()
-        temporary_path = self.get_temporary_path()
+        self._check_if_released()
+        temporary_path = self._get_temporary_path()
         new_temporary_bucketfs_location = self._temporary_bucketfs_location.joinpath(temporary_path)
         child_query_handler_context = _ChildQueryHandlerContext(
             self,
             new_temporary_bucketfs_location,
             self._get_temporary_db_object_name(),
             self._temporary_schema_name,
+            self._connection_lookup,
             self._global_temporary_object_counter
         )
         self._child_query_handler_context_list.append(child_query_handler_context)
@@ -134,7 +168,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
 
     def _transfer_object_to(self, object_proxy: ObjectProxy,
                             scope_query_handler_context: ScopeQueryHandlerContext) -> None:
-        self._check_if_valid()
+        self._check_if_released()
         if object_proxy in self._owned_object_proxies:
             if isinstance(scope_query_handler_context, _ScopeQueryHandlerContextBase):
                 scope_query_handler_context._own_object(object_proxy)
@@ -148,39 +182,52 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             raise RuntimeError("Object not owned by this ScopeQueryHandlerContext.")
 
     def _remove_object(self, object_proxy: ObjectProxy) -> None:
-        self._valid_object_proxies.remove(object_proxy)
+        self._not_released_object_proxies.remove(object_proxy)
 
     def _un_own_object(self, object_proxy: ObjectProxy) -> None:
         self._owned_object_proxies.remove(object_proxy)
 
-    def _check_if_valid(self):
-        if not self._is_valid:
+    def _check_if_released(self):
+        if not self._not_released:
             raise RuntimeError("Context already released.")
 
-    def _invalidate(self):
-        self._check_if_valid()
-        self._invalid_object_proxies = self._invalid_object_proxies.union(self._valid_object_proxies)
-        self._valid_object_proxies = set()
+    def _release(self):
+        self._check_if_released()
+        self._released_object_proxies = self._released_object_proxies.union(self._not_released_object_proxies)
+        self._not_released_object_proxies = set()
         self._owned_object_proxies = set()
-        self._is_valid = False
-        child_context_were_not_released = False
+        self._not_released = False
+
+    def _check_if_children_released(self):
+        not_released_child_contexts = []
+        exceptions_from_not_released_child_contexts = []
         for child_query_handler_context in self._child_query_handler_context_list:
-            if child_query_handler_context._is_valid:
-                child_context_were_not_released = True
-                child_query_handler_context._invalidate()
-        if child_context_were_not_released:
-            raise RuntimeError("Child contexts are not released.")
+            if child_query_handler_context._not_released:
+                not_released_child_contexts.append(child_query_handler_context)
+                try:
+                    child_query_handler_context._release()
+                    child_query_handler_context._check_if_children_released()
+                except ChildContextNotReleasedError as e:
+                    exceptions_from_not_released_child_contexts.append(e)
+        if not_released_child_contexts:
+            raise ChildContextNotReleasedError(
+                not_released_child_contexts=not_released_child_contexts,
+                exceptions_thrown_by_not_released_child_contexts=exceptions_from_not_released_child_contexts
+            )
 
     def _register_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.add(object_proxy)
+        self._check_if_released()
+        self._not_released_object_proxies.add(object_proxy)
 
     def _release_object(self, object_proxy: ObjectProxy):
-        self._check_if_valid()
-        self._valid_object_proxies.remove(object_proxy)
+        self._check_if_released()
+        self._not_released_object_proxies.remove(object_proxy)
         if object_proxy in self._owned_object_proxies:
             self._owned_object_proxies.remove(object_proxy)
-        self._invalid_object_proxies.add(object_proxy)
+        self._released_object_proxies.add(object_proxy)
+
+    def get_connection(self, name: str) -> Connection:
+        return self._connection_lookup(name)
 
 
 class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
@@ -188,15 +235,17 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter = TemporaryObjectCounter()):
         super().__init__(temporary_bucketfs_location,
                          temporary_db_object_name_prefix,
                          temporary_schema_name,
+                         connection_lookup,
                          global_temporary_object_counter)
 
     def _release_object(self, object_proxy: ObjectProxy):
         super()._release_object(object_proxy)
-        object_proxy._invalidate()
+        object_proxy._release()
 
     def cleanup_released_object_proxies(self) -> List[Query]:
         """
@@ -207,12 +256,12 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         such that, we remove first objects that might depend on previous objects.
         """
         db_objects: List[DBObjectNameProxy] = \
-            [object_proxy for object_proxy in self._invalid_object_proxies
+            [object_proxy for object_proxy in self._released_object_proxies
              if isinstance(object_proxy, DBObjectNameProxy)]
         bucketfs_objects: List[BucketFSLocationProxy] = \
-            [object_proxy for object_proxy in self._invalid_object_proxies
+            [object_proxy for object_proxy in self._released_object_proxies
              if isinstance(object_proxy, BucketFSLocationProxy)]
-        self._invalid_object_proxies = set()
+        self._released_object_proxies = set()
         self._remove_bucketfs_objects(bucketfs_objects)
         reverse_sorted_db_objects = sorted(db_objects, key=lambda x: x._global_counter_value, reverse=True)
         cleanup_queries = [object_proxy.get_cleanup_query()
@@ -237,10 +286,12 @@ class _ChildQueryHandlerContext(_ScopeQueryHandlerContextBase):
                  temporary_bucketfs_location: AbstractBucketFSLocation,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
+                 connection_lookup: ConnectionLookup,
                  global_temporary_object_counter: TemporaryObjectCounter):
         super().__init__(temporary_bucketfs_location,
                          temporary_db_object_name_prefix,
                          temporary_schema_name,
+                         connection_lookup,
                          global_temporary_object_counter)
         self.__parent = parent
 

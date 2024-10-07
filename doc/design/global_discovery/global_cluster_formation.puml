@@ -1,0 +1,65 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+!include ../legend.puml
+
+box Peer1
+    participant "DiscoveryStrategy" as DiscoveryStrategy
+    participant "PeerCommunicator\n(Formation Leader)" as PeerCommunicator1
+end box
+
+box Peer2
+    participant "PeerCommunicator" as PeerCommunicator2
+end box
+
+box Peer3
+    participant "PeerCommunicator" as PeerCommunicator3
+end box
+
+box Peer4
+    participant "PeerCommunicator" as PeerCommunicator4
+end box
+
+DiscoveryStrategy -> PeerCommunicator1: RegisterPeerMessage(Peer2)
+par
+    ref over PeerCommunicator1, PeerCommunicator2: Establish Connection\nbetween Peer1 and Peer2
+else
+    DiscoveryStrategy -> PeerCommunicator1: RegisterPeerMessage(Peer3)
+    par
+        par
+            PeerCommunicator1 -> PeerCommunicator2: RegisterPeerMessage(Peer3)
+            par
+                PeerCommunicator1 <- PeerCommunicator2: AcknowledgeRegisterPeerMessage(Peer3)
+                PeerCommunicator1 -> PeerCommunicator2: RegisterPeerCompleteMessage(Peer3)
+            else
+                ref over PeerCommunicator2, PeerCommunicator3: Establish Connection\nbetween Peer2 and Peer3
+            end
+        else
+            ref over PeerCommunicator1, PeerCommunicator3: Establish Connection\nbetween Peer1 and Peer3
+        end
+    else
+        DiscoveryStrategy -> PeerCommunicator1: RegisterPeerMessage(Peer4)
+        par
+            PeerCommunicator1 -> PeerCommunicator2: RegisterPeerMessage(Peer4)
+            par
+                PeerCommunicator2 -> PeerCommunicator3: RegisterPeerMessage(Peer4)
+                par
+                    PeerCommunicator2 <- PeerCommunicator3: AcknowledgeRegisterPeerMessage(Peer4)
+                    PeerCommunicator2 -> PeerCommunicator3: RegisterPeerCompleteMessage(Peer4)
+                else
+                    ref over PeerCommunicator3, PeerCommunicator4: Establish Connection\nbetween Peer3 and Peer4
+                end
+            else
+                PeerCommunicator1 <- PeerCommunicator2: AcknowledgeRegisterPeerMessage(Peer4)
+                PeerCommunicator1 -> PeerCommunicator2: RegisterPeerCompleteMessage(Peer4)
+            else
+                ref over PeerCommunicator2, PeerCommunicator4: Establish Connection\nbetween Peer2 and Peer4
+            end
+        else
+            ref over PeerCommunicator1, PeerCommunicator4: Establish Connection\nbetween Peer1 and Peer4
+        end
+    end
+end
+
+
+@enduml

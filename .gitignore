@@ -147,3 +147,20 @@ doc/_build
 # Luarocks
 
 .luarocks
+
+# vim
+.*.swp
+.*.swo
+
+# vagrant
+.vagrant
+
+# lint
+.lint.txt
+.lint.json
+
+# emacs
+TAGS
+
+# locally build script language container files
+.slc
