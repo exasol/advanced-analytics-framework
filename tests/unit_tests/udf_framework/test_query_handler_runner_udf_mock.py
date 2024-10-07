@@ -211,10 +211,6 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
     current = 1
     assert not state_file_exists(previous) and state_file_exists(current)
 
-    # prev_state_exists = _state_file_exists(0, query_handler_bfs_connection)
-    # current_state_exists = _state_file_exists(1, query_handler_bfs_connection)
-    # assert prev_state_exists == False and current_state_exists == True
-
     exa = MockExaEnvironment(
         metadata=MockMetaData(
             script_code_wrapper_function=_udf_wrapper,

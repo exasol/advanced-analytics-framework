@@ -43,9 +43,7 @@ def upload_via_joblib(location: bfs.path.PathLike, object: Any):
         joblib.dump(object, temp_file.name)
         temp_file.flush()
         temp_file.seek(0)
-        data = b''.join(temp_file)
-        # strangely location.write(temp_file) did not write any data to BFS
-        location.write(data)
+        location.write(temp_file.read())
 
 
 def read_via_joblib(location: bfs.path.PathLike) -> Any:

@@ -29,7 +29,6 @@ def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> Non
 
 @pytest.fixture(scope="module")
 def database_with_slc(
-        # pyexasol_connection,
         deployed_scripts,
         db_schema_name,
         bucketfs_connection_factory,
