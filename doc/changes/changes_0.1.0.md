@@ -49,6 +49,7 @@ Code name:
 * #180: Replaced `start_integration_test_environment.sh` with `pytest-backend-plugin`
 * #184: Updated micromamba to the latest version 2.0.0
 * #176: Updated usage of `exasol-bucketfs` to new API
+* #185: Removed directory and script for building SLC AAF
 
 ### Documentation
 
