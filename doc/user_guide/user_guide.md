@@ -1,55 +1,52 @@
+# Advanced Analytics Framework User Guide
 
-# User Guide
-
-The goal of this library is to provide a general framework to implement complex 
-data analysis algorithms with Exasol. This framework provides certain features 
-to users in which they are able to run their implementations.
+The Advanced Analytics Framework (AAF) provides a general framework to implement complex data analysis algorithms with Exasol. Users can use the features of AAF in their custom implementations.
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Setup](#setup)
-- [Usage](#usage)
-- [Implementation of Algorithms](#implementation-of-algorithms)
-
-
+* [Getting Started](#getting-started)
+* [Setup](#setup)
+* [Usage](#usage)
+* [Implementation of Algorithms](#implementation-of-algorithms)
 
 ## Getting Started
-- Exasol DB
-  - The Exasol cluster must already be running with version 7.1 or later.
-  - DB connection information and credentials are needed.
-- TODO: Connection
-- TODO: Algorithm implementation
 
+* Exasol database
+  * The Exasol cluster must already be running with version 7.1 or later.
+  * Database connection information and credentials are needed.
+* TODO: Connection
+* TODO: Algorithm implementation
 
 ## Setup
+
 ### The Python Package
+
 #### Download The Python Wheel Package
-- The latest version of the python package of the framework can be 
-downloaded from the Releases in GitHub Repository 
-(see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest)).
-Please download the following built archive:
-```buildoutcfg 
-advanced_analytics_framework.whl
-```
+
+The latest version of the python package of the framework can be downloaded from the Releases in GitHub Repository (see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest)).
+
+Please download the archive `advanced_analytics_framework.whl`.
 
 #### Install The Python Wheel Package
-- Install the packaged advanced-analytics-framework project as follows:
+
+The following command installs the package `advanced-analytics-framework` from [pypi](https://pypi.org):
+
 ```bash
-pip install exasol_advanced_analytics_framework.whl
+pip install exasol-advanced-analytics-framework
 ```
 
-### The Pre-built Language Container
-#### Download Language Container
-- In order to get this framework run, the language container of this framework is required.
-- Please download the language container from the Releases in GitHub Repository 
-(see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest)).
+### The Pre-built Script Language Container (SLC)
 
+#### Download SLC
 
-#### Install Language Container
-- To install the language container, it is necessary to load the container into the BucketFS 
-and register it to the database. The following command provides this setup:
-```buildoutcfg
+* Running the framework requires a custom script language container (SLC).
+* Please download the SLC from the releases in GitHub Repository, see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest).
+
+#### Install SLC
+
+Installing the SLC requires loading the container file into the BucketFS and registering it to the database:
+
+```shell
 python -m exasol_advanced_analytics_framework.deploy language-container
     --dsn <DB_HOST:DB_PORT> \
     --db-user <DB_USER> \
@@ -61,14 +58,15 @@ python -m exasol_advanced_analytics_framework.deploy language-container
     --bucketfs-password <BUCKETFS_PASSWORD> \
     --bucket <BUCKETFS_NAME> \
     --path-in-bucket <PATH_IN_BUCKET> \
-    --language-alias <LANGUAGE_ALIAS> \ 
-    --container-file <path/to/language_container.tar.gz>       
+    --language-alias <LANGUAGE_ALIAS> \
+    --container-file <path/to/language_container.tar.gz>
 ```
 
 ### Deployment
-- Deploy all necessary scripts installed in the previous step to the specified 
-`SCHEMA` in Exasol DB with the same `LANGUAGE_ALIAS`  using the following python cli command:
-```buildoutcfg
+
+Deploy all necessary scripts installed in the previous step to the specified `SCHEMA` in Exasol DB with the same `LANGUAGE_ALIAS` using the following python cli command:
+
+```shell
 python -m exasol_advanced_analytics_framework.deploy scripts
     --dsn <DB_HOST:DB_PORT> \
     --db-user <DB_USER> \
@@ -78,16 +76,16 @@ python -m exasol_advanced_analytics_framework.deploy scripts
 ```
 
 ## Usage
-The entry point of this framework is `AAF_RUN_QUERY_HANDLER` script. This script is simply 
-a Query Loop which is responsible for executing the implemented algorithm.
 
-This script takes the necessary parameters to execute the desired algorithm in 
-string json format. The json input includes two main part: 
-  - `query_handler` : Details of the algorithm implemented by user.
-  - `temporary_output`:  Information about BucketFS where the temporary outputs 
-  of the query handler is kept.
+The entry point of this framework is `AAF_RUN_QUERY_HANDLER` script. This script is simply a Query Loop which is responsible for executing the implemented algorithm.
+
+This script takes the necessary parameters to execute the desired algorithm in string json format. The json input includes two main part:
+
+* `query_handler` : Details of the algorithm implemented by user.
+* `temporary_output`:  Information about BucketFS where the temporary outputs of the query handler is kept.
 
 You can find an example usage below:
+
 ```sql
 EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
     "query_handler": {
@@ -110,32 +108,29 @@ EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
     }
 }')
 ```
-Parameters 
- 
- - `CLASS_NAME` : Name of the query handler class
- - `CLASS_MODULE`: Module name of the query handler class
- - `CLASS_PARAMETERS:` Parameters of the query handler class
- - `UDF_NAME` (Optional): Name of Python UDF script including user-implemented algorithm.
- - `UDF_SCHEMA_NAME` (Optional): Schema name where the UDF script is deployed.
- - `BUCKETFS_CONNECTION_NAME`: BucketFS connection name to keep temporary outputs
- - `BUCKETFS_DIRECTORY`: Directory in BucketFS where temporary outputs are kept
 
+Parameters
+
+| Parameter                    | Optional? | Description                                                    |
+|------------------------------|-----------|----------------------------------------------------------------|
+| `<CLASS_NAME>`               | -         | Name of the query handler class                                |
+| `<CLASS_MODULE>`             | -         | Module name of the query handler class                         |
+| `<CLASS_PARAMETERS>`         | -         | Parameters of the query handler class                          |
+| `<UDF_NAME>`                 | yes       | Name of Python UDF script including user-implemented algorithm |
+| `<UDF_SCHEMA_NAME>`          | yes       | Schema name where the UDF script is deployed                   |
+| `<BUCKETFS_CONNECTION_NAME>` | -         | BucketFS connection name to keep temporary outputs             |
+| `<BUCKETFS_DIRECTORY>`       | -         | Directory in BucketFS where temporary outputs are kept         |
 
 # Implementation of Algorithms
 
-The algorithm should extend the `UDFQueryHandler` abstract class  and then 
-implement its following methods:
-
-- `start()` : It is called at the first execution of the framework, that is, 
-in the first iteration. It returns either _Continue_ or _Finish_ result objects. 
-While _Finish_ result object returns the final result of the implemented algorith, 
-_Continue_ object returns the query list that will be executed for the next state.
-- `handle_query_result()` : This method is get called at the following iterations 
-to handle the return query. An example class definition is given below:
+The algorithm should extend the `UDFQueryHandler` abstract class and then implement its following methods:
+* `start()` : It is called at the first execution of the framework, that is, in the first iteration. It returns a result object: Either _Continue_ or _Finish_.
+  * The _Finish_ result object contains the final result of the implemented algorith.
+  * The _Continue_ object contains the query list that will be executed for the next state.
+* `handle_query_result()` : This method is called at the following iterations to handle the return query. An example class definition is given below:
 
 ```python
 class CustomQueryHandler(UDFQueryHandler):
-
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.parameter = parameter
@@ -143,13 +138,13 @@ class CustomQueryHandler(UDFQueryHandler):
 
     def start(self) -> Union[Continue, Finish[ResultType]]:
         query_list = [
-          SelectQuery("SELECT 1 FROM DUAL"), 
+          SelectQuery("SELECT 1 FROM DUAL"),
           SelectQuery("SELECT 2 FROM DUAL")]
         query_handler_input_query = SelectQueryWithColumnDefinition(
             query_string="SELECT 5 AS 'return_column' FROM DUAL",
             output_columns=[
               Column(ColumnName("return_column"), ColumnType("INTEGER"))])
-        
+
         return Continue(
             query_list=query_list,
             input_query=query_handler_return_query)
@@ -159,13 +154,9 @@ class CustomQueryHandler(UDFQueryHandler):
         result = 2 ** return_value
         return Finish(result=f"Assertion of the final result: 32 == {result}")
 ```
-The figure below indicates a sample execution of this algorithm implemented in 
-`CustomQueryHandler` class. When this class is got started, it has two queries 
-to be executed and an `input_query` which will be called to obtained the next state.
 
-After the first iteration is completed, the framework calls the `handle_query_result` 
-method with the `query_result` of the `input_query` of the previous iteration. 
-In this example, the algorithm is finished at this state, presents the two to 
-the power of the return value as final result.
+The figure below illustrates the execution of this algorithm implemented in `CustomQueryHandler` class. When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
+
+After the first iteration is completed, the framework calls the `handle_query_result` method with the `query_result` of the `input_query` of the previous iteration.  In this example, the algorithm is finished at this state, presents the two to the power of the return value as final result.
 
 ![Sample Execution](../images/sample_execution.png "Sample Execution")
