@@ -27,8 +27,8 @@ BUCKETFS_DIRECTORY = "directory"
 BUCKETFS_CONNECTION_NAME = "bucketfs_connection"
 
 
-def to_json_str(**kwargs):
-    return json.dumps(kwargs)
+def kwargs2dict(**kwargs):
+    return dict(kwargs)
 
 
 def udf_mock_connection(user=None, password=None, **kwargs) -> Connection:
@@ -36,9 +36,9 @@ def udf_mock_connection(user=None, password=None, **kwargs) -> Connection:
     For MountedBucket provide kwargs backend="mounted", and base_path.
     """
     return Connection(
-        address=to_json_str(**kwargs),
-        user=to_json_str(username=user) if user else "{}",
-        password=to_json_str(password=password) if password else "{}",
+        address=json.dumps(kwargs2dict(**kwargs)),
+        user=json.dumps(kwargs2dict(username=user)) if user else "{}",
+        password=json.dumps(kwargs2dict(password=password)) if password else "{}",
     )
 
 
