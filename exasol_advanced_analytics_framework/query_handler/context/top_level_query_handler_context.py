@@ -3,7 +3,7 @@ import traceback
 from abc import ABC
 from typing import Set, List, Callable
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
+import exasol.bucketfs as bfs
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.table_name import TableName
 from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
@@ -62,7 +62,7 @@ ConnectionLookup = Callable[[str], Connection]
 
 class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def __init__(self,
-                 temporary_bucketfs_location: AbstractBucketFSLocation,
+                 temporary_bucketfs_location: bfs.path.PathLike,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
                  connection_lookup: ConnectionLookup,
@@ -232,7 +232,7 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
 
 class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
     def __init__(self,
-                 temporary_bucketfs_location: AbstractBucketFSLocation,
+                 temporary_bucketfs_location: bfs.path.PathLike,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
                  connection_lookup: ConnectionLookup,
@@ -283,7 +283,7 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
 
 class _ChildQueryHandlerContext(_ScopeQueryHandlerContextBase):
     def __init__(self, parent: _ScopeQueryHandlerContextBase,
-                 temporary_bucketfs_location: AbstractBucketFSLocation,
+                 temporary_bucketfs_location: bfs.path.PathLike,
                  temporary_db_object_name_prefix: str,
                  temporary_schema_name: str,
                  connection_lookup: ConnectionLookup,

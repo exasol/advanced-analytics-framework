@@ -1,19 +1,18 @@
 import logging
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
-
 from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
+import exasol.bucketfs as bfs
 
 LOGGER = logging.getLogger(__file__)
 
 
 class BucketFSLocationProxy(ObjectProxy):
 
-    def __init__(self, bucketfs_location: AbstractBucketFSLocation):
+    def __init__(self, bucketfs_location: bfs.path.PathLike):
         super().__init__()
         self._bucketfs_location = bucketfs_location
 
-    def bucketfs_location(self) -> AbstractBucketFSLocation:
+    def bucketfs_location(self) -> bfs.path.PathLike:
         self._check_if_released()
         return self._bucketfs_location
 
@@ -26,16 +25,15 @@ class BucketFSLocationProxy(ObjectProxy):
 
     def _remove_file(self, file):
         try:
-            self._bucketfs_location.delete_file_in_bucketfs(file)
+            file.rm()
         except Exception as e:
             LOGGER.error(f"Failed to remove {file}, got exception", exc_info=True)
 
     def _list_files(self):
-        files = []
         try:
-            files = self._bucketfs_location.list_files_in_bucketfs("")
+            return list(self._bucketfs_location.iterdir())
         except FileNotFoundError as e:
-            LOGGER.debug(f"File not found {self._bucketfs_location.get_complete_file_path_in_bucket()} during cleanup.")
+            LOGGER.debug(f"File not found {self._bucketfs_location.as_udf_path} during cleanup.")
         except Exception as e:
             LOGGER.exception(f"Got exception during listing files in temporary BucketFSLocation")
-        return files
+        return []

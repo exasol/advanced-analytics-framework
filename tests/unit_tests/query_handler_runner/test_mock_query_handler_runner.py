@@ -2,7 +2,6 @@ from pathlib import PurePosixPath
 from typing import Union
 
 import pytest
-from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
 from exasol_data_science_utils_python.schema.column import Column
 from exasol_data_science_utils_python.schema.column_name import ColumnName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
@@ -28,12 +27,12 @@ def temporary_schema_name():
     return "temp_schema_name"
 
 
-@pytest.fixture()
-def top_level_query_handler_context(tmp_path,
+@pytest.fixture
+def top_level_query_handler_context(mocked_temporary_bucketfs_location,
                                     temporary_schema_name,
                                     test_connection_lookup):
     top_level_query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=LocalFSMockBucketFSLocation(base_path=PurePosixPath(tmp_path) / "bucketfs"),
+        temporary_bucketfs_location=mocked_temporary_bucketfs_location,
         temporary_db_object_name_prefix="temp_db_object",
         connection_lookup=test_connection_lookup,
         temporary_schema_name=temporary_schema_name,
