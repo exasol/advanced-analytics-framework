@@ -9,7 +9,7 @@ from enum import Enum, auto
 from typing import Any, Tuple, List, Optional
 
 import exasol.bucketfs as bfs
-from tempfile import NamedTemporaryFile
+from io import BytesIO
 
 from exasol_data_science_utils_python.schema.column import Column
 from exasol_data_science_utils_python.schema.column_name import ColumnName
@@ -39,22 +39,17 @@ def create_bucketfs_location_from_conn_object(bfs_conn_obj) -> bfs.path.PathLike
 
 
 def upload_via_joblib(location: bfs.path.PathLike, object: Any):
-    with NamedTemporaryFile() as temp_file:
-        joblib.dump(object, temp_file.name)
-        temp_file.flush()
-        temp_file.seek(0)
-        # location.write(temp_file) does not write any data to BFS. Probably
-        # because the NamedTemporaryFile is not seen as a file-like object.
-        location.write(temp_file.read())
+    buffer = BytesIO()
+    joblib.dump(object, buffer)
+    location.write(buffer)
 
 
 def read_via_joblib(location: bfs.path.PathLike) -> Any:
-    with NamedTemporaryFile() as temp_file:
-        for chunk in location.read():
-            temp_file.write(chunk)
-        temp_file.flush()
-        temp_file.seek(0)
-        return joblib.load(temp_file)
+    buffer = BytesIO()
+    for chunk in location.read():
+        buffer.write(chunk)
+    buffer.seek(0)
+    return joblib.load(b)
 
 
 @dataclasses.dataclass

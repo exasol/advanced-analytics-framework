@@ -21,7 +21,6 @@ class BucketFSLocationProxy(ObjectProxy):
             raise Exception("Cleanup of BucketFSLocationProxy only allowed after release.")
         files = self._list_files()
         for file in files:
-            print(f'BucketFSLocationProxy.cleanup() remove {file}')
             self._remove_file(file)
 
     def _remove_file(self, file):
