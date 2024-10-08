@@ -192,7 +192,7 @@ class ExampleQueryHandler(UDFQueryHandler):
         query_list = [
           SelectQuery("SELECT 1 FROM DUAL"),
           SelectQuery("SELECT 2 FROM DUAL")]
-        query_handler_input_query = SelectQueryWithColumnDefinition(
+        query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string="SELECT 5 AS 'return_column' FROM DUAL",
             output_columns=[
               Column(ColumnName("return_column"), ColumnType("INTEGER"))])
@@ -207,8 +207,10 @@ class ExampleQueryHandler(UDFQueryHandler):
         return Finish(result=f"Assertion of the final result: 32 == {result}")
 ```
 
-The figure below illustrates the execution of this algorithm implemented in `CustomQueryHandler` class. When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
+The figure below illustrates the execution of this algorithm implemented in `ExampleQueryHandler` class.
+* When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
+* After the first iteration is completed, the framework calls method `handle_query_result` with the `query_result` of the `input_query` of the previous iteration.
 
-After the first iteration is completed, the framework calls the `handle_query_result` method with the `query_result` of the `input_query` of the previous iteration.  In this example, the algorithm is finished at this state, presents the two to the power of the return value as final result.
+In this example, the algorithm is finished at this state, presents the two to the power of `return_value` as final result.
 
 ![Sample Execution](../images/sample_execution.png "Sample Execution")
