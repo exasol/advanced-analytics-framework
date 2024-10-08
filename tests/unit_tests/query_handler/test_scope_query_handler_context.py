@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 import pytest
-from exasol_bucketfs_utils_python.bucketfs_location import BucketFSLocation
+import exasol.bucketfs as bfs
 from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
 from exasol_data_science_utils_python.schema.column_name import ColumnName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
@@ -38,11 +38,11 @@ def test_temporary_view_temporary_schema(scope_query_handler_context: ScopeQuery
     assert proxy.schema_name.name == schema
 
 
-def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: BucketFSLocation,
+def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: bfs.path.PathLike,
                                                 scope_query_handler_context: ScopeQueryHandlerContext):
-    proxy = scope_query_handler_context.get_temporary_bucketfs_location()
-    actual_path = proxy.bucketfs_location().get_complete_file_path_in_bucket()
-    expected_prefix_path = bucketfs_location.get_complete_file_path_in_bucket()
+    proxy =  scope_query_handler_context.get_temporary_bucketfs_location()
+    actual_path = proxy.bucketfs_location().as_udf_path()
+    expected_prefix_path = bucketfs_location.as_udf_path()
     assert actual_path.startswith(expected_prefix_path)
 
 
@@ -61,8 +61,8 @@ def test_two_temporary_view_are_not_equal(scope_query_handler_context: ScopeQuer
 def test_two_temporary_bucketfs_files_are_not_equal(scope_query_handler_context: ScopeQueryHandlerContext):
     proxy1 = scope_query_handler_context.get_temporary_bucketfs_location()
     proxy2 = scope_query_handler_context.get_temporary_bucketfs_location()
-    path1 = proxy1.bucketfs_location().get_complete_file_path_in_bucket()
-    path2 = proxy2.bucketfs_location().get_complete_file_path_in_bucket()
+    path1 = proxy1.bucketfs_location().as_udf_path()
+    path2 = proxy2.bucketfs_location().as_udf_path()
     assert path1 != path2
 
 
