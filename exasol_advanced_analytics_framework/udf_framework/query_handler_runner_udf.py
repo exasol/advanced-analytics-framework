@@ -48,8 +48,7 @@ def read_via_joblib(location: bfs.path.PathLike) -> Any:
     buffer = BytesIO()
     for chunk in location.read():
         buffer.write(chunk)
-    buffer.seek(0)
-    return joblib.load(buffer)
+    return joblib.load(buffer.getvalue())
 
 
 @dataclasses.dataclass
