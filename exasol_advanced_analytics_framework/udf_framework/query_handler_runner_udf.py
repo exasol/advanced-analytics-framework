@@ -41,14 +41,14 @@ def create_bucketfs_location_from_conn_object(bfs_conn_obj) -> bfs.path.PathLike
 def upload_via_joblib(location: bfs.path.PathLike, object: Any):
     buffer = BytesIO()
     joblib.dump(object, buffer)
-    location.write(buffer)
+    location.write(buffer.getvalue())
 
 
 def read_via_joblib(location: bfs.path.PathLike) -> Any:
     buffer = BytesIO()
     for chunk in location.read():
         buffer.write(chunk)
-    return joblib.load(buffer.getvalue())
+    return joblib.load(buffer)
 
 
 @dataclasses.dataclass
