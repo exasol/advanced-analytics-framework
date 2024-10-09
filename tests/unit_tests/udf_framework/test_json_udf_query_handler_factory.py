@@ -18,15 +18,15 @@ from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import 
 
 class TestJSONQueryHandler(JSONQueryHandler):
     __test__ = False
-    def __init__(self, parameter: JSONType, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        self._parameter = parameter
+    def __init__(self, parameters: JSONType, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
+        self._parameters = parameters
 
     def start(self) -> Union[Continue, Finish[JSONType]]:
-        return Finish[JSONType](self._parameter)
+        return Finish[JSONType](self._parameters)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[JSONType]]:
-        return Finish[JSONType](self._parameter)
+        return Finish[JSONType](self._parameters)
 
 
 class TestJsonUDFQueryHandlerFactory(JsonUDFQueryHandlerFactory):
