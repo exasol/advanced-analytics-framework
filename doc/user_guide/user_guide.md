@@ -150,43 +150,45 @@ This script takes the necessary parameters to execute the desired algorithm in s
 * `query_handler` : Details of the algorithm implemented by user.
 * `temporary_output`:  Information about BucketFS where the temporary outputs of the query handler is kept.
 
-You can find an example usage below:
+The following SQL statement shows how to call an AAF query handler:
 
 ```sql
 EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
     "query_handler": {
         "factory_class": {
-            "name": "<CLASS_NAME>",
-            "module": "<CLASS_MODULE>"
+            "module": "<CLASS_MODULE>",
+            "name": "<CLASS_NAME>"
         },
-        "parameters": "<CLASS_PARAMETERS>"
+        "parameters": "<CLASS_PARAMETERS>",
         "udf": {
+            "schema": "<UDF_DB_SCHEMA>",
             "name": "<UDF_NAME>"
-            "schema": "<UDF_SCHEMA_NAME>",
-        },
+        }
     },
     "temporary_output": {
         "bucketfs_location": {
-            "connection_name": "<BUCKETFS_CONNECTION_NAME>"
-            "directory": "<BUCKETFS_DIRECTORY>",
+            "connection_name": "<BUCKETFS_CONNECTION_NAME>",
+            "directory": "<BUCKETFS_DIRECTORY>"
         },
-        "schema_name": "<SCHEMA_NAME>"
+        "schema_name": "<TEMP_DB_SCHEMA>"
     }
-}')
+}');
 ```
 
-Parameters
+See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) for a complete example.
 
-| Parameter                    | Required? | Description                                                    |
-|------------------------------|-----------|----------------------------------------------------------------|
-| `<CLASS_NAME>`               | yes       | Name of the query handler class                                |
-| `<CLASS_MODULE>`             | yes       | Module name of the query handler class <span style="color: red">(should we mention `builtins` here?)</span> |
-| `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class <span style="color: red">(can we say more about the syntax here?)</span> |
-| `<UDF_NAME>`                 | -         | Name of Python UDF script including user-implemented algorithm |
-| `<UDF_SCHEMA_NAME>`          | -         | Schema name where the UDF script is deployed                   |
-| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name to keep temporary outputs             |
-| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS where temporary outputs are kept         |
-| `<SCHEMA_NAME>`              | yes       | <span style="color: red">??? (is this redundant to `<UDF_SCHEMA_NAME>` or what is the difference?)</span>|
+### Parameters
+
+| Parameter                    | Required? | Description                                                                                                    |
+|------------------------------|-----------|----------------------------------------------------------------------------------------------------------------|
+| `<CLASS_NAME>`               | yes       | Name of the query handler class                                                                                |
+| `<CLASS_MODULE>`             | yes       | Module name of the query handler class <span style="color: red">(should we mention `builtins` here?)</span>    |
+| `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                                                        |
+| `<UDF_NAME>`                 | -         | Name of Python UDF script including user-implemented algorithm                                                 |
+| `<UDF_DB_SCHEMA>`            | -         | Schema name where the UDF script is deployed                                                                   |
+| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name to create temporary file outputs                                                      |
+| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for temporary file outputs                                                               |
+| `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                                                    |
 
 # Implementation of Custom Algorithms
 
@@ -199,7 +201,23 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 Here is an example class definition:
 
 ```python
-class ExampleQueryHandler(UDFQueryHandler):
+--/
+CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
+EMITS (outputs VARCHAR(2000000)) AS
+
+from typing import Union
+from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
+from exasol_advanced_analytics_framework.query_handler.context.query_handler_context import QueryHandlerContext
+from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
+from exasol_advanced_analytics_framework.query_handler.result import Result, Continue, Finish
+from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQuery, SelectQueryWithColumnDefinition
+from exasol_data_science_utils_python.schema.column import Column
+from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.column_type import ColumnType
+
+
+-- proposal write parameter into temp table in schema ...
+class CustomQueryHandler(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.parameter = parameter
@@ -222,9 +240,47 @@ class ExampleQueryHandler(UDFQueryHandler):
         return_value = query_result.return_column
         result = 2 ** return_value
         return Finish(result=f"Assertion of the final result: 32 == {result}")
-```
 
-<span style="color: red">Should we also give a complete example for the `EXECUTE SCRIPT` command here?</span>
+import builtins
+builtins.CustomQueryHandler=CustomQueryHandler # required for pickle
+
+class CustomQueryHandlerFactory:
+      def create(self, parameter: str, query_handler_context: QueryHandlerContext):
+          return builtins.CustomQueryHandler(parameter, query_handler_context)
+
+builtins.CustomQueryHandlerFactory=CustomQueryHandlerFactory
+
+from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf \
+    import QueryHandlerRunnerUDF
+
+udf = QueryHandlerRunnerUDF(exa)
+
+def run(ctx):
+    return udf.run(ctx)
+/
+
+
+EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
+    "query_handler": {
+        "factory_class": {
+            "module": "builtins",
+            "name": "CustomQueryHandlerFactory"
+        },
+        "parameters": "bla-bla",
+        "udf": {
+            "schema": "MY_SCHEMA",
+            "name": "MY_QUERY_HANDLER_UDF"
+        }
+    },
+    "temporary_output": {
+        "bucketfs_location": {
+            "connection_name": "BFS_CON",
+            "directory": "temp"
+        },
+        "schema_name": "TEMP_SCHEMA"
+    }
+}');
+```
 
 The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
 * When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
