@@ -1,19 +1,19 @@
 # Advanced Analytics Framework User Guide
 
-The Advanced Analytics Framework (AAF) provides a general framework to implement complex data analysis algorithms with Exasol. Users can use the features of AAF in their custom implementations.
+The Advanced Analytics Framework (AAF) enables implementing complex data analysis algorithms with Exasol. Users can use the features of AAF in their custom implementations.
 
 ## Table of Contents
 
 * [Setup](#setup)
 * [Usage](#usage)
-* [Implementation of Algorithms](#implementation-of-algorithms)
+* [Implementation of Custom Algorithms](#implementation-of-custom-algorithms)
 
 ## Setup
 
 ### Exasol database
 
 * The Exasol cluster must already be running with version 7.1 or later.
-* Database connection information and credentials are needed.
+* Database connection information and credentials are needed for the database itself as also for the BucketFS.
 
 ### BucketFS Connection
 
@@ -46,7 +46,7 @@ TO '{
   "pat": "<SAAS_PAT>"
   }'
 USER '{"username": "<USER_NAME>"}'
-IDENTIFIED BY '{ "password": "<PASSWORD>"}' ;
+IDENTIFIED BY '{"password": "<PASSWORD>"}' ;
 ```
 
 The list of elements in the connection's parameter called `TO` depends on the
@@ -71,35 +71,47 @@ The following table shows all elements for each of the backends.
 | `saas`   | `<SAAS_DATABASE_ID>` | yes       | -              | Database ID of an Exasol SaaS database instance                    |
 | `saas`   | `<SAAS_PAT>`         | yes       | -              | Personal access token for accessing an SaaS database instance      |
 
-### The Python Package
+### AAF Python Package
 
-#### Download The Python Wheel Package
+The latest version of AAF can be obtained from [pypi](https://pypi.org), see also the [releases on GitHub](https://github.com/exasol/advanced-analytics-framework/releases).
 
-The latest version of the python package of the framework can be downloaded from the Releases in GitHub Repository (see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest)).
-
-Please download the archive `advanced_analytics_framework.whl`.
-
-#### Install The Python Wheel Package
-
-The following command installs the package `advanced-analytics-framework` from [pypi](https://pypi.org):
+The following command installs the AAF from pypi:
 
 ```bash
 pip install exasol-advanced-analytics-framework
 ```
 
-### The Pre-built Script Language Container (SLC)
+### Script Language Containers (SLCs)
 
-#### Download SLC
+Exasol executes User Defined Functions (UDFs) in an isolated Script Language Container (SLCs).
+Running the AAF requires a custom SLC.
 
-* Running the framework requires a custom script language container (SLC).
-* Please download the SLC from the releases in GitHub Repository, see [the latest release](https://github.com/exasol/advanced-analytics-framework/releases/latest).
+#### Build the SLC
 
-#### Install SLC
+If you want to build the AAF SLC then
+
+1. Download the [AAF Sources](https://github.com/exasol/advanced-analytics-framework/) from GitHub
+2. Install poetry
+3. Use the AAF developer commands for building and deploying custom SLCs into Exasol.
+
+```shell
+poetry run nox build_language_container
+```
+
+See [Install the SLC](#install-the-slc).
+
+#### Download a Pre-built SLC
+
+As an alternative to building SLC yourself you can also download a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub.
+
+#### Install the SLC
 
 Installing the SLC requires loading the container file into the BucketFS and registering it to the database:
 
 ```shell
-python -m exasol_advanced_analytics_framework.deploy language-container
+SLC_FILE=.slc/exasol_advanced_analytics_framework_container_release.tar.gz
+LANGUAGE_ALIAS=PYTHON3_AAF
+python -m exasol_advanced_analytics_framework.deploy language-container \
     --dsn <DB_HOST:DB_PORT> \
     --db-user <DB_USER> \
     --db-pass <DB_PASSWORD> \
@@ -110,26 +122,28 @@ python -m exasol_advanced_analytics_framework.deploy language-container
     --bucketfs-password <BUCKETFS_PASSWORD> \
     --bucket <BUCKETFS_NAME> \
     --path-in-bucket <PATH_IN_BUCKET> \
-    --language-alias <LANGUAGE_ALIAS> \
-    --container-file <path/to/language_container.tar.gz>
+    --language-alias "$LANGUAGE_ALIAS" \
+    --container-file "$SLC_FILE"
 ```
 
-### Deployment
+### Additional Scripts
 
-Deploy all necessary scripts installed in the previous step to the specified `SCHEMA` in Exasol DB with the same `LANGUAGE_ALIAS` using the following python cli command:
+Besides the BucketFS connection, the SLC, and the Python package AAF also requires some additional Lua scripts to be created in the Exasol database.
+
+The following command deploys the additional scripts to the specified `DB_SCHEMA` using the `LANGUAGE_ALIAS` of the SLC:
 
 ```shell
-python -m exasol_advanced_analytics_framework.deploy scripts
+python -m exasol_advanced_analytics_framework.deploy scripts \
     --dsn <DB_HOST:DB_PORT> \
     --db-user <DB_USER> \
     --db-pass <DB_PASSWORD> \
-    --schema <SCHEMA> \
-    --language-alias <LANGUAGE_ALIAS>
+    --schema <DB_SCHEMA> \
+    --language-alias "$LANGUAGE_ALIAS"
 ```
 
 ## Usage
 
-The entry point of this framework is `AAF_RUN_QUERY_HANDLER` script. This script is simply a Query Loop which is responsible for executing the implemented algorithm.
+The entry point of this framework is `AAF_RUN_QUERY_HANDLER` script. This script is simply a query loop which is responsible for executing the implemented algorithm.
 
 This script takes the necessary parameters to execute the desired algorithm in string json format. The json input includes two main part:
 
@@ -142,44 +156,47 @@ You can find an example usage below:
 EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
     "query_handler": {
         "factory_class": {
-            "name": <CLASS_NAME>,
-            "module": <CLASS_MODULE>
+            "name": "<CLASS_NAME>",
+            "module": "<CLASS_MODULE>"
         },
-        "parameters": <CLASS_PARAMETERS>
+        "parameters": "<CLASS_PARAMETERS>"
         "udf": {
-            "name": <UDF_NAME>
-            "schema": <UDF_SCHEMA_NAME>,
+            "name": "<UDF_NAME>"
+            "schema": "<UDF_SCHEMA_NAME>",
         },
     },
     "temporary_output": {
         "bucketfs_location": {
-            "connection_name": <BUCKETFS_CONNECTION_NAME>
-            "directory": <BUCKETFS_DIRECTORY>,
+            "connection_name": "<BUCKETFS_CONNECTION_NAME>"
+            "directory": "<BUCKETFS_DIRECTORY>",
         },
-        "schema_name": <SCHEMA_NAME>
+        "schema_name": "<SCHEMA_NAME>"
     }
 }')
 ```
 
 Parameters
 
-| Parameter                    | Optional? | Description                                                    |
+| Parameter                    | Required? | Description                                                    |
 |------------------------------|-----------|----------------------------------------------------------------|
-| `<CLASS_NAME>`               | -         | Name of the query handler class                                |
-| `<CLASS_MODULE>`             | -         | Module name of the query handler class                         |
-| `<CLASS_PARAMETERS>`         | -         | Parameters of the query handler class                          |
-| `<UDF_NAME>`                 | yes       | Name of Python UDF script including user-implemented algorithm |
-| `<UDF_SCHEMA_NAME>`          | yes       | Schema name where the UDF script is deployed                   |
-| `<BUCKETFS_CONNECTION_NAME>` | -         | BucketFS connection name to keep temporary outputs             |
-| `<BUCKETFS_DIRECTORY>`       | -         | Directory in BucketFS where temporary outputs are kept         |
+| `<CLASS_NAME>`               | yes       | Name of the query handler class                                |
+| `<CLASS_MODULE>`             | yes       | Module name of the query handler class <span style="color: red">(should we mention `builtins` here?)</span> |
+| `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class <span style="color: red">(can we say more about the syntax here?)</span> |
+| `<UDF_NAME>`                 | -         | Name of Python UDF script including user-implemented algorithm |
+| `<UDF_SCHEMA_NAME>`          | -         | Schema name where the UDF script is deployed                   |
+| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name to keep temporary outputs             |
+| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS where temporary outputs are kept         |
+| `<SCHEMA_NAME>`              | yes       | <span style="color: red">??? (is this redundant to `<UDF_SCHEMA_NAME>` or what is the difference?)</span>|
 
-# Implementation of Algorithms
+# Implementation of Custom Algorithms
 
-The algorithm should extend the `UDFQueryHandler` abstract class and then implement its following methods:
-* `start()` : It is called at the first execution of the framework, that is, in the first iteration. It returns a result object: Either _Continue_ or _Finish_.
-  * The _Finish_ result object contains the final result of the implemented algorith.
+Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
+* `start()`: This method is called at the first execution of the framework, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
+  * The _Finish_ result object contains the final result of the implemented algorithm.
   * The _Continue_ object contains the query list that will be executed for the next state.
-* `handle_query_result()` : This method is called at the following iterations to handle the return query. An example class definition is given below:
+* `handle_query_result()`: This method is called at the following iterations to handle the return query.
+
+Here is an example class definition:
 
 ```python
 class ExampleQueryHandler(UDFQueryHandler):
@@ -188,7 +205,7 @@ class ExampleQueryHandler(UDFQueryHandler):
         self.parameter = parameter
         self.query_handler_context = query_handler_context
 
-    def start(self) -> Union[Continue, Finish[ResultType]]:
+    def start(self) -> Union[Continue, Finish[str]]:
         query_list = [
           SelectQuery("SELECT 1 FROM DUAL"),
           SelectQuery("SELECT 2 FROM DUAL")]
@@ -207,10 +224,12 @@ class ExampleQueryHandler(UDFQueryHandler):
         return Finish(result=f"Assertion of the final result: 32 == {result}")
 ```
 
-The figure below illustrates the execution of this algorithm implemented in `ExampleQueryHandler` class.
+<span style="color: red">Should we also give a complete example for the `EXECUTE SCRIPT` command here?</span>
+
+The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
 * When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
 * After the first iteration is completed, the framework calls method `handle_query_result` with the `query_result` of the `input_query` of the previous iteration.
 
-In this example, the algorithm is finished at this state, presents the two to the power of `return_value` as final result.
+In this example, the algorithm is finished at this state and returns 2<sup>_return value_</sup> as final result.
 
 ![Sample Execution](../images/sample_execution.png "Sample Execution")
