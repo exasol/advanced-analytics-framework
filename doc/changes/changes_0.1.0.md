@@ -50,6 +50,7 @@ Code name:
 * #184: Updated micromamba to the latest version 2.0.0
 * #176: Updated usage of `exasol-bucketfs` to new API
 * #185: Removed directory and script for building SLC AAF
+* #191: Renamed `parameter` to `parameters` to match JSON input in user guide
 
 ### Documentation
 

@@ -9,8 +9,12 @@ class UDFQueryHandlerFactory(ABC):
     """
     An abstract class for factories which are injected by name to the QueryHandlerRunnerUDF
     which then will create the instance from the name.
+
+    Parameters is of type ``str``. If you want to pass multiple parameters to
+    a query handler then these need to be encoded into a string, e.g. with
+    ``json.dumps()``.
     """
 
     @abstractmethod
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
         """Creates a UDFQueryHandler"""

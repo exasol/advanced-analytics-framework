@@ -13,13 +13,13 @@ from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory
 
 class JsonUDFQueryHandler(UDFQueryHandler):
 
-    def __init__(self, parameter: str,
+    def __init__(self, parameters: str,
                  query_handler_context: ScopeQueryHandlerContext,
                  wrapped_json_query_handler_class: Type[JSONQueryHandler]):
-        super().__init__(parameter, query_handler_context)
-        json_parameter = json.loads(parameter)
+        super().__init__(parameters, query_handler_context)
+        json_parameter = json.loads(parameters)
         self._wrapped_json_query_handler = wrapped_json_query_handler_class(
-            parameter=json_parameter,
+            parameters=json_parameter,
             query_handler_context=query_handler_context)
 
     def start(self) -> Union[Continue, Finish[str]]:
@@ -46,8 +46,8 @@ class JsonUDFQueryHandlerFactory(UDFQueryHandlerFactory, ABC):
     def __init__(self, wrapped_json_query_handler_class: Type[JSONQueryHandler]):
         self._wrapped_json_query_handler_class = wrapped_json_query_handler_class
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
         return JsonUDFQueryHandler(
-            parameter=parameter,
+            parameters=parameters,
             query_handler_context=query_handler_context,
             wrapped_json_query_handler_class=self._wrapped_json_query_handler_class)

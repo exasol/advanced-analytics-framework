@@ -27,12 +27,12 @@ QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL
 
 class QueryHandlerTestWithOneIteration(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        if not isinstance(parameter, str):
-            raise AssertionError(f"Expected parameter={parameter} to be a string.")
-        if parameter != TEST_INPUT:
-            raise AssertionError(f"Expected parameter={parameter} to be '{TEST_INPUT}'.")
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
+        if not isinstance(parameters, str):
+            raise AssertionError(f"Expected parameters={parameters} to be a string.")
+        if parameters != TEST_INPUT:
+            raise AssertionError(f"Expected parameters={parameters} to be '{TEST_INPUT}'.")
 
     def start(self) -> Union[Continue, Finish[ResultType]]:
         return Finish(result=FINAL_RESULT)
@@ -43,14 +43,14 @@ class QueryHandlerTestWithOneIteration(UDFQueryHandler):
 
 class QueryHandlerTestWithOneIterationFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return QueryHandlerTestWithOneIteration(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerTestWithOneIteration(parameters, query_handler_context)
 
 
 class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[str]]:
         return_query = 'SELECT 1 AS "a", 2 AS "b" FROM DUAL'
@@ -80,13 +80,13 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
 
 class QueryHandlerTestWithTwoIterationFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return QueryHandlerTestWithTwoIteration(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerTestWithTwoIteration(parameters, query_handler_context)
 
 
 class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(UDFQueryHandler):
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
         self.child = None
 
     def start(self) -> Union[Continue, Finish[str]]:
@@ -99,14 +99,14 @@ class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(UDFQue
 
 class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(parameters, query_handler_context)
 
 
 class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
         self.proxy = None
         self.child = None
 
@@ -121,5 +121,5 @@ class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler
 
 class QueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameters, query_handler_context)

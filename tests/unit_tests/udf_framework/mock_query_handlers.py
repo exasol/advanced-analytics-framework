@@ -27,12 +27,12 @@ QUERY_LIST = [SelectQuery("SELECT 1 FROM DUAL"), SelectQuery("SELECT 2 FROM DUAL
 
 class MockQueryHandlerWithOneIteration(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        if not isinstance(parameter, str):
-            raise AssertionError(f"Expected parameter={parameter} to be a string.")
-        if parameter != TEST_INPUT:
-            raise AssertionError(f"Expected parameter={parameter} to be '{TEST_INPUT}'.")
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
+        if not isinstance(parameters, str):
+            raise AssertionError(f"Expected parameters={parameters} to be a string.")
+        if parameters != TEST_INPUT:
+            raise AssertionError(f"Expected parameters={parameters} to be '{TEST_INPUT}'.")
 
     def start(self) -> Union[Continue, Finish[str]]:
         return Finish(result=FINAL_RESULT)
@@ -43,16 +43,16 @@ class MockQueryHandlerWithOneIteration(UDFQueryHandler):
 
 class MockQueryHandlerWithOneIterationFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return MockQueryHandlerWithOneIteration(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerWithOneIteration(parameters, query_handler_context)
 
 
 class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
     def __init__(self,
-                 parameter: str,
+                 parameters: str,
                  query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        self._parameter = parameter
+        super().__init__(parameters, query_handler_context)
+        self._parameters = parameters
 
     def start(self) -> Union[Continue, Finish[str]]:
         return_query = "SELECT a, table1.b, c FROM table1, table2 " \
@@ -84,14 +84,14 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
 
 class MockQueryHandlerWithTwoIterationsFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return MockQueryHandlerWithTwoIterations(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerWithTwoIterations(parameters, query_handler_context)
 
 
 class QueryHandlerTestWithOneIterationAndTempTable(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[str]]:
         self._query_handler_context.get_temporary_table_name()
@@ -103,14 +103,14 @@ class QueryHandlerTestWithOneIterationAndTempTable(UDFQueryHandler):
 
 class QueryHandlerTestWithOneIterationAndTempTableFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return QueryHandlerTestWithOneIterationAndTempTable(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return QueryHandlerTestWithOneIterationAndTempTable(parameters, query_handler_context)
 
 
 class MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
         self.child = None
 
     def start(self) -> Union[Continue, Finish[str]]:
@@ -123,14 +123,14 @@ class MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(UD
 
 class MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(parameters, query_handler_context)
 
 
 class MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
         self.proxy = None
         self.child = None
 
@@ -145,14 +145,14 @@ class MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHan
 
 class MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(parameters, query_handler_context)
 
 
 class MockQueryHandlerUsingConnection(UDFQueryHandler):
 
-    def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: str, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[str]]:
         connection = self._query_handler_context.get_connection(TEST_CONNECTION)
@@ -165,5 +165,5 @@ class MockQueryHandlerUsingConnection(UDFQueryHandler):
 
 class MockQueryHandlerUsingConnectionFactory(UDFQueryHandlerFactory):
 
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
-        return MockQueryHandlerUsingConnection(parameter, query_handler_context)
+    def create(self, parameters: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+        return MockQueryHandlerUsingConnection(parameters, query_handler_context)

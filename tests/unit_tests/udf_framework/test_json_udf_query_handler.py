@@ -19,8 +19,8 @@ from exasol_advanced_analytics_framework.udf_framework.json_udf_query_handler_fa
 
 class ConstructorTestJSONQueryHandler(JSONQueryHandler):
 
-    def __init__(self, parameter: JSONType, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
+    def __init__(self, parameters: JSONType, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
 
     def start(self) -> Union[Continue, Finish[JSONType]]:
         raise AssertionError("Should not be called")
@@ -30,12 +30,12 @@ class ConstructorTestJSONQueryHandler(JSONQueryHandler):
 
 
 def test_constructor_valid_json(top_level_query_handler_context):
-    parameter = {
+    parameters = {
         "test_key": "test_value"
     }
-    json_str_parameter = json.dumps(parameter)
+    json_str_parameter = json.dumps(parameters)
     query_handler = JsonUDFQueryHandler(
-        parameter=json_str_parameter,
+        parameters=json_str_parameter,
         query_handler_context=top_level_query_handler_context,
         wrapped_json_query_handler_class=ConstructorTestJSONQueryHandler
     )
@@ -44,7 +44,7 @@ def test_constructor_valid_json(top_level_query_handler_context):
 def test_constructor_invalid_json(top_level_query_handler_context):
     with pytest.raises(JSONDecodeError):
         query_handler = JsonUDFQueryHandler(
-            parameter="'abc'='ced'",
+            parameters="'abc'='ced'",
             query_handler_context=top_level_query_handler_context,
             wrapped_json_query_handler_class=ConstructorTestJSONQueryHandler
         )
@@ -52,24 +52,24 @@ def test_constructor_invalid_json(top_level_query_handler_context):
 
 class StartReturnParameterTestJSONQueryHandler(JSONQueryHandler):
 
-    def __init__(self, parameter: JSONType, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        self._parameter = parameter
+    def __init__(self, parameters: JSONType, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
+        self._parameters = parameters
 
     def start(self) -> Union[Continue, Finish[JSONType]]:
-        return Finish[JSONType](self._parameter)
+        return Finish[JSONType](self._parameters)
 
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[JSONType]]:
         raise AssertionError("Should not be called")
 
 
 def test_start_return_parameter(top_level_query_handler_context):
-    parameter = {
+    parameters = {
         "test_key": "test_value"
     }
-    json_str_parameter = json.dumps(parameter)
+    json_str_parameter = json.dumps(parameters)
     query_handler = JsonUDFQueryHandler(
-        parameter=json_str_parameter,
+        parameters=json_str_parameter,
         query_handler_context=top_level_query_handler_context,
         wrapped_json_query_handler_class=StartReturnParameterTestJSONQueryHandler
     )
@@ -79,9 +79,9 @@ def test_start_return_parameter(top_level_query_handler_context):
 
 class HandleQueryResultCheckQueryResultTestJSONQueryHandler(JSONQueryHandler):
 
-    def __init__(self, parameter: JSONType, query_handler_context: ScopeQueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        self._parameter = parameter
+    def __init__(self, parameters: JSONType, query_handler_context: ScopeQueryHandlerContext):
+        super().__init__(parameters, query_handler_context)
+        self._parameters = parameters
 
     def start(self) -> Union[Continue, Finish[JSONType]]:
         raise AssertionError("Should not be called")
@@ -92,12 +92,12 @@ class HandleQueryResultCheckQueryResultTestJSONQueryHandler(JSONQueryHandler):
 
 
 def test_handle_query_result_check_query_result(top_level_query_handler_context):
-    parameter = {
+    parameters = {
         "test_key": "test_value"
     }
-    json_str_parameter = json.dumps(parameter)
+    json_str_parameter = json.dumps(parameters)
     query_handler = JsonUDFQueryHandler(
-        parameter=json_str_parameter,
+        parameters=json_str_parameter,
         query_handler_context=top_level_query_handler_context,
         wrapped_json_query_handler_class=HandleQueryResultCheckQueryResultTestJSONQueryHandler
     )
