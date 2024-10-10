@@ -51,15 +51,19 @@ def query_handler_bfs_connection(tmp_path):
         base_path=f"{path}",
     )
 
-def create_mocked_exa_env(bfs_connection, connections: Dict[str, Any] = {}):
-    meta = create_mock_data()
+def create_mocked_exa_env(udf_script_name: str, bfs_connection, connections: Dict[str, Any] = {}):
+    meta = create_mock_data(udf_script_name)
     connections[BUCKETFS_CONNECTION_NAME] = bfs_connection
     return MockExaEnvironment(metadata=meta, connections=connections)
 
 
 @pytest.fixture
-def mocked_exa_env(query_handler_bfs_connection):
-    return create_mocked_exa_env(query_handler_bfs_connection)
+def udf_script_name():
+    return "AAF_TEST_UDF"
+
+@pytest.fixture
+def mocked_exa_env(query_handler_bfs_connection, udf_script_name):
+    return create_mocked_exa_env(udf_script_name, query_handler_bfs_connection)
 
 
 def _udf_wrapper():
@@ -73,7 +77,7 @@ def _udf_wrapper():
         udf.run(ctx)
 
 
-def create_mock_data():
+def create_mock_data(script_name: str):
     meta = MockMetaData(
         script_code_wrapper_function=_udf_wrapper,
         input_type="SET",
@@ -91,7 +95,8 @@ def create_mock_data():
         output_columns=[
             Column("outputs", str, "VARCHAR(2000000)")
         ],
-        is_variadic_input=True
+        is_variadic_input=True,
+        script_name=script_name,
     )
     return meta
 
@@ -173,14 +178,14 @@ def test_query_handler_udf_with_one_iteration_and_temp_table(mocked_exa_env):
     assert rows == expected_rows
 
 
-def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
+def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection, udf_script_name):
     def state_file_exists(iteration: int) -> bool:
         bucketfs_location = create_bucketfs_location_from_conn_object(query_handler_bfs_connection)
         bucketfs_path = f"{BUCKETFS_DIRECTORY}/{TEMPORARY_NAME_PREFIX}/state"
         state_file = f"{str(iteration)}.pkl"
         return (bucketfs_location / bucketfs_path / state_file).exists()
 
-    exa = create_mocked_exa_env(query_handler_bfs_connection)
+    exa = create_mocked_exa_env(udf_script_name, query_handler_bfs_connection)
     input_data = (
         0,
         BUCKETFS_CONNECTION_NAME,
@@ -198,7 +203,7 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
                                  'SELECT a, table1.b, c ' \
                                  'FROM table1, table2 ' \
                                  'WHERE table1.b=table2.b;'
-    return_query = 'SELECT "TEST_SCHEMA"."AAF_QUERY_HANDLER_UDF"(' \
+    return_query = f'SELECT "TEST_SCHEMA"."{udf_script_name}"(' \
                    '1,' \
                    "'bucketfs_connection','directory','temporary_name_prefix'," \
                    '"a","b") ' \
@@ -245,13 +250,14 @@ def test_query_handler_udf_with_two_iteration(query_handler_bfs_connection):
     assert rows == expected_rows
 
 
-def test_query_handler_udf_using_connection(query_handler_bfs_connection):
+def test_query_handler_udf_using_connection(query_handler_bfs_connection, udf_script_name):
     test_connection = udf_mock_connection(
         address="test_connection",
         user="test_connection_user",
         password="test_connection_pwd",
     )
     exa = create_mocked_exa_env(
+        udf_script_name,
         query_handler_bfs_connection,
         { TEST_CONNECTION: test_connection },
     )
