@@ -145,10 +145,10 @@ python -m exasol_advanced_analytics_framework.deploy scripts \
 
 The entry point of this framework is `AAF_RUN_QUERY_HANDLER` script. This script is simply a query loop which is responsible for executing the implemented algorithm.
 
-This script takes the necessary parameters to execute the desired algorithm in string json format. The json input includes two main part:
+This script takes the necessary parameters to execute the desired algorithm in string json format. The json input includes two main parts:
 
-* `query_handler` : Details of the algorithm implemented by user.
-* `temporary_output`:  Information about BucketFS where the temporary outputs of the query handler is kept.
+* `query_handler` : Details of the algorithm implemented by the user.
+* `temporary_output`:  Information where the temporary outputs (such as tables, bucketfs files, ...) of the query handler are kept. These temporary outputs will be removed after the execution of the QueryHandler.
 
 The following SQL statement shows how to call an AAF query handler:
 
@@ -184,19 +184,19 @@ See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) 
 | `<CLASS_NAME>`               | yes       | Name of the query handler class                                                                                |
 | `<CLASS_MODULE>`             | yes       | Module name of the query handler class <span style="color: red">(should we mention `builtins` here?)</span>    |
 | `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                                                        |
-| `<UDF_NAME>`                 | -         | Name of Python UDF script including user-implemented algorithm                                                 |
+| `<UDF_NAME>`                 | -         | Name of Python UDF script that contains the algorithm implemented by the user                                                |
 | `<UDF_DB_SCHEMA>`            | -         | Schema name where the UDF script is deployed                                                                   |
-| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name to create temporary file outputs                                                      |
-| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for temporary file outputs                                                               |
+| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name which is used to create temporary bucketfs files                                                      |
+| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for the temporary bucketfs files                                                               |
 | `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                                                    |
 
 # Implementation of Custom Algorithms
 
 Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
-* `start()`: This method is called at the first execution of the framework, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
+* `start()`: This method is called at the first execution of the query hander, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
   * The _Finish_ result object contains the final result of the implemented algorithm.
-  * The _Continue_ object contains the query list that will be executed for the next state.
-* `handle_query_result()`: This method is called at the following iterations to handle the return query.
+  * The _Continue_ object contains the query list that will be executed before the next iteration and whose results are used as input fo the next iteraton.
+* `handle_query_result()`: This method is called at the following iterations to handle the result of the queries of the previous iteration.
 
 Here is an example class definition:
 
