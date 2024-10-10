@@ -217,7 +217,7 @@ from exasol_data_science_utils_python.schema.column_type import ColumnType
 
 
 -- proposal write parameter into temp table in schema ...
-class CustomQueryHandler(UDFQueryHandler):
+class ExampleQueryHandler(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
         self.parameter = parameter
@@ -242,13 +242,13 @@ class CustomQueryHandler(UDFQueryHandler):
         return Finish(result=f"Assertion of the final result: 32 == {result}")
 
 import builtins
-builtins.CustomQueryHandler=CustomQueryHandler # required for pickle
+builtins.ExampleQueryHandler=ExampleQueryHandler # required for pickle
 
-class CustomQueryHandlerFactory:
+class ExampleQueryHandlerFactory:
       def create(self, parameter: str, query_handler_context: QueryHandlerContext):
-          return builtins.CustomQueryHandler(parameter, query_handler_context)
+          return builtins.ExampleQueryHandler(parameter, query_handler_context)
 
-builtins.CustomQueryHandlerFactory=CustomQueryHandlerFactory
+builtins.ExampleQueryHandlerFactory=ExampleQueryHandlerFactory
 
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf \
     import QueryHandlerRunnerUDF
@@ -264,7 +264,7 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
     "query_handler": {
         "factory_class": {
             "module": "builtins",
-            "name": "CustomQueryHandlerFactory"
+            "name": "ExampleQueryHandlerFactory"
         },
         "parameters": "bla-bla",
         "udf": {
