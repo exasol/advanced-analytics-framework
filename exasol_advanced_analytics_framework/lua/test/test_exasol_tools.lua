@@ -28,7 +28,7 @@ function test_exasol_script_tools.test_parse_arguments_query_correct_with_udf()
                 schema = "UDF_SCHEMA",
                 name = "UDF_NAME"
             },
-            parameters = "params"
+            parameter = "param"
         },
     }
     local json_str = json.encode(expected_table)

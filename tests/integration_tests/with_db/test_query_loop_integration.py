@@ -32,7 +32,7 @@ def test_query_loop_integration_with_one_iteration(
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": TEST_INPUT
+                "parameter": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -68,7 +68,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_child_query
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": TEST_INPUT
+                "parameter": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -104,7 +104,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": TEST_INPUT
+                "parameter": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
@@ -151,7 +151,7 @@ def test_query_loop_integration_with_two_iteration(
                     "schema": schema_name,
                     "name": "AAF_QUERY_HANDLER_UDF"
                 },
-                "parameters": TEST_INPUT
+                "parameter": TEST_INPUT
             },
             "temporary_output": {
                 "bucketfs_location": {
