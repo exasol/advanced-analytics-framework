@@ -86,23 +86,9 @@ pip install exasol-advanced-analytics-framework
 Exasol executes User Defined Functions (UDFs) in an isolated Script Language Container (SLCs).
 Running the AAF requires a custom SLC.
 
-#### Build the SLC
-
-If you want to build the AAF SLC then
-
-1. Download the [AAF Sources](https://github.com/exasol/advanced-analytics-framework/) from GitHub
-2. Install poetry
-3. Use the AAF developer commands for building and deploying custom SLCs into Exasol.
-
-```shell
-poetry run nox build_language_container
-```
-
-See [Install the SLC](#install-the-slc).
-
 #### Download a Pre-built SLC
 
-As an alternative to building SLC yourself you can also download a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub.
+You can download a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub.
 
 #### Install the SLC
 
