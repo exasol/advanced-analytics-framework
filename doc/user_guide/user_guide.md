@@ -6,7 +6,7 @@ The Advanced Analytics Framework (AAF) enables implementing complex data analysi
 
 * [Setup](#setup)
 * [Usage](#usage)
-* [Implementation of Custom Algorithms](#implementation-of-custom-algorithms)
+* [Custom Algorithms](#custom-algorithms)
 
 ## Setup
 
@@ -81,21 +81,16 @@ The following command installs the AAF from pypi:
 pip install exasol-advanced-analytics-framework
 ```
 
-### Script Language Containers (SLCs)
+### Script Language Container (SLC)
 
 Exasol executes User Defined Functions (UDFs) in an isolated Script Language Container (SLCs).
-Running the AAF requires a custom SLC.
 
-#### Download a Pre-built SLC
-
-You can download a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub.
-
-#### Install the SLC
-
-Installing the SLC requires loading the container file into the BucketFS and registering it to the database:
+Running the AAF requires a custom SLC. The following command
+* downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
+* uploads the file into the BucketFS,
+* and registers it to the database.
 
 ```shell
-SLC_FILE=.slc/exasol_advanced_analytics_framework_container_release.tar.gz
 LANGUAGE_ALIAS=PYTHON3_AAF
 python -m exasol_advanced_analytics_framework.deploy language-container \
     --dsn <DB_HOST:DB_PORT> \
@@ -108,8 +103,8 @@ python -m exasol_advanced_analytics_framework.deploy language-container \
     --bucketfs-password <BUCKETFS_PASSWORD> \
     --bucket <BUCKETFS_NAME> \
     --path-in-bucket <PATH_IN_BUCKET> \
-    --language-alias "$LANGUAGE_ALIAS" \
-    --container-file "$SLC_FILE"
+    --version <VERSION> \
+    --language-alias "$LANGUAGE_ALIAS"
 ```
 
 ### Additional Scripts
@@ -145,7 +140,7 @@ EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
             "module": "<CLASS_MODULE>",
             "name": "<CLASS_NAME>"
         },
-        "parameters": "<CLASS_PARAMETERS>",
+        "parameter": "<CLASS_PARAMETERS>",
         "udf": {
             "schema": "<UDF_DB_SCHEMA>",
             "name": "<UDF_NAME>"
@@ -165,18 +160,33 @@ See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) 
 
 ### Parameters
 
-| Parameter                    | Required? | Description                                                                                                    |
-|------------------------------|-----------|----------------------------------------------------------------------------------------------------------------|
-| `<CLASS_NAME>`               | yes       | Name of the query handler class                                                                                |
-| `<CLASS_MODULE>`             | yes       | Module name of the query handler class <span style="color: red">(should we mention `builtins` here?)</span>    |
-| `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                                                        |
-| `<UDF_NAME>`                 | -         | Name of Python UDF script that contains the algorithm implemented by the user                                                |
-| `<UDF_DB_SCHEMA>`            | -         | Schema name where the UDF script is deployed                                                                   |
-| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name which is used to create temporary bucketfs files                                                      |
-| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for the temporary bucketfs files                                                               |
-| `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                                                    |
+| Parameter                    | Required? | Description                                                                   |
+|------------------------------|-----------|-------------------------------------------------------------------------------|
+| `<CLASS_NAME>`               | yes       | Name of the query handler class                                               |
+| `<CLASS_MODULE>`             | yes       | Module name of the query handler class                                        |
+| `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                       |
+| `<UDF_NAME>`                 | -         | Name of Python UDF script that contains the algorithm implemented by the user |
+| `<UDF_DB_SCHEMA>`            | -         | Schema name where the UDF script is deployed                                  |
+| `<BUCKETFS_CONNECTION_NAME>` | yes       | BucketFS connection name which is used to create temporary bucketfs files     |
+| `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for the temporary bucketfs files                        |
+| `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                   |
 
-# Implementation of Custom Algorithms
+Please take care to provide a string value for `<CLASS_PARAMETERS>`.  Simple data types like float, int, bool will be converted to a String, while others a Json object or an array is represented as a string value with an unsable reference, e.g.  `table: 0x14823bd38580`.
+
+## Custom Algorithms
+
+### Deployment Options
+
+Using the AAF requires to implement a custom algorithm using one of the following alternatives
+* Adhoc implementation within a UDF
+* Build a custom extension
+
+Building a custom extension
+* Create a python package implementing the query handler.
+* Create an associated SLC which has the python package installed, see [python-extension-common](https://github.com/exasol/python-extension-common/).
+* We give an example how would need to AAF_RUN_QUERY_HANDLER in this case <span style="color: red">TODO: fix grammar</span>
+
+### Implementation of the Custom Algorithm
 
 Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
 * `start()`: This method is called at the first execution of the query hander, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
@@ -184,7 +194,7 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
   * The _Continue_ object contains the query list that will be executed before the next iteration and whose results are used as input fo the next iteraton.
 * `handle_query_result()`: This method is called at the following iterations to handle the result of the queries of the previous iteration.
 
-Here is an example class definition:
+Here is an example class definition using an adhoc implementation within the UDF. The example uses the module `builtins` and dynamically adds ExampleQueryHandler and ExampleQueryHandlerFactory to it.
 
 ```python
 --/
@@ -252,7 +262,7 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
             "module": "builtins",
             "name": "ExampleQueryHandlerFactory"
         },
-        "parameters": "bla-bla",
+        "parameter": "bla-bla",
         "udf": {
             "schema": "MY_SCHEMA",
             "name": "MY_QUERY_HANDLER_UDF"
