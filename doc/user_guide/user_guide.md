@@ -171,7 +171,7 @@ See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) 
 | `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for the temporary bucketfs files                        |
 | `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                   |
 
-Please take care to provide a string value for `<CLASS_PARAMETERS>`.  Simple data types like float, int, bool will be converted to a String, while others a Json object or an array is represented as a string value with an unsable reference, e.g.  `table: 0x14823bd38580`.
+Please take care to provide a string value for `<CLASS_PARAMETERS>`.  Simple data types like `float`, `int`, `bool` will be converted to a String, while a Json object or an array is represented as a string value with an unusable reference, e.g.  `table: 0x14823bd38580`.
 
 ## Custom Algorithms
 
@@ -181,10 +181,17 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 * Adhoc implementation within a UDF
 * Build a custom extension
 
-Building a custom extension
+#### Building a custom extension
+
 * Create a python package implementing the query handler.
-* Create an associated SLC which has the python package installed, see [python-extension-common](https://github.com/exasol/python-extension-common/).
-* We give an example how would need to AAF_RUN_QUERY_HANDLER in this case <span style="color: red">TODO: fix grammar</span>
+* Create an associated SLC which has the python package installed
+  * GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
+* Leave out entry `udf` from the json input to use the default UDF. <!--
+Original comment:
+* Leave out entry `udf` `udf_name` and `udf_schema` from the json input to use the default UDF
+-->
+* Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
+
 
 ### Implementation of the Custom Algorithm
 
