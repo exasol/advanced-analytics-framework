@@ -13,7 +13,7 @@ If you want to build the AAF SLC then
 3. Use the AAF developer commands for building and deploying custom SLCs into Exasol.
 
 ```shell
-poetry run nox build_language_container
+poetry run nox -s build_language_container
 ```
 
 See [Install the SLC](../user_guide/user_guide.md#install-the-slc).
