@@ -63,9 +63,7 @@ The following table shows all elements for each of the backends.
 
 ### AAF Python Package
 
-The latest version of AAF can be obtained from [pypi](https://pypi.org), see also the [releases on GitHub](https://github.com/exasol/advanced-analytics-framework/releases).
-
-The following command installs the AAF from pypi:
+The latest version of AAF can be obtained from [pypi](https://pypi.org), see also the [releases on GitHub](https://github.com/exasol/advanced-analytics-framework/releases):
 
 ```bash
 pip install exasol-advanced-analytics-framework
@@ -73,7 +71,7 @@ pip install exasol-advanced-analytics-framework
 
 ### Script Language Container (SLC)
 
-Exasol executes User Defined Functions (UDFs) in an isolated Script Language Container (SLCs).
+Exasol executes User Defined Functions (UDFs) in an isolated Container called _SLC_.
 
 Running the AAF requires a custom SLC. The following command
 * downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
@@ -209,7 +207,6 @@ from exasol_data_science_utils_python.schema.column_name import ColumnName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
 
 
--- proposal write parameter into temp table in schema ...
 class ExampleQueryHandler(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
         super().__init__(parameter, query_handler_context)
