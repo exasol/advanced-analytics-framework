@@ -501,7 +501,7 @@ function M.prepare_init_query(arguments, meta)
     local temporary_name_prefix <const> = _generate_temporary_name_prefix(meta)
 
     local query_handler <const> = arguments_with_defaults['query_handler']
-    local params <const> = query_handler['parameters']
+    local param <const> = query_handler['parameter']
     local factory_class <const> = query_handler["factory_class"]
     local factory_class_module <const> = factory_class['module']
     local factory_class_name <const> = factory_class['name']
@@ -519,7 +519,7 @@ function M.prepare_init_query(arguments, meta)
             temporary_schema_name,
             factory_class_name,
             factory_class_module,
-            params)
+            param)
     local query <const> = string.format("SELECT %s%s", full_qualified_udf_name, udf_args)
     return query
 end

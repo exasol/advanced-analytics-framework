@@ -21,12 +21,12 @@ test_query_handler_runner = {
                     schema = "UDF_SCHEMA",
                     name = "UDF_NAME"
                 },
-                parameters = "params"
+                parameter = "param"
             },
         },
         query = "SELECT UDF_SCHEMA.UDF_NAME(" ..
                 "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
-                "'cls_name','package.module','params')",
+                "'cls_name','package.module','param')",
         return_query_result = {
             { nil },
             { nil },
