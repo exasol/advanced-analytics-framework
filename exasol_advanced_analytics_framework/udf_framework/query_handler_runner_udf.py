@@ -60,7 +60,7 @@ class UDFParameter:
     temporary_schema_name: Optional[str] = None
     python_class_name: Optional[str] = None
     python_class_module: Optional[str] = None
-    parameters: Optional[str] = None
+    parameter: Optional[str] = None
 
 
 class QueryHandlerStatus(Enum):
@@ -181,7 +181,7 @@ class QueryHandlerRunnerUDF:
                 temporary_schema_name=ctx[4],
                 python_class_name=ctx[5],
                 python_class_module=ctx[6],
-                parameters=ctx[7])
+                parameter=ctx[7])
         else:
             self.parameter = UDFParameter(
                 iter_num=iter_num,
@@ -214,7 +214,7 @@ class QueryHandlerRunnerUDF:
         )
         module = importlib.import_module(self.parameter.python_class_module)
         query_handler_factory_class = getattr(module, self.parameter.python_class_name)
-        query_handler_obj = query_handler_factory_class().create(self.parameter.parameters, context)
+        query_handler_obj = query_handler_factory_class().create(self.parameter.parameter, context)
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
             query_handler=query_handler_obj,
