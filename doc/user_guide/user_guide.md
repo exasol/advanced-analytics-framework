@@ -17,17 +17,9 @@ The Advanced Analytics Framework (AAF) enables implementing complex data analysi
 
 ### BucketFS Connection
 
-AAF employs some Lua scripts and User Defined Functions (UDFs).  The Lua
-scripts are orchestrating the UDFs while the UDFs are performing the actual
-analytic functions.
+AAF employs some Lua scripts and User Defined Functions (UDFs).  The Lua scripts are orchestrating the UDFs while the UDFs are performing the actual analytic functions.
 
-AAF keeps a common state of execution and passes input data and results
-between Lua and UDFs via files in the Bucket File System (BucketFS) of the
-Exasol database.
-
-<!-- For keeping a common state of execution and passing input data and
-results between Lua and UDFs AAF requires to access the Bucket File System
-(BucketFS) of the Exasol database. -->
+AAF keeps a common state of execution and passes input data and results between Lua and UDFs via files in the Bucket File System (BucketFS) of the Exasol database.
 
 The following SQL statements create such a connection to the BucketFS:
 
@@ -49,9 +41,7 @@ USER '{"username": "<USER_NAME>"}'
 IDENTIFIED BY '{"password": "<PASSWORD>"}' ;
 ```
 
-The list of elements in the connection's parameter called `TO` depends on the
-backend you want to use. There are two different backends: `onprem` and
-`saas`.
+The list of elements in the connection's parameter called `TO` depends on the backend you want to use. There are two different backends: `onprem` and `saas`.
 
 The following table shows all elements for each of the backends.
 
