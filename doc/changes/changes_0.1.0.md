@@ -35,6 +35,10 @@ Code name:
 * #66: Fixed _ScopeQueryHandlerContextBase.get_temporary_path not being private
 * #116: Fixed AbortTimeoutSender and add reason to Timeout messages
 
+## Documentation
+
+* #195: Added extended usage scenario to the user guide
+
 ### Refactoring
 
 * #171: Updated poetry dependencies
