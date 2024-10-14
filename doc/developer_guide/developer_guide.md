@@ -25,20 +25,20 @@ AAF comes with different automated tests implemented in different programming la
 | Python   | Integration tests w/o database  | no       | _dev_env_   |
 | Lua      | Unit tests                      | no       | _dev_env_   |
 
-### The Special _Development Environment_
+### Development Environment
 
 For tests marked with Environment _dev_env_ you need to
-* Install the LUA environment
-* Install the AAF into the _Development Environment_
-* Run the tests in the _Development Environment_
+* Setup a Development Environment
+* Add the AAF to it
+* Run the tests in the Development Environment
 
 The Development Environment
-* Activates AAF's conda environment <!-- Why is this required? What does it do in particular? -->
+* Activates AAF's conda environment containing a specific versino of Lua
 * Sets the environment variables `LUA_PATH`, `LUA_CPATH`, and `PATH` for executing lua scripts
 
-The following commands installs the LUA environment and the AAF within the _Development Environment_:
+The following commands install the Development Environment and add the AAF
 ```shell
-poetry run -- nox -s install_lua_environment
+poetry run -- nox -s install_dev_env
 poetry run -- nox -s run_in_dev_env -- poetry install
 ```
 

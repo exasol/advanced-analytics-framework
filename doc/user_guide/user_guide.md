@@ -2,7 +2,11 @@
 
 The Advanced Analytics Framework (AAF) enables implementing complex data analysis algorithms with Exasol. Users can use the features of AAF in their custom implementations.
 
-## Table of Contents
+AAF employs Lua scripts and User Defined Functions (UDFs). The Lua scripts are orchestrating the UDFs while the UDFs are performing the actual analytic functions.
+
+AAF keeps a common state of execution and passes input data and results between Lua and UDFs via files in the Bucket File System (BucketFS) of the Exasol database.
+
+Table of Contents
 
 * [Setup](#setup)
 * [Usage](#usage)
@@ -17,11 +21,7 @@ The Advanced Analytics Framework (AAF) enables implementing complex data analysi
 
 ### BucketFS Connection
 
-AAF employs some Lua scripts and User Defined Functions (UDFs).  The Lua scripts are orchestrating the UDFs while the UDFs are performing the actual analytic functions.
-
-AAF keeps a common state of execution and passes input data and results between Lua and UDFs via files in the Bucket File System (BucketFS) of the Exasol database.
-
-The following SQL statements create such a connection to the BucketFS:
+The following SQL statements create a connection to the BucketFS used to transfer data between the Lua scripts and the UDFs:
 
 ```sql
 CREATE OR REPLACE CONNECTION '<CONNECTION_NAME>'
@@ -146,7 +146,7 @@ EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
 }');
 ```
 
-See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) for a complete example.
+See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-example-query-handler) for a complete example.
 
 ### Parameters
 
@@ -161,7 +161,7 @@ See [Implementation of Custom Algorithms](#implementation-of-custom-algorithms) 
 | `<BUCKETFS_DIRECTORY>`       | yes       | Directory in BucketFS for the temporary bucketfs files                        |
 | `<TEMP_DB_SCHEMA>`           | yes       | Database Schema for temporary database objects, e.g. tables                   |
 
-Please take care to provide a string value for `<CLASS_PARAMETERS>`.  Simple data types like `float`, `int`, `bool` will be converted to a String, while a Json object or an array is represented as a string value with an unusable reference, e.g.  `table: 0x14823bd38580`.
+The value of `<CLASS_PARAMETERS>` will be converted into a String, however, Json objects or arrays currently are represented as unusable references, e.g. `table: 0x14823bd38580`, which will be fixed with issue [#196](https://github.com/exasol/advanced-analytics-framework/issues/196).
 
 ## Custom Algorithms
 
@@ -180,7 +180,7 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 * Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
 
 
-### Implementation of the Custom Algorithm
+### Implementing a Custom Algorithm as Example Query Handler
 
 Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
 * `start()`: This method is called at the first execution of the query hander, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.

@@ -19,8 +19,8 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      - name: Install Lua environment
-        run: poetry run -- nox -s install_lua_environment
+      - name: Install Development Environment
+        run: poetry run -- nox -s install_dev_env
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
