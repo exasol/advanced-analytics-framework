@@ -71,9 +71,9 @@ pip install exasol-advanced-analytics-framework
 
 ### Script Language Container (SLC)
 
-Exasol executes User Defined Functions (UDFs) in a isolated Container whose root filesystem is derived Script Language Container (SLC).
+Exasol executes User Defined Functions (UDFs) in an isolated Container whose root filesystem is derived from a Script Language Container (SLC).
 
-Running the AAF requires a custom SLC. The following command
+Running the AAF requires a SLC. The following command
 * downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
 * uploads the file into the BucketFS,
 * and registers it to the database.
@@ -173,7 +173,7 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 
 #### Building a custom extension
 
-* Create a python package that depends on the python package of the AAF and that implements the query handler.of the custom algorithm and its factory class.
+* Create a python package that depends on the python package of the AAF and that implements the query handler of the custom algorithm and its factory class.
 * Create an associated SLC which has the python package installed
   * GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
 * Leave out entry `udf` from the json input to use the default UDF.
@@ -272,9 +272,9 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
 ```
 
 The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
-* When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
+* When method `start()` is called, it executes two queries and an additional `input_query` to obtain the input for the next iteration.
 * After the first iteration is completed, the framework calls method the `handle_query_result` with the `query_result` of the `input_query` of the previous iteration.
 
-In this example, the algorithm is finished at this state and returns 2<sup>_return value_</sup> as final result.
+In this example, the algorithm is finished at this iteration and returns 2<sup>_return value_</sup> as final result.
 
 ![Sample Execution](../images/sample_execution.png "Sample Execution")
