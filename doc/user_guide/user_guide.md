@@ -71,7 +71,7 @@ pip install exasol-advanced-analytics-framework
 
 ### Script Language Container (SLC)
 
-Exasol executes User Defined Functions (UDFs) in an isolated Container called _SLC_.
+Exasol executes User Defined Functions (UDFs) in a isolated Container whose root filesystem is derived Script Language Container (SLC).
 
 Running the AAF requires a custom SLC. The following command
 * downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
@@ -171,7 +171,7 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 
 #### Building a custom extension
 
-* Create a python package implementing the query handler.
+* Create a python package that depends on the python package of the AAF and that implements the query handler.of the custom algorithm and its factory class.
 * Create an associated SLC which has the python package installed
   * GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
 * Leave out entry `udf` from the json input to use the default UDF. <!--
@@ -186,7 +186,7 @@ Original comment:
 Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
 * `start()`: This method is called at the first execution of the query hander, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
   * The _Finish_ result object contains the final result of the implemented algorithm.
-  * The _Continue_ object contains the query list that will be executed before the next iteration and whose results are used as input fo the next iteraton.
+  * The _Continue_ object contains the query list that will be executed before the next iteration and whose results are used as input for the next iteration.
 * `handle_query_result()`: This method is called at the following iterations to handle the result of the queries of the previous iteration.
 
 Here is an example class definition using an adhoc implementation within the UDF. The example uses the module `builtins` and dynamically adds ExampleQueryHandler and ExampleQueryHandlerFactory to it.
@@ -274,7 +274,7 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
 
 The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
 * When method `start()` is called, it executes two queries and an additional `input_query` to obtain the next state.
-* After the first iteration is completed, the framework calls method `handle_query_result` with the `query_result` of the `input_query` of the previous iteration.
+* After the first iteration is completed, the framework calls method the `handle_query_result` with the `query_result` of the `input_query` of the previous iteration.
 
 In this example, the algorithm is finished at this state and returns 2<sup>_return value_</sup> as final result.
 
