@@ -78,20 +78,22 @@ Running the AAF requires a custom SLC. The following command
 * uploads the file into the BucketFS,
 * and registers it to the database.
 
+The variable `$LANGUAGE_ALIAS` will be reused in [Additional Scripts](#additional-scripts).
+
 ```shell
 LANGUAGE_ALIAS=PYTHON3_AAF
 python -m exasol_advanced_analytics_framework.deploy language-container \
-    --dsn <DB_HOST:DB_PORT> \
-    --db-user <DB_USER> \
-    --db-pass <DB_PASSWORD> \
-    --bucketfs-name <BUCKETFS_NAME> \
-    --bucketfs-host <BUCKETFS_HOST> \
-    --bucketfs-port <BUCKETFS_PORT> \
-    --bucketfs-user <BUCKETFS_USER> \
-    --bucketfs-password <BUCKETFS_PASSWORD> \
-    --bucket <BUCKETFS_NAME> \
-    --path-in-bucket <PATH_IN_BUCKET> \
-    --version <VERSION> \
+    --dsn "$DB_HOST:$DB_PORT" \
+    --db-user "$DB_USER" \
+    --db-pass "$DB_PASSWORD" \
+    --bucketfs-name "$BUCKETFS_NAME" \
+    --bucketfs-host "$BUCKETFS_HOST" \
+    --bucketfs-port "$BUCKETFS_PORT" \
+    --bucketfs-user "$BUCKETFS_USER" \
+    --bucketfs-password "$BUCKETFS_PASSWORD" \
+    --bucket "$BUCKETFS_NAME" \
+    --path-in-bucket "$PATH_IN_BUCKET" \
+    --version "$VERSION" \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
@@ -103,10 +105,10 @@ The following command deploys the additional scripts to the specified `DB_SCHEMA
 
 ```shell
 python -m exasol_advanced_analytics_framework.deploy scripts \
-    --dsn <DB_HOST:DB_PORT> \
-    --db-user <DB_USER> \
-    --db-pass <DB_PASSWORD> \
-    --schema <DB_SCHEMA> \
+    --dsn "$DB_HOST:DB_PORT" \
+    --db-user "$DB_USER" \
+    --db-pass "$DB_PASSWORD" \
+    --schema "$DB_SCHEMA" \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
@@ -174,10 +176,7 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 * Create a python package that depends on the python package of the AAF and that implements the query handler.of the custom algorithm and its factory class.
 * Create an associated SLC which has the python package installed
   * GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
-* Leave out entry `udf` from the json input to use the default UDF. <!--
-Original comment:
-* Leave out entry `udf` `udf_name` and `udf_schema` from the json input to use the default UDF
--->
+* Leave out entry `udf` from the json input to use the default UDF.
 * Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
 
 
@@ -229,7 +228,7 @@ class ExampleQueryHandler(UDFQueryHandler):
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
         return_value = query_result.return_column
         result = 2 ** return_value
-        return Finish(result=f"Assertion of the final result: 32 == {result}")
+        return Finish(result=result)
 
 import builtins
 builtins.ExampleQueryHandler=ExampleQueryHandler # required for pickle
