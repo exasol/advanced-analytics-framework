@@ -33,9 +33,6 @@ class ExampleQueryHandler(UDFQueryHandler):
     def _bfs_file(self, proxy: BucketFSLocationProxy):
         return proxy.bucketfs_location() / "temp_file.txt"
 
-    def _write_to_db_table(self):
-        self.db_table_proxy().insert(self._sample_content("table-insert"))
-
     def start(self) -> Union[Continue, Finish[str]]:
         def sample_content(key: str) -> str:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -108,6 +105,6 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
             "connection_name": "BFS_CON",
             "directory": "temp"
         },
-        "schema_name": "MY_SCHEMA"
+        "schema_name": "TEMP_SCHEMA"
     }
 }');
