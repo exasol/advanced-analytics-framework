@@ -168,17 +168,8 @@ The value of `<CLASS_PARAMETERS>` will be converted into a String, however, Json
 ### Deployment Options
 
 Using the AAF requires to implement a custom algorithm using one of the following alternatives
-* Adhoc implementation within a UDF
-* Build a custom extension
-
-#### Building a custom extension
-
-* Create a python package that depends on the python package of the AAF and that implements the query handler of the custom algorithm and its factory class.
-* Create an associated SLC which has the python package installed
-  * GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
-* Leave out entry `udf` from the json input to use the default UDF.
-* Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
-
+* [Build a custom extension](#building-a-custom-extension)
+* [Adhoc implementation within a UDF](#concrete-example-using-an-adhoc-implementation-within-the-udf)
 
 ### Implementing a Custom Algorithm as Query Handler
 
@@ -188,7 +179,16 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
   * The _Continue_ object contains the query list that will be executed before the next iteration and whose results are used as input for the next iteration.
 * `handle_query_result()`: This method is called at the following iterations to handle the result of the queries of the previous iteration.
 
-Here is an example class definition using an adhoc implementation within the UDF. The example uses the module `builtins` and dynamically adds ExampleQueryHandler and ExampleQueryHandlerFactory to it.
+### Building a Custom Extension
+
+* Create a python package that depends on the python package of the AAF and that implements the query handler of the custom algorithm and its factory class.
+* Create an associated SLC which has the python package installed. GitHub repository [python-extension-common](https://github.com/exasol/python-extension-common/) provides more detailed documentation and automation.
+* Leave out entry `udf` from the json input to use the default UDF.
+* Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
+
+### Concrete Example Using an Adhoc Implementation Within the UDF
+
+The example uses the module `builtins` and dynamically adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
 ```python
 --/
