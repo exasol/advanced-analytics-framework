@@ -56,6 +56,7 @@ Code name:
 ### Documentation
 
 * #9: Added README file
+* #26: Added user guide
 
 ## Dependency Updates
 

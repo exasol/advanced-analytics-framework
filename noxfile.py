@@ -47,8 +47,8 @@ def run_python_test(session: Session):
 
 
 @nox.session(python=False)
-def install_lua_environment(session: Session):
-    install_script = SCRIPTS_DIRECTORY / "install_lua_environment.sh"
+def install_dev_env(session: Session):
+    install_script = SCRIPTS_DIRECTORY / "install_development_environment.sh"
     session.run(str(install_script))
 
 
