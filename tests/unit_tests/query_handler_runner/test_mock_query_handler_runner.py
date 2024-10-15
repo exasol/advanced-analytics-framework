@@ -201,11 +201,16 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input and \
-           normalize(sql_executor.queries) == [
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
-               f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
+           sql_executor.queries == [
+               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS \nSELECT 1 as "a";""",
+               f"""SELECT \n    "a"\nFROM "{temporary_schema_name}"."temp_db_object_2_1";""",
                f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
            ]
+           # normalize(sql_executor.queries) == [
+           #     f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
+           #     f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
+           #     f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
+           # ]
 
 
 class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
