@@ -2,13 +2,23 @@ import abc
 from abc import ABC
 
 from exasol_data_science_utils_python.schema.table_name import TableName
+from exasol_data_science_utils_python.schema.udf_name import UDFName
 from exasol_data_science_utils_python.schema.view_name import ViewName
 
+from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
 
 
 class QueryHandlerContext(ABC):
+
+    @abc.abstractmethod
+    def get_temporary_name(self) -> str:
+        """
+        Returns a temporary name
+        """
+        pass
+
     @abc.abstractmethod
     def get_temporary_table_name(self) -> TableName:
         """
@@ -27,10 +37,27 @@ class QueryHandlerContext(ABC):
         pass
 
     @abc.abstractmethod
+    def get_temporary_udf_name(self) -> UDFName:
+        """
+        This function registers a new temporary script without creating it.
+        After the release of this context the framework will issue a cleanup query.
+        """
+
+        pass
+
+    @abc.abstractmethod
+    def get_temporary_connection_name(self) -> ConnectionName:
+        """
+        This function registers a new temporary connection without creating it.
+        After the release of this context the framework will issue a cleanup query.
+        """
+
+        pass
+
+    @abc.abstractmethod
     def get_temporary_bucketfs_location(self) -> BucketFSLocationProxy:
         """
         This function registers a new temporary bucketfs file without creating it.
         After the release of this context the framework will remove it.
         """
         pass
-

@@ -7,14 +7,19 @@ import exasol.bucketfs as bfs
 from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.table_name import TableName
 from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
+from exasol_data_science_utils_python.schema.udf_name import UDFName
+from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
 from exasol_data_science_utils_python.schema.view_name import ViewName
 from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
 
+from exasol_advanced_analytics_framework.query_handler.context.connection_name_proxy import ConnectionNameProxy
+from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName, ConnectionNameImpl
 from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.table_name_proxy import TableNameProxy
+from exasol_advanced_analytics_framework.query_handler.context.proxy.udf_name_proxy import UDFNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.proxy.view_name_proxy import ViewNameProxy
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext, Connection
@@ -110,6 +115,20 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
             schema=SchemaName(schema_name=self._temporary_schema_name))
         return temporary_view_name
 
+    def _get_temporary_udf_name(self) -> UDFName:
+        self._check_if_released()
+        temporary_name = self._get_temporary_db_object_name()
+        temporary_script_name = UDFNameBuilder.create(
+            name=temporary_name,
+            schema=SchemaName(schema_name=self._temporary_schema_name))
+        return temporary_script_name
+
+    def _get_temporary_connection_name(self) -> ConnectionName:
+        self._check_if_released()
+        temporary_name = self._get_temporary_db_object_name()
+        temporary_connection_name = ConnectionNameImpl(connection_name=temporary_name)
+        return temporary_connection_name
+
     def _get_temporary_db_object_name(self) -> str:
         temporary_name = f"{self._temporary_db_object_name_prefix}_{self._get_counter_value()}"
         return temporary_name
@@ -117,6 +136,11 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
     def _own_object(self, object_proxy: ObjectProxy):
         self._register_object(object_proxy)
         self._owned_object_proxies.add(object_proxy)
+
+    def get_temporary_name(self) -> str:
+        self._check_if_released()
+        temporary_name = self._get_temporary_db_object_name()
+        return temporary_name
 
     def get_temporary_table_name(self) -> TableName:
         self._check_if_released()
@@ -131,6 +155,22 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         temporary_view_name = self._get_temporary_view_name()
         object_proxy = ViewNameProxy(temporary_view_name,
                                      self._global_temporary_object_counter.get_current_value())
+        self._own_object(object_proxy)
+        return object_proxy
+
+    def get_temporary_udf_name(self) -> UDFName:
+        self._check_if_released()
+        temporary_script_name = self._get_temporary_udf_name()
+        object_proxy = UDFNameProxy(temporary_script_name,
+                                    self._global_temporary_object_counter.get_current_value())
+        self._own_object(object_proxy)
+        return object_proxy
+
+    def get_temporary_connection_name(self) -> ConnectionName:
+        self._check_if_released()
+        temporary_connection_name = self._get_temporary_connection_name()
+        object_proxy = ConnectionNameProxy(connection_name=temporary_connection_name,
+                                           global_counter_value=self._global_temporary_object_counter.get_current_value())
         self._own_object(object_proxy)
         return object_proxy
 
