@@ -250,7 +250,7 @@ class QueryHandlerRunnerUDF:
         temporary_view_name = query_handler_context.get_temporary_view_name()
         query_handler_udf_name = \
             UDFNameBuilder.create(
-                name="AAF_QUERY_HANDLER_UDF",
+                name=self.exa.meta.script_name,
                 schema=SchemaName(self.exa.meta.script_schema)
             )
         query_create_view = \
