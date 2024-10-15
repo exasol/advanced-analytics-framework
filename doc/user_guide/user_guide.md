@@ -180,7 +180,7 @@ Using the AAF requires to implement a custom algorithm using one of the followin
 * Values `<CLASS_MODULE>` and `<CLASS_NAME>` must reflect the _module_ and _class name_ of the `QueryHandler` implemented in the custom SLC.
 
 
-### Implementing a Custom Algorithm as Example Query Handler
+### Implementing a Custom Algorithm as Query Handler
 
 Each algorithm should extend the `UDFQueryHandler` abstract class and then implement the following methods:
 * `start()`: This method is called at the first execution of the query hander, that is, in the first iteration. It returns a result object: Either _Finish_ or _Continue_.
