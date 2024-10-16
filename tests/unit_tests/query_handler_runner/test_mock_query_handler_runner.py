@@ -1,6 +1,7 @@
 import re
 from pathlib import PurePosixPath
 from typing import List, Union
+from inspect import cleandoc
 
 import pytest
 from exasol_data_science_utils_python.schema.column import Column
@@ -39,12 +40,6 @@ def top_level_query_handler_context(mocked_temporary_bucketfs_location,
         temporary_schema_name=temporary_schema_name,
     )
     return top_level_query_handler_context
-
-
-def normalize(queries: Union[str, List[str]]):
-    def n(q):
-        return re.sub(r" *\n *", " ", q)
-    return n(queries) if type(queries) == str else list(n(q) for q in queries)
 
 
 class TestInput:
@@ -201,16 +196,21 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input and \
-           sql_executor.queries == [
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS \nSELECT 1 as "a";""",
-               f"""SELECT \n    "a"\nFROM "{temporary_schema_name}"."temp_db_object_2_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-           ]
-           # normalize(sql_executor.queries) == [
-           #     f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
-           #     f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
-           #     f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-           # ]
+        sql_executor.queries == [
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                SELECT 1 as "a";
+                """
+            ),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "a"
+                FROM "{temporary_schema_name}"."temp_db_object_2_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
+        ]
 
 
 class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -310,12 +310,21 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input and \
-        normalize(sql_executor.queries) == [
-               f"""SELECT 1""",
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
-               f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-           ]
+        sql_executor.queries == [
+            f"""SELECT 1""",
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                SELECT 1 as "a";
+                """),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "a"
+                FROM "{temporary_schema_name}"."temp_db_object_2_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
+        ]
 
 
 class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -366,9 +375,18 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
     )
     with pytest.raises(Exception, match="Execution of query handler .* failed."):
         test_output = query_handler_runner.run()
-    assert normalize(sql_executor.queries) == [
-        f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
-        f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
+    assert sql_executor.queries == [
+        cleandoc(
+            f"""
+            CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+            SELECT 1 as "a";
+            """),
+        cleandoc(
+            f"""
+            SELECT\x20
+                "a"
+            FROM "{temporary_schema_name}"."temp_db_object_2_1";
+            """),
         f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_3";""",
         f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
     ]
@@ -443,14 +461,32 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input and \
-           normalize(sql_executor.queries) == [
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS SELECT 1 as "a";""",
-               f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_2_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS SELECT 1 as "b";""",
-               f"""SELECT "b" FROM "{temporary_schema_name}"."temp_db_object_4_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
-           ]
+        sql_executor.queries == [
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                SELECT 1 as "a";
+                """),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "a"
+                FROM "{temporary_schema_name}"."temp_db_object_2_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS\x20
+                SELECT 1 as "b";
+                """),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "b"
+                FROM "{temporary_schema_name}"."temp_db_object_4_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
+        ]
 
 
 class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -524,15 +560,33 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input and \
-           normalize(sql_executor.queries) == [
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS SELECT 1 as "a";""",
-               f"""SELECT "a" FROM "{temporary_schema_name}"."temp_db_object_4_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
-               f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-               f"""CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_6_1" AS SELECT 1 as "b";""",
-               f"""SELECT "b" FROM "{temporary_schema_name}"."temp_db_object_6_1";""",
-               f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_6_1";""",
-           ]
+        sql_executor.queries == [
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS\x20
+                SELECT 1 as "a";
+                """),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "a"
+                FROM "{temporary_schema_name}"."temp_db_object_4_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
+            f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
+            cleandoc(
+                f"""
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_6_1" AS\x20
+                SELECT 1 as "b";
+                """),
+            cleandoc(
+                f"""
+                SELECT\x20
+                    "b"
+                FROM "{temporary_schema_name}"."temp_db_object_6_1";
+                """),
+            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_6_1";""",
+        ]
 
 
 class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
