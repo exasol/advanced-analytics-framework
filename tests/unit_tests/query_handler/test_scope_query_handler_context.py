@@ -4,6 +4,7 @@ import pytest
 import exasol.bucketfs as bfs
 from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
 from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
 from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.view import View
@@ -46,10 +47,12 @@ def test_temporary_connection_temporary(scope_query_handler_context: ScopeQueryH
     assert isinstance(proxy, ConnectionName)
 
 
-def test_temporary_udf_temporary(scope_query_handler_context: ScopeQueryHandlerContext,
-                                        schema: str):
+def test_temporary_udf_temporary(
+        scope_query_handler_context: ScopeQueryHandlerContext,
+        schema: str):
     proxy = scope_query_handler_context.get_temporary_udf_name()
-    assert isinstance(proxy, UDFName)
+    assert isinstance(proxy, UDFName) and \
+        proxy.schema_name == SchemaName(schema)
 
 
 def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: bfs.path.PathLike,
