@@ -24,6 +24,7 @@ Code name:
 * #98: Added more robust connection protocol
 * #99: Added multi/node udf discovery
 * #100: Added combined global and local UDF discovery
+* #177: Added proxies for UDFs and Connections
 
 ### Bug Fixes
 

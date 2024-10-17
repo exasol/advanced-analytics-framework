@@ -4,10 +4,13 @@ import pytest
 import exasol.bucketfs as bfs
 from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
 from exasol_data_science_utils_python.schema.column_name import ColumnName
+from exasol_data_science_utils_python.schema.schema_name import SchemaName
 from exasol_data_science_utils_python.schema.column_type import ColumnType
 from exasol_data_science_utils_python.schema.table import Table
 from exasol_data_science_utils_python.schema.view import View
 
+from exasol_advanced_analytics_framework.query_handler.context.connection_name import ConnectionName
+from exasol_data_science_utils_python.schema.udf_name import UDFName
 from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext, Connection
 from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
@@ -36,6 +39,20 @@ def test_temporary_view_temporary_schema(scope_query_handler_context: ScopeQuery
                                          schema: str):
     proxy = scope_query_handler_context.get_temporary_view_name()
     assert proxy.schema_name.name == schema
+
+
+def test_temporary_connection_temporary(scope_query_handler_context: ScopeQueryHandlerContext,
+                                        schema: str):
+    proxy = scope_query_handler_context.get_temporary_connection_name()
+    assert isinstance(proxy, ConnectionName)
+
+
+def test_temporary_udf_temporary(
+        scope_query_handler_context: ScopeQueryHandlerContext,
+        schema: str):
+    proxy = scope_query_handler_context.get_temporary_udf_name()
+    assert isinstance(proxy, UDFName) and \
+        proxy.schema_name == SchemaName(schema)
 
 
 def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: bfs.path.PathLike,
