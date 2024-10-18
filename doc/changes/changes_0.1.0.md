@@ -52,6 +52,7 @@ Code name:
 * #176: Updated usage of `exasol-bucketfs` to new API
 * #185: Removed directory and script for building SLC AAF
 * #191: Renamed UDF json element "parameters" to "parameter"
+* #190: Enabled to generate a dynamic module for custom UDF
 
 ### Documentation
 
