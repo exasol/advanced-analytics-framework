@@ -43,24 +43,24 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         try:
             result = self._state.query_handler.start()
             while isinstance(result, Continue):
-                result = self.handle_continue(result)
+                result = self._handle_continue(result)
             if isinstance(result, Finish):
-                self.handle_finish()
+                self._handle_finish()
                 return result.result
             else:
                 raise RuntimeError("Unknown Result")
         except Exception as e:
             try:
-                self.handle_finish()
+                self._handle_finish()
             except Exception as e1:
                 LOGGER.exception("Catched exeception during cleanup after an exception.")
             raise RuntimeError(f"Execution of query handler {self._state.query_handler} failed.") from e
 
     def _handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
-        self.release_and_create_query_handler_context_of_input_query()
-        self.cleanup_query_handler_context()
+        self._release_and_create_query_handler_context_of_input_query()
+        self._cleanup_query_handler_context()
         self.execute_queries(result.query_list)
-        input_query_result = self.run_input_query(result)
+        input_query_result = self._run_input_query(result)
         result = self._state.query_handler.handle_query_result(input_query_result)
         return result
 
@@ -76,22 +76,22 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
                                              columns=result.input_query.output_columns)
         return input_query_result
 
-    def handle_finish(self):
+    def _handle_finish(self):
         if self._state.input_query_query_handler_context is not None:
             self._state.input_query_query_handler_context.release()
         self._state.top_level_query_handler_context.release()
-        self.cleanup_query_handler_context()
+        self._cleanup_query_handler_context()
 
     def _cleanup_query_handler_context(self):
         cleanup_query_list = \
             self._state.top_level_query_handler_context.cleanup_released_object_proxies()
-        self.execute_queries(cleanup_query_list)
+        self._execute_queries(cleanup_query_list)
 
     def _execute_queries(self, queries: List[Query]):
         for query in queries:
             self._sql_executor.execute(query.query_string)
 
-    def release_and_create_query_handler_context_of_input_query(self):
+    def _release_and_create_query_handler_context_of_input_query(self):
         if self._state.input_query_query_handler_context is not None:
             self._state.input_query_query_handler_context.release()
         self._state.input_query_query_handler_context = \
