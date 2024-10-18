@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.query_handler.query.select_query import
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, \
     Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
+from exasol_advanced_analytics_framework.query_result.python_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 
 

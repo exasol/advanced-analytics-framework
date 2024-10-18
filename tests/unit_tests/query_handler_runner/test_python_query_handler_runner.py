@@ -19,7 +19,7 @@ from exasol_advanced_analytics_framework.query_handler.query.select_query import
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import PythonQueryHandlerRunner
+from exasol_advanced_analytics_framework.query_handler.python_query_handler_runner import PythonQueryHandlerRunner
 
 EXPECTED_EXCEPTION = "ExpectedException"
 
@@ -199,13 +199,13 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
         sql_executor.queries == [
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
                 SELECT 1 as "a";
                 """
             ),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "a"
                 FROM "{temporary_schema_name}"."temp_db_object_2_1";
                 """),
@@ -314,12 +314,12 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
             f"""SELECT 1""",
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
                 SELECT 1 as "a";
                 """),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "a"
                 FROM "{temporary_schema_name}"."temp_db_object_2_1";
                 """),
@@ -378,12 +378,12 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
     assert sql_executor.queries == [
         cleandoc(
             f"""
-            CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+            CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
             SELECT 1 as "a";
             """),
         cleandoc(
             f"""
-            SELECT\x20
+            SELECT
                 "a"
             FROM "{temporary_schema_name}"."temp_db_object_2_1";
             """),
@@ -464,24 +464,24 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
         sql_executor.queries == [
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
                 SELECT 1 as "a";
                 """),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "a"
                 FROM "{temporary_schema_name}"."temp_db_object_2_1";
                 """),
             f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS
                 SELECT 1 as "b";
                 """),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "b"
                 FROM "{temporary_schema_name}"."temp_db_object_4_1";
                 """),
@@ -563,12 +563,12 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
         sql_executor.queries == [
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS
                 SELECT 1 as "a";
                 """),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "a"
                 FROM "{temporary_schema_name}"."temp_db_object_4_1";
                 """),
@@ -576,12 +576,12 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
             f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
             cleandoc(
                 f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_6_1" AS\x20
+                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_6_1" AS
                 SELECT 1 as "b";
                 """),
             cleandoc(
                 f"""
-                SELECT\x20
+                SELECT
                     "b"
                 FROM "{temporary_schema_name}"."temp_db_object_6_1";
                 """),

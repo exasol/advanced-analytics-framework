@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.query_handler.query.query import Query
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
+from exasol_advanced_analytics_framework.query_result.python_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state import QueryHandlerRunnerState
 
 LOGGER = logging.getLogger(__file__)
@@ -59,7 +59,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
         self.release_and_create_query_handler_context_of_input_query()
         self.cleanup_query_handler_context()
-        self.execute_query(result.query_list)
+        self.execute_queries(result.query_list)
         input_query_result = self.run_input_query(result)
         result = self._state.query_handler.handle_query_result(input_query_result)
         return result
@@ -85,9 +85,9 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def cleanup_query_handler_context(self):
         cleanup_query_list = \
             self._state.top_level_query_handler_context.cleanup_released_object_proxies()
-        self.execute_query(cleanup_query_list)
+        self.execute_queries(cleanup_query_list)
 
-    def execute_query(self, queries: List[Query]):
+    def execute_queries(self, queries: List[Query]):
         for query in queries:
             self._sql_executor.execute(query.query_string)
 
@@ -101,7 +101,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         temporary_view_name = self._state.input_query_query_handler_context.get_temporary_view_name()
         input_query_create_view_string = cleandoc(
             f"""
-CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS 
+CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
 {input_query.query_string};
 """)
         full_qualified_columns = [col.name.fully_qualified
@@ -109,7 +109,7 @@ CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
         columns_str = ",\n".join(full_qualified_columns)
         input_query_string = cleandoc(
             f"""
-SELECT 
+SELECT
 {textwrap.indent(columns_str, " " * 4)}
 FROM {temporary_view_name.fully_qualified};
 """)
