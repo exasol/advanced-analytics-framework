@@ -6,7 +6,7 @@ from exasol_udf_mock_python.column import Column
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult, Row
 
 
-class MockQueryResult(QueryResult):
+class PythonQueryResult(QueryResult):
     def __getattr__(self, name: str) -> Any:
         return self[name]
 
