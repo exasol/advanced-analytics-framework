@@ -56,7 +56,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
                 LOGGER.exception("Catched exeception during cleanup after an exception.")
             raise RuntimeError(f"Execution of query handler {self._state.query_handler} failed.") from e
 
-    def handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
+    def _handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
         self.release_and_create_query_handler_context_of_input_query()
         self.cleanup_query_handler_context()
         self.execute_queries(result.query_list)
@@ -64,7 +64,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         result = self._state.query_handler.handle_query_result(input_query_result)
         return result
 
-    def run_input_query(self, result: Continue) -> PythonQueryResult:
+    def _run_input_query(self, result: Continue) -> PythonQueryResult:
         input_query_view, input_query = self._wrap_return_query(result.input_query)
         self._sql_executor.execute(input_query_view)
         input_query_result_set = self._sql_executor.execute(input_query)
@@ -82,12 +82,12 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         self._state.top_level_query_handler_context.release()
         self.cleanup_query_handler_context()
 
-    def cleanup_query_handler_context(self):
+    def _cleanup_query_handler_context(self):
         cleanup_query_list = \
             self._state.top_level_query_handler_context.cleanup_released_object_proxies()
         self.execute_queries(cleanup_query_list)
 
-    def execute_queries(self, queries: List[Query]):
+    def _execute_queries(self, queries: List[Query]):
         for query in queries:
             self._sql_executor.execute(query.query_string)
 
