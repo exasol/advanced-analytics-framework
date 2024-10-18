@@ -52,7 +52,9 @@ Code name:
 * #176: Updated usage of `exasol-bucketfs` to new API
 * #185: Removed directory and script for building SLC AAF
 * #191: Renamed UDF json element "parameters" to "parameter"
-* #178: Renamed `MockQueryHandlerRunner` to `PythonQueryHandlerRunner`
+* #178: Fixed names of mock objects:
+  * Renamed `MockQueryHandlerRunner` to `PythonQueryHandlerRunner`
+  * Renamed `MockQueryResult` to `PythonQueryResult`
 
 ### Documentation
 

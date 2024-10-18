@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
+from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.udf_framework.json_udf_query_handler_factory import JsonUDFQueryHandler
 
@@ -102,7 +102,7 @@ def test_handle_query_result_check_query_result(top_level_query_handler_context)
         wrapped_json_query_handler_class=HandleQueryResultCheckQueryResultTestJSONQueryHandler
     )
     result = query_handler.handle_query_result(
-        MockQueryResult(data=[(1,)],
+        PythonQueryResult(data=[(1,)],
                         columns=[Column(ColumnName("a"),
                                         ColumnType("INTEGER"))]))
     assert isinstance(result, Finish) and result.result == '{"a": 1}'

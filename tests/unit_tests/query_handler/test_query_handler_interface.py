@@ -12,7 +12,7 @@ from exasol_advanced_analytics_framework.query_handler.query.select_query import
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, \
     Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
+from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 
 
@@ -36,7 +36,7 @@ def test():
     handler = TestQueryHandler({"a": 2}, query_handler_context)
     result = handler.start()
     if isinstance(result, Continue):
-        query_result = MockQueryResult([(2,)], result.input_query.output_columns)
+        query_result = PythonQueryResult([(2,)], result.input_query.output_columns)
         actual_result = handler.handle_query_result(query_result).result
         assert actual_result == 2
     else:

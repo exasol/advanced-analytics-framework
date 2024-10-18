@@ -10,7 +10,7 @@ from exasol_advanced_analytics_framework.query_handler.context.scope_query_handl
     ScopeQueryHandlerContext
 from exasol_advanced_analytics_framework.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
+from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
 from exasol_advanced_analytics_framework.udf_framework.json_udf_query_handler_factory import JsonUDFQueryHandlerFactory
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
@@ -41,7 +41,7 @@ def test(top_level_query_handler_context):
     query_handler = TestJsonUDFQueryHandlerFactory().create(json_str, top_level_query_handler_context)
     start_result = query_handler.start()
     handle_query_result = query_handler.handle_query_result(
-        MockQueryResult(data=[(1,)],
+        PythonQueryResult(data=[(1,)],
                         columns=[Column(ColumnName("a"),
                                         ColumnType("INTEGER"))])
     )

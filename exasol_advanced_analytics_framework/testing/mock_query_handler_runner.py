@@ -13,7 +13,7 @@ from exasol_advanced_analytics_framework.query_handler.query.query import Query
 from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.mock_query_result import MockQueryResult
+from exasol_advanced_analytics_framework.query_result.mock_query_result import PythonQueryResult
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_state import QueryHandlerRunnerState
 
 LOGGER = logging.getLogger(__file__)
@@ -64,7 +64,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         result = self._state.query_handler.handle_query_result(input_query_result)
         return result
 
-    def run_input_query(self, result: Continue) -> MockQueryResult:
+    def run_input_query(self, result: Continue) -> PythonQueryResult:
         input_query_view, input_query = self._wrap_return_query(result.input_query)
         self._sql_executor.execute(input_query_view)
         input_query_result_set = self._sql_executor.execute(input_query)
@@ -72,7 +72,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
             raise RuntimeError(f"Specified columns {result.input_query.output_columns} of the input query "
                                f"are not equal to the actual received columns {input_query_result_set.columns()}")
         input_query_result_table = input_query_result_set.fetchall()
-        input_query_result = MockQueryResult(data=input_query_result_table,
+        input_query_result = PythonQueryResult(data=input_query_result_table,
                                              columns=result.input_query.output_columns)
         return input_query_result
 
