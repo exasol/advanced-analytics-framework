@@ -19,7 +19,7 @@ from exasol_advanced_analytics_framework.query_handler.query.select_query import
 from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
 from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
 from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import MockQueryHandlerRunner
+from exasol_advanced_analytics_framework.testing.mock_query_handler_runner import PythonQueryHandlerRunner
 
 EXPECTED_EXCEPTION = "ExpectedException"
 
@@ -71,7 +71,7 @@ def test_start_finish(top_level_query_handler_context):
     """
     sql_executor = MockSQLExecutor(result_sets=[])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -103,7 +103,7 @@ def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_han
     """
     sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -135,7 +135,7 @@ def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_hand
     """
     sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -188,7 +188,7 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
             drop_input_query_view_result_set
         ])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -246,7 +246,7 @@ def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_c
             drop_input_query_view_result_set
         ])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -302,7 +302,7 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
             drop_input_query_view_result_set
         ])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -367,7 +367,7 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
             drop_input_query_view_result_set
         ])
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -453,7 +453,7 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
         ])
     temporary_schema_name = "temp_schema_name"
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -552,7 +552,7 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
         ])
     temporary_schema_name = "temp_schema_name"
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,
@@ -607,7 +607,7 @@ def test_fail_in_cleanup(temporary_schema_name, top_level_query_handler_context)
     sql_executor = MockSQLExecutor()
     temporary_schema_name = "temp_schema_name"
     test_input = TestInput()
-    query_handler_runner = MockQueryHandlerRunner[TestInput, TestOutput](
+    query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=top_level_query_handler_context,
         parameter=test_input,

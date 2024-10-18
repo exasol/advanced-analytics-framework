@@ -22,7 +22,7 @@ ResultType = TypeVar("ResultType")
 ParameterType = TypeVar("ParameterType")
 
 
-class MockQueryHandlerRunner(Generic[ParameterType, ResultType]):
+class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
 
     def __init__(self,
                  sql_executor: SQLExecutor,
