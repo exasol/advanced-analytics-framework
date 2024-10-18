@@ -48,7 +48,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
                 self._handle_finish()
                 return result.result
             else:
-                raise RuntimeError("Unknown Result")
+                raise RuntimeError(f"Unsupported result type {type(result)}")
         except Exception as e:
             try:
                 self._handle_finish()
