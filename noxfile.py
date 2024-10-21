@@ -138,4 +138,4 @@ def update_user_guide(session: Session):
     """
     This task updates the examples in the user guide.
     """
-    update_examples(Path("doc/user_guide/u1.md"))
+    update_examples(Path("doc/user_guide/user_guide.md"))
