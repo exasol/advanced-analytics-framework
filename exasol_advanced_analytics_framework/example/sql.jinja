@@ -1,0 +1,15 @@
+create schema IF NOT EXISTS "TEMP_SCHEMA";
+create schema IF NOT EXISTS "MY_SCHEMA";
+open schema "MY_SCHEMA";
+
+ALTER SYSTEM SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
+
+--/
+CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
+EMITS (outputs VARCHAR(2000000)) AS
+
+{{python_code}}
+
+/
+
+EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{{json_code}}');

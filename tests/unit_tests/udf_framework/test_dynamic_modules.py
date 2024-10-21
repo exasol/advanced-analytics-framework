@@ -20,7 +20,7 @@ def test_create_module_with_class():
 
 def test_add_function():
     mod = create_module("xx2")
-    mod.add_to_module(example_function)
     import xx2
+    xx2.add_to_module(example_function)
     assert xx2.example_function() == "example_function return value" \
         and example_function.__module__ == "xx2"

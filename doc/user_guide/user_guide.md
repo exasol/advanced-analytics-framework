@@ -190,6 +190,7 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 The example uses the module `builtins` and dynamically adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
+<!-- generated from example/sql.jinja -->
 ```python
 --/
 CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
@@ -270,6 +271,7 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
     }
 }');
 ```
+<!-- /generated -->
 
 The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
 * When method `start()` is called, it executes two queries and an additional `input_query` to obtain the input for the next iteration.
