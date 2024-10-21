@@ -9,9 +9,6 @@ pushd "$REPO_DIR"
 bash "$GITHOOKS_PATH/prohibit_commit_to_main.sh"
 
 poetry run nox -s amalgate_lua_scripts
-# SRC_PATH="$REPO_DIR/exasol_advanced_analytics_framework"
-# export PYTHONPATH=.
-# "$REPO_DIR"/scripts/run_in_dev_env.sh poetry run python3 "$SRC_PATH/deployment/regenerate_scripts.py"
 
 git add "$SRC_PATH/resources/outputs/"
 popd
