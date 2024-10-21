@@ -40,11 +40,7 @@ jobs:
 
       - name: Fail if re-generated files differ from commit
         run: |
-          if [ -n $(git status --untracked-files=no) ]; then
+          if [ -n "$(git status --untracked-files=no)" ]; then
               git diff --cached
               false
           fi
-
-#       - name: Show changes on working copy
-#         if: ${{ failure() }}
-#         run: git diff --cached
