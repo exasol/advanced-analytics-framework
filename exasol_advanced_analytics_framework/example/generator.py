@@ -49,7 +49,3 @@ def generate():
         python_code=python_code,
         json_code=json_code,
     )
-
-
-if __name__ == "__main__":
-    print(f'{generate()}')

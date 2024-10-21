@@ -188,7 +188,7 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 ### Concrete Example Using an Adhoc Implementation Within the UDF
 
-The example uses the module `builtins` and dynamically adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
+The example dynamically creates a python module `xyz` adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
 <!-- generated from example/sql.jinja -->
 <!-- Do not edit the text from here until /generated! -->
@@ -199,8 +199,6 @@ The example uses the module `builtins` and dynamically adds `ExampleQueryHandler
 create schema IF NOT EXISTS "TEMP_SCHEMA";
 create schema IF NOT EXISTS "MY_SCHEMA";
 open schema "MY_SCHEMA";
-
-ALTER SYSTEM SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
 
 --/
 CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
