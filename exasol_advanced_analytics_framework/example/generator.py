@@ -4,6 +4,7 @@ from jinja2 import Template, Environment, PackageLoader, select_autoescape
 from pathlib import Path
 from exasol_advanced_analytics_framework.deployment import constants
 from exasol_advanced_analytics_framework.deployment.jinja_template_location import JinjaTemplateLocation
+from typing import Any, Dict
 
 PACKAGE_PATH = "example"
 
@@ -37,6 +38,12 @@ def jinja_env():
     )
 
 
+def quoted_udf_name(query_handler_script: Dict[str, Any]):
+    schema = query_handler_script["udf"]["schema"]
+    name = query_handler_script["udf"]["name"]
+    return f'"{schema}"."{name}"'
+
+
 def generate(query_handler_script=QUERY_HANDLER_SCRIPT):
     env = jinja_env()
     python_code = importlib.resources.read_text(
@@ -48,4 +55,5 @@ def generate(query_handler_script=QUERY_HANDLER_SCRIPT):
     return template.render(
         python_code=python_code,
         json_code=json_code,
+        **query_handler_script,
     )

@@ -33,7 +33,7 @@ def test_x1(request):
 def test_user_guide_example(database_with_slc, pyexasol_connection):
     """
     This test verifies the adhoc implementation of a QueryHandler as shown
-    in the AAF user guide.  The adhoc implementation dynamically creating its
+    in the AAF user guide.  The adhoc implementation dynamically creates its
     own python module.
     """
     bucketfs_connection_name, schema_name = database_with_slc
