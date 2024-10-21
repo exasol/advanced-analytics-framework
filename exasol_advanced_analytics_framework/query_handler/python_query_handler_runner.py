@@ -59,7 +59,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def _handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
         self._release_and_create_query_handler_context_of_input_query()
         self._cleanup_query_handler_context()
-        self.execute_queries(result.query_list)
+        self._execute_queries(result.query_list)
         input_query_result = self._run_input_query(result)
         result = self._state.query_handler.handle_query_result(input_query_result)
         return result
