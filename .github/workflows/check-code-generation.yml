@@ -23,24 +23,29 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Development Environment
-        run: poetry run -- nox -s install_dev_env
+        run: poetry run nox -s install_dev_env
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
 
       - name: Run Lua amalgation
         # re-generates / amalgate the lua script
-        # refactor pre-commit as nox task
-        # and call in pre-commit
-        run: bash ./githooks/pre-commit
+        # run: bash ./githooks/pre-commit
+        run: poetry run nox -s amalgate_lua_scripts
 
-      - name: Show differences
-        run: |
-          git status --porcelain=v1 --untracked-files=no
+      - name: Check if re-generated files differ from commit
+        run: git diff --cached --exit-code
 
-      - name: Fail if re-generated files differ from commit
-        run: |
-          if [ -n "$(git status --untracked-files=no)" ]; then
-              git diff --cached
-              false
-          fi
+#       - name: Show differences
+#         run: git status --porcelain=v1 --untracked-files=no
+#
+#       - name: Fail if re-generated files differ from commit
+#         run: |
+#           if [ -n "$(git status --untracked-files=no)" ]; then
+#               git diff --cached
+#               false
+#           fi
+
+#       - name: Show changes on working copy
+#         if: ${{ failure() }}
+#         run: git diff --cached
