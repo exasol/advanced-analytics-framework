@@ -34,7 +34,7 @@ jobs:
         run: poetry run nox -s amalgate_lua_scripts
 
       - name: Check if re-generated files differ from commit
-        run: git diff --cached --exit-code
+        run: git diff --exit-code
 
 #       - name: Show differences
 #         run: git status --porcelain=v1 --untracked-files=no
