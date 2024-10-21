@@ -190,16 +190,26 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 The example dynamically creates a python module `xyz` adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
+In order to execute the example successfully you need to
+1. [Create a BucketFS connection](#bucketfs-connection)
+2. Activate the AAF's SLC
+2. Create the involved database schemas
+
+The example assumes the name for the BucketFS Connection `<CONNECTION_NAME>` to be `BFS_CON`.
+
+```shell
+ALTER SYSTEM SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
+
+create schema IF NOT EXISTS "MY_SCHEMA";
+create schema IF NOT EXISTS "TEMP_SCHEMA";
+```
+
 <!-- generated from example/sql.jinja -->
 <!-- Do not edit the text from here until /generated! -->
 <!-- The example is deliberately tagged as language python since the major
      parts are in python. Formally, however, the python code is embedded into
      an SQL statement, though. -->
 ```python
-create schema IF NOT EXISTS "TEMP_SCHEMA";
-create schema IF NOT EXISTS "MY_SCHEMA";
-open schema "MY_SCHEMA";
-
 --/
 CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
 EMITS (outputs VARCHAR(2000000)) AS
@@ -286,7 +296,6 @@ udf = QueryHandlerRunnerUDF(exa)
 
 def run(ctx):
     return udf.run(ctx)
-
 
 /
 

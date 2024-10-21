@@ -37,13 +37,13 @@ def jinja_env():
     )
 
 
-def generate():
+def generate(query_handler_script=QUERY_HANDLER_SCRIPT):
     env = jinja_env()
     python_code = importlib.resources.read_text(
         f"{constants.BASE_DIR}.{PACKAGE_PATH}",
         "query_handler.py",
     )
-    json_code = json.dumps(QUERY_HANDLER_SCRIPT, indent=4)
+    json_code = json.dumps(query_handler_script, indent=4)
     template = env.get_template("sql.jinja")
     return template.render(
         python_code=python_code,
