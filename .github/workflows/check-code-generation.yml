@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  check_lua_amalgate:
+  check_code_generation:
     name: Lua Amalgate
     strategy:
       fail-fast: false
@@ -34,11 +34,14 @@ jobs:
         # and call in pre-commit
         run: bash ./githooks/pre-commit
 
-      - name: Check if code re-generated file differ from commit
+      - name: Show differences 
         run: |
           git status --porcelain=v1 --untracked-files=no
-          git diff --exit-code
+          git diff --cached
 
-      - name: Show changes on working copy
-        if: ${{ failure() }}
-        run: git diff --cached
+      - name: Fail if re-generated files differ from commit
+        run: git diff --exit-code
+
+#       - name: Show changes on working copy
+#         if: ${{ failure() }}
+#         run: git diff --cached
