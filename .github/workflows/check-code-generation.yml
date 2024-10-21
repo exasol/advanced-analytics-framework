@@ -7,7 +7,7 @@ on:
 
 jobs:
   check_code_generation:
-    name: Lua Amalgate
+    name: Lua Amalgate and Example in User Guide
     strategy:
       fail-fast: false
       matrix:
