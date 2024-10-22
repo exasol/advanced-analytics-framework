@@ -27,7 +27,8 @@ class Template:
             "     parts are in python. Formally, however, the python code is embedded into",
             "     an SQL statement, though. -->",
             "```python",
-            example_generator.generate(),
+            example_generator.create_script(),
+            example_generator.execute_script() + ";",
             "```",
             ""])
 

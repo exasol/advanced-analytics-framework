@@ -4,25 +4,31 @@ from exasol_advanced_analytics_framework.example \
     import generator as example_generator
 
 
-def generate_example(bfs_connection_name: str, schema_name: str):
-    script = dict(example_generator.QUERY_HANDLER_SCRIPT)
-    script["query_handler"]["udf"]["schema"] = schema_name
-    script["temporary_output"]["bucketfs_location"]["connection_name"] = bfs_connection_name
-    script["temporary_output"]["schema_name"] = schema_name
-    return example_generator.generate(script)
+def script_args(bfs_connection_name: str, schema_name: str):
+    args = dict(example_generator.SCRIPT_ARGUMENTS)
+    args["query_handler"]["udf"]["schema"] = schema_name
+    args["temporary_output"]["bucketfs_location"]["connection_name"] = bfs_connection_name
+    args["temporary_output"]["schema_name"] = schema_name
+    return args
 
 
-def test_x1(request):
-    # opt = request.config.getoption("--exasol-host")
-    # print(f'{opt}')
-    # return
-    example_code = generate_example("BBB", "SSS")
-    print(f'{example_code}')
-    result = [[(
-        "Final result: from query"
-        " '2024-10-21 12:26:00 table-insert bla-bla', 4"
-        " and bucketfs: '2024-10-21 12:26:00 bucketfs bla-bla'"
-    )]]
+import pyexasol
+@pytest.mark.skip("local")
+def test_x2():
+    pyexasol_connection = pyexasol.connect(
+        dsn="192.168.124.221:8563",
+        user="SYS",
+        password="exasol",
+    )
+    bucketfs_connection_name, schema_name = ("BFS_CON", "MY_SCHEMA")
+    args = script_args(bucketfs_connection_name, schema_name)
+    statement = example_generator.create_script(args)
+    # print(f'create_script:\n{statement}')
+    pyexasol_connection.execute(statement)
+    statement = example_generator.execute_script(args)
+    # print(f'execute_script:\n{statement}')
+    result = pyexasol_connection.execute(statement).fetchall()
+    print(f'{result}')
     expected = (
         "Final result: from query '.* table-insert bla-bla', 4"
         " and bucketfs: '.* bucketfs bla-bla'"
@@ -37,8 +43,11 @@ def test_user_guide_example(database_with_slc, pyexasol_connection):
     own python module.
     """
     bucketfs_connection_name, schema_name = database_with_slc
-    example_code = generate_example(bucketfs_connection_name, schema_name)
-    result = pyexasol_connection.execute(example_code).fetchall()
+    args = script_args(bucketfs_connection_name, schema_name)
+    statement = example_generator.create_script(args)
+    pyexasol_connection.execute(statement)
+    statement = example_generator.execute_script(args)
+    result = pyexasol_connection.execute(statement).fetchall()
     expected = (
         "Final result: from query '.* table-insert bla-bla', 4"
         " and bucketfs: '.* bucketfs bla-bla'"
