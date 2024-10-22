@@ -16,11 +16,11 @@ Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guid
 
 ## Updated Generated Files
 
-AAF contains some generated files that are committed to git, though:
+AAF contains some generated files that are committed to git, including:
 * The amalgated Lua script [create_query_loop.sql](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/resources/outputs/create_query_loop.sql)
 * The examples in the user guide
 
-The amalgated Lua script originates from the files in directory [exasol_advanced_analytics_framework/lua/src](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/lua/src/).
+The amalgated Lua script originates from the files in the directory [exasol_advanced_analytics_framework/lua/src](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/lua/src/).
 
 The following command updates the amalgated script:
 
@@ -28,7 +28,7 @@ The following command updates the amalgated script:
 poetry run nox -s amalgate_lua_scripts
 ```
 
-AAF's user guide contains an example for an adhoc implementation of a Query Handler originating from the files in directory [exasol_advanced_analytics_framework/example](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/example/).
+AAF's user guide contains an example of an ad hoc implementation of a Query Handler originating from the files in the directory [exasol_advanced_analytics_framework/example](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/example/).
 
 The following command updates the example in the user guide:
 
