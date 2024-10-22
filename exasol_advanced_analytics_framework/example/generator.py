@@ -14,7 +14,7 @@ SCRIPT_ARGUMENTS = {
             "module": "xyz",
             "name": "ExampleQueryHandlerFactory",
         },
-        "parameters": "bla-bla",
+        "parameter": "bla-bla",
         "udf": {
             "schema": "MY_SCHEMA",
             "name": "MY_QUERY_HANDLER_UDF",
