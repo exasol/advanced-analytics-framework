@@ -29,6 +29,7 @@ class Template:
             "     an SQL statement, though. -->",
             "```python",
             example_generator.create_script(),
+            "",
             example_generator.execute_script() + ";",
             "```",
             ""])
@@ -36,7 +37,7 @@ class Template:
 
 class ChunkReader:
     """
-    Enables to replace chunks of a string by text generated from
+    Enables to replace chunks of a string by generated text, e.g. from
     jinja templates.
     """
     def __init__(self):

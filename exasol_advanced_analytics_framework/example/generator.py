@@ -51,7 +51,7 @@ def create_script(script_arguments=SCRIPT_ARGUMENTS):
         ' "{{ query_handler.udf.schema }}"."{{ query_handler.udf.name }}"(...)\n'
         'EMITS (outputs VARCHAR(2000000)) AS\n'
         '{{ python_code }}\n'
-        '/\n\n'
+        '/\n'
     )
     python_code = importlib.resources.read_text(
         f"{constants.BASE_DIR}.{PACKAGE_PATH}",
