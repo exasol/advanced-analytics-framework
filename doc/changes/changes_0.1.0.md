@@ -52,7 +52,7 @@ Code name:
 * #176: Updated usage of `exasol-bucketfs` to new API
 * #185: Removed directory and script for building SLC AAF
 * #191: Renamed UDF json element "parameters" to "parameter"
-* #190: Enabled to generate a dynamic module for custom UDF
+* #190: Added dynamic module generation and used it in the example UDF in the user guide
 * #178: Fixed names of mock objects:
   * Renamed `testing.mock_query_handler_runner.MockQueryHandlerRunner` to `query_handler.python_query_handler_runner.PythonQueryHandlerRunner`
   * Renamed method `PythonQueryHandlerRunner.execute_query()` to `execute_queries()`
