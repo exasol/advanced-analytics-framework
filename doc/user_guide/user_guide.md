@@ -301,6 +301,7 @@ def run(ctx):
     return udf.run(ctx)
 
 /
+
 EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
     "query_handler": {
         "factory_class": {
