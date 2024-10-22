@@ -35,7 +35,7 @@ CREATE_SCRIPT = (
     ' "{{ query_handler.udf.schema }}"."{{ query_handler.udf.name }}"(...)\n'
     'EMITS (outputs VARCHAR(2000000)) AS\n'
     '{{ python_code }}\n'
-    '/\n'
+    '/\n\n'
 )
 
 

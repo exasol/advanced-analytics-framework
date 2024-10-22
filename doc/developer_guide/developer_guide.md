@@ -30,7 +30,7 @@ poetry run nox -s amalgate_lua_scripts
 
 AAF's user guide contains an example for an adhoc implementation of a Query Handler originating from the files in directory [exasol_advanced_analytics_framework/example](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/example/).
 
-The following command updates the example in the uiser guide:
+The following command updates the example in the user guide:
 
 ```shell
 poetry run nox -s update_user_guide
