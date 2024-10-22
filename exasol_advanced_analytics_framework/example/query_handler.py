@@ -14,7 +14,7 @@ from datetime import datetime
 from exasol.bucketfs import as_string
 
 
-xyz = create_module("xyz")
+example_module = create_module("example_module")
 
 class ExampleQueryHandler(UDFQueryHandler):
 
@@ -65,13 +65,13 @@ class ExampleQueryHandler(UDFQueryHandler):
         return Finish(result=f"Final result: from query '{c1}', {c2} and bucketfs: '{bfs_content}'")
 
 
-xyz.add_to_module(ExampleQueryHandler)
+example_module.add_to_module(ExampleQueryHandler)
 
 class ExampleQueryHandlerFactory:
     def create(self, parameter: str, query_handler_context: QueryHandlerContext):
-        return xyz.ExampleQueryHandler(parameter, query_handler_context)
+        return example_module.ExampleQueryHandler(parameter, query_handler_context)
 
-xyz.add_to_module(ExampleQueryHandlerFactory)
+example_module.add_to_module(ExampleQueryHandlerFactory)
 
 from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf \
     import QueryHandlerRunnerUDF

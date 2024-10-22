@@ -11,7 +11,7 @@ PACKAGE_PATH = "example"
 SCRIPT_ARGUMENTS = {
     "query_handler": {
         "factory_class": {
-            "module": "xyz",
+            "module": "example_module",
             "name": "ExampleQueryHandlerFactory",
         },
         "parameter": "bla-bla",
