@@ -1,8 +1,0 @@
---/
-CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "{{ query_handler.udf.schema }}"."{{ query_handler.udf.name }}"(...)
-EMITS (outputs VARCHAR(2000000)) AS
-
-{{ python_code }}
-/
-
-EXECUTE SCRIPT {{ query_handler.udf.schema }}.AAF_RUN_QUERY_HANDLER('{{ json_code }}');

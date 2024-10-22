@@ -20,8 +20,9 @@ class Template:
     path: str
 
     def render(self):
-        if self.path != "example/sql.jinja":
-            raise ParseException("")
+        if self.path != "example/generator.py":
+            raise ParseException("document_updater.Template currently only"
+                                 " supports path example/generator.py")
         return "\n".join([
             "<!-- The example is deliberately tagged as language python since the major",
             "     parts are in python. Formally, however, the python code is embedded into",
@@ -59,18 +60,18 @@ class ChunkReader:
         ]
         self._process_plain()
         self._generated = line
-        self._chunks.append(Template(match.group(1)))
+        self._chunks.append(Template(match.group(2)))
 
     def _end_generated(self, line: str):
         if not self._generated:
             raise ParseException(
-                f"Found {line} before any <!-- generated from ... -->."
+                f"Found {line} before any <!-- generated from/by ... -->."
             )
         self._generated = None
         self._plain.append(line)
 
     def split(self, content: str) -> List[str|Template]:
-        start = re.compile("<!-- +generated +from +([^ ]+) +-->")
+        start = re.compile("<!-- +generated +(from|by) +([^ ]+) +-->")
         end = re.compile("<!-- +/generated +-->")
         for line in content.splitlines():
             match = start.match(line)
