@@ -303,7 +303,7 @@ EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
             "module": "xyz",
             "name": "ExampleQueryHandlerFactory"
         },
-        "parameters": "bla-bla",
+        "parameter": "bla-bla",
         "udf": {
             "schema": "MY_SCHEMA",
             "name": "MY_QUERY_HANDLER_UDF"
