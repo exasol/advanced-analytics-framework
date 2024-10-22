@@ -29,22 +29,6 @@ SCRIPT_ARGUMENTS = {
     },
 }
 
-CREATE_SCRIPT = (
-    '--/\n'
-    'CREATE OR REPLACE PYTHON3_AAF SET SCRIPT'
-    ' "{{ query_handler.udf.schema }}"."{{ query_handler.udf.name }}"(...)\n'
-    'EMITS (outputs VARCHAR(2000000)) AS\n'
-    '{{ python_code }}\n'
-    '/\n\n'
-)
-
-
-EXECUTE_SCRIPT = (
-    "EXECUTE SCRIPT {{ query_handler.udf.schema }}"
-    ".AAF_RUN_QUERY_HANDLER("
-    "'{{ json_string }}')"
-)
-
 
 def quoted_udf_name(query_handler_script: Dict[str, Any]):
     schema = query_handler_script["udf"]["schema"]
@@ -61,21 +45,34 @@ def render_template(template: str, **kwargs) -> str:
 
 
 def create_script(script_arguments=SCRIPT_ARGUMENTS):
+    script = (
+        '--/\n'
+        'CREATE OR REPLACE PYTHON3_AAF SET SCRIPT'
+        ' "{{ query_handler.udf.schema }}"."{{ query_handler.udf.name }}"(...)\n'
+        'EMITS (outputs VARCHAR(2000000)) AS\n'
+        '{{ python_code }}\n'
+        '/\n\n'
+    )
     python_code = importlib.resources.read_text(
         f"{constants.BASE_DIR}.{PACKAGE_PATH}",
         "query_handler.py",
     )
     return render_template(
-        CREATE_SCRIPT,
+        script,
         python_code=python_code,
         **script_arguments,
     )
 
 
 def execute_script(script_arguments=SCRIPT_ARGUMENTS):
+    script = (
+        "EXECUTE SCRIPT {{ query_handler.udf.schema }}"
+        ".AAF_RUN_QUERY_HANDLER("
+        "'{{ json_string }}')"
+    )
     json_string = json.dumps(script_arguments, indent=4)
     return render_template(
-        EXECUTE_SCRIPT,
+        script,
         json_string=json_string,
         **script_arguments,
     )
