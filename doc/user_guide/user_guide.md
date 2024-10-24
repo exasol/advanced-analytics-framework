@@ -191,7 +191,7 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 ### Concrete Example Using an Adhoc Implementation Within the UDF
 
-The example dynamically creates a python module `EXAMPLE_MODULE` and adds classes `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
+The example dynamically creates a python module `example_module` and adds classes `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
 In order to execute the example successfully you need to
 1. [Create a BucketFS connection](#bucketfs-connection)
