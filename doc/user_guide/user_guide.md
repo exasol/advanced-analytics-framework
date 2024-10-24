@@ -73,7 +73,7 @@ pip install exasol-advanced-analytics-framework
 
 Exasol executes User Defined Functions (UDFs) in an isolated Container whose root filesystem is derived from a Script Language Container (SLC).
 
-Running the AAF requires a SLC. The following command
+Running the AAF requires an SLC. The following command
 * downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
 * uploads the file into the BucketFS,
 * and registers it to the database.
@@ -200,13 +200,27 @@ In order to execute the example successfully you need to
 
 The example assumes
 * the name for the BucketFS Connection `<CONNECTION_NAME>` to be `BFS_CON`
-* the name for the AAF database schema `<AAF_DB_SCHEMA` to be `AAF_DB_SCHEMA`, see [Additional Scripts](#additional-scripts)
+* the name for the AAF database schema `<AAF_DB_SCHEMA>` to be `AAF_DB_SCHEMA`, see [Additional Scripts](#additional-scripts)
+
+<!--
+Additionally the paths in the `ALTER SESSION` statement depend on the configuration of the Exasol database and where the AAF SLC was uploaded to in section [Script Language Container (SLC)](#script-language-container-slc).
+
+| Variable in section [Script Language Container (SLC)](#script-language-container-slc) | Placeholder          | Assumed value | Description                                                         |
+|---------------------------------------------------------------------------------------|----------------------|------------|---------------------------------------------------------------------|
+| `$BUCKETFS_NAME`   | `<BFS_SERVICE_NAME>` | `bfsdefault` | Name of the BucketFS service connected to the port |
+| `$BUCKET_NAME`     | `<BUCKET>`           | `default` | Name of the bucket the AAF SLC was uploaded to |
+| `$PATH_IN_BUCKET`  | `<PATH_IN_BUCKET>`   | `temp` | Path AAF SLC was uploaded to inside the bucket |
 
 The following SQL statements activate the AAF's SLC and create the required database schemas unless they already exist:
 
-```shell
+```sql
 ALTER SESSION SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
+```
+-->
 
+The following SQL statements create the required database schemas unless they already exist:
+
+```sql
 create schema IF NOT EXISTS "EXAMPLE_SCHEMA";
 create schema IF NOT EXISTS "EXAMPLE_TEMP_SCHEMA";
 ```
