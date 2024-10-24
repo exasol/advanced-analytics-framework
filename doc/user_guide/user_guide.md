@@ -112,7 +112,7 @@ python -m exasol_advanced_analytics_framework.deploy scripts \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
-The name of the database schema must match the schema `AAF_DB_SCHEMA` when executing the script, see section [Usage, Parameters](#parameters).
+When later on [executing the script](#placeholders) you must use the schema name `AAF_DB_SCHEMA` or make it the current schema.
 
 ## Usage
 
@@ -150,9 +150,9 @@ EXECUTE SCRIPT "<AAF_DB_SCHEMA>"."AAF_RUN_QUERY_HANDLER"('{
 
 See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-example-query-handler) for a complete example.
 
-### Parameters
+### Placeholders
 
-| Parameter                    | Required? | Description                                                                   |
+| Placeholders                 | Required? | Description                                                                   |
 |------------------------------|-----------|-------------------------------------------------------------------------------|
 | `<AAF_DB_SCHEMA>`            | yes       | Name of the database schema containing the default Query Handler, See [Additional Scripts](#additional-scripts) |
 | `<CLASS_NAME>`               | yes       | Name of the query handler class                                               |
@@ -191,7 +191,7 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 ### Concrete Example Using an Adhoc Implementation Within the UDF
 
-The example dynamically creates a python module `xyz` and adds classes `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
+The example dynamically creates a python module `EXAMPLE_MODULE` and adds classes `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
 In order to execute the example successfully you need to
 1. [Create a BucketFS connection](#bucketfs-connection)
@@ -201,22 +201,6 @@ In order to execute the example successfully you need to
 The example assumes
 * the name for the BucketFS Connection `<CONNECTION_NAME>` to be `BFS_CON`
 * the name for the AAF database schema `<AAF_DB_SCHEMA>` to be `AAF_DB_SCHEMA`, see [Additional Scripts](#additional-scripts)
-
-<!--
-Additionally the paths in the `ALTER SESSION` statement depend on the configuration of the Exasol database and where the AAF SLC was uploaded to in section [Script Language Container (SLC)](#script-language-container-slc).
-
-| Variable in section [Script Language Container (SLC)](#script-language-container-slc) | Placeholder          | Assumed value | Description                                                         |
-|---------------------------------------------------------------------------------------|----------------------|------------|---------------------------------------------------------------------|
-| `$BUCKETFS_NAME`   | `<BFS_SERVICE_NAME>` | `bfsdefault` | Name of the BucketFS service connected to the port |
-| `$BUCKET_NAME`     | `<BUCKET>`           | `default` | Name of the bucket the AAF SLC was uploaded to |
-| `$PATH_IN_BUCKET`  | `<PATH_IN_BUCKET>`   | `temp` | Path AAF SLC was uploaded to inside the bucket |
-
-The following SQL statements activate the AAF's SLC and create the required database schemas unless they already exist:
-
-```sql
-ALTER SESSION SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
-```
--->
 
 The following SQL statements create the required database schemas unless they already exist:
 
