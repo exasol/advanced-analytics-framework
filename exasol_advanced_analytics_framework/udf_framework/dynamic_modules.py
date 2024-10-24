@@ -13,18 +13,26 @@ def _register_module_for_import(name: str, mod: ModuleType):
     sys.modules[name] = mod
 
 
+
+class ModuleExistsException(Exception):
+    """
+    When trying create a module that already exists.
+    """
+
+
 def create_module(name: str) -> ModuleType:
     """
     Dynamically create a python module using the specified name and
-    register the module in sys.modules[].
+    register the module in sys.modules[] for import.
 
     Additionally add a function add_to_module() to the module enabling other
     code to add classes and functions to the module.
     """
-    mod = sys.modules.get(name)
-    if mod is None:
-        mod = _create_module(name)
-        _register_module_for_import(name, mod)
+    if name in sys.modules:
+        raise ModuleExistsException(f'Module "{name}" already exists')
+
+    mod = _create_module(name)
+    _register_module_for_import(name, mod)
 
     def add_to_module(object: Any):
         object.__module__ = name

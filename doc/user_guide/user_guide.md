@@ -112,7 +112,7 @@ python -m exasol_advanced_analytics_framework.deploy scripts \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
-The name of the database schema must match the schema when executing the script.
+The name of the database schema must match the schema `AAF_DB_SCHEMA` when executing the script, see section [Usage, Parameters](#parameters).
 
 ## Usage
 
@@ -126,7 +126,7 @@ This script takes the necessary parameters to execute the desired algorithm in s
 The following SQL statement shows how to call an AAF query handler:
 
 ```sql
-EXECUTE SCRIPT <AAF_DB_SCHEMA>.AAF_RUN_QUERY_HANDLER('{
+EXECUTE SCRIPT "<AAF_DB_SCHEMA>"."AAF_RUN_QUERY_HANDLER"('{
     "query_handler": {
         "factory_class": {
             "module": "<CLASS_MODULE>",

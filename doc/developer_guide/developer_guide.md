@@ -16,11 +16,7 @@ Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guid
 
 ## Update Generated Files
 
-AAF contains some generated files that are committed to git, including:
-* The amalgated Lua script [create_query_loop.sql](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/resources/outputs/create_query_loop.sql)
-* The examples in the user guide
-
-The amalgated Lua script originates from the files in the directory [exasol_advanced_analytics_framework/lua/src](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/lua/src/).
+AAF contains the amalgated Lua script [create_query_loop.sql](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/resources/outputs/create_query_loop.sql) originating from the files in the directory [exasol_advanced_analytics_framework/lua/src](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/lua/src/).
 
 The following command updates the amalgated script:
 

@@ -1,4 +1,8 @@
-from exasol_advanced_analytics_framework.udf_framework.dynamic_modules import create_module
+import pytest
+from exasol_advanced_analytics_framework.udf_framework.dynamic_modules import (
+    create_module,
+    ModuleExistsException,
+)
 
 
 class ExampleClass:
@@ -27,14 +31,6 @@ def test_add_function():
 
 
 def test_add_function_to_existing_module():
-    def my_func():
-        return "another return value"
-
-    mod1 = create_module("xx2")
-    import xx2
-    xx2.add_to_module(example_function)
-    mod2 = create_module("xx2")
-    assert mod2 == mod1
-    xx2.add_to_module(my_func)
-    assert xx2.example_function() == "example_function return value" \
-        and xx2.my_func() == "another return value"
+    create_module("xx3")
+    with pytest.raises(ModuleExistsException, match='Module "xx3" already exists') as ex:
+        create_module("xx3")
