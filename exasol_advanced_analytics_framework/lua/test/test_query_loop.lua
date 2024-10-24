@@ -55,7 +55,7 @@ test_query_loop = {
                 parameter = "param"
             },
         },
-        query = "SELECT UDF_SCHEMA.UDF_NAME(" ..
+        query = "SELECT \"UDF_SCHEMA\".\"UDF_NAME\"(" ..
                 "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
                 "'cls_name','package.module','param')"
     },
@@ -76,7 +76,7 @@ test_query_loop = {
                 parameter = "param"
             },
         },
-        query = "SELECT script_schema.AAF_QUERY_HANDLER_UDF(" ..
+        query = "SELECT \"script_schema\".\"AAF_QUERY_HANDLER_UDF\"(" ..
                 "0,'bfs_conn','directory','db_name_1122334455_1','temp_schema'," ..
                 "'cls_name','package.module','param')"
     },
