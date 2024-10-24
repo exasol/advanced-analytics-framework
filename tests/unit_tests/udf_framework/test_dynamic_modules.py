@@ -24,3 +24,17 @@ def test_add_function():
     xx2.add_to_module(example_function)
     assert xx2.example_function() == "example_function return value" \
         and example_function.__module__ == "xx2"
+
+
+def test_add_function_to_existing_module():
+    def my_func():
+        return "another return value"
+
+    mod1 = create_module("xx2")
+    import xx2
+    xx2.add_to_module(example_function)
+    mod2 = create_module("xx2")
+    assert mod2 == mod1
+    xx2.add_to_module(my_func)
+    assert xx2.example_function() == "example_function return value" \
+        and xx2.my_func() == "another return value"
