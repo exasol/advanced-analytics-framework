@@ -510,7 +510,7 @@ function M.prepare_init_query(arguments, meta)
     local udf_schema <const> = udf['schema']
     local udf_name <const> = udf['name']
 
-    local full_qualified_udf_name <const> = string.format("%s.%s", udf_schema, udf_name)
+    local full_qualified_udf_name <const> = string.format("\"%s\".\"%s\"", udf_schema, udf_name)
     local udf_args <const> = string.format("(%d,'%s','%s','%s','%s','%s','%s','%s')",
             iter_num,
             temporary_bfs_location_conn,

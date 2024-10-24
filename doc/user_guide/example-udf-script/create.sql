@@ -1,3 +1,7 @@
+--/
+CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "EXAMPLE_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
+EMITS (outputs VARCHAR(2000000)) AS
+
 from typing import Union
 from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
 from exasol_advanced_analytics_framework.udf_framework.dynamic_modules import create_module
@@ -80,3 +84,5 @@ udf = QueryHandlerRunnerUDF(exa)
 
 def run(ctx):
     return udf.run(ctx)
+
+/

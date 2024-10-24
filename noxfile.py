@@ -2,7 +2,6 @@ import json
 import os
 from pathlib import Path
 from exasol_advanced_analytics_framework.slc import custom_slc_builder
-from scripts.document_updater import update_examples
 from datetime import datetime
 
 import nox
@@ -131,11 +130,3 @@ def run_python_integration_tests_with_db(session: Session):
         str(integration_test_directory),
         *session.posargs,
     )
-
-
-@nox.session(python=False)
-def update_user_guide(session: Session):
-    """
-    This task updates the examples in the user guide.
-    """
-    update_examples(Path("doc/user_guide/user_guide.md"))
