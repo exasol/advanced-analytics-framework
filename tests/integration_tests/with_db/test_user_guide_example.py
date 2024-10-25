@@ -10,8 +10,8 @@ from exasol.python_extension_common.deployment.temp_schema import temp_schema
 @pytest.fixture
 def example_db_schemas(pyexasol_connection):
     with ExitStack() as stack:
-        s1 = stack.enter_context(temp_schema(example_connection))
-        s2 = stack.enter_context(temp_schema(example_connection))
+        s1 = stack.enter_context(temp_schema(pyexasol_connection))
+        s2 = stack.enter_context(temp_schema(pyexasol_connection))
         yield (s1, s2)
 
 
