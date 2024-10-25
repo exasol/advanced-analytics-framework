@@ -59,7 +59,6 @@ jobs:
         run: true
 
   experimental:
-    needs: [ ci-job ]
     uses: ./.github/workflows/build-and-publish.yml
     secrets: inherit
 
