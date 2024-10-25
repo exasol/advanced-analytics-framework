@@ -34,7 +34,7 @@ def test_user_guide_example(database_with_slc, pyexasol_connection, example_db_s
     statement = (
         (dir / "execute.sql")
         .read_text()
-        .replace("BFS_CON", bucketfs_connection_name)
+        .replace("EXAMPLE_BFS_CON", bucketfs_connection_name)
         .replace("AAF_DB_SCHEMA", schema_name)
         .replace("EXAMPLE_SCHEMA", example_db_schemas[0])
         .replace("EXAMPLE_TEMP_SCHEMA", example_db_schemas[1])

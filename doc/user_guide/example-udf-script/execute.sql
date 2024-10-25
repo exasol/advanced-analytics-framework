@@ -7,12 +7,12 @@ EXECUTE SCRIPT "AAF_DB_SCHEMA"."AAF_RUN_QUERY_HANDLER"('{
         "parameter": "bla-bla",
         "udf": {
             "schema": "EXAMPLE_SCHEMA",
-            "name": "MY_QUERY_HANDLER_UDF"
+            "name": "EXAMPLE_QUERY_HANDLER_UDF"
         }
     },
     "temporary_output": {
         "bucketfs_location": {
-            "connection_name": "BFS_CON",
+            "connection_name": "EXAMPLE_BFS_CON",
             "directory": "temp"
         },
         "schema_name": "EXAMPLE_TEMP_SCHEMA"
