@@ -73,12 +73,16 @@ pip install exasol-advanced-analytics-framework
 
 Exasol executes User Defined Functions (UDFs) in an isolated Container whose root filesystem is derived from a Script Language Container (SLC).
 
-Running the AAF requires an SLC. The following command
-* downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
+Running the AAF requires an SLC.
+
+#### Uploading the SLC to the BucketFS
+
+The following command
+* downloads the specified version `$VERSION` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
 * uploads the file into the BucketFS,
 * and registers it to the database.
 
-The variable `$LANGUAGE_ALIAS` will be reused in [Additional Scripts](#additional-scripts).
+The variable `$LANGUAGE_ALIAS` will be reused in [Defining Additional SQL Scripts](#defining-additional-sql-scripts).
 
 ```shell
 LANGUAGE_ALIAS=PYTHON3_AAF
@@ -97,7 +101,42 @@ python -m exasol_advanced_analytics_framework.deploy language-container \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
-### Additional Scripts
+#### Activating the AAF SLC by Setting a Language Alias
+
+AAF requires activating the AAF SLC as _script language_.  This is accomplished by setting a _language alias_, see [Activate the New Script Language Container](https://docs.exasol.com/db/latest/database_concepts/udf_scripts/adding_new_packages_script_languages.htm) in the official Exasol documentation.
+
+When using the AAF command `deploy` `language-container` for uploading the SLC you can activate the language alias on one of two available levels using the corresponding CLI option:
+
+| Level                  | CLI option          | Required Permissions       | Persistent? |
+|------------------------|---------------------|----------------------------|-------------|
+| system level (default) | `--alter-system`    | Administration permissions | yes         |
+| session level (fallback) | `--no-alter-system` | none                       | no          |
+
+By default the AAF deploy command will try to set the language alias on _system level_. If the specified user does not have administration permissions, then the command falls back to using only _session level_.
+
+When setting the language alias on _session level_, you need to set it for each session again. The session used by the AAF deploy command will be closed after the command has terminated and hence the language alias will no longer exist when you want to execute a query handler script.
+
+The following SQL statement displays the language aliases currently defined in the `EXA_PARAMETERS` system table:
+
+```sql
+SELECT * FROM exa_parameters WHERE parameter_name='SCRIPT_LANGUAGES';
+```
+
+When using the AAF deploy command with CLI option `--no-alter-system` then the command will display the `ALTER SESSION` SQL statements so you can copy them into your SQL editor and execute them for each session.
+
+Here is an example output
+
+```
+In SQL, you can activate the SLC by using the following statements:
+
+To activate the SLC only for the current session:
+ALTER SESSION SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
+
+To activate the SLC on the system:
+ALTER SYSTEM SET SCRIPT_LANGUAGES='R=builtin_r JAVA=builtin_java PYTHON3=builtin_python3 PYTHON3_AAF=localzmq+protobuf:///bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release?lang=python#/buckets/bfsdefault/default/temp/exasol_advanced_analytics_framework_container_release/exaudf/exaudfclient_py3';
+```
+
+### Defining Additional SQL Scripts
 
 Besides the BucketFS connection, the SLC, and the Python package AAF also requires some additional Lua scripts to be created in the Exasol database.
 
@@ -152,9 +191,9 @@ See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-c
 
 ### Placeholders
 
-| Placeholders                 | Required? | Description                                                                   |
+| Placeholder                  | Required? | Description                                                                   |
 |------------------------------|-----------|-------------------------------------------------------------------------------|
-| `<AAF_DB_SCHEMA>`            | yes       | Name of the database schema containing the default Query Handler, See [Additional Scripts](#additional-scripts) |
+| `<AAF_DB_SCHEMA>`            | yes       | Name of the database schema containing the default Query Handler, See [Defining Additional SQL Scripts](#defining-additional-sql-scripts) |
 | `<CLASS_NAME>`               | yes       | Name of the query handler class                                               |
 | `<CLASS_MODULE>`             | yes       | Module name of the query handler class                                        |
 | `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                       |
@@ -200,7 +239,7 @@ In order to execute the example successfully you need to
 
 The example assumes
 * the name for the BucketFS Connection `<CONNECTION_NAME>` to be `BFS_CON`
-* the name for the AAF database schema `<AAF_DB_SCHEMA>` to be `AAF_DB_SCHEMA`, see [Additional Scripts](#additional-scripts)
+* the name for the AAF database schema `<AAF_DB_SCHEMA>` to be `AAF_DB_SCHEMA`, see [Defining Additional SQL Scripts](#defining-additional-sql-scripts).
 
 The following SQL statements create the required database schemas unless they already exist:
 
