@@ -53,6 +53,12 @@ def install_dev_env(session: Session):
 
 
 @nox.session(python=False)
+def amalgate_lua_scripts(session: Session):
+    script = ROOT_DIR / "exasol_advanced_analytics_framework" / "deployment" / "regenerate_scripts.py"
+    _run_in_dev_env_poetry_call(session, "python", str(script))
+
+
+@nox.session(python=False)
 def run_lua_unit_tests(session: Session):
     lua_tests_script = SCRIPTS_DIRECTORY / "lua_tests.sh"
     _run_in_dev_env_call(session, str(lua_tests_script))

@@ -73,42 +73,29 @@ pip install exasol-advanced-analytics-framework
 
 Exasol executes User Defined Functions (UDFs) in an isolated Container whose root filesystem is derived from a Script Language Container (SLC).
 
-Running the AAF requires a SLC. The following command
-* downloads the specified version `<VERSION>` (preferrably the latest) of a prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases/latest) on GitHub,
+Running the AAF requires an SLC. The following command
+* downloads the related prebuilt AAF SLC from the [AAF releases](https://github.com/exasol/advanced-analytics-framework/releases) on GitHub,
 * uploads the file into the BucketFS,
 * and registers it to the database.
 
-The variable `$LANGUAGE_ALIAS` will be reused in [Additional Scripts](#additional-scripts).
-
 ```shell
-LANGUAGE_ALIAS=PYTHON3_AAF
-python -m exasol_advanced_analytics_framework.deploy language-container \
-    --dsn "$DB_HOST:$DB_PORT" \
-    --db-user "$DB_USER" \
-    --db-pass "$DB_PASSWORD" \
-    --bucketfs-name "$BUCKETFS_NAME" \
-    --bucketfs-host "$BUCKETFS_HOST" \
-    --bucketfs-port "$BUCKETFS_PORT" \
-    --bucketfs-user "$BUCKETFS_USER" \
-    --bucketfs-password "$BUCKETFS_PASSWORD" \
-    --bucket "$BUCKETFS_NAME" \
-    --path-in-bucket "$PATH_IN_BUCKET" \
-    --version "$VERSION" \
-    --language-alias "$LANGUAGE_ALIAS"
+python -m exasol_advanced_analytics_framework.deploy language-container
 ```
 
-### Additional Scripts
+See the documentation in the Exasol Python Extension Common package for [options common to all Exasol extensions](https://github.com/exasol/python-extension-common/blob/0.8.0/doc/user_guide/user-guide).
+
+### Defining Additional SQL Scripts
 
 Besides the BucketFS connection, the SLC, and the Python package AAF also requires some additional Lua scripts to be created in the Exasol database.
 
-The following command deploys the additional scripts to the specified `DB_SCHEMA` using the `LANGUAGE_ALIAS` of the SLC:
+The following command deploys the additional scripts to the specified database schema `$AAF_DB_SCHEMA` using the same language alias `$LANGUAGE_ALIAS` as for uploading the SLC before:
 
 ```shell
 python -m exasol_advanced_analytics_framework.deploy scripts \
-    --dsn "$DB_HOST:DB_PORT" \
+    --dsn "$DB_HOST:$DB_PORT" \
     --db-user "$DB_USER" \
     --db-pass "$DB_PASSWORD" \
-    --schema "$DB_SCHEMA" \
+    --schema "$AAF_DB_SCHEMA" \
     --language-alias "$LANGUAGE_ALIAS"
 ```
 
@@ -124,7 +111,7 @@ This script takes the necessary parameters to execute the desired algorithm in s
 The following SQL statement shows how to call an AAF query handler:
 
 ```sql
-EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
+EXECUTE SCRIPT "<AAF_DB_SCHEMA>"."AAF_RUN_QUERY_HANDLER"('{
     "query_handler": {
         "factory_class": {
             "module": "<CLASS_MODULE>",
@@ -148,10 +135,11 @@ EXECUTE SCRIPT AAF_RUN_QUERY_HANDLER('{
 
 See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-example-query-handler) for a complete example.
 
-### Parameters
+### Placeholders
 
-| Parameter                    | Required? | Description                                                                   |
+| Placeholder                  | Required? | Description                                                                   |
 |------------------------------|-----------|-------------------------------------------------------------------------------|
+| `<AAF_DB_SCHEMA>`            | yes       | Name of the database schema containing the default Query Handler, See [Defining Additional SQL Scripts](#defining-additional-sql-scripts) |
 | `<CLASS_NAME>`               | yes       | Name of the query handler class                                               |
 | `<CLASS_MODULE>`             | yes       | Module name of the query handler class                                        |
 | `<CLASS_PARAMETERS>`         | yes       | Parameters of the query handler class encoded as string                       |
@@ -188,88 +176,29 @@ Each algorithm should extend the `UDFQueryHandler` abstract class and then imple
 
 ### Concrete Example Using an Adhoc Implementation Within the UDF
 
-The example uses the module `builtins` and dynamically adds `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
+The example dynamically creates a python module `example_module` and adds classes `ExampleQueryHandler` and `ExampleQueryHandlerFactory` to it.
 
-```python
---/
-CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "MY_SCHEMA"."MY_QUERY_HANDLER_UDF"(...)
-EMITS (outputs VARCHAR(2000000)) AS
+In order to execute the example successfully you need to
+1. [Create a BucketFS connection](#bucketfs-connection)
+2. Activate the AAF's SLC
+3. Make sure the database schemas used in the example exist.
 
-from typing import Union
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
-from exasol_advanced_analytics_framework.query_handler.context.query_handler_context import QueryHandlerContext
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.query_handler.result import Result, Continue, Finish
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQuery, SelectQueryWithColumnDefinition
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
+The example assumes
+* the name for the BucketFS Connection `<CONNECTION_NAME>` to be `EXAMPLE_BFS_CON`
+* the name for the AAF database schema `<AAF_DB_SCHEMA>` to be `AAF_DB_SCHEMA`, see [Defining Additional SQL Scripts](#defining-additional-sql-scripts).
 
+The following SQL statements create the required database schemas unless they already exist:
 
-class ExampleQueryHandler(UDFQueryHandler):
-    def __init__(self, parameter: str, query_handler_context: QueryHandlerContext):
-        super().__init__(parameter, query_handler_context)
-        self.parameter = parameter
-        self.query_handler_context = query_handler_context
-
-    def start(self) -> Union[Continue, Finish[str]]:
-        query_list = [
-          SelectQuery("SELECT 1 FROM DUAL"),
-          SelectQuery("SELECT 2 FROM DUAL")]
-        query_handler_return_query = SelectQueryWithColumnDefinition(
-            query_string="SELECT 5 AS 'return_column' FROM DUAL",
-            output_columns=[
-              Column(ColumnName("return_column"), ColumnType("INTEGER"))])
-
-        return Continue(
-            query_list=query_list,
-            input_query=query_handler_return_query)
-
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[str]]:
-        return_value = query_result.return_column
-        result = 2 ** return_value
-        return Finish(result=result)
-
-import builtins
-builtins.ExampleQueryHandler=ExampleQueryHandler # required for pickle
-
-class ExampleQueryHandlerFactory:
-      def create(self, parameter: str, query_handler_context: QueryHandlerContext):
-          return builtins.ExampleQueryHandler(parameter, query_handler_context)
-
-builtins.ExampleQueryHandlerFactory=ExampleQueryHandlerFactory
-
-from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf \
-    import QueryHandlerRunnerUDF
-
-udf = QueryHandlerRunnerUDF(exa)
-
-def run(ctx):
-    return udf.run(ctx)
-/
-
-
-EXECUTE SCRIPT MY_SCHEMA.AAF_RUN_QUERY_HANDLER('{
-    "query_handler": {
-        "factory_class": {
-            "module": "builtins",
-            "name": "ExampleQueryHandlerFactory"
-        },
-        "parameter": "bla-bla",
-        "udf": {
-            "schema": "MY_SCHEMA",
-            "name": "MY_QUERY_HANDLER_UDF"
-        }
-    },
-    "temporary_output": {
-        "bucketfs_location": {
-            "connection_name": "BFS_CON",
-            "directory": "temp"
-        },
-        "schema_name": "TEMP_SCHEMA"
-    }
-}');
+```sql
+create schema IF NOT EXISTS "EXAMPLE_SCHEMA";
+create schema IF NOT EXISTS "EXAMPLE_TEMP_SCHEMA";
 ```
+
+The following files contain the SQL statements for creating and executing the UDF script
+* [example-udf-script/create.sql](example-udf-script/create.sql)
+* [example-udf-script/execute.sql](example-udf-script/execute.sql)
+
+### Sequence Diagram
 
 The figure below illustrates the execution of this algorithm implemented in class `ExampleQueryHandler`.
 * When method `start()` is called, it executes two queries and an additional `input_query` to obtain the input for the next iteration.
@@ -278,3 +207,7 @@ The figure below illustrates the execution of this algorithm implemented in clas
 In this example, the algorithm is finished at this iteration and returns 2<sup>_return value_</sup> as final result.
 
 ![Sample Execution](../images/sample_execution.png "Sample Execution")
+
+## Additional Information
+
+* [Object Proxies](proxies.md) for managing temporary locations in the database and BucketFS

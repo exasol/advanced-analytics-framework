@@ -14,6 +14,16 @@ poetry run nox -s build_language_container
 
 Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guide.md#script-language-container-slc).
 
+## Update Generated Files
+
+AAF contains the amalgated Lua script [create_query_loop.sql](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/resources/outputs/create_query_loop.sql) originating from the files in the directory [exasol_advanced_analytics_framework/lua/src](https://github.com/exasol/advanced-analytics-framework/blob/main/exasol_advanced_analytics_framework/lua/src/).
+
+The following command updates the amalgated script:
+
+```shell
+poetry run nox -s amalgate_lua_scripts
+```
+
 ## Running Tests
 
 AAF comes with different automated tests implemented in different programming languages and requiring different environments:

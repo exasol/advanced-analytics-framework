@@ -1,0 +1,35 @@
+name: Check Code Generation
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  check_code_generation:
+    name: Lua Amalgate and Example in User Guide
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.10" ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Development Environment
+        run: poetry run nox -s install_dev_env
+
+      - name: Poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Amalgate Lua Scripts
+        run: poetry run nox -s amalgate_lua_scripts
+
+      - name: Check if re-generated files differ from commit
+        run: git diff --exit-code
