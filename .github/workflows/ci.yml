@@ -58,7 +58,3 @@ jobs:
       - name: Branch Protection
         run: true
 
-  experimental:
-    uses: ./.github/workflows/build-and-publish.yml
-    secrets: inherit
-

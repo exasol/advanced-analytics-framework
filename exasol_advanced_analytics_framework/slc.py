@@ -6,8 +6,8 @@ from exasol.python_extension_common.deployment.language_container_builder import
 
 LANGUAGE_ALIAS = "PYTHON3_AAF"
 SLC_NAME = "exasol_advanced_analytics_framework_container"
-SLC_FILE_NAME = SLC_NAME + ".tar.gz"
-SLC_URL_FORMATTER = "https://github.com/exasol/advanced_analytics_framework/releases/download/{version}/" + SLC_NAME
+SLC_FILE_NAME = SLC_NAME + "_release.tar.gz"
+SLC_URL_FORMATTER = "https://github.com/exasol/advanced_analytics_framework/releases/download/{version}/" + SLC_FILE_NAME
 
 
 @contextmanager
