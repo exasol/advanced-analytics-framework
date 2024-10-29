@@ -1,9 +1,10 @@
-# advanced-analytics-framework 0.1.0, released TBD
+# advanced-analytics-framework 0.1.0, released 2024-10-29
 
-Code name:
+Code name: Inital release
 
 ## Summary
 
+This is the initial release of the Advanced Analytics Framework which allows you to devlop complex algorithms with Exasol.
 
 ### Features
 
