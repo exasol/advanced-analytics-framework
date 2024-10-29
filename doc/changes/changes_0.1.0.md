@@ -1,9 +1,10 @@
-# advanced-analytics-framework 0.1.0, released TBD
+# advanced-analytics-framework 0.1.0, released 2024-10-29
 
-Code name:
+Code name: Inital release
 
 ## Summary
 
+This is the initial release of the Advanced Analytics Framework which allows you to devlop complex algorithms with Exasol.
 
 ### Features
 
@@ -52,11 +53,12 @@ Code name:
 * #176: Updated usage of `exasol-bucketfs` to new API
 * #185: Removed directory and script for building SLC AAF
 * #191: Renamed UDF json element "parameters" to "parameter"
-* #190: Added dynamic module generation and used it in the example UDF in the user guide
 * #178: Fixed names of mock objects:
   * Renamed `testing.mock_query_handler_runner.MockQueryHandlerRunner` to `query_handler.python_query_handler_runner.PythonQueryHandlerRunner`
   * Renamed method `PythonQueryHandlerRunner.execute_query()` to `execute_queries()`
   * Renamed `mock_query_result.MockQueryResult` to `python_query_result.PythonQueryResult`
+* #190: Added dynamic module generation and used it in the example UDF in the user guide
+* #175: Prepared releasing AAF to PyPi incl. adding SLC as asset to the GitHub release
 
 ### Documentation
 
