@@ -60,11 +60,11 @@ def test_temporary_udf_temporary(
         proxy.schema_name == SchemaName(aaf_pytest_db_schema)
 
 
-def test_temporary_bucketfs_file_prefix_in_name(bucketfs_location: bfs.path.PathLike,
+def test_temporary_bucketfs_file_prefix_in_name(sample_bucketfs_location: bfs.path.PathLike,
                                                 context_mock: ScopeQueryHandlerContext):
     proxy =  context_mock.get_temporary_bucketfs_location()
     actual_path = proxy.bucketfs_location().as_udf_path()
-    expected_prefix_path = bucketfs_location.as_udf_path()
+    expected_prefix_path = sample_bucketfs_location.as_udf_path()
     assert actual_path.startswith(expected_prefix_path)
 
 

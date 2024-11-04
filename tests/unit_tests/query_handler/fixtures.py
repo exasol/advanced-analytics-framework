@@ -46,7 +46,7 @@ def connection_mock() -> Connection:
 
 
 @pytest.fixture
-def mock_connection_lookup(connection_mock) -> ConnectionLookup:
+def connection_lookup_mock(connection_mock) -> ConnectionLookup:
     def lookup(name: str) -> Connection:
         if name == connection_mock.name:
             return connection_mock
@@ -62,7 +62,7 @@ def sample_mounted_bucket(tmp_path):
 
 
 @pytest.fixture
-def bucketfs_location(sample_mounted_bucket):
+def sample_bucketfs_location(sample_mounted_bucket):
     return bfs.path.BucketPath("a/b", sample_mounted_bucket)
 
 
@@ -74,14 +74,14 @@ def mocked_temporary_bucketfs_location(tmp_path):
 
 @pytest.fixture
 def top_level_query_handler_context_mock(
-        bucketfs_location: bfs.path.PathLike,
+        sample_bucketfs_location: bfs.path.PathLike,
         tmp_db_obj_prefix: str,
         aaf_pytest_db_schema: str,
-        mock_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
+        connection_lookup_mock: ConnectionLookup) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=bucketfs_location,
+        temporary_bucketfs_location=sample_bucketfs_location,
         temporary_db_object_name_prefix=tmp_db_obj_prefix,
-        connection_lookup=mock_connection_lookup,
+        connection_lookup=connection_lookup_mock,
         temporary_schema_name=aaf_pytest_db_schema,
     )
     return query_handler_context
