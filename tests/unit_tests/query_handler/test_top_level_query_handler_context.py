@@ -32,13 +32,13 @@ def test_cleanup_released_temporary_view_proxies(context_mock):
 
 
 def test_cleanup_released_bucketfs_object_with_uploaded_file_proxies(context_mock,
-        bucketfs_location: bfs.path.PathLike):
+        sample_bucketfs_location: bfs.path.PathLike):
     proxy = context_mock.get_temporary_bucketfs_location()
     # create dummy file with content "test"
     (proxy.bucketfs_location() / "test_file.txt").write(b"test")
     context_mock.release()
     context_mock.cleanup_released_object_proxies()
-    assert not bucketfs_location.is_dir()
+    assert not sample_bucketfs_location.is_dir()
 
 
 def test_cleanup_released_bucketfs_object_without_uploaded_file_proxies_after_release(context_mock):
