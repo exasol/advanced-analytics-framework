@@ -4,4 +4,4 @@ Code name:
 
 ## Summary
 
-* Fixed download URL of SLC from GitHub releases
+* #206: Fixed download URL of SLC from GitHub releases
