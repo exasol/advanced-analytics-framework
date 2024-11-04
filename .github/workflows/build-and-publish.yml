@@ -25,12 +25,6 @@ jobs:
       - name: Build Script Language Container (SLC)
         run: poetry run nox -s build_language_container
 
-      - name: PyPi Release
-        env:
-          POETRY_HTTP_BASIC_PYPI_USERNAME: "__token__"
-          POETRY_HTTP_BASIC_PYPI_PASSWORD: "${{ secrets.PYPI_TOKEN }}"
-        run: poetry publish
-
       - name: GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,3 +34,9 @@ jobs:
           --notes-file doc/changes/changes_${GITHUB_REF_NAME}.md
           dist/*
           .slc/*
+
+      - name: PyPi Release
+        env:
+          POETRY_HTTP_BASIC_PYPI_USERNAME: "__token__"
+          POETRY_HTTP_BASIC_PYPI_PASSWORD: "${{ secrets.PYPI_TOKEN }}"
+        run: poetry publish
