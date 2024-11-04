@@ -35,10 +35,10 @@ class TestJsonUDFQueryHandlerFactory(JsonUDFQueryHandlerFactory):
         super().__init__(TestJSONQueryHandler)
 
 
-def test(top_level_query_handler_context):
+def test(top_level_query_handler_context_mock):
     test_input = {"a": 1}
     json_str = json.dumps(test_input)
-    query_handler = TestJsonUDFQueryHandlerFactory().create(json_str, top_level_query_handler_context)
+    query_handler = TestJsonUDFQueryHandlerFactory().create(json_str, top_level_query_handler_context_mock)
     start_result = query_handler.start()
     handle_query_result = query_handler.handle_query_result(
         PythonQueryResult(data=[(1,)],

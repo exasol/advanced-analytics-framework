@@ -29,23 +29,23 @@ class ConstructorTestJSONQueryHandler(JSONQueryHandler):
         raise AssertionError("Should not be called")
 
 
-def test_constructor_valid_json(top_level_query_handler_context):
+def test_constructor_valid_json(top_level_query_handler_context_mock):
     parameter = {
         "test_key": "test_value"
     }
     json_str_parameter = json.dumps(parameter)
     query_handler = JsonUDFQueryHandler(
         parameter=json_str_parameter,
-        query_handler_context=top_level_query_handler_context,
+        query_handler_context=top_level_query_handler_context_mock,
         wrapped_json_query_handler_class=ConstructorTestJSONQueryHandler
     )
 
 
-def test_constructor_invalid_json(top_level_query_handler_context):
+def test_constructor_invalid_json(top_level_query_handler_context_mock):
     with pytest.raises(JSONDecodeError):
         query_handler = JsonUDFQueryHandler(
             parameter="'abc'='ced'",
-            query_handler_context=top_level_query_handler_context,
+            query_handler_context=top_level_query_handler_context_mock,
             wrapped_json_query_handler_class=ConstructorTestJSONQueryHandler
         )
 
@@ -63,14 +63,14 @@ class StartReturnParameterTestJSONQueryHandler(JSONQueryHandler):
         raise AssertionError("Should not be called")
 
 
-def test_start_return_parameter(top_level_query_handler_context):
+def test_start_return_parameter(top_level_query_handler_context_mock):
     parameter = {
         "test_key": "test_value"
     }
     json_str_parameter = json.dumps(parameter)
     query_handler = JsonUDFQueryHandler(
         parameter=json_str_parameter,
-        query_handler_context=top_level_query_handler_context,
+        query_handler_context=top_level_query_handler_context_mock,
         wrapped_json_query_handler_class=StartReturnParameterTestJSONQueryHandler
     )
     result = query_handler.start()
@@ -91,14 +91,14 @@ class HandleQueryResultCheckQueryResultTestJSONQueryHandler(JSONQueryHandler):
         return Finish[JSONType]({"a": a})
 
 
-def test_handle_query_result_check_query_result(top_level_query_handler_context):
+def test_handle_query_result_check_query_result(top_level_query_handler_context_mock):
     parameter = {
         "test_key": "test_value"
     }
     json_str_parameter = json.dumps(parameter)
     query_handler = JsonUDFQueryHandler(
         parameter=json_str_parameter,
-        query_handler_context=top_level_query_handler_context,
+        query_handler_context=top_level_query_handler_context_mock,
         wrapped_json_query_handler_class=HandleQueryResultCheckQueryResultTestJSONQueryHandler
     )
     result = query_handler.handle_query_result(

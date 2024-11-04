@@ -12,16 +12,16 @@ SCHEMA = "TEMP_SCHEMA"
 
 
 @pytest.fixture
-def prefix() -> str:
+def tmp_db_obj_prefix() -> str:
     return PREFIX
 
 
 @pytest.fixture
-def schema() -> str:
+def aaf_pytest_db_schema() -> str:
     return SCHEMA
 
 
-class TestConnection(Connection):
+class ConnectionMock(Connection):
 
     @property
     def name(self) -> str:
@@ -41,15 +41,15 @@ class TestConnection(Connection):
 
 
 @pytest.fixture
-def test_connection() -> Connection:
-    return TestConnection()
+def connection_mock() -> Connection:
+    return ConnectionMock()
 
 
 @pytest.fixture
-def test_connection_lookup(test_connection) -> ConnectionLookup:
+def mock_connection_lookup(connection_mock) -> ConnectionLookup:
     def lookup(name: str) -> Connection:
-        if name == test_connection.name:
-            return test_connection
+        if name == connection_mock.name:
+            return connection_mock
         else:
             raise KeyError()
 
@@ -73,25 +73,25 @@ def mocked_temporary_bucketfs_location(tmp_path):
 
 
 @pytest.fixture
-def top_level_query_handler_context(
+def top_level_query_handler_context_mock(
         bucketfs_location: bfs.path.PathLike,
-        prefix: str,
-        schema: str,
-        test_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
+        tmp_db_obj_prefix: str,
+        aaf_pytest_db_schema: str,
+        mock_connection_lookup: ConnectionLookup) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
         temporary_bucketfs_location=bucketfs_location,
-        temporary_db_object_name_prefix=prefix,
-        connection_lookup=test_connection_lookup,
-        temporary_schema_name=schema
+        temporary_db_object_name_prefix=tmp_db_obj_prefix,
+        connection_lookup=mock_connection_lookup,
+        temporary_schema_name=aaf_pytest_db_schema,
     )
     return query_handler_context
 
 
 @pytest.fixture(params=["top", "child"])
-def scope_query_handler_context(
-        top_level_query_handler_context: TopLevelQueryHandlerContext,
+def scope_query_handler_context_mock(
+        top_level_query_handler_context_mock: TopLevelQueryHandlerContext,
         request) -> ScopeQueryHandlerContext:
     if request.param == "top":
-        return top_level_query_handler_context
+        return top_level_query_handler_context_mock
     else:
-        return top_level_query_handler_context.get_child_query_handler_context()
+        return top_level_query_handler_context_mock.get_child_query_handler_context()
