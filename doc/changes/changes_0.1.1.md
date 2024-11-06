@@ -11,3 +11,4 @@ Code name:
 ## Refactorings
 
 * #188: Renamed global pytest fixtures to avoid name clashes
+* #208: Replaced access to private attribute by public
