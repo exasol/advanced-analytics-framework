@@ -59,7 +59,6 @@ This is the initial release of the Advanced Analytics Framework which allows you
   * Renamed `mock_query_result.MockQueryResult` to `python_query_result.PythonQueryResult`
 * #190: Added dynamic module generation and used it in the example UDF in the user guide
 * #175: Prepared releasing AAF to PyPi incl. adding SLC as asset to the GitHub release
-* #203: Cleaned-up package names and directory structure
 
 ### Documentation
 
