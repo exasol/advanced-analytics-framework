@@ -2,14 +2,14 @@ import dataclasses
 from typing import Union
 from unittest.mock import MagicMock, create_autospec, call
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
+from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from tests.utils.mock_cast import mock_cast
 
 

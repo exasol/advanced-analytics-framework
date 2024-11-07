@@ -1,9 +1,11 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.schema.view_name import ViewName
-from exasol_data_science_utils_python.schema.view_name_builder import ViewNameBuilder
-from exasol_data_science_utils_python.schema.view_name_impl import ViewNameImpl
+from exasol.analytics.schema import (
+    SchemaName,
+    ViewNameBuilder,
+    ViewNameImpl,
+    ViewName,
+)
 from typeguard import TypeCheckError
 
 

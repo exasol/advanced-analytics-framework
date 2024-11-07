@@ -4,13 +4,13 @@ from unittest.mock import create_autospec, MagicMock, call
 
 import pytest
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_receiver import PayloadReceiver
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, Frame
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.payload_receiver import PayloadReceiver
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket, Frame
 
 
 @dataclasses.dataclass

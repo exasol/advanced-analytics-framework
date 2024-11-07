@@ -9,14 +9,14 @@ from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node import DiscoverySocketFactory
-from exasol_advanced_analytics_framework.udf_communication.discovery.multi_node.communicator import \
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.discovery.multi_node import DiscoverySocketFactory
+from exasol.analytics.udf.communication.discovery.multi_node.communicator import \
     CommunicatorFactory
-from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator import key_for_peer
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
+from exasol.analytics.udf.communication.ip_address import Port, IPAddress
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.peer_communicator import key_for_peer
+from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import TestProcess, \

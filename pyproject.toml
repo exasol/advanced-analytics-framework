@@ -4,8 +4,7 @@ version = "0.1.0"
 description = "Framework for building complex data analysis algorithms with Exasol"
 
 packages = [
-  {include = "exasol_advanced_analytics_framework"},
-  {include = "exasol_data_science_utils_python"},
+  {include = "exasol"},
 ]
 
 authors = [
@@ -58,8 +57,7 @@ build-backend = "poetry.core.masonry.api"
 
 [[tool.mypy.overrides]]
 module = [
-    "exasol_advanced_analytics_framework.*",
-    "exasol_data_science_utils_python.*",
+    "exasol.analytics.*",
     "language_container.*",
     "tests.*",
     "noxfile",

@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from numpy.random import RandomState
 
-from exasol_advanced_analytics_framework.udf_communication.socket_factory import abstract
-from exasol_advanced_analytics_framework.udf_communication.socket_factory import fault_injection
+from exasol.analytics.udf.communication.socket_factory import abstract
+from exasol.analytics.udf.communication.socket_factory import fault_injection
 from tests.mock_cast import mock_cast
 
 

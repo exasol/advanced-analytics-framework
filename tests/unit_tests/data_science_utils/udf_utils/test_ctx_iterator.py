@@ -8,7 +8,7 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
 def udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
-    from exasol_data_science_utils_python.udf_utils.iterator_utils import ctx_iterator
+    from exasol.analytics.udf.utils.iterators import ctx_iterator
 
     def run(ctx: UDFContext):
         iter = ctx_iterator(ctx, 3, lambda: ctx.reset())

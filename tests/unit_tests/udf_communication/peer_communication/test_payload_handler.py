@@ -5,11 +5,11 @@ from unittest.mock import create_autospec, MagicMock, call
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler import PayloadHandler
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_receiver import PayloadReceiver
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender import PayloadSender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Frame
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.peer_communicator.payload_handler import PayloadHandler
+from exasol.analytics.udf.communication.peer_communicator.payload_receiver import PayloadReceiver
+from exasol.analytics.udf.communication.peer_communicator.payload_sender import PayloadSender
+from exasol.analytics.udf.communication.socket_factory.abstract import Frame
 from tests.mock_cast import mock_cast
 
 

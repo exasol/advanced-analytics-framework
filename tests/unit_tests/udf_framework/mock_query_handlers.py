@@ -1,22 +1,22 @@
 from typing import Dict, Any, Union
 
-from exasol_data_science_utils_python.schema.column import \
+from exasol.analytics.schema.column import \
     Column
-from exasol_data_science_utils_python.schema.column_name import \
+from exasol.analytics.schema.column_name import \
     ColumnName
-from exasol_data_science_utils_python.schema.column_type import \
+from exasol.analytics.schema.column_type import \
     ColumnType
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
+from exasol.analytics.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition, \
+from exasol.analytics.query_handler.query.select_query import SelectQueryWithColumnDefinition, \
     SelectQuery
-from exasol_advanced_analytics_framework.query_handler.result \
+from exasol.analytics.query_handler.result \
     import Finish, Continue
-from exasol_advanced_analytics_framework.query_result.query_result \
+from exasol.analytics.query_result.query_result \
     import QueryResult
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 
 TEST_CONNECTION = "TEST_CONNECTION"
 

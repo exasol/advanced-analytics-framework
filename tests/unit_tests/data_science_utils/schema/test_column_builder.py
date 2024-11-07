@@ -1,8 +1,10 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.column import ColumnType
-from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
-from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
+from exasol.analytics.schema import (
+    ColumnBuilder,
+    ColumnType,
+    ColumnNameBuilder,
+)
 from typeguard import TypeCheckError
 
 def test_create_column_with_name_only():

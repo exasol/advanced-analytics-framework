@@ -2,20 +2,20 @@ import dataclasses
 from typing import Union
 from unittest.mock import MagicMock, create_autospec, call
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.messages import Message
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.messages import Message
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_thread.connection_closer.close_connection_sender import \
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.close_connection_sender import \
     CloseConnectionSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_closer import ConnectionCloser
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_is_closed_sender import ConnectionIsClosedSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 
 
 @dataclasses.dataclass()

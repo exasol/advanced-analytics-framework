@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from exasol_advanced_analytics_framework.slc import custom_slc_builder
+from exasol.analytics.slc import custom_slc_builder
 from datetime import datetime
 
 import nox
@@ -54,7 +54,7 @@ def install_dev_env(session: Session):
 
 @nox.session(python=False)
 def amalgate_lua_scripts(session: Session):
-    script = ROOT_DIR / "exasol_advanced_analytics_framework" / "deployment" / "regenerate_scripts.py"
+    script = ROOT_DIR / "exasol" / "analytics" / "deployment" / "regenerate_scripts.py"
     _run_in_dev_env_poetry_call(session, "python", str(script))
 
 

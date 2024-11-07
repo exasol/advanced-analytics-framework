@@ -2,21 +2,21 @@ import dataclasses
 from typing import Union, Tuple, List
 from unittest.mock import create_autospec, MagicMock, call
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender import \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.clock import Clock
+from exasol.analytics.udf.communication.peer_communicator.payload_message_sender import \
     PayloadMessageSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender_factory import \
+from exasol.analytics.udf.communication.peer_communicator.payload_message_sender_factory import \
     PayloadMessageSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender_timeout_config import \
+from exasol.analytics.udf.communication.peer_communicator.payload_message_sender_timeout_config import \
     PayloadMessageSenderTimeoutConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_sender import PayloadSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, Frame
+from exasol.analytics.udf.communication.peer_communicator.payload_sender import PayloadSender
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.serialization import serialize_message
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket, Frame
 from tests.mock_cast import mock_cast
 
 

@@ -3,17 +3,19 @@ CREATE OR REPLACE PYTHON3_AAF SET SCRIPT "EXAMPLE_SCHEMA"."EXAMPLE_QUERY_HANDLER
 EMITS (outputs VARCHAR(2000000)) AS
 
 from typing import Union
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
-from exasol_advanced_analytics_framework.udf_framework.dynamic_modules import create_module
-from exasol_advanced_analytics_framework.query_handler.context.query_handler_context import QueryHandlerContext
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.query_handler.result import Result, Continue, Finish
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQuery, SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_handler.context.proxy.bucketfs_location_proxy import \
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
+from exasol.analytics.utils.dynamic_modules import create_module
+from exasol.analytics.query_handler.context.query_handler_context import QueryHandlerContext
+from exasol.analytics.query_result.query_result import QueryResult
+from exasol.analytics.query_handler.result import Result, Continue, Finish
+from exasol.analytics.query_handler.query.select_query import SelectQuery, SelectQueryWithColumnDefinition
+from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import \
     BucketFSLocationProxy
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnName,
+)
 from datetime import datetime
 from exasol.bucketfs import as_string
 
@@ -77,7 +79,7 @@ class ExampleQueryHandlerFactory:
 
 example_module.add_to_module(ExampleQueryHandlerFactory)
 
-from exasol_advanced_analytics_framework.udf_framework.query_handler_runner_udf \
+from exasol.analytics.query_handler.udf.runner.udf \
     import QueryHandlerRunnerUDF
 
 udf = QueryHandlerRunnerUDF(exa)

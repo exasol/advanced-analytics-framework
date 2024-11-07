@@ -1,24 +1,24 @@
 from typing import Union
 
-from exasol_data_science_utils_python.schema.column import \
+from exasol.analytics.schema.column import \
     Column
-from exasol_data_science_utils_python.schema.column_name \
+from exasol.analytics.schema.column_name \
     import ColumnName
-from exasol_data_science_utils_python.schema.column_type \
+from exasol.analytics.schema.column_type \
     import ColumnType
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
+from exasol.analytics.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQuery, \
+from exasol.analytics.query_handler.query.select_query import SelectQuery, \
     SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_handler.query_handler \
+from exasol.analytics.query_handler.query_handler \
     import ResultType
-from exasol_advanced_analytics_framework.query_handler.result \
+from exasol.analytics.query_handler.result \
     import Finish, Continue
-from exasol_advanced_analytics_framework.query_result.query_result \
+from exasol.analytics.query_result.query_result \
     import QueryResult
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler_factory import UDFQueryHandlerFactory
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 
 TEST_INPUT = "<<TEST_INPUT>>"
 FINAL_RESULT = '<<FINAL_RESULT>>'

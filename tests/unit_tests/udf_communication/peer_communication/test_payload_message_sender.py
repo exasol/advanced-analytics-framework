@@ -4,16 +4,16 @@ from unittest.mock import create_autospec, MagicMock, call
 
 import pytest
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_message_sender import \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.payload_message_sender import \
     PayloadMessageSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket, Frame
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.peer_communicator.timer import Timer
+from exasol.analytics.udf.communication.serialization import serialize_message
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket, Frame
 from tests.mock_cast import mock_cast
 
 

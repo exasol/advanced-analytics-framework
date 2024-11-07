@@ -2,26 +2,26 @@ import dataclasses
 from typing import Union, List
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.close_connection_sender import \
     CloseConnectionSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_closer_builder import ConnectionCloserBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_closer_factory import ConnectionCloserFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_closer_timeout_config import ConnectionCloserTimeoutConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_is_closed_sender import ConnectionIsClosedSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from exasol.analytics.udf.communication.peer_communicator.clock import Clock
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.peer_communicator.timer import TimerFactory
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket
 from tests.mock_cast import mock_cast
 
 

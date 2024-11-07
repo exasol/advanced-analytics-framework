@@ -4,25 +4,39 @@ from typing import List, Union
 from inspect import cleandoc
 
 import pytest
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
-from exasol_data_science_utils_python.udf_utils.testing.mock_result_set import MockResultSet
-from exasol_data_science_utils_python.udf_utils.testing.mock_sql_executor import MockSQLExecutor
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnName,
+)
+from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
+from exasol.analytics.sql_executor.testing.mock_sql_executor import MockSQLExecutor, ExpectedQuery
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
+from exasol.analytics.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
+from exasol.analytics.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition, \
+from exasol.analytics.query_handler.query.select_query import SelectQueryWithColumnDefinition, \
     SelectQuery
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.query_handler.python_query_handler_runner import PythonQueryHandlerRunner
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_result.query_result import QueryResult
+from exasol.analytics.query_handler.python_query_handler_runner import PythonQueryHandlerRunner
 
 EXPECTED_EXCEPTION = "ExpectedException"
 
+
+def expect_query(template: str, result_set = MockResultSet()):
+    return [template, result_set]
+
+
+def create_sql_executor(schema: str, *args):
+    return MockSQLExecutor([
+        ExpectedQuery(
+            cleandoc(template.format(schema=schema)),
+            result_set or MockResultSet()
+        ) for template, result_set in args
+    ])
 
 @pytest.fixture()
 def temporary_schema_name():
@@ -69,7 +83,7 @@ def test_start_finish(top_level_query_handler_context):
     This tests runs a query handler which returns a Finish result from the start method.
     We expect no queries to be executed and result of the Finish object returned.
     """
-    sql_executor = MockSQLExecutor(result_sets=[])
+    sql_executor = MockSQLExecutor()
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -94,14 +108,14 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
         pass
 
-
 def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
     """
     This tests runs a query handler which registers a temporary table in the start method
     and then directly returns a Finish result. We expect a cleanup query for the temporary
     table to be executed and result of the Finish object returned.
     """
-    sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
+    expected = f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";""";
+    sql_executor = MockSQLExecutor([ExpectedQuery(expected)])
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -110,8 +124,7 @@ def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_han
         query_handler_factory=StartFinishCleanupQueriesTestQueryHandler
     )
     test_output = query_handler_runner.run()
-    assert test_output.test_input == test_input and \
-           sql_executor.queries == [f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";"""]
+    assert test_output.test_input == test_input
 
 
 class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -133,7 +146,12 @@ def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_hand
     and then directly raise an exception. We expect a cleanup query for the temporary
     table to be executed and the exception to be forwarded.
     """
-    sql_executor = MockSQLExecutor(result_sets=[MockResultSet()])
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            'DROP TABLE IF EXISTS "{schema}"."temp_db_object_1";'
+        ))
+
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -143,8 +161,7 @@ def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_hand
     )
     with pytest.raises(Exception, match="Execution of query handler .* failed.") as ex:
         test_output = query_handler_runner.run()
-    assert sql_executor.queries == [f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";"""] and \
-           ex.value.__cause__.args[0] == "Start failed"
+    assert ex.value.__cause__.args[0] == "Start failed"
 
 
 class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -174,19 +191,30 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
     handle_query_result can access the columns in the resultset which where defined
     in the input_query.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)],
-                                           columns=[Column(ColumnName("a"),
-                                                           ColumnType(name="DECIMAL",
-                                                                      precision=1,
-                                                                      scale=0))])
-    drop_input_query_view_result_set = MockResultSet()
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set,
-            drop_input_query_view_result_set
-        ])
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            SELECT 1 as "a";
+            """
+        ),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_2_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+        ),
+    )
+
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -195,22 +223,7 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
         query_handler_factory=ContinueFinishTestQueryHandler
     )
     test_output = query_handler_runner.run()
-    assert test_output.test_input == test_input and \
-        sql_executor.queries == [
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
-                SELECT 1 as "a";
-                """
-            ),
-            cleandoc(
-                f"""
-                SELECT
-                    "a"
-                FROM "{temporary_schema_name}"."temp_db_object_2_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-        ]
+    assert test_output.test_input == test_input
 
 
 class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -233,18 +246,30 @@ def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_c
     between the input query and its column definition. We expect the query handler runner to raise
     an Exception.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
-                                                                        ColumnType(name="DECIMAL",
-                                                                                   precision=1,
-                                                                                   scale=0))])
-    drop_input_query_view_result_set = MockResultSet()
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set,
-            drop_input_query_view_result_set
-        ])
+
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            SELECT 1 as "b";
+            """
+        ),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_2_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("b"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+        ),
+    )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -282,25 +307,35 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
     which contains a query list. We expect to be handle_query_result to be called and
     the queries in the query list to be executed.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)],
-                                           columns=[Column(ColumnName("a"),
-                                                           ColumnType(name="DECIMAL",
-                                                                      precision=1,
-                                                                      scale=0))])
-    drop_input_query_view_result_set = MockResultSet()
-    query_list_result_set = MockResultSet(rows=[(1,)],
-                                          columns=[Column(ColumnName("a"),
-                                                          ColumnType(name="DECIMAL",
-                                                                     precision=1,
-                                                                     scale=0))])
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set,
-            query_list_result_set,
-            drop_input_query_view_result_set
-        ])
+
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query("SELECT 1"),
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            SELECT 1 as "a";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_2_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+        ),
+    )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -309,22 +344,7 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
         query_handler_factory=ContinueQueryListTestQueryHandler
     )
     test_output = query_handler_runner.run()
-    assert test_output.test_input == test_input and \
-        sql_executor.queries == [
-            f"""SELECT 1""",
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
-                SELECT 1 as "a";
-                """),
-            cleandoc(
-                f"""
-                SELECT
-                    "a"
-                FROM "{temporary_schema_name}"."temp_db_object_2_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-        ]
+    assert test_output.test_input == test_input
 
 
 class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -352,20 +372,28 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
     and then directly raise an exception. We expect a cleanup query for the temporary
     table to be executed and the exception to be forwarded.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                        ColumnType(name="DECIMAL",
-                                                                                   precision=1,
-                                                                                   scale=0))])
-    drop_table_result_set = MockResultSet()
-    drop_input_query_view_result_set = MockResultSet()
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set,
-            drop_table_result_set,
-            drop_input_query_view_result_set
-        ])
+
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            SELECT 1 as "a";
+            """),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_2_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query('DROP TABLE IF EXISTS "{schema}"."temp_db_object_3";'),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'),
+    )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -375,21 +403,6 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
     )
     with pytest.raises(Exception, match="Execution of query handler .* failed."):
         test_output = query_handler_runner.run()
-    assert sql_executor.queries == [
-        cleandoc(
-            f"""
-            CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
-            SELECT 1 as "a";
-            """),
-        cleandoc(
-            f"""
-            SELECT
-                "a"
-            FROM "{temporary_schema_name}"."temp_db_object_2_1";
-            """),
-        f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_3";""",
-        f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-    ]
 
 
 class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -430,28 +443,47 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
     and the second time it returns Finish. We expect two input queries to be executed; one per Continue and
     in the end the result should be returned.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set1 = MockResultSet(rows=[(1,)],
-                                            columns=[Column(ColumnName("a"),
-                                                            ColumnType(name="DECIMAL",
-                                                                       precision=1,
-                                                                       scale=0))])
-    input_query_result_set2 = MockResultSet(rows=[(1,)],
-                                            columns=[Column(ColumnName("b"),
-                                                            ColumnType(name="DECIMAL",
-                                                                       precision=1,
-                                                                       scale=0))])
-    drop_input_query_view_result_set = MockResultSet()
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set1,
-            drop_input_query_view_result_set,
-            input_query_create_view_result_set,
-            input_query_result_set2,
-            drop_input_query_view_result_set,
-        ])
-    temporary_schema_name = "temp_schema_name"
+
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            SELECT 1 as "a";
+            """),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_2_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+        ),
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_4_1" AS
+            SELECT 1 as "b";
+            """),
+        expect_query(
+            """
+            SELECT
+                "b"
+            FROM "{schema}"."temp_db_object_4_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("b"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_4_1";'),
+    )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -460,33 +492,7 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
         query_handler_factory=ContinueContinueFinishTestQueryHandler
     )
     test_output = query_handler_runner.run()
-    assert test_output.test_input == test_input and \
-        sql_executor.queries == [
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_2_1" AS
-                SELECT 1 as "a";
-                """),
-            cleandoc(
-                f"""
-                SELECT
-                    "a"
-                FROM "{temporary_schema_name}"."temp_db_object_2_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS
-                SELECT 1 as "b";
-                """),
-            cleandoc(
-                f"""
-                SELECT
-                    "b"
-                FROM "{temporary_schema_name}"."temp_db_object_4_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
-        ]
+    assert test_output.test_input == test_input
 
 
 class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
@@ -529,28 +535,51 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
     handle_query_result gets called again, which then returns a Finish result.
     We expect that the cleanup of the temporary happens between the first and second call to handle_query_result.
     """
-    input_query_create_view_result_set = MockResultSet()
-    input_query_result_set1 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("a"),
-                                                                         ColumnType(name="DECIMAL",
-                                                                                    precision=1,
-                                                                                    scale=0))])
-    input_query_result_set2 = MockResultSet(rows=[(1,)], columns=[Column(ColumnName("b"),
-                                                                         ColumnType(name="DECIMAL",
-                                                                                    precision=1,
-                                                                                    scale=0))])
-    drop_input_query_view_result_set = MockResultSet()
-    drop_table_result_set = MockResultSet()
-    sql_executor = MockSQLExecutor(
-        result_sets=[
-            input_query_create_view_result_set,
-            input_query_result_set1,
-            drop_input_query_view_result_set,
-            drop_table_result_set,
-            input_query_create_view_result_set,
-            input_query_result_set2,
-            drop_input_query_view_result_set,
-        ])
-    temporary_schema_name = "temp_schema_name"
+
+    sql_executor = create_sql_executor(
+        temporary_schema_name,
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_4_1" AS
+            SELECT 1 as "a";
+            """),
+        expect_query(
+            """
+            SELECT
+                "a"
+            FROM "{schema}"."temp_db_object_4_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("a"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_4_1";'
+        ),
+        expect_query(
+            'DROP TABLE IF EXISTS "{schema}"."temp_db_object_2_1";'
+        ),
+        expect_query(
+            """
+            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_6_1" AS
+            SELECT 1 as "b";
+            """),
+        expect_query(
+            """
+            SELECT
+                "b"
+            FROM "{schema}"."temp_db_object_6_1";
+            """,
+            MockResultSet(
+                rows=[(1,)],
+                columns=[Column(ColumnName("b"), ColumnType(
+                    name="DECIMAL", precision=1, scale=0))])
+        ),
+        expect_query(
+            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_6_1";'
+        ),
+    )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -559,34 +588,7 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
         query_handler_factory=ContinueContinueCleanupFinishTestQueryHandler
     )
     test_output = query_handler_runner.run()
-    assert test_output.test_input == test_input and \
-        sql_executor.queries == [
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_4_1" AS
-                SELECT 1 as "a";
-                """),
-            cleandoc(
-                f"""
-                SELECT
-                    "a"
-                FROM "{temporary_schema_name}"."temp_db_object_4_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_4_1";""",
-            f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_2_1";""",
-            cleandoc(
-                f"""
-                CREATE OR REPLACE VIEW "{temporary_schema_name}"."temp_db_object_6_1" AS
-                SELECT 1 as "b";
-                """),
-            cleandoc(
-                f"""
-                SELECT
-                    "b"
-                FROM "{temporary_schema_name}"."temp_db_object_6_1";
-                """),
-            f"""DROP VIEW IF EXISTS "{temporary_schema_name}"."temp_db_object_6_1";""",
-        ]
+    assert test_output.test_input == test_input
 
 
 class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):

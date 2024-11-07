@@ -1,6 +1,6 @@
 from io import StringIO
 
-from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
+from exasol.analytics.deployment.aaf_exasol_lua_script_generator import \
     get_aaf_query_loop_lua_script_generator
 
 

@@ -1,9 +1,11 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
-from exasol_data_science_utils_python.schema.column_type import ColumnType
-from exasol_data_science_utils_python.udf_utils.testing.mock_result_set import MockResultSet
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnNameBuilder,
+)
+from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 
 
 def test_fetchall_rows_none_():

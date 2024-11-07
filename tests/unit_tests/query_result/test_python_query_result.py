@@ -1,8 +1,11 @@
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
 
-from exasol_advanced_analytics_framework.query_result.python_query_result import PythonQueryResult
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnName,
+)
+
+from exasol.analytics.query_result.python_query_result import PythonQueryResult
 
 DATA_SIZE = 100
 FETCH_SIZE = 10

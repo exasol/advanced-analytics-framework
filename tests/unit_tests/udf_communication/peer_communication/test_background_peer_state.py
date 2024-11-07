@@ -6,21 +6,21 @@ import pytest
 
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.background_peer_state import \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.background_peer_state import \
     BackgroundPeerState
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator. \
+from exasol.analytics.udf.communication.peer_communicator. \
     background_thread.connection_closer.connection_closer import ConnectionCloser
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher import \
+from exasol.analytics.udf.communication.peer_communicator.connection_establisher import \
     ConnectionEstablisher
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.payload_handler import PayloadHandler
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder import \
+from exasol.analytics.udf.communication.peer_communicator.payload_handler import PayloadHandler
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder import \
     RegisterPeerForwarder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Frame
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.socket_factory.abstract import Frame
 from tests.mock_cast import mock_cast
 
 

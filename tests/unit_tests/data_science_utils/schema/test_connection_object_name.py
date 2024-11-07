@@ -1,4 +1,5 @@
-from exasol_data_science_utils_python.schema.connection_object_name_impl import ConnectionObjectNameImpl
+from exasol.analytics.schema import ConnectionObjectNameImpl
+
 
 CONNECTION_UPPER = "CONNECTION"
 

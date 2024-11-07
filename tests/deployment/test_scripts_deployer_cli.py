@@ -1,7 +1,7 @@
 from click.testing import CliRunner
-from exasol_advanced_analytics_framework import deploy
+from exasol.analytics import deploy
 from tests.utils.db_queries import DBQueries
-from exasol_advanced_analytics_framework.slc import LANGUAGE_ALIAS
+from exasol.analytics.slc import LANGUAGE_ALIAS
 
 
 def test_scripts_deployer_cli(upload_language_container,

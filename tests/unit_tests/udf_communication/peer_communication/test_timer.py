@@ -1,8 +1,8 @@
 from typing import Union
 from unittest.mock import create_autospec, MagicMock, call
 
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
+from exasol.analytics.udf.communication.peer_communicator.clock import Clock
+from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from tests.mock_cast import mock_cast
 
 

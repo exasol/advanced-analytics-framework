@@ -12,8 +12,8 @@ fi
 
 readonly exit_ok=0
 readonly exit_software=2
-readonly src_module_path="$base_dir/exasol_advanced_analytics_framework/lua/src"
-readonly test_module_path="$base_dir/exasol_advanced_analytics_framework/lua/test"
+readonly src_module_path="$base_dir/exasol/analytics/lua/src"
+readonly test_module_path="$base_dir/exasol/analytics/lua/test"
 readonly target_dir="$base_dir/target"
 readonly reports_dir="$target_dir/luaunit-reports"
 readonly luacov_dir="$target_dir/luacov-reports"

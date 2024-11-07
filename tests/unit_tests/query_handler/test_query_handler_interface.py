@@ -2,18 +2,20 @@ from typing import Union, Dict, Any
 from unittest.mock import MagicMock
 
 import pytest
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnName,
+)
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
+from exasol.analytics.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Continue, \
+from exasol.analytics.query_handler.query.select_query import SelectQueryWithColumnDefinition
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Continue, \
     Finish
-from exasol_advanced_analytics_framework.query_result.python_query_result import PythonQueryResult
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
+from exasol.analytics.query_result.python_query_result import PythonQueryResult
+from exasol.analytics.query_result.query_result import QueryResult
 
 
 class TestQueryHandler(QueryHandler[Dict[str, Any], int]):

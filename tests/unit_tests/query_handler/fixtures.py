@@ -1,9 +1,9 @@
 import pytest
 import exasol.bucketfs as bfs
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
+from exasol.analytics.query_handler.context.scope_query_handler_context import \
     ScopeQueryHandlerContext, Connection
-from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
+from exasol.analytics.query_handler.context.top_level_query_handler_context import \
     TopLevelQueryHandlerContext, ConnectionLookup
 
 PREFIX = "PREFIX"

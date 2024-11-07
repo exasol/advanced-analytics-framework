@@ -4,8 +4,8 @@ import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory
 from pydantic.fields import ModelField
 
-from exasol_advanced_analytics_framework.udf_communication.messages import *
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message, deserialize_message
+from exasol.analytics.udf.communication.messages import *
+from exasol.analytics.udf.communication.serialization import serialize_message, deserialize_message
 
 base_message_subclasses = BaseMessage.__subclasses__()
 
