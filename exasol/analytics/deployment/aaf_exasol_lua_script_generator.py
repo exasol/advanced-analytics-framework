@@ -8,7 +8,7 @@ from exasol.analytics.deployment.lua_script_bundle import LuaScriptBundle, logge
 
 def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
     base_dir = importlib_resources.files(
-        constants.BASE_DIR)
+        constants.BASE_PACKAGE)
     lua_src_dir = base_dir / "lua" / "src"
     lua_source_files = [
         lua_src_dir.joinpath("query_handler_runner_main.lua"),
@@ -25,7 +25,7 @@ def get_aaf_query_loop_lua_script_generator() -> ExasolLuaScriptGenerator:
         "MessageExpander"
     ]
     jinja_template_location = JinjaTemplateLocation(
-        package_name=constants.BASE_DIR,
+        package_name=constants.BASE_PACKAGE,
         package_path=constants.TEMPLATES_DIR,
         template_file_name=constants.LUA_SCRIPT_TEMPLATE)
     generator = ExasolLuaScriptGenerator(
