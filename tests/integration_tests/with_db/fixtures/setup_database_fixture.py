@@ -10,7 +10,7 @@ BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
 
 
 @pytest.fixture(scope="session")
-def db_schema_name() -> str:
+def itest_db_schema() -> str:
     """
     Overrides default fixture from pytest-exasol-extension.
     """
@@ -18,11 +18,11 @@ def db_schema_name() -> str:
 
 
 @pytest.fixture(scope="module")
-def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> None:
+def deployed_scripts(pyexasol_connection, itest_db_schema, language_alias) -> None:
     save_aaf_query_loop_lua_script()
     ScriptsDeployer(
         language_alias,
-        db_schema_name,
+        itest_db_schema,
         pyexasol_connection,
     ).deploy_scripts()
 
@@ -30,9 +30,9 @@ def deployed_scripts(pyexasol_connection, db_schema_name, language_alias) -> Non
 @pytest.fixture(scope="module")
 def database_with_slc(
         deployed_scripts,
-        db_schema_name,
+        itest_db_schema,
         bucketfs_connection_factory,
         deployed_slc,
 ) -> Tuple[str, str]:
     bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
-    return BUCKETFS_CONNECTION_NAME, db_schema_name
+    return BUCKETFS_CONNECTION_NAME, itest_db_schema

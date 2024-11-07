@@ -40,7 +40,7 @@ class ExampleQueryHandler(UDFQueryHandler):
             return f"{timestamp} {key} {self.parameter}"
 
         def table_query_string(statement: str, **kwargs):
-            table_name = self.db_table_proxy._db_object_name.fully_qualified
+            table_name = self.db_table_proxy.fully_qualified
             return statement.format(table_name=table_name, **kwargs)
 
         def table_query(statement: str, **kwargs):

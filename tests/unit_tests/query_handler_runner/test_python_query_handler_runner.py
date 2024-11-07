@@ -39,21 +39,13 @@ def create_sql_executor(schema: str, *args):
     ])
 
 @pytest.fixture()
-def temporary_schema_name():
-    return "temp_schema_name"
+def prefix(tmp_db_obj_prefix):
+    return tmp_db_obj_prefix
 
 
 @pytest.fixture
-def top_level_query_handler_context(mocked_temporary_bucketfs_location,
-                                    temporary_schema_name,
-                                    test_connection_lookup):
-    top_level_query_handler_context = TopLevelQueryHandlerContext(
-        temporary_bucketfs_location=mocked_temporary_bucketfs_location,
-        temporary_db_object_name_prefix="temp_db_object",
-        connection_lookup=test_connection_lookup,
-        temporary_schema_name=temporary_schema_name,
-    )
-    return top_level_query_handler_context
+def context_mock(top_level_query_handler_context_mock) -> TopLevelQueryHandlerContext:
+    return top_level_query_handler_context_mock
 
 
 class TestInput:
@@ -78,7 +70,7 @@ class StartFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         pass
 
 
-def test_start_finish(top_level_query_handler_context):
+def test_start_finish(context_mock):
     """
     This tests runs a query handler which returns a Finish result from the start method.
     We expect no queries to be executed and result of the Finish object returned.
@@ -87,7 +79,7 @@ def test_start_finish(top_level_query_handler_context):
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=StartFinishTestQueryHandler
     )
@@ -108,7 +100,8 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
     def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
         pass
 
-def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+
+def test_start_finish_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which registers a temporary table in the start method
     and then directly returns a Finish result. We expect a cleanup query for the temporary
@@ -119,7 +112,7 @@ def test_start_finish_cleanup_queries(temporary_schema_name, top_level_query_han
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=StartFinishCleanupQueriesTestQueryHandler
     )
@@ -140,7 +133,7 @@ class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutpu
         pass
 
 
-def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+def test_start_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which registers a temporary table in the start method
     and then directly raise an exception. We expect a cleanup query for the temporary
@@ -155,7 +148,7 @@ def test_start_error_cleanup_queries(temporary_schema_name, top_level_query_hand
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=StartErrorCleanupQueriesTestQueryHandler
     )
@@ -184,7 +177,7 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         return Finish[TestOutput](TestOutput(self._parameter))
 
 
-def test_continue_finish(temporary_schema_name, top_level_query_handler_context):
+def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which returns Continue result from the start method
     and expect handle_query_result to be called. Further, it expects that
@@ -218,7 +211,7 @@ def test_continue_finish(temporary_schema_name, top_level_query_handler_context)
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueFinishTestQueryHandler
     )
@@ -240,7 +233,7 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         raise AssertionError("handle_query_result shouldn't be called")
 
 
-def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_context):
+def test_continue_wrong_columns(aaf_pytest_db_schema, context_mock):
     """
     This tests runs a query handler which returns Continue result with mismatching column definition
     between the input query and its column definition. We expect the query handler runner to raise
@@ -273,7 +266,7 @@ def test_continue_wrong_columns(temporary_schema_name, top_level_query_handler_c
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueWrongColumnsTestQueryHandler
     )
@@ -301,7 +294,7 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         return Finish[TestOutput](TestOutput(self._parameter))
 
 
-def test_continue_query_list(temporary_schema_name, top_level_query_handler_context):
+def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which returns Continue result from the start method
     which contains a query list. We expect to be handle_query_result to be called and
@@ -339,7 +332,7 @@ def test_continue_query_list(temporary_schema_name, top_level_query_handler_cont
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueQueryListTestQueryHandler
     )
@@ -366,7 +359,7 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
         raise Exception("Start failed")
 
 
-def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_handler_context):
+def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which registers a temporary table in the handle_query_result method
     and then directly raise an exception. We expect a cleanup query for the temporary
@@ -397,7 +390,7 @@ def test_continue_error_cleanup_queries(temporary_schema_name, top_level_query_h
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueErrorCleanupQueriesTestQueryHandler
     )
@@ -437,7 +430,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
             return Finish[TestOutput](TestOutput(self._parameter))
 
 
-def test_continue_continue_finish(temporary_schema_name, top_level_query_handler_context):
+def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which returns Continue from the first call to handle_query_result method
     and the second time it returns Finish. We expect two input queries to be executed; one per Continue and
@@ -487,7 +480,7 @@ def test_continue_continue_finish(temporary_schema_name, top_level_query_handler
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueContinueFinishTestQueryHandler
     )
@@ -527,7 +520,7 @@ class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, Test
             return Finish[TestOutput](TestOutput(self._parameter))
 
 
-def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query_handler_context):
+def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which creates the temporary table of a child query context manager.
     Then it returns a Continue result, such that handle_query_result will be called. During the call to
@@ -583,7 +576,7 @@ def test_continue_cleanup_continue_finish(temporary_schema_name, top_level_query
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=ContinueContinueCleanupFinishTestQueryHandler
     )
@@ -605,13 +598,12 @@ class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
         pass
 
 
-def test_fail_in_cleanup(temporary_schema_name, top_level_query_handler_context):
+def test_fail_in_cleanup(aaf_pytest_db_schema, context_mock):
     sql_executor = MockSQLExecutor()
-    temporary_schema_name = "temp_schema_name"
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
-        top_level_query_handler_context=top_level_query_handler_context,
+        top_level_query_handler_context=context_mock,
         parameter=test_input,
         query_handler_factory=FailInCleanupAfterException
     )
