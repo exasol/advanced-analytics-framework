@@ -30,13 +30,23 @@ def expect_query(template: str, result_set = MockResultSet()):
     return [template, result_set]
 
 
-def create_sql_executor(schema: str, *args):
+def create_sql_executor_1(schema: str, *args):
     return MockSQLExecutor([
         ExpectedQuery(
             cleandoc(template.format(schema=schema)),
             result_set or MockResultSet()
         ) for template, result_set in args
     ])
+
+
+def create_sql_executor(schema: str, prefix: str, *args):
+    return MockSQLExecutor([
+        ExpectedQuery(
+            cleandoc(template.format(schema=schema, prefix=prefix)),
+            result_set or MockResultSet()
+        ) for template, result_set in args
+    ])
+
 
 @pytest.fixture()
 def prefix(tmp_db_obj_prefix):
@@ -107,8 +117,13 @@ def test_start_finish_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock
     and then directly returns a Finish result. We expect a cleanup query for the temporary
     table to be executed and result of the Finish object returned.
     """
-    expected = f"""DROP TABLE IF EXISTS "{temporary_schema_name}"."temp_db_object_1";""";
-    sql_executor = MockSQLExecutor([ExpectedQuery(expected)])
+    sql_executor = create_sql_executor(
+        aaf_pytest_db_schema,
+        prefix,
+        expect_query(
+            'DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'
+        ))
+
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
@@ -140,9 +155,10 @@ def test_start_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock)
     table to be executed and the exception to be forwarded.
     """
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
-            'DROP TABLE IF EXISTS "{schema}"."temp_db_object_1";'
+            'DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'
         ))
 
     test_input = TestInput()
@@ -185,10 +201,11 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     in the input_query.
     """
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
             """
         ),
@@ -196,7 +213,7 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_2_1";
+            FROM "{schema}"."{prefix}_2_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -204,7 +221,7 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
         ),
     )
 
@@ -233,7 +250,7 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         raise AssertionError("handle_query_result shouldn't be called")
 
 
-def test_continue_wrong_columns(aaf_pytest_db_schema, context_mock):
+def test_continue_wrong_columns(aaf_pytest_db_schema, prefix, context_mock):
     """
     This tests runs a query handler which returns Continue result with mismatching column definition
     between the input query and its column definition. We expect the query handler runner to raise
@@ -241,10 +258,11 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, context_mock):
     """
 
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "b";
             """
         ),
@@ -252,7 +270,7 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, context_mock):
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_2_1";
+            FROM "{schema}"."{prefix}_2_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -260,7 +278,7 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, context_mock):
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
         ),
     )
     test_input = TestInput()
@@ -302,11 +320,12 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
     """
 
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query("SELECT 1"),
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
             """,
             MockResultSet(
@@ -318,7 +337,7 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_2_1";
+            FROM "{schema}"."{prefix}_2_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -326,7 +345,7 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
         ),
     )
     test_input = TestInput()
@@ -367,25 +386,26 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
     """
 
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
             """),
         expect_query(
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_2_1";
+            FROM "{schema}"."{prefix}_2_1";
             """,
             MockResultSet(
                 rows=[(1,)],
                 columns=[Column(ColumnName("a"), ColumnType(
                     name="DECIMAL", precision=1, scale=0))])
         ),
-        expect_query('DROP TABLE IF EXISTS "{schema}"."temp_db_object_3";'),
-        expect_query('DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'),
+        expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_3";'),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
@@ -438,17 +458,18 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     """
 
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_2_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
             """),
         expect_query(
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_2_1";
+            FROM "{schema}"."{prefix}_2_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -456,18 +477,18 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_2_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
         ),
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_4_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "b";
             """),
         expect_query(
             """
             SELECT
                 "b"
-            FROM "{schema}"."temp_db_object_4_1";
+            FROM "{schema}"."{prefix}_4_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -475,7 +496,7 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_4_1";'),
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
@@ -530,17 +551,18 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
     """
 
     sql_executor = create_sql_executor(
-        temporary_schema_name,
+        aaf_pytest_db_schema,
+        prefix,
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_4_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "a";
             """),
         expect_query(
             """
             SELECT
                 "a"
-            FROM "{schema}"."temp_db_object_4_1";
+            FROM "{schema}"."{prefix}_4_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -548,21 +570,21 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_4_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'
         ),
         expect_query(
-            'DROP TABLE IF EXISTS "{schema}"."temp_db_object_2_1";'
+            'DROP TABLE IF EXISTS "{schema}"."{prefix}_2_1";'
         ),
         expect_query(
             """
-            CREATE OR REPLACE VIEW "{schema}"."temp_db_object_6_1" AS
+            CREATE OR REPLACE VIEW "{schema}"."{prefix}_6_1" AS
             SELECT 1 as "b";
             """),
         expect_query(
             """
             SELECT
                 "b"
-            FROM "{schema}"."temp_db_object_6_1";
+            FROM "{schema}"."{prefix}_6_1";
             """,
             MockResultSet(
                 rows=[(1,)],
@@ -570,7 +592,7 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
                     name="DECIMAL", precision=1, scale=0))])
         ),
         expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."temp_db_object_6_1";'
+            'DROP VIEW IF EXISTS "{schema}"."{prefix}_6_1";'
         ),
     )
     test_input = TestInput()
