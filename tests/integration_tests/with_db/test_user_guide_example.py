@@ -23,7 +23,7 @@ def test_user_guide_example(database_with_slc, pyexasol_connection, example_db_s
     """
     bucketfs_connection_name, schema_name = database_with_slc
     dir = importlib.resources.files(constants.BASE_PACKAGE) \
-        / ".." / "doc" / "user_guide" / "example-udf-script"
+        / ".." / ".." / "doc" / "user_guide" / "example-udf-script"
 
     statement = (
         (dir / "create.sql")
