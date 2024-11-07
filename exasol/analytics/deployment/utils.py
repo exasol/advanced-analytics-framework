@@ -25,7 +25,7 @@ def get_password(pwd: str, user: str, env_var: str, descr: str) -> str:
 def load_and_render_statement(template_name, **kwargs) -> str:
     env = Environment(
         loader=PackageLoader(
-            constants.BASE_DIR, constants.TEMPLATES_DIR),
+            constants.BASE_PACKAGE, constants.TEMPLATES_DIR),
         autoescape=select_autoescape()
     )
     template = env.get_template(template_name)
