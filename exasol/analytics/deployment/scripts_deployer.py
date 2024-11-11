@@ -2,7 +2,10 @@ import logging
 
 import pyexasol
 
-from exasol.analytics.deployment import constants, utils
+from exasol.analytics.deployment import (
+    constants,
+    utils,
+)
 from exasol.analytics.deployment.aaf_exasol_lua_script_generator import \
     save_aaf_query_loop_lua_script
 
