@@ -19,8 +19,8 @@ from exasol.analytics.query.handler.context.connection_name import ConnectionNam
 from exasol.analytics.query.handler.context.proxy.bucketfs_location_proxy import     BucketFSLocationProxy
 from exasol.analytics.query.handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
 from exasol.analytics.query.handler.context.proxy.object_proxy import ObjectProxy
-from exasol.analytics.query.handler.context.proxy.table_name_proxy import TableNameProxy
-from exasol.analytics.query.handler.context.proxy.udf_name_proxy import UDFNameProxy
+from exasol.analytics.query.handler.context.proxy.table_name import TableNameProxy
+from exasol.analytics.query.handler.context.proxy.udf_name import UDFNameProxy
 from exasol.analytics.query.handler.context.proxy.view_name_proxy import ViewNameProxy
 from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext, Connection
 from exasol.analytics.query.handler.query.interface import Query
