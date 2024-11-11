@@ -6,7 +6,7 @@ BASE_PACKAGE = "exasol.analytics"
 BASE_DIR = BASE_PACKAGE.replace(".", "/")
 TEMPLATES_DIR = pathlib.Path("resources", "templates")
 OUTPUTS_DIR = pathlib.Path("resources", "outputs")
-SOURCE_DIR = files(f"{BASE_PACKAGE}.query_handler.udf.runner")
+SOURCE_DIR = files(f"{BASE_PACKAGE}.query.handler.udf.runner")
 
 UDF_CALL_TEMPLATES = {
     "call_udf.py": "create_query_handler.jinja.sql"

@@ -5,7 +5,7 @@ from exasol.analytics.schema import (
     ColumnName,
 )
 
-from exasol.analytics.query_result.python_query_result import PythonQueryResult
+from exasol.analytics.query.result.python_query_result import PythonQueryResult
 
 DATA_SIZE = 100
 FETCH_SIZE = 10

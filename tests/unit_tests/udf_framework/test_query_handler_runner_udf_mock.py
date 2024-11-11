@@ -11,7 +11,7 @@ from exasol_udf_mock_python.mock_exa_environment import MockExaEnvironment
 from exasol_udf_mock_python.mock_meta_data import MockMetaData
 from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
-from exasol.analytics.query_handler.udf.runner.udf import (
+from exasol.analytics.query.handler.udf.runner.udf import (
     QueryHandlerStatus,
     create_bucketfs_location_from_conn_object,
 )
@@ -68,7 +68,7 @@ def mocked_exa_env(query_handler_bfs_connection, udf_script_name):
 
 def _udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
-    from exasol.analytics.query_handler.udf.runner.udf import QueryHandlerRunnerUDF
+    from exasol.analytics.query.handler.udf.runner.udf import QueryHandlerRunnerUDF
 
     udf = QueryHandlerRunnerUDF(exa)
 

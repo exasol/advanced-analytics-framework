@@ -7,18 +7,13 @@ from exasol.analytics.schema.column_name \
 from exasol.analytics.schema.column_type \
     import ColumnType
 
-from exasol.analytics.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol.analytics.query_handler.query.select_query import SelectQuery, \
-    SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.query_handler \
-    import ResultType
-from exasol.analytics.query_handler.result \
-    import Finish, Continue
-from exasol.analytics.query_result.query_result \
-    import QueryResult
-from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
-from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
+from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query.handler.query.select import SelectQuery,     SelectQueryWithColumnDefinition
+from exasol.analytics.query.handler.query_handler     import ResultType
+from exasol.analytics.query.handler.result     import Finish, Continue
+from exasol.analytics.query.result.query_result     import QueryResult
+from exasol.analytics.query.handler.udf.interface import UDFQueryHandler
+from exasol.analytics.query.handler.udf.interface import UDFQueryHandlerFactory
 
 TEST_INPUT = "<<TEST_INPUT>>"
 FINAL_RESULT = '<<FINAL_RESULT>>'

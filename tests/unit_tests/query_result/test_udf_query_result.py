@@ -17,7 +17,7 @@ INPUT_COLUMNS = [
 def test_fetch_as_dataframe_column_names():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -45,7 +45,7 @@ def test_fetch_as_dataframe_column_names():
 def test_fetch_as_dataframe_first_batch():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -76,7 +76,7 @@ def test_fetch_as_dataframe_first_batch():
 def test_fetch_as_dataframe_second_batch():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -108,7 +108,7 @@ def test_fetch_as_dataframe_second_batch():
 def test_fetch_as_dataframe_after_last_batch():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -142,7 +142,7 @@ def test_fetch_as_dataframe_after_last_batch():
 def test_fetch_as_dataframe_all_rows():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -173,7 +173,7 @@ def test_fetch_as_dataframe_all_rows():
 def test_fetch_as_dataframe_start_col():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -203,7 +203,7 @@ def test_fetch_as_dataframe_start_col():
 def test_rowcount():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -231,7 +231,7 @@ def test_rowcount():
 def test_column_names():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -260,7 +260,7 @@ def test_column_names():
 def test_columns():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -290,7 +290,7 @@ def test_columns():
 def test_column_get_attr():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -323,7 +323,7 @@ def test_column_get_attr():
 def test_column_get_item():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -356,7 +356,7 @@ def test_column_get_item():
 def test_column_next_get_item():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -392,7 +392,7 @@ def test_column_next_get_item():
 def test_column_next_get_attr():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
@@ -428,7 +428,7 @@ def test_column_next_get_attr():
 def test_column_iterator():
     def udf_wrapper():
         from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_result.udf_query_result \
+        from exasol.analytics.query.result.udf_query_result \
             import UDFQueryResult
         from collections import OrderedDict
 
