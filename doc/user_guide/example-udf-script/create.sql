@@ -6,8 +6,8 @@ from typing import Union
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 from exasol.analytics.utils.dynamic_modules import create_module
 from exasol.analytics.query_handler.context.query_handler_context import QueryHandlerContext
-from exasol.analytics.query_handler.result.interface import QueryResult
-from exasol.analytics.query_handler.result.impl import Result, Continue, Finish
+from exasol.analytics.query_handler.query.result.interface import QueryResult
+from exasol.analytics.query_handler.result import Result, Continue, Finish
 from exasol.analytics.query_handler.query.select import SelectQuery, SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import     BucketFSLocationProxy
 from exasol.analytics.schema import (

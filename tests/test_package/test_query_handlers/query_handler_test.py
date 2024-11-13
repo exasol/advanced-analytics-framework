@@ -10,8 +10,8 @@ from exasol.analytics.schema.column_type \
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.select import SelectQuery,     SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.query_handler     import ResultType
-from exasol.analytics.query_handler.result.impl     import Finish, Continue
-from exasol.analytics.query_handler.result.interface     import QueryResult
+from exasol.analytics.query_handler.result     import Finish, Continue
+from exasol.analytics.query_handler.query.result.interface     import QueryResult
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 

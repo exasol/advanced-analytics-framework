@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, TypeVar, Generic, Union
 
-from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query_handler.result.impl     import Result, Continue, Finish
+from exasol.analytics.query_handler.result     import Result, Continue, Finish
 
 ResultType = TypeVar("ResultType")
 ParameterType = TypeVar("ParameterType")

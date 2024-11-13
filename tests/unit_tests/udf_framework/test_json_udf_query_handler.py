@@ -12,9 +12,9 @@ from exasol.analytics.schema import (
 
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
 from exasol.analytics.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
-from exasol.analytics.query_handler.result.impl import Continue, Finish
-from exasol.analytics.query_handler.result.python_query_result import PythonQueryResult
-from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.query.result.python_query_result import PythonQueryResult
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandler
 
 

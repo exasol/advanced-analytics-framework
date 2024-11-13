@@ -8,7 +8,7 @@ from exasol.analytics.schema.column_name import \
 from exasol.analytics.schema.column_type import \
     ColumnType
 
-from exasol.analytics.query_handler.result.interface     import QueryResult, Row
+from exasol.analytics.query_handler.query.result.interface     import QueryResult, Row
 
 
 class UDFQueryResult(QueryResult):

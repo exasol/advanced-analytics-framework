@@ -3,8 +3,8 @@ from abc import ABC
 from typing import Type, Union
 
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query_handler.result.impl import Continue, Finish
-from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory

@@ -22,8 +22,8 @@ from exasol.analytics.schema import (
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.result.impl     import Finish, Continue, Result
-from exasol.analytics.query_handler.result.udf_query_result     import UDFQueryResult
+from exasol.analytics.query_handler.result     import Finish, Continue, Result
+from exasol.analytics.query_handler.query.result.udf_query_result     import UDFQueryResult
 from exasol.analytics.query_handler.udf.runner.state     import QueryHandlerRunnerState
 from exasol.analytics.query_handler.udf.connection_lookup import UDFConnectionLookup
 

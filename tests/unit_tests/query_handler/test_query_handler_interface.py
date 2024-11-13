@@ -11,9 +11,9 @@ from exasol.analytics.schema import (
 from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result.impl import Continue,     Finish
-from exasol.analytics.query_handler.result.python_query_result import PythonQueryResult
-from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.result import Continue,     Finish
+from exasol.analytics.query_handler.query.result.python_query_result import PythonQueryResult
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 
 
 class TestQueryHandler(QueryHandler[Dict[str, Any], int]):
