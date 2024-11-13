@@ -7,12 +7,12 @@ from exasol.analytics.schema.column_name import \
 from exasol.analytics.schema.column_type import \
     ColumnType
 
-from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query.handler.query.select import SelectQueryWithColumnDefinition,     SelectQuery
-from exasol.analytics.query.handler.result     import Finish, Continue
-from exasol.analytics.query.result.query_result     import QueryResult
-from exasol.analytics.query.handler.udf.interface import UDFQueryHandler
-from exasol.analytics.query.handler.udf.interface import UDFQueryHandlerFactory
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition,     SelectQuery
+from exasol.analytics.query_handler.result.impl     import Finish, Continue
+from exasol.analytics.query_handler.result.interface     import QueryResult
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 
 TEST_CONNECTION = "TEST_CONNECTION"
 

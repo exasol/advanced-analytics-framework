@@ -1,7 +1,5 @@
-from exasol.analytics.deployment.scripts_deployer import \
-    ScriptsDeployer
-from exasol.analytics.deployment.aaf_exasol_lua_script_generator import \
-    save_aaf_query_loop_lua_script
+from exasol.analytics.query_handler.deployment.scripts_deployer import     ScriptsDeployer
+from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import     save_aaf_query_loop_lua_script
 from tests.utils.db_queries import DBQueries
 
 

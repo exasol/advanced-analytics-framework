@@ -8,12 +8,12 @@ from exasol.analytics.schema import (
     ColumnName,
 )
 
-from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query.handler.query.select import SelectQueryWithColumnDefinition
-from exasol.analytics.query.handler.query_handler import QueryHandler
-from exasol.analytics.query.handler.result import Continue,     Finish
-from exasol.analytics.query.result.python_query_result import PythonQueryResult
-from exasol.analytics.query.result.query_result import QueryResult
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result.impl import Continue,     Finish
+from exasol.analytics.query_handler.result.python_query_result import PythonQueryResult
+from exasol.analytics.query_handler.result.interface import QueryResult
 
 
 class TestQueryHandler(QueryHandler[Dict[str, Any], int]):

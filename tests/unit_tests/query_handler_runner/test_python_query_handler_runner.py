@@ -12,13 +12,13 @@ from exasol.analytics.schema import (
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 from exasol.analytics.sql_executor.testing.mock_sql_executor import MockSQLExecutor, ExpectedQuery
 
-from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query.handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext
-from exasol.analytics.query.handler.query.select import SelectQueryWithColumnDefinition,     SelectQuery
-from exasol.analytics.query.handler.query_handler import QueryHandler
-from exasol.analytics.query.handler.result import Continue, Finish
-from exasol.analytics.query.result.query_result import QueryResult
-from exasol.analytics.query.handler.python_query_handler_runner import PythonQueryHandlerRunner
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext
+from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition,     SelectQuery
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result.impl import Continue, Finish
+from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.python_query_handler_runner import PythonQueryHandlerRunner
 
 EXPECTED_EXCEPTION = "ExpectedException"
 

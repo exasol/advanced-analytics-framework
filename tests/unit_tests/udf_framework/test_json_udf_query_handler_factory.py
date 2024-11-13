@@ -8,13 +8,13 @@ from exasol.analytics.schema import (
     ColumnName,
 )
 
-from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query.handler.json_udf_query_handler import JSONQueryHandler, JSONType
-from exasol.analytics.query.handler.result import Continue, Finish
-from exasol.analytics.query.result.python_query_result import PythonQueryResult
-from exasol.analytics.query.result.query_result import QueryResult
-from exasol.analytics.query.handler.udf.json_impl import JsonUDFQueryHandlerFactory
-from exasol.analytics.query.handler.udf.interface import UDFQueryHandler
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
+from exasol.analytics.query_handler.result.impl import Continue, Finish
+from exasol.analytics.query_handler.result.python_query_result import PythonQueryResult
+from exasol.analytics.query_handler.result.interface import QueryResult
+from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandlerFactory
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 
 
 class TestJSONQueryHandler(JSONQueryHandler):

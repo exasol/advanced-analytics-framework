@@ -3,7 +3,7 @@ import pytest
 import re
 
 from contextlib import ExitStack
-from exasol.analytics.deployment import constants
+from exasol.analytics.query_handler.deployment import constants
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
 

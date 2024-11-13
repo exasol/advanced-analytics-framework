@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from exasol.analytics.slc import custom_slc_builder
+from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
 from datetime import datetime
 
 import nox

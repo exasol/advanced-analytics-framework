@@ -79,7 +79,7 @@ Running the AAF requires an SLC. The following command
 * and registers it to the database.
 
 ```shell
-python -m exasol.analytics.deploy language-container
+python -m exasol.analytics.query_handler.deployment.deploy language-container
 ```
 
 See the documentation in the Exasol Python Extension Common package for [options common to all Exasol extensions](https://github.com/exasol/python-extension-common/blob/0.8.0/doc/user_guide/user-guide).
@@ -91,7 +91,7 @@ Besides the BucketFS connection, the SLC, and the Python package AAF also requir
 The following command deploys the additional scripts to the specified database schema `$AAF_DB_SCHEMA` using the same language alias `$LANGUAGE_ALIAS` as for uploading the SLC before:
 
 ```shell
-python -m exasol.analytics.deploy scripts \
+python -m exasol.analytics.query_handler.deployment.deploy scripts \
     --dsn "$DB_HOST:$DB_PORT" \
     --db-user "$DB_USER" \
     --db-pass "$DB_PASSWORD" \

@@ -12,9 +12,9 @@ from exasol.analytics.schema import (
     Table,
 )
 
-from exasol.analytics.query.handler.context.connection_name import ConnectionName
-from exasol.analytics.query.handler.context.scope import     ScopeQueryHandlerContext, Connection
-from exasol.analytics.query.handler.context.top_level_query_handler_context import     ChildContextNotReleasedError
+from exasol.analytics.query_handler.context.connection_name import ConnectionName
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext, Connection
+from exasol.analytics.query_handler.context.top_level_query_handler_context import     ChildContextNotReleasedError
 
 
 @pytest.fixture

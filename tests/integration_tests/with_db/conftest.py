@@ -1,6 +1,6 @@
 import pytest
 
-from exasol.analytics.slc import (
+from exasol.analytics.query_handler.deployment.slc import (
     custom_slc_builder,
     LANGUAGE_ALIAS,
 )
