@@ -4,6 +4,10 @@ Code name:
 
 ## Summary
 
+## Features
+
+* #212: Moved DataFlow Abstraction from MLLib to AAF
+
 ## Bugfixes
 
 * #206: Fixed download URL of SLC from GitHub releases
