@@ -5,6 +5,7 @@ description = "Framework for building complex data analysis algorithms with Exas
 
 packages = [
   {include = "exasol"},
+  {include = "exasol_machine_learning_library"},
 ]
 
 authors = [
@@ -57,6 +58,7 @@ build-backend = "poetry.core.masonry.api"
 
 [[tool.mypy.overrides]]
 module = [
+    "exasol_machine_learning_library.*",
     "exasol.analytics.*",
     "language_container.*",
     "tests.*",
