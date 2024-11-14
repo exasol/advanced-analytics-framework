@@ -2,25 +2,25 @@ import dataclasses
 from typing import Union, List
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.abort_timeout_sender import \
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
     AbortTimeoutSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.clock import Clock
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_builder import \
+from exasol.analytics.udf.communication.peer_communicator.clock import Clock
+from exasol.analytics.udf.communication.peer_communicator.connection_establisher_builder import \
     ConnectionEstablisherBuilder
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_factory import \
+from exasol.analytics.udf.communication.peer_communicator.connection_establisher_factory import \
     ConnectionEstablisherFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_establisher_timeout_config import \
+from exasol.analytics.udf.communication.peer_communicator.connection_establisher_timeout_config import \
     ConnectionEstablisherTimeoutConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.connection_is_ready_sender import \
+from exasol.analytics.udf.communication.peer_communicator.connection_is_ready_sender import \
     ConnectionIsReadySenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.sender import Sender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.synchronize_connection_sender import \
+from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.udf.communication.peer_communicator.synchronize_connection_sender import \
     SynchronizeConnectionSenderFactory
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import TimerFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from exasol.analytics.udf.communication.peer_communicator.timer import TimerFactory
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket
 from tests.mock_cast import mock_cast
 
 

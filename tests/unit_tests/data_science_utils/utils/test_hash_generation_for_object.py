@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List, Dict
 
-from exasol_data_science_utils_python.utils.hash_generation_for_object import generate_hash_for_object
+from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 
 
 class HashableTestObject:

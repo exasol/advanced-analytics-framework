@@ -1,4 +1,5 @@
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
+from exasol.analytics.schema import SchemaName
+
 
 
 def test_fully_qualified():

@@ -1,9 +1,11 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.schema.udf_name import UDFName
-from exasol_data_science_utils_python.schema.udf_name_builder import UDFNameBuilder
-from exasol_data_science_utils_python.schema.udf_name_impl import UDFNameImpl
+from exasol.analytics.schema import (
+    UDFNameImpl,
+    UDFNameBuilder,
+    SchemaName,
+    UDFName,
+)
 from typeguard import TypeCheckError
 
 

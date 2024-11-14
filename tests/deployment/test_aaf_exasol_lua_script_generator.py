@@ -1,7 +1,6 @@
 from io import StringIO
 
-from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
-    get_aaf_query_loop_lua_script_generator
+from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import     get_aaf_query_loop_lua_script_generator
 
 
 def test_get_aaf_query_loop_lua_script_generator():

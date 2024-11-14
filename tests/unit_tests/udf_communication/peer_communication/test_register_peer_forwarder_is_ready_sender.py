@@ -4,17 +4,17 @@ from unittest.mock import MagicMock, create_autospec, call
 
 import pytest
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_behavior_config \
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_behavior_config \
     import RegisterPeerForwarderBehaviorConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
     RegisterPeerForwarderIsReadySender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import Socket
+from exasol.analytics.udf.communication.peer_communicator.timer import Timer
+from exasol.analytics.udf.communication.serialization import serialize_message
+from exasol.analytics.udf.communication.socket_factory.abstract import Socket
 from tests.mock_cast import mock_cast
 
 

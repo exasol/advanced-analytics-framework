@@ -3,8 +3,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from exasol_advanced_analytics_framework.deployment.exasol_lua_script_generator import ExasolLuaScriptGenerator
-from exasol_advanced_analytics_framework.deployment.lua_script_bundle import LuaScriptBundle
+from exasol.analytics.query_handler.deployment.exasol_lua_script_generator import ExasolLuaScriptGenerator
+from exasol.analytics.query_handler.deployment.lua_script_bundle import LuaScriptBundle
 
 
 def test():

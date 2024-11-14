@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from exasol_advanced_analytics_framework.deployment.lua_script_bundle import LuaScriptBundle
+from exasol.analytics.query_handler.deployment.lua_script_bundle import LuaScriptBundle
 
 
 def test(tmp_path):

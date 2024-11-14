@@ -4,12 +4,12 @@ from unittest.mock import MagicMock, create_autospec, call, Mock
 
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from exasol_advanced_analytics_framework.udf_communication import messages
-from exasol_advanced_analytics_framework.udf_communication.broadcast_operation import BroadcastOperation
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from exasol_advanced_analytics_framework.udf_communication.serialization import serialize_message
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketFactory, Frame
+from exasol.analytics.udf.communication import messages
+from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
+from exasol.analytics.udf.communication.serialization import serialize_message
+from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory, Frame
 from tests.mock_cast import mock_cast
 
 

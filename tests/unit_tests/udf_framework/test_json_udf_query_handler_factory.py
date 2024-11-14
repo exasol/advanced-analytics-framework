@@ -2,18 +2,19 @@ import json
 
 from typing import Union
 
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnType,
+    ColumnName,
+)
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
-from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.python_query_result import PythonQueryResult
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
-from exasol_advanced_analytics_framework.udf_framework.json_udf_query_handler_factory import JsonUDFQueryHandlerFactory
-from exasol_advanced_analytics_framework.udf_framework.udf_query_handler import UDFQueryHandler
+from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.json_udf_query_handler import JSONQueryHandler, JSONType
+from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.query.result.python_query_result import PythonQueryResult
+from exasol.analytics.query_handler.query.result.interface import QueryResult
+from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandlerFactory
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 
 
 class TestJSONQueryHandler(JSONQueryHandler):

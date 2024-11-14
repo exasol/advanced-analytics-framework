@@ -8,9 +8,9 @@ from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.communicator import Communicator
-from exasol_advanced_analytics_framework.udf_communication.ip_address import Port, IPAddress
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
+from exasol.analytics.udf.communication.communicator import Communicator
+from exasol.analytics.udf.communication.ip_address import Port, IPAddress
+from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import TestProcess, \

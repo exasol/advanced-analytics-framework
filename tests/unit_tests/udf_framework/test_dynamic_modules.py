@@ -1,5 +1,5 @@
 import pytest
-from exasol_advanced_analytics_framework.udf_framework.dynamic_modules import (
+from exasol.analytics.utils.dynamic_modules import (
     create_module,
     ModuleExistsException,
 )

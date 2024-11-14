@@ -1,6 +1,6 @@
 import pytest
 
-from exasol_advanced_analytics_framework.slc import (
+from exasol.analytics.query_handler.deployment.slc import (
     custom_slc_builder,
     LANGUAGE_ALIAS,
 )
@@ -21,7 +21,7 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
     Overrides default definition from pytest-exasol-slc.
 
     This slc_builder uses the default builder of the AAF, defined in
-    exasol_advanced_analytics_framework.slc.custom_slc_builder and adds
+    exasol.analytics.slc.custom_slc_builder and adds
     another wheel and its pip requirements on top.
 
     In result the SLC will contain AAF and the subproject from directory

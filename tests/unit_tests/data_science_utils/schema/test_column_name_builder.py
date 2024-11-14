@@ -1,8 +1,10 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
-from exasol_data_science_utils_python.schema.table_name_impl import TableNameImpl
+from exasol.analytics.schema import (
+    TableNameImpl,
+    ColumnName,
+    ColumnNameBuilder,
+)
 from typeguard import TypeCheckError
 
 

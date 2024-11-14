@@ -1,9 +1,8 @@
 import pytest
 import pyexasol
 from typing import Any, Tuple, Callable
-from exasol_advanced_analytics_framework.deployment.scripts_deployer import ScriptsDeployer
-from exasol_advanced_analytics_framework.deployment.aaf_exasol_lua_script_generator import \
-    save_aaf_query_loop_lua_script
+from exasol.analytics.query_handler.deployment.scripts_deployer import ScriptsDeployer
+from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import     save_aaf_query_loop_lua_script
 
 
 BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"

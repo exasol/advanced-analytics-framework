@@ -9,7 +9,7 @@ from typing import Any, Callable, List, TypeVar, Generic
 import structlog
 from structlog.typing import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.ip_address import Port
+from exasol.analytics.udf.communication.ip_address import Port
 
 NANOSECONDS_PER_SECOND = 10 ** 9
 

@@ -8,7 +8,7 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 def udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
     from collections import OrderedDict
-    from exasol_data_science_utils_python.udf_utils.udf_context_wrapper import UDFContextWrapper
+    from exasol.analytics.udf.utils.context_wrapper import UDFContextWrapper
     import numpy as np
 
     def run(ctx: UDFContext):

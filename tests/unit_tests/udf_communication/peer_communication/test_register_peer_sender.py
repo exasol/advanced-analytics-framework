@@ -4,14 +4,14 @@ from unittest.mock import MagicMock, Mock, create_autospec, call
 
 import pytest
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress, Port
-from exasol_advanced_analytics_framework.udf_communication.peer import Peer
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_connection import \
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.peer import Peer
+from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import \
     RegisterPeerConnection
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.register_peer_sender import \
+from exasol.analytics.udf.communication.peer_communicator.register_peer_sender import \
     RegisterPeerSender
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.timer import Timer
+from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from tests.mock_cast import mock_cast
 
 

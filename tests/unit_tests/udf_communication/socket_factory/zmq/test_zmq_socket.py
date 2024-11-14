@@ -6,9 +6,9 @@ import pytest
 import zmq
 from zmq import ZMQError
 
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.abstract import SocketType, \
+from exasol.analytics.udf.communication.socket_factory.abstract import SocketType, \
     PollerFlag
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory, \
+from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import ZMQSocketFactory, \
     ZMQFrame, ZMQSocket
 from tests.mock_cast import mock_cast
 

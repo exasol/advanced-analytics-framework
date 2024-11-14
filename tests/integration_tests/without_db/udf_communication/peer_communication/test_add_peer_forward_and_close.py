@@ -12,16 +12,16 @@ from structlog import WriteLoggerFactory
 from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
-from exasol_advanced_analytics_framework.udf_communication.connection_info import ConnectionInfo
-from exasol_advanced_analytics_framework.udf_communication.ip_address import IPAddress
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator import PeerCommunicator
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.forward_register_peer_config import \
+from exasol.analytics.udf.communication.connection_info import ConnectionInfo
+from exasol.analytics.udf.communication.ip_address import IPAddress
+from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
+from exasol.analytics.udf.communication.peer_communicator.forward_register_peer_config import \
     ForwardRegisterPeerConfig
-from exasol_advanced_analytics_framework.udf_communication.peer_communicator.peer_communicator_config import \
+from exasol.analytics.udf.communication.peer_communicator.peer_communicator_config import \
     PeerCommunicatorConfig
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.fault_injection import \
+from exasol.analytics.udf.communication.socket_factory.fault_injection import \
     FaultInjectionSocketFactory
-from exasol_advanced_analytics_framework.udf_communication.socket_factory.zmq_wrapper import ZMQSocketFactory
+from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import ZMQSocketFactory
 from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import \
     ConditionalMethodDropper
 from tests.integration_tests.without_db.udf_communication.peer_communication.utils import \

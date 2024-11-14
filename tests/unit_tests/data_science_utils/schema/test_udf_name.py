@@ -1,7 +1,9 @@
 import pytest
 
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.schema.udf_name_impl import UDFNameImpl
+from exasol.analytics.schema import (
+    UDFNameImpl,
+    SchemaName,
+)
 
 
 def test_fully_qualified():

@@ -1,10 +1,9 @@
 import pytest
 import exasol.bucketfs as bfs
 
-from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext, ChildContextNotReleasedError
-from exasol_advanced_analytics_framework.query_handler.query.drop_table_query import DropTableQuery
-from exasol_advanced_analytics_framework.query_handler.query.drop_view_query import DropViewQuery
+from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext, ChildContextNotReleasedError
+from exasol.analytics.query_handler.query.drop.table import DropTableQuery
+from exasol.analytics.query_handler.query.drop.view import DropViewQuery
 
 
 @pytest.fixture
