@@ -15,7 +15,7 @@ from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_sta
     SQLStageInputOutput
 from exasol_machine_learning_library.execution.stage_graph.sql_stage_train_query_handler import \
     SQLStageTrainQueryHandlerInput
-from exasol_machine_learning_library.execution.stage_graph.stage import SQLStage
+from exasol_machine_learning_library.execution.stage_graph.sql_stage import SQLStage
 
 
 class ResultHandlerReturnValue(enum.Enum):
