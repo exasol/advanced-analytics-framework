@@ -2,13 +2,15 @@ from enum import Enum, auto
 
 import pytest
 
-from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
-from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
-from exasol_data_science_utils_python.schema.column_type import ColumnType
-from exasol_data_science_utils_python.schema.table_builder import TableBuilder
-from exasol_data_science_utils_python.schema.table_name import TableName
-from exasol_data_science_utils_python.schema.view import View
-from exasol_data_science_utils_python.schema.view_name import ViewName
+from exasol.analytics.schema import (
+    TableBuilder,
+    ViewName,
+    TableName,
+    ColumnBuilder,
+    View,
+    ColumnType,
+    ColumnNameBuilder,
+)
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.dependency import Dependency
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.find_object_proxies import find_object_proxies
 
@@ -20,23 +22,19 @@ TABLE_NAME = "TABLE_NAME"
 
 
 class TestEnum(Enum):
+    __test__ = False
     K1 = auto()
     K2 = auto()
 
 
-pytest_plugins = [
-    "tests.fixtures.top_level_query_handler_context_fixture",
-]
-
-
 @pytest.fixture(params=[TABLE_NAME, VIEW_NAME, BUCKETFS_LOCATION])
-def object_proxy(query_handler_context_with_local_bucketfs_and_no_connection, request):
+def object_proxy(top_level_query_handler_context_mock, request):
     if request.param == TABLE_NAME:
-        return query_handler_context_with_local_bucketfs_and_no_connection.get_temporary_table_name()
+        return top_level_query_handler_context_mock.get_temporary_table_name()
     elif request.param == VIEW_NAME:
-        return query_handler_context_with_local_bucketfs_and_no_connection.get_temporary_view_name()
+        return top_level_query_handler_context_mock.get_temporary_view_name()
     elif request.param == BUCKETFS_LOCATION:
-        return query_handler_context_with_local_bucketfs_and_no_connection.get_temporary_bucketfs_location()
+        return top_level_query_handler_context_mock.get_temporary_bucketfs_location()
     else:
         raise ValueError(f"Unknown parameter value {request.param}")
 
@@ -106,7 +104,7 @@ def test_object_proxy_in_view(object_proxy):
 def test_object_proxy_in_column_name(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column_name = ColumnNameBuilder.create("test", table_name=object_proxy)
+    column_name = ColumnNameBuilder.create("test", table_like_name=object_proxy)
     result = find_object_proxies(column_name)
     assert result == [object_proxy]
 
@@ -114,7 +112,7 @@ def test_object_proxy_in_column_name(object_proxy):
 def test_object_proxy_in_column(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column_name = ColumnNameBuilder.create("test", table_name=object_proxy)
+    column_name = ColumnNameBuilder.create("test", table_like_name=object_proxy)
     column = ColumnBuilder().with_name(column_name).with_type(ColumnType("INTEGER")).build()
     result = find_object_proxies(column)
     assert result == [object_proxy]

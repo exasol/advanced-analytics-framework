@@ -1,11 +1,10 @@
 import enum
 from typing import DefaultDict, List, Optional, Union, Callable
 
-from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Continue, Finish
 
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.find_object_proxies import find_object_proxies
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.object_proxy_reference_counting_bag import \

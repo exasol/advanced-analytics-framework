@@ -5,7 +5,7 @@ from typing import Any, Dict
 import typeguard
 from typeguard import TypeCheckError
 
-from exasol_data_science_utils_python.utils.data_classes_runtime_type_check import check_dataclass_types
+from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
 @dataclasses.dataclass(frozen=True)

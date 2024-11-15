@@ -1,8 +1,7 @@
 from enum import Enum, auto
 
-from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
 
 class ReferenceCounterStatus(Enum):

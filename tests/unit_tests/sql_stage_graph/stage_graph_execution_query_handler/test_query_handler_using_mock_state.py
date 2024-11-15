@@ -2,11 +2,10 @@ import dataclasses
 from typing import Union, List, Tuple
 from unittest.mock import MagicMock, create_autospec, Mock, call
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Finish, Continue
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Finish, Continue
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_input import \
     SQLStageGraphExecutionInput
@@ -100,6 +99,7 @@ class StateSetupDefinition:
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     execution_query_handler: SQLStageGraphExecutionQueryHandler
     mock_state_factory: MockSQLStageGraphExecutionQueryHandlerStateFactory
     mock_execution_input: MockSQLStageGraphExecutionInput

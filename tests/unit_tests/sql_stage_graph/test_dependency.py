@@ -4,6 +4,7 @@ from exasol_machine_learning_library.execution.sql_stage_graph_execution.depende
 
 
 class TestEnum(Enum):
+    __test__ = False
     K1 = auto()
     K2 = auto()
 

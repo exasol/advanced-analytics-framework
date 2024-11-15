@@ -2,11 +2,10 @@ import dataclasses
 from typing import Union, List
 from unittest.mock import MagicMock, Mock, create_autospec
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Continue, Finish
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
 from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
@@ -80,6 +79,7 @@ class ExecutionQueryHandlerStateSetup:
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     stage_setups: List[StageSetup]
     state_setup: ExecutionQueryHandlerStateSetup
 

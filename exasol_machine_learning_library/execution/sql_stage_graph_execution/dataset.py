@@ -2,8 +2,9 @@ import dataclasses
 from enum import Enum
 from typing import Dict, Union, Tuple, List
 
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.utils.data_classes_runtime_type_check import check_dataclass_types
+from exasol.analytics.schema import Column
+
+from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
 

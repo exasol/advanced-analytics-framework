@@ -2,8 +2,8 @@ import dataclasses
 from typing import Union, List, Dict
 from unittest.mock import MagicMock, Mock, create_autospec, call
 
-from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
-from exasol_advanced_analytics_framework.query_handler.result import Finish, Continue
+from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
+from exasol.analytics.query_handler.result import Finish, Continue
 
 from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler_state import \

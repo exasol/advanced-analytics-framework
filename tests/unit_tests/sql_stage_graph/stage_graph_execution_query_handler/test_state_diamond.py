@@ -2,8 +2,8 @@ from typing import Union, List
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
-from exasol_advanced_analytics_framework.query_handler.result import Finish, Continue
+from exasol.analytics.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.result import Finish, Continue
 
 from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler_state import \

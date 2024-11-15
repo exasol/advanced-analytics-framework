@@ -3,9 +3,8 @@ from typing import Union
 from unittest.mock import MagicMock, create_autospec, call
 
 import pytest
-from exasol_advanced_analytics_framework.query_handler.context.proxy.object_proxy import ObjectProxy
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.object_proxy_reference_counter import \
     ObjectProxyReferenceCounter, ReferenceCounterStatus
@@ -17,6 +16,7 @@ MockObjectProxy = Union[ObjectProxy, MagicMock]
 
 @dataclasses.dataclass
 class TestMockSetup:
+    __test__ = False
     mock_parent_query_context_handler: MockScopeQueryHandlerContext
     mock_child_query_context_handler: MockScopeQueryHandlerContext
     mock_object_proxy: MockObjectProxy

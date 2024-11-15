@@ -1,13 +1,16 @@
 import dataclasses
 from abc import ABC
-from typing import List
+from typing import List, Sized
 
-from exasol_advanced_analytics_framework.query_handler.query_handler import QueryHandler
+from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
     SQLStageInputOutput
-from exasol_machine_learning_library.utils import is_empty
+
+
+def is_empty(obj: Sized):
+    return len(obj) == 0
 
 
 @dataclasses.dataclass(eq=True)

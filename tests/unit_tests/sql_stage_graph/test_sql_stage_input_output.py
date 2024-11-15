@@ -4,12 +4,14 @@ from typing import List
 import pytest
 from typeguard import TypeCheckError
 
-from exasol_data_science_utils_python.schema.column import Column
-from exasol_data_science_utils_python.schema.column_name import ColumnName
-from exasol_data_science_utils_python.schema.column_type import ColumnType
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.schema.table import Table
-from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
+from exasol.analytics.schema import (
+    SchemaName,
+    ColumnName,
+    Table,
+    Column,
+    TableNameBuilder,
+    ColumnType,
+)
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.dependency import Dependencies, Dependency
@@ -18,6 +20,7 @@ from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_sta
 
 
 class TestEnum(Enum):
+    __test__ = False
     K1 = auto()
     K2 = auto()
 

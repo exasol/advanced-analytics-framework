@@ -7,21 +7,21 @@ from unittest.mock import Mock
 
 import pytest
 
-from exasol_advanced_analytics_framework.query_handler.context.scope_query_handler_context import \
-    ScopeQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.context.top_level_query_handler_context import \
-    TopLevelQueryHandlerContext
-from exasol_advanced_analytics_framework.query_handler.query.select_query import SelectQueryWithColumnDefinition
-from exasol_advanced_analytics_framework.query_handler.result import Finish, Continue
-from exasol_advanced_analytics_framework.query_result.query_result import QueryResult
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.top_level_query_handler_context import TopLevelQueryHandlerContext
+from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
+from exasol.analytics.query_handler.result import Finish, Continue
+from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
-from exasol_data_science_utils_python.schema.column_builder import ColumnBuilder
-from exasol_data_science_utils_python.schema.column_name_builder import ColumnNameBuilder
-from exasol_data_science_utils_python.schema.column_type import ColumnType
-from exasol_data_science_utils_python.schema.schema_name import SchemaName
-from exasol_data_science_utils_python.schema.table_builder import TableBuilder
-from exasol_data_science_utils_python.schema.table_name import TableName
-from exasol_data_science_utils_python.schema.table_name_builder import TableNameBuilder
+from exasol.analytics.schema import (
+    SchemaName,
+    TableBuilder,
+    TableName,
+    ColumnBuilder,
+    TableNameBuilder,
+    ColumnType,
+    ColumnNameBuilder,
+)
 from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
 from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
@@ -34,10 +34,6 @@ from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_sta
 from exasol_machine_learning_library.execution.stage_graph.sql_stage_train_query_handler import \
     SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
 from exasol_machine_learning_library.execution.stage_graph.stage import SQLStage
-
-pytest_plugins = [
-    "tests.fixtures.top_level_query_handler_context_fixture"
-]
 
 
 class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandler):
@@ -114,6 +110,7 @@ TrainQueryHandlerFactory = Callable[
 
 
 class TestSQLStage(SQLStage):
+    __test__ = False
 
     def __init__(self, *,
                  index: int,
@@ -139,6 +136,7 @@ class TestSQLStage(SQLStage):
 
 
 class TestDatasetPartitionName(enum.Enum):
+    __test__ = False
     TRAIN = enum.auto()
 
 
@@ -183,6 +181,7 @@ def create_stage_input_output(table_name: TableName):
 
 @dataclasses.dataclass
 class TestSetup:
+    __test__ = False
     stages: List[TestSQLStage]
     stage_input_output: SQLStageInputOutput
     child_query_handler_context: ScopeQueryHandlerContext
@@ -191,7 +190,7 @@ class TestSetup:
 
 def create_test_setup(*, sql_stage_graph: SQLStageGraph,
                       stages: List[TestSQLStage],
-                      local_query_handler_context_without_connection: TopLevelQueryHandlerContext,
+                      context: TopLevelQueryHandlerContext,
                       local_fs_mock_bucket_fs_tmp_path: PurePosixPath) -> TestSetup:
     stage_input_output = create_input()
     parameter = SQLStageGraphExecutionInput(
@@ -199,7 +198,7 @@ def create_test_setup(*, sql_stage_graph: SQLStageGraph,
         result_bucketfs_location=LocalFSMockBucketFSLocation(local_fs_mock_bucket_fs_tmp_path),
         input=stage_input_output
     )
-    child_query_handler_context = local_query_handler_context_without_connection.get_child_query_handler_context()
+    child_query_handler_context = context.get_child_query_handler_context()
     query_handler = SQLStageGraphExecutionQueryHandler(
         parameter=parameter,
         query_handler_context=child_query_handler_context
@@ -213,15 +212,15 @@ def create_test_setup(*, sql_stage_graph: SQLStageGraph,
 
 
 def test_start_with_single_stage_with_start_only_forward_train_query_handler(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with a single stage which returns a StartOnlyForwardInputTestSQLStageTrainQueryHandler.
     It expects:
         - that the dataset of the result is the dataset we initialed the SQLStageGraphExecutionQueryHandler with
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup queries
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() after a call to
+        - that context.cleanup_released_object_proxies() after a call to
           child_query_handler_context.release, still returns no cleanup queries
     """
 
@@ -236,7 +235,7 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         return test_setup
 
@@ -250,23 +249,23 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
     assert isinstance(result, Finish) \
            and isinstance(result.result, SQLStageInputOutput) \
            and result.result.dataset == test_setup.stage_input_output.dataset \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
     test_setup.child_query_handler_context.release()
 
-    assert len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+    assert len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
 
 def test_start_with_two_stages_with_start_only_forward_train_query_handler(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with two stages which return a StartOnlyForwardInputTestSQLStageTrainQueryHandler.
     It expects:
         - that the dataset of the result is the dataset we initialized the SQLStageGraphExecutionQueryHandler with
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup queries
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() after a call to
+        - that context.cleanup_released_object_proxies() after a call to
           child_query_handler_context.release, still returns no cleanup queries
     """
 
@@ -284,7 +283,7 @@ def test_start_with_two_stages_with_start_only_forward_train_query_handler(
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1, stage2],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         return test_setup
 
@@ -298,11 +297,11 @@ def test_start_with_two_stages_with_start_only_forward_train_query_handler(
     assert isinstance(result, Finish) \
            and isinstance(result.result, SQLStageInputOutput) \
            and result.result.dataset == test_setup.stage_input_output.dataset \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
     test_setup.child_query_handler_context.release()
 
-    assert len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+    assert len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
 
 @contextmanager
@@ -314,7 +313,7 @@ def not_raises(exception):
 
 
 def test_start_with_single_stage_with_start_only_create_new_output_train_query_handler(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with a single stage which return a StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler.
@@ -322,9 +321,9 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
         - that the dataset of the result is the dataset created by the
           StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler of the single stage
         - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler is not None
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup queries
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() after a call to
+        - that context.cleanup_released_object_proxies() after a call to
           child_query_handler_context.release, returns a single cleanup query
     """
 
@@ -339,7 +338,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         return test_setup
 
@@ -357,18 +356,18 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
            and isinstance(stage_1_train_query_handler, StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler) \
            and result.result.dataset == stage_1_train_query_handler.stage_input_output.dataset \
            and stage_1_train_query_handler.input_table_like_name is not None \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
             name = result.result.dataset.data_partitions[TestDatasetPartitionName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
-    assert len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 1
+    assert len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 1
 
 
 def test_start_with_two_stages_with_start_only_create_new_output_train_query_handler(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with two stages which return a StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler.
@@ -376,9 +375,9 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
         - that the dataset of the result is the dataset created by the
           StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler of the second stage
         - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler is not None
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns a single cleanup query
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() after a call to
+        - that context.cleanup_released_object_proxies() after a call to
           child_query_handler_context.release, returns a single cleanup query
     """
 
@@ -396,7 +395,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1, stage2],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         return test_setup
 
@@ -417,25 +416,25 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
            and result.result.dataset == stage_2_train_query_handler.stage_input_output.dataset \
            and stage_1_train_query_handler.input_table_like_name is not None \
            and stage_2_train_query_handler.input_table_like_name is not None \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 1
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 1
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
             name = result.result.dataset.data_partitions[TestDatasetPartitionName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
-    assert len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 1
+    assert len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 1
 
 
 def test_start_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part1(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with a single stage which return a HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler.
     It expects:
         - that the result of start is the same as the continue of the train query handler of the stage
         - that stage_input_output of train query handler of the stage is None
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns a single cleanup query
     """
 
@@ -450,7 +449,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         return test_setup
 
@@ -466,11 +465,11 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
            result == stage_1_train_query_handler.continue_result \
            and stage_1_train_query_handler.stage_input_output is None \
            and stage_1_train_query_handler.query_result is None \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
 
 def test_handle_query_result_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part2(
-        query_handler_context_with_local_bucketfs_and_no_connection, tmp_path):
+        top_level_query_handler_context_mock, tmp_path):
     """
     This test uses test_start_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part1
     as setup and runs handle_query_result on the SQLStageGraphExecutionQueryHandler.
@@ -478,9 +477,9 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
         - that the result of handle_query_result is the same as the stage_input_output
           of the train query handler of the stage
         - that recorded query_result in the train query handler is the same as we put into the handle_query_result call
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() directly
+        - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup query
-        - that local_query_handler_context_without_connection.cleanup_released_object_proxies() after a call to
+        - that context.cleanup_released_object_proxies() after a call to
           child_query_handler_context.release, returns a single cleanup query
     """
 
@@ -495,7 +494,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
         )
         test_setup = create_test_setup(sql_stage_graph=sql_stage_graph,
                                        stages=[stage1],
-                                       local_query_handler_context_without_connection=query_handler_context_with_local_bucketfs_and_no_connection,
+                                       context=top_level_query_handler_context_mock,
                                        local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path))
         test_setup.query_handler.start()
         query_result: QueryResult = Mock()
@@ -514,11 +513,11 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
                           HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler) and \
            result.result == stage_1_train_query_handler.stage_input_output \
            and query_result == stage_1_train_query_handler.query_result \
-           and len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 0
+           and len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 0
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
             name = result.result.dataset.data_partitions[TestDatasetPartitionName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
-    assert len(query_handler_context_with_local_bucketfs_and_no_connection.cleanup_released_object_proxies()) == 1
+    assert len(top_level_query_handler_context_mock.cleanup_released_object_proxies()) == 1
