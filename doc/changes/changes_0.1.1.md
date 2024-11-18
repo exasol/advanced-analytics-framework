@@ -6,7 +6,7 @@ Code name:
 
 ## Features
 
-* #212: Moved DataFlow Abstraction from MLLib to AAF
+* #212: Added QueryHandler Dataflow Abstraktion
 
 ## Bugfixes
 
