@@ -6,7 +6,7 @@ Code name:
 
 ## Features
 
-* #212: Added QueryHandler Dataflow Abstraktion
+* #212: Added QueryHandler Dataflow Abstraction
 
 ## Bugfixes
 
