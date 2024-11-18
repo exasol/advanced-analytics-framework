@@ -5,12 +5,9 @@ from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_input import \
-    SQLStageGraphExecutionInput
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler_state import \
-    SQLStageGraphExecutionQueryHandlerState, ResultHandlerReturnValue
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
-    SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
+from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import SQLStageGraphExecutionQueryHandlerState, ResultHandlerReturnValue
+from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
 
 SQLStageGraphExecutionQueryHandlerStateFactory = \
     Callable[

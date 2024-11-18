@@ -3,8 +3,7 @@ from typing import Dict, Callable
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.object_proxy_reference_counter import \
-    ObjectProxyReferenceCounter, ReferenceCounterStatus
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import ObjectProxyReferenceCounter, ReferenceCounterStatus
 
 ObjectProxyReferenceCounterFactory = Callable[[ScopeQueryHandlerContext, ObjectProxy], ObjectProxyReferenceCounter]
 

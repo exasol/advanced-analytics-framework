@@ -11,9 +11,9 @@ from exasol.analytics.schema import (
     ColumnType,
 )
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dependency import Dependencies
+from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependencies
 
 
 class TestEnum(Enum):

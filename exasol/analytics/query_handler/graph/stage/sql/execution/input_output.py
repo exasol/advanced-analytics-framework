@@ -2,8 +2,8 @@ import dataclasses
 
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dependency import Dependencies
+from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependencies
 
 
 @dataclasses.dataclass(frozen=True, eq=True)

@@ -22,18 +22,14 @@ from exasol.analytics.schema import (
     ColumnType,
     ColumnNameBuilder,
 )
-from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_input import \
-    SQLStageGraphExecutionInput
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler import \
-    SQLStageGraphExecutionQueryHandler
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
-    SQLStageInputOutput
-from exasol_machine_learning_library.execution.stage_graph.sql_stage_train_query_handler import \
-    SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
-from exasol_machine_learning_library.execution.stage_graph.sql_stage import SQLStage
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
+from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
+from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler import SQLStageGraphExecutionQueryHandler
+from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 
 
 class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandler):

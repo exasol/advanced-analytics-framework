@@ -4,8 +4,7 @@ import pytest
 from exasol.analytics.query_handler.context.top_level_query_handler_context import TopLevelQueryHandlerContext
 from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.object_proxy_reference_counting_bag import \
-    ObjectProxyReferenceCountingBag
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag
 
 
 @pytest.fixture

@@ -1,9 +1,7 @@
 from typing import List
 
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
-    SQLStageInputOutput
-from exasol_machine_learning_library.execution.stage_graph.sql_stage_train_query_handler import \
-    SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandlerInput
 from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import TestSetup
 

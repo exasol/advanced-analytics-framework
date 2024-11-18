@@ -12,11 +12,10 @@ from exasol.analytics.schema import (
     TableNameBuilder,
     ColumnType,
 )
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.data_partition import DataPartition
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dataset import Dataset
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.dependency import Dependencies, Dependency
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
-    SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependencies, Dependency
+from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
 
 
 class TestEnum(Enum):

@@ -8,18 +8,13 @@ from exasol.analytics.query_handler.result import Continue, Finish
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
 
-from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.object_proxy_reference_counting_bag import \
-    ObjectProxyReferenceCountingBag
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_input import \
-    SQLStageGraphExecutionInput
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler_state import \
-    SQLStageGraphExecutionQueryHandlerState
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_input_output import \
-    SQLStageInputOutput
-from exasol_machine_learning_library.execution.stage_graph.sql_stage import SQLStage
-from exasol_machine_learning_library.execution.stage_graph.sql_stage_train_query_handler import \
-    SQLStageTrainQueryHandler
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag
+from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
+from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import SQLStageGraphExecutionQueryHandlerState
+from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler
 from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]

@@ -5,9 +5,8 @@ from unittest.mock import MagicMock, Mock, create_autospec, call
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.result import Finish, Continue
 
-from exasol_machine_learning_library.execution.sql_stage_graph.sql_stage_graph import SQLStageGraph
-from exasol_machine_learning_library.execution.sql_stage_graph_execution.sql_stage_graph_execution_query_handler_state import \
-    ResultHandlerReturnValue
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
+from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import ResultHandlerReturnValue
 from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import TestSetup, \
     create_mocks_for_stage, create_execution_query_handler_state_setup
