@@ -7,7 +7,7 @@ from exasol.analytics.query_handler.result import Finish, Continue
 
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import ResultHandlerReturnValue
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import \
     assert_reference_counting_bag_creation, \
     assert_stage_train_query_handler_created, assert_stage_not_called, \

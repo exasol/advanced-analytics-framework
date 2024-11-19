@@ -7,7 +7,7 @@ from exasol.analytics.query_handler.query.result.interface import QueryResult
 
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import SQLStageGraphExecutionQueryHandlerState, ResultHandlerReturnValue
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 
 SQLStageGraphExecutionQueryHandlerStateFactory = \
     Callable[

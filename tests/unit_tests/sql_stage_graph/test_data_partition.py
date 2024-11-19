@@ -12,8 +12,8 @@ from exasol.analytics.schema import (
     ColumnType,
 )
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
-from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependency
+from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
 
 
 class TestEnum(Enum):

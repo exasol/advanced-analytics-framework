@@ -23,11 +23,11 @@ from exasol.analytics.schema import (
     ColumnNameBuilder,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
-from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
-from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler import SQLStageGraphExecutionQueryHandler
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 

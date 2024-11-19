@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependency
+from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
 
 
 class TestEnum(Enum):

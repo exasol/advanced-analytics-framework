@@ -6,7 +6,7 @@ from exasol.analytics.schema import Column
 
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
 
 DataPartitionName = Union[Enum, Tuple[Enum, int]]
 

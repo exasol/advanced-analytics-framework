@@ -4,7 +4,7 @@ from exasol.analytics.schema import TableLike
 
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependencies
+from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies
 
 
 @dataclasses.dataclass(frozen=True)

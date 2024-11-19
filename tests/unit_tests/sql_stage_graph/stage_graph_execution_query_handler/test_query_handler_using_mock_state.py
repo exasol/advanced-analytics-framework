@@ -10,9 +10,9 @@ from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler import SQLStageGraphExecutionQueryHandler, SQLStageGraphExecutionQueryHandlerStateFactory
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import SQLStageGraphExecutionQueryHandlerState, ResultHandlerReturnValue
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler
-from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
+from tests.mock_cast import mock_cast
 
 MockSQLStageGraphExecutionQueryHandlerState = Union[SQLStageGraphExecutionQueryHandlerState, MagicMock]
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]

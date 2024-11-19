@@ -11,7 +11,7 @@ from exasol.analytics.schema import (
     ColumnType,
     ColumnNameBuilder,
 )
-from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependency
+from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
 from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxies import find_object_proxies
 
 BUCKETFS_LOCATION = "BUCKETFS_LOCATION"

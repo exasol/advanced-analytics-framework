@@ -12,10 +12,10 @@ from exasol.analytics.schema import (
     TableNameBuilder,
     ColumnType,
 )
-from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
-from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
-from exasol.analytics.query_handler.graph.stage.sql.execution.dependency import Dependencies, Dependency
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies, Dependency
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 
 
 class TestEnum(Enum):
