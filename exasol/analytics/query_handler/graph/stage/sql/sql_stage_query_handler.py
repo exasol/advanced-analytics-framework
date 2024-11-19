@@ -22,6 +22,6 @@ class SQLStageTrainQueryHandlerInput:
             raise AssertionError("Empty sql_stage_inputs not allowed.")
 
 
-class SQLStageTrainQueryHandler(
+class SQLStageQueryHandler(
     QueryHandler[SQLStageTrainQueryHandlerInput, SQLStageInputOutput], ABC):
     pass
