@@ -1,4 +1,4 @@
-from exasol.analytics.schema import TableLikeName
+from exasol.analytics.schema.table_like_name import TableLikeName
 
 
 class TableName(TableLikeName):

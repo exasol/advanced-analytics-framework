@@ -1,6 +1,8 @@
 from typing import Optional
 
-from exasol.analytics.schema import SchemaName, ViewName, ViewNameImpl
+from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.view_name import ViewName
+from exasol.analytics.schema.view_name_impl import ViewNameImpl
 
 
 class ViewNameBuilder:

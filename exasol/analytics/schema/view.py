@@ -2,7 +2,9 @@ from typing import List
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import Column, TableLike, ViewName
+from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.table_like import TableLike
+from exasol.analytics.schema.view_name import ViewName
 
 
 class View(TableLike[ViewName]):

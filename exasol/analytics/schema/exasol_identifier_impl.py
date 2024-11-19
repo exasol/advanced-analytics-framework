@@ -2,7 +2,7 @@ import unicodedata
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import ExasolIdentifier
+from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 
 
 class UnicodeCategories:

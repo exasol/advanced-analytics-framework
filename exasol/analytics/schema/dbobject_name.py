@@ -1,4 +1,4 @@
-from exasol.analytics.schema import ExasolIdentifier
+from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 
 
 class DBObjectName(ExasolIdentifier):

@@ -1,6 +1,8 @@
 from typing import Optional, Union
 
-from exasol.analytics.schema import SchemaName, TableName, TableNameImpl
+from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.table_name import TableName
+from exasol.analytics.schema.table_name_impl import TableNameImpl
 
 
 class TableNameBuilder:

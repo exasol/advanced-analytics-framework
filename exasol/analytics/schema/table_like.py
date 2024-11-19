@@ -3,7 +3,9 @@ from typing import Generic, List, TypeVar
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import Column, DBObject, TableLikeName
+from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.dbobject import DBObject
+from exasol.analytics.schema.table_like_name import TableLikeName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
 

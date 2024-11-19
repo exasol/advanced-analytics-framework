@@ -1,6 +1,8 @@
 from typing import Optional
 
-from exasol.analytics.schema import SchemaName, UDFName, UDFNameImpl
+from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.udf_name import UDFName
+from exasol.analytics.schema.udf_name_impl import UDFNameImpl
 
 
 class UDFNameBuilder:

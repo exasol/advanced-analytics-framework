@@ -1,6 +1,7 @@
 from typing import cast
 
-from exasol.analytics.schema import ConnectionObjectName, DBObjectNameImpl
+from exasol.analytics.schema.connection_object_name import ConnectionObjectName
+from exasol.analytics.schema.dbobject_name_impl import DBObjectNameImpl
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
 
 

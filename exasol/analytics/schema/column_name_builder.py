@@ -1,6 +1,7 @@
 from typing import Optional
 
-from exasol.analytics.schema import ColumnName, TableLikeName
+from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.table_like_name import TableLikeName
 
 
 class ColumnNameBuilder:
