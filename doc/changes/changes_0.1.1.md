@@ -4,6 +4,10 @@ Code name:
 
 ## Summary
 
+## Features
+
+* #212: Added QueryHandler Dataflow Abstraction
+
 ## Bugfixes
 
 * #206: Fixed download URL of SLC from GitHub releases
