@@ -3,7 +3,6 @@ from typeguard import typechecked
 from exasol.analytics.schema import DBObjectNameImpl
 
 
-
 class SchemaName(DBObjectNameImpl):
 
     @typechecked

@@ -8,6 +8,7 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
 def udf_wrapper():
     from exasol_udf_mock_python.udf_context import UDFContext
+
     from exasol.analytics.udf.utils.iterators import ctx_iterator
 
     def run(ctx: UDFContext):
@@ -22,11 +23,12 @@ def test_ctx_iterator(input_size):
     meta = MockMetaData(
         script_code_wrapper_function=udf_wrapper,
         input_type="SET",
-        input_columns=[Column("t1", int, "INTEGER"),
-                       Column("t2", float, "FLOAT"), ],
+        input_columns=[
+            Column("t1", int, "INTEGER"),
+            Column("t2", float, "FLOAT"),
+        ],
         output_type="EMITS",
-        output_columns=[Column("t1", int, "INTEGER"),
-                        Column("t2", float, "FLOAT")]
+        output_columns=[Column("t1", int, "INTEGER"), Column("t2", float, "FLOAT")],
     )
     exa = MockExaEnvironment(meta)
     input_data = [(i, 1.0 * i) for i in range(input_size)]

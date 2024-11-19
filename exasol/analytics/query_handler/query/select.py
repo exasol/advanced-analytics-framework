@@ -1,10 +1,8 @@
 from abc import abstractmethod
 from typing import List
 
-from exasol.analytics.schema import Column
-
-
 from exasol.analytics.query_handler.query.interface import Query
+from exasol.analytics.schema import Column
 
 
 class SelectQuery(Query):

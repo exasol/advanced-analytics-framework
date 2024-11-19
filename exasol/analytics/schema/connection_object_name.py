@@ -3,7 +3,6 @@ from abc import abstractmethod
 from exasol.analytics.schema import DBObjectName
 
 
-
 class ConnectionObjectName(DBObjectName):
 
     @property

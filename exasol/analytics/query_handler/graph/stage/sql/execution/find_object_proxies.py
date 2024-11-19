@@ -1,6 +1,8 @@
-from typing import List, Any, Iterable, Dict, Set
+from typing import Any, Dict, Iterable, List, Set
 
-from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import ObjectProxy
+from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
+    ObjectProxy,
+)
 
 
 def find_object_proxies(obj: Any) -> List[ObjectProxy]:

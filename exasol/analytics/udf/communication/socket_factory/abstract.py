@@ -1,6 +1,6 @@
 import abc
 from enum import Enum, auto
-from typing import Union, List, Set, Optional, Dict
+from typing import Dict, List, Optional, Set, Union
 
 
 class Frame(abc.ABC):
@@ -49,10 +49,11 @@ class Socket(abc.ABC):
         """Connect to the given address"""
 
     @abc.abstractmethod
-    def poll(self,
-             flags: Union[PollerFlag, Set[PollerFlag]],
-             timeout_in_ms: Optional[int] = None) \
-            -> Optional[Set[PollerFlag]]:
+    def poll(
+        self,
+        flags: Union[PollerFlag, Set[PollerFlag]],
+        timeout_in_ms: Optional[int] = None,
+    ) -> Optional[Set[PollerFlag]]:
         """
         Checks if the socket can receive or send without blocking or
         if timeout is set, it waits until a requested event occurred.
@@ -83,12 +84,16 @@ class Socket(abc.ABC):
 class Poller(abc.ABC):
 
     @abc.abstractmethod
-    def register(self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]) -> None:
+    def register(
+        self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]
+    ) -> None:
         """Register a socket with the events we want to poll."""
 
     @abc.abstractmethod
-    def poll(self, timeout_in_ms: Optional[int] = None) -> Dict[Socket, Set[PollerFlag]]:
-        """Poll if an event occurred for the registered sockets or wait until an event occurred, if timeout is set. """
+    def poll(
+        self, timeout_in_ms: Optional[int] = None
+    ) -> Dict[Socket, Set[PollerFlag]]:
+        """Poll if an event occurred for the registered sockets or wait until an event occurred, if timeout is set."""
 
 
 class SocketType(Enum):

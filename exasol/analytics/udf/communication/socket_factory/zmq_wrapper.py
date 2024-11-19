@@ -1,9 +1,16 @@
-from typing import Union, List, Set, Optional, Dict
+from typing import Dict, List, Optional, Set, Union
 from warnings import warn
+
 import zmq
 
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket, \
-    PollerFlag, Poller, SocketFactory, SocketType
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Poller,
+    PollerFlag,
+    Socket,
+    SocketFactory,
+    SocketType,
+)
 
 
 def _flags_to_bitmask(flags: Union[PollerFlag, Set[PollerFlag]]) -> int:
@@ -80,10 +87,15 @@ class ZMQSocket(Socket):
     def connect(self, address: str):
         self._internal_socket.connect(address)
 
-    def poll(self, flags: Union[PollerFlag, Set[PollerFlag]], timeout_in_ms: Optional[int] = None) \
-            -> Set[PollerFlag]:
+    def poll(
+        self,
+        flags: Union[PollerFlag, Set[PollerFlag]],
+        timeout_in_ms: Optional[int] = None,
+    ) -> Set[PollerFlag]:
         input_bitmask = _flags_to_bitmask(flags)
-        result_bitmask = self._internal_socket.poll(flags=input_bitmask, timeout=timeout_in_ms)
+        result_bitmask = self._internal_socket.poll(
+            flags=input_bitmask, timeout=timeout_in_ms
+        )
         result_set = _bitmask_to_flags(result_bitmask)
         return result_set
 
@@ -119,7 +131,9 @@ class ZMQPoller(Poller):
         self._internal_poller = zmq.Poller()
         self._sockets_map: Dict[zmq.Socket, ZMQSocket] = {}
 
-    def register(self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]) -> None:
+    def register(
+        self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]
+    ) -> None:
         if isinstance(socket, ZMQSocket):
             self._sockets_map[socket._internal_socket] = socket
             bitmask = _flags_to_bitmask(flags)
@@ -127,10 +141,14 @@ class ZMQPoller(Poller):
         else:
             raise ValueError(f"Socket not supported: {socket}")
 
-    def poll(self, timeout_in_ms: Optional[int] = None) -> Dict[Socket, Set[PollerFlag]]:
+    def poll(
+        self, timeout_in_ms: Optional[int] = None
+    ) -> Dict[Socket, Set[PollerFlag]]:
         poll_result = dict(self._internal_poller.poll(timeout_in_ms))
-        result = {self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)
-                  for zmq_socket, bitmask in poll_result.items()}
+        result = {
+            self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)
+            for zmq_socket, bitmask in poll_result.items()
+        }
         return result
 
 

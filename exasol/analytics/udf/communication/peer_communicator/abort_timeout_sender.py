@@ -19,19 +19,21 @@ class _States(IntFlag):
 
 
 class AbortTimeoutSender:
-    def __init__(self,
-                 my_connection_info: ConnectionInfo,
-                 peer: Peer,
-                 reason: str,
-                 out_control_socket: Socket,
-                 timer: Timer):
+    def __init__(
+        self,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        reason: str,
+        out_control_socket: Socket,
+        timer: Timer,
+    ):
         self._reason = reason
         self._timer = timer
         self._out_control_socket = out_control_socket
         self._states = _States.INIT
         self._logger = LOGGER.bind(
-            peer=peer.dict(),
-            my_connection_info=my_connection_info.dict())
+            peer=peer.dict(), my_connection_info=my_connection_info.dict()
+        )
 
     def stop(self):
         self._logger.info("stop")
@@ -61,17 +63,19 @@ class AbortTimeoutSender:
 
 
 class AbortTimeoutSenderFactory:
-    def create(self,
-               my_connection_info: ConnectionInfo,
-               peer: Peer,
-               reason: str,
-               out_control_socket: Socket,
-               timer: Timer) -> AbortTimeoutSender:
+    def create(
+        self,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        reason: str,
+        out_control_socket: Socket,
+        timer: Timer,
+    ) -> AbortTimeoutSender:
         abort_timeout_sender = AbortTimeoutSender(
             out_control_socket=out_control_socket,
             timer=timer,
             my_connection_info=my_connection_info,
             peer=peer,
-            reason=reason
+            reason=reason,
         )
         return abort_timeout_sender

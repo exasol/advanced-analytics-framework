@@ -1,9 +1,12 @@
-import pytest
-import pyexasol
-from typing import Any, Tuple, Callable
-from exasol.analytics.query_handler.deployment.scripts_deployer import ScriptsDeployer
-from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import     save_aaf_query_loop_lua_script
+from typing import Any, Callable, Tuple
 
+import pyexasol
+import pytest
+
+from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (
+    save_aaf_query_loop_lua_script,
+)
+from exasol.analytics.query_handler.deployment.scripts_deployer import ScriptsDeployer
 
 BUCKETFS_CONNECTION_NAME = "TEST_AAF_BFS_CONN"
 
@@ -28,10 +31,10 @@ def deployed_scripts(pyexasol_connection, itest_db_schema, language_alias) -> No
 
 @pytest.fixture(scope="module")
 def database_with_slc(
-        deployed_scripts,
-        itest_db_schema,
-        bucketfs_connection_factory,
-        deployed_slc,
+    deployed_scripts,
+    itest_db_schema,
+    bucketfs_connection_factory,
+    deployed_slc,
 ) -> Tuple[str, str]:
     bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     return BUCKETFS_CONNECTION_NAME, itest_db_schema

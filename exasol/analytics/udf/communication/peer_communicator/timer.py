@@ -3,9 +3,7 @@ from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 
 class Timer:
 
-    def __init__(self,
-                 clock: Clock,
-                 timeout_in_ms: int):
+    def __init__(self, clock: Clock, timeout_in_ms: int):
         self._timeout_in_ms = timeout_in_ms
         self._clock = clock
         self._last_send_timestamp_in_ms = clock.current_timestamp_in_ms()
@@ -21,7 +19,5 @@ class Timer:
 
 class TimerFactory:
 
-    def create(self,
-               clock: Clock,
-               timeout_in_ms: int):
+    def create(self, clock: Clock, timeout_in_ms: int):
         return Timer(clock=clock, timeout_in_ms=timeout_in_ms)

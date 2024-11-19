@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Union, List, Any, Tuple, Iterator
-from exasol.analytics.schema.column import \
-    Column
+from typing import Any, Iterator, List, Tuple, Union
+
+from exasol.analytics.schema.column import Column
 
 Row = Tuple[Any, ...]
 
@@ -33,8 +33,7 @@ class QueryResult(ABC):
         pass
 
     @abstractmethod
-    def fetch_as_dataframe(
-            self, num_rows: Union[str, int], start_col: int = 0):
+    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0):
         pass
 
     @abstractmethod

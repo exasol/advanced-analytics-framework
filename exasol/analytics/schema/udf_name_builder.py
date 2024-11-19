@@ -1,18 +1,16 @@
 from typing import Optional
 
-from exasol.analytics.schema import (
-    UDFNameImpl,
-    SchemaName,
-    UDFName,
-)
+from exasol.analytics.schema import SchemaName, UDFName, UDFNameImpl
 
 
 class UDFNameBuilder:
 
-    def __init__(self,
-                 name: Optional[str] = None,
-                 schema: Optional[SchemaName] = None,
-                 udf_name: Optional[UDFName] = None):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        schema: Optional[SchemaName] = None,
+        udf_name: Optional[UDFName] = None,
+    ):
         """
         Creates a builder for UDFName objects,
         either by copying a UDFName object (parameter "udf_name") or

@@ -1,14 +1,15 @@
 import json
 import os
-from pathlib import Path
-from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
 from datetime import datetime
+from pathlib import Path
 
 import nox
-from nox import Session
 
 # imports all nox task provided by the toolbox
 from exasol.toolbox.nox.tasks import *
+from nox import Session
+
+from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
 from noxconfig import ROOT_DIR
 
 # default actions to be run if nothing is explicitly specified with the -s option
@@ -54,7 +55,14 @@ def install_dev_env(session: Session):
 
 @nox.session(python=False)
 def amalgate_lua_scripts(session: Session):
-    script = ROOT_DIR / "exasol" / "analytics" / "query_handler" / "deployment" / "regenerate_scripts.py"
+    script = (
+        ROOT_DIR
+        / "exasol"
+        / "analytics"
+        / "query_handler"
+        / "deployment"
+        / "regenerate_scripts.py"
+    )
     _run_in_dev_env_poetry_call(session, "python", str(script))
 
 
@@ -71,10 +79,7 @@ def run_python_unit_tests(session: Session):
 
 
 def _generate_test_matrix_entry(test_file: Path):
-    return {
-        "name": str(test_file.name),
-        "path": str(test_file)
-    }
+    return {"name": str(test_file.name), "path": str(test_file)}
 
 
 def _generate_github_integration_tests_without_db_matrix() -> str:
@@ -94,7 +99,7 @@ def generate_github_integration_tests_without_db_matrix_json(session: Session):
 @nox.session(python=False)
 def write_github_integration_tests_without_db_matrix(session: Session):
     json_str = _generate_github_integration_tests_without_db_matrix()
-    github_output_definition = f'matrix={json_str}'
+    github_output_definition = f"matrix={json_str}"
     if "GITHUB_OUTPUT" in os.environ:
         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
             print(github_output_definition, file=fh)

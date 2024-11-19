@@ -1,7 +1,5 @@
-from exasol.analytics.schema import UDFName
-
-
 from exasol.analytics.query_handler.query.drop.interface import DropQuery
+from exasol.analytics.schema import UDFName
 
 
 class DropUDFQuery(DropQuery):

@@ -1,8 +1,10 @@
 import enum
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
-from exasol.analytics.query_handler.context.query_handler_context import QueryHandlerContext
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
+from exasol.analytics.query_handler.context.query_handler_context import (
+    QueryHandlerContext,
+)
 
 
 class Connection(ABC):
@@ -42,8 +44,11 @@ class ScopeQueryHandlerContext(QueryHandlerContext):
         pass
 
     @abstractmethod
-    def transfer_object_to(self, object_proxy: ObjectProxy,
-                           scope_query_handler_context: "ScopeQueryHandlerContext"):
+    def transfer_object_to(
+        self,
+        object_proxy: ObjectProxy,
+        scope_query_handler_context: "ScopeQueryHandlerContext",
+    ):
         """
         This function transfers the ownership of the object to a different context.
         That means, that the object isn't released if this context is released,

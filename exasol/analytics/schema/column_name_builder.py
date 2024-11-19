@@ -1,16 +1,15 @@
 from typing import Optional
 
-from exasol.analytics.schema import (
-    ColumnName,
-    TableLikeName,
-)
+from exasol.analytics.schema import ColumnName, TableLikeName
 
 
 class ColumnNameBuilder:
-    def __init__(self,
-                 name: Optional[str] = None,
-                 table_like_name: Optional[TableLikeName] = None,
-                 column_name: Optional[ColumnName] = None):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        table_like_name: Optional[TableLikeName] = None,
+        column_name: Optional[ColumnName] = None,
+    ):
         """
         Creates a builder for ColumnName objects,
         either by copying a ColumnName object or
@@ -30,7 +29,9 @@ class ColumnNameBuilder:
         self._name = name
         return self
 
-    def with_table_like_name(self, table_like_name: TableLikeName) -> "ColumnNameBuilder":
+    def with_table_like_name(
+        self, table_like_name: TableLikeName
+    ) -> "ColumnNameBuilder":
         self._table_like_name = table_like_name
         return self
 
@@ -39,5 +40,7 @@ class ColumnNameBuilder:
         return name
 
     @staticmethod
-    def create(name: str, table_like_name: Optional[TableLikeName] = None) -> ColumnName:
+    def create(
+        name: str, table_like_name: Optional[TableLikeName] = None
+    ) -> ColumnName:
         return ColumnName(name, table_like_name)

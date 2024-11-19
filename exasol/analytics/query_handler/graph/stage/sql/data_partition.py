@@ -1,10 +1,8 @@
 import dataclasses
 
-from exasol.analytics.schema import TableLike
-
-from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
-
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies
+from exasol.analytics.schema import TableLike
+from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
 @dataclasses.dataclass(frozen=True)
@@ -14,6 +12,7 @@ class DataPartition:
     the dependencies contain everything which is needed to execute the view, such as tables, udfs,
     connection objects, ....
     """
+
     table_like: TableLike
     dependencies: Dependencies = dataclasses.field(default_factory=dict)
     """

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 
 
@@ -11,5 +11,7 @@ class UDFQueryHandlerFactory(ABC):
     """
 
     @abstractmethod
-    def create(self, parameter: str, query_handler_context: ScopeQueryHandlerContext) -> UDFQueryHandler:
+    def create(
+        self, parameter: str, query_handler_context: ScopeQueryHandlerContext
+    ) -> UDFQueryHandler:
         """Creates a UDFQueryHandler"""

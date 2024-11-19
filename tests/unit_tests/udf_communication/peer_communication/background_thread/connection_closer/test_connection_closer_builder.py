@@ -1,23 +1,28 @@
 import dataclasses
-from typing import Union, List
-from unittest.mock import MagicMock, Mock, create_autospec, call
+from typing import List, Union
+from unittest.mock import MagicMock, Mock, call, create_autospec
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import IPAddress, Port
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
-    AbortTimeoutSenderFactory
-from exasol.analytics.udf.communication.peer_communicator. \
-    background_thread.connection_closer.close_connection_sender import \
-    CloseConnectionSenderFactory
-from exasol.analytics.udf.communication.peer_communicator. \
-    background_thread.connection_closer.connection_closer_builder import ConnectionCloserBuilder
-from exasol.analytics.udf.communication.peer_communicator. \
-    background_thread.connection_closer.connection_closer_factory import ConnectionCloserFactory
-from exasol.analytics.udf.communication.peer_communicator. \
-    background_thread.connection_closer.connection_closer_timeout_config import ConnectionCloserTimeoutConfig
-from exasol.analytics.udf.communication.peer_communicator. \
-    background_thread.connection_closer.connection_is_closed_sender import ConnectionIsClosedSenderFactory
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import (
+    AbortTimeoutSenderFactory,
+)
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.close_connection_sender import (
+    CloseConnectionSenderFactory,
+)
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.connection_closer_builder import (
+    ConnectionCloserBuilder,
+)
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.connection_closer_factory import (
+    ConnectionCloserFactory,
+)
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.connection_closer_timeout_config import (
+    ConnectionCloserTimeoutConfig,
+)
+from exasol.analytics.udf.communication.peer_communicator.background_thread.connection_closer.connection_is_closed_sender import (
+    ConnectionIsClosedSenderFactory,
+)
 from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.peer_communicator.timer import TimerFactory
@@ -34,7 +39,9 @@ class TestSetup:
     clock_mock: Union[MagicMock, Clock]
     timeout_config: ConnectionCloserTimeoutConfig
     abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory]
-    connection_is_closed_sender_factory_mock: Union[MagicMock, ConnectionIsClosedSenderFactory]
+    connection_is_closed_sender_factory_mock: Union[
+        MagicMock, ConnectionIsClosedSenderFactory
+    ]
     close_connection_sender_factory_mock: Union[MagicMock, CloseConnectionSenderFactory]
     timer_factory_mock: Union[MagicMock, TimerFactory]
     timer_mocks: List[Mock]
@@ -59,20 +66,24 @@ def create_test_setup() -> TestSetup:
             name="t1",
             ipaddress=IPAddress(ip_address="127.0.0.1"),
             port=Port(port=11),
-            group_identifier="g"
-        ))
+            group_identifier="g",
+        )
+    )
     my_connection_info = ConnectionInfo(
         name="t0",
         ipaddress=IPAddress(ip_address="127.0.0.1"),
         port=Port(port=10),
-        group_identifier="g"
+        group_identifier="g",
     )
-    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory] = create_autospec(
-        AbortTimeoutSenderFactory)
-    conncection_is_ready_sender_factory_mock: Union[MagicMock, ConnectionIsClosedSenderFactory] = create_autospec(
-        ConnectionIsClosedSenderFactory)
-    close_connection_sender_factory_mock: Union[MagicMock, CloseConnectionSenderFactory] = create_autospec(
-        CloseConnectionSenderFactory)
+    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory] = (
+        create_autospec(AbortTimeoutSenderFactory)
+    )
+    conncection_is_ready_sender_factory_mock: Union[
+        MagicMock, ConnectionIsClosedSenderFactory
+    ] = create_autospec(ConnectionIsClosedSenderFactory)
+    close_connection_sender_factory_mock: Union[
+        MagicMock, CloseConnectionSenderFactory
+    ] = create_autospec(CloseConnectionSenderFactory)
     timer_factory_mock: Union[MagicMock, TimerFactory] = create_autospec(TimerFactory)
     timer_mocks = [Mock(), Mock(), Mock(), Mock(), Mock()]
     mock_cast(timer_factory_mock.create).side_effect = timer_mocks
@@ -84,14 +95,15 @@ def create_test_setup() -> TestSetup:
         close_retry_timeout_in_ms=2,
         connection_is_closed_wait_time_in_ms=3,
     )
-    connection_closer_factory_mock: Union[MagicMock, ConnectionCloserFactory] = \
+    connection_closer_factory_mock: Union[MagicMock, ConnectionCloserFactory] = (
         create_autospec(ConnectionCloserFactory)
+    )
     connection_closer_builder = ConnectionCloserBuilder(
         abort_timeout_sender_factory=abort_timeout_sender_factory_mock,
         connection_is_closed_sender_factory=conncection_is_ready_sender_factory_mock,
         close_connection_sender_factory=close_connection_sender_factory_mock,
         timer_factory=timer_factory_mock,
-        connection_closer_factory=connection_closer_factory_mock
+        connection_closer_factory=connection_closer_factory_mock,
     )
     return TestSetup(
         connection_closer_builder=connection_closer_builder,
@@ -106,7 +118,7 @@ def create_test_setup() -> TestSetup:
         timer_factory_mock=timer_factory_mock,
         timer_mocks=timer_mocks,
         sender_mock=sender_mock,
-        timeout_config=timeout_config
+        timeout_config=timeout_config,
     )
 
 
@@ -114,8 +126,12 @@ def test_init():
     test_setup = create_test_setup()
     mock_cast(test_setup.timer_factory_mock.create).assert_not_called()
     mock_cast(test_setup.abort_timeout_sender_factory_mock.create).assert_not_called()
-    mock_cast(test_setup.close_connection_sender_factory_mock.create).assert_not_called()
-    mock_cast(test_setup.connection_is_closed_sender_factory_mock.create).assert_not_called()
+    mock_cast(
+        test_setup.close_connection_sender_factory_mock.create
+    ).assert_not_called()
+    mock_cast(
+        test_setup.connection_is_closed_sender_factory_mock.create
+    ).assert_not_called()
     mock_cast(test_setup.connection_closer_factory_mock.create).assert_not_called()
 
 
@@ -128,7 +144,7 @@ def test_create():
         clock=test_setup.clock_mock,
         out_control_socket=test_setup.out_control_socket_mock,
         peer=test_setup.peer,
-        timeout_config=test_setup.timeout_config
+        timeout_config=test_setup.timeout_config,
     )
     assert_timer_factory(test_setup)
     test_setup.sender_mock.assert_not_called()
@@ -141,7 +157,9 @@ def test_create():
 
 
 def assert_connection_is_closed_sender_factory_mock(test_setup):
-    mock_cast(test_setup.connection_is_closed_sender_factory_mock.create).assert_called_once_with(
+    mock_cast(
+        test_setup.connection_is_closed_sender_factory_mock.create
+    ).assert_called_once_with(
         my_connection_info=test_setup.my_connection_info,
         peer=test_setup.peer,
         out_control_socket=test_setup.out_control_socket_mock,
@@ -150,21 +168,25 @@ def assert_connection_is_closed_sender_factory_mock(test_setup):
 
 
 def assert_abort_timeout_sender_factory_mock(test_setup):
-    mock_cast(test_setup.abort_timeout_sender_factory_mock.create).assert_called_once_with(
+    mock_cast(
+        test_setup.abort_timeout_sender_factory_mock.create
+    ).assert_called_once_with(
         my_connection_info=test_setup.my_connection_info,
         peer=test_setup.peer,
         out_control_socket=test_setup.out_control_socket_mock,
         timer=test_setup.timer_mocks[1],
-        reason='Timeout occurred during establishing connection.'
+        reason="Timeout occurred during establishing connection.",
     )
 
 
 def assert_close_connection_sender_factory_mock(test_setup):
-    mock_cast(test_setup.close_connection_sender_factory_mock.create).assert_called_once_with(
+    mock_cast(
+        test_setup.close_connection_sender_factory_mock.create
+    ).assert_called_once_with(
         my_connection_info=test_setup.my_connection_info,
         peer=test_setup.peer,
         sender=test_setup.sender_mock,
-        timer=test_setup.timer_mocks[0]
+        timer=test_setup.timer_mocks[0],
     )
 
 
@@ -174,14 +196,19 @@ def assert_timer_mocks(test_setup):
 
 
 def assert_timer_factory(test_setup):
-    test_setup.timer_factory_mock.assert_has_calls([
-        call.create(
-            clock=test_setup.clock_mock,
-            timeout_in_ms=test_setup.timeout_config.close_retry_timeout_in_ms),
-        call.create(
-            clock=test_setup.clock_mock,
-            timeout_in_ms=test_setup.timeout_config.abort_timeout_in_ms),
-        call.create(
-            clock=test_setup.clock_mock,
-            timeout_in_ms=test_setup.timeout_config.connection_is_closed_wait_time_in_ms),
-    ])
+    test_setup.timer_factory_mock.assert_has_calls(
+        [
+            call.create(
+                clock=test_setup.clock_mock,
+                timeout_in_ms=test_setup.timeout_config.close_retry_timeout_in_ms,
+            ),
+            call.create(
+                clock=test_setup.clock_mock,
+                timeout_in_ms=test_setup.timeout_config.abort_timeout_in_ms,
+            ),
+            call.create(
+                clock=test_setup.clock_mock,
+                timeout_in_ms=test_setup.timeout_config.connection_is_closed_wait_time_in_ms,
+            ),
+        ]
+    )

@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Dict
+from typing import Dict, List
 
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 
@@ -30,7 +30,9 @@ def test_object_with_list_equal():
 
 
 def test_object_with_list_different_values_not_equal():
-    test1 = ObjectWithList(test=[HashableTestObject(1), HashableTestObject(2), HashableTestObject(3)])
+    test1 = ObjectWithList(
+        test=[HashableTestObject(1), HashableTestObject(2), HashableTestObject(3)]
+    )
     test2 = ObjectWithList(test=[HashableTestObject(1), HashableTestObject(2)])
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)
@@ -38,8 +40,12 @@ def test_object_with_list_different_values_not_equal():
 
 
 def test_object_with_list_different_order_not_equal():
-    test1 = ObjectWithList(test=[HashableTestObject(1), HashableTestObject(2), HashableTestObject(3)])
-    test2 = ObjectWithList(test=[HashableTestObject(3), HashableTestObject(1), HashableTestObject(2)])
+    test1 = ObjectWithList(
+        test=[HashableTestObject(1), HashableTestObject(2), HashableTestObject(3)]
+    )
+    test2 = ObjectWithList(
+        test=[HashableTestObject(3), HashableTestObject(1), HashableTestObject(2)]
+    )
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)
     assert result1 != result2
@@ -52,16 +58,24 @@ class ObjectWithMutlipleAttributes:
 
 
 def test_object_with_multiple_attributes_equal():
-    test1 = ObjectWithMutlipleAttributes(test1=HashableTestObject(1), test2=HashableTestObject(2))
-    test2 = ObjectWithMutlipleAttributes(test1=HashableTestObject(1), test2=HashableTestObject(2))
+    test1 = ObjectWithMutlipleAttributes(
+        test1=HashableTestObject(1), test2=HashableTestObject(2)
+    )
+    test2 = ObjectWithMutlipleAttributes(
+        test1=HashableTestObject(1), test2=HashableTestObject(2)
+    )
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)
     assert result1 == result2
 
 
 def test_object_with_multiple_attributes_not_equal():
-    test1 = ObjectWithMutlipleAttributes(test1=HashableTestObject(1), test2=HashableTestObject(2))
-    test2 = ObjectWithMutlipleAttributes(test1=HashableTestObject(1), test2=HashableTestObject(3))
+    test1 = ObjectWithMutlipleAttributes(
+        test1=HashableTestObject(1), test2=HashableTestObject(2)
+    )
+    test2 = ObjectWithMutlipleAttributes(
+        test1=HashableTestObject(1), test2=HashableTestObject(3)
+    )
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)
     assert result1 != result2
@@ -73,10 +87,18 @@ class ObjectWithDict:
 
 
 def test_object_with_dict_equal():
-    test1 = ObjectWithDict(test={HashableTestObject(1): HashableTestObject(1),
-                                 HashableTestObject(2): HashableTestObject(2)})
-    test2 = ObjectWithDict(test={HashableTestObject(1): HashableTestObject(1),
-                                 HashableTestObject(2): HashableTestObject(2)})
+    test1 = ObjectWithDict(
+        test={
+            HashableTestObject(1): HashableTestObject(1),
+            HashableTestObject(2): HashableTestObject(2),
+        }
+    )
+    test2 = ObjectWithDict(
+        test={
+            HashableTestObject(1): HashableTestObject(1),
+            HashableTestObject(2): HashableTestObject(2),
+        }
+    )
 
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)
@@ -84,8 +106,12 @@ def test_object_with_dict_equal():
 
 
 def test_object_with_dict_different_values_not_equal():
-    test1 = ObjectWithDict(test={HashableTestObject(1): HashableTestObject(1),
-                                 HashableTestObject(2): HashableTestObject(2)})
+    test1 = ObjectWithDict(
+        test={
+            HashableTestObject(1): HashableTestObject(1),
+            HashableTestObject(2): HashableTestObject(2),
+        }
+    )
     test2 = ObjectWithDict(test={HashableTestObject(1): HashableTestObject(1)})
 
     result1 = generate_hash_for_object(test1)
@@ -94,10 +120,18 @@ def test_object_with_dict_different_values_not_equal():
 
 
 def test_object_with_dict_different_order_not_equal():
-    test1 = ObjectWithDict(test={HashableTestObject(1): HashableTestObject(1),
-                                 HashableTestObject(2): HashableTestObject(2)})
-    test2 = ObjectWithDict(test={HashableTestObject(2): HashableTestObject(2),
-                                 HashableTestObject(1): HashableTestObject(1)})
+    test1 = ObjectWithDict(
+        test={
+            HashableTestObject(1): HashableTestObject(1),
+            HashableTestObject(2): HashableTestObject(2),
+        }
+    )
+    test2 = ObjectWithDict(
+        test={
+            HashableTestObject(2): HashableTestObject(2),
+            HashableTestObject(1): HashableTestObject(1),
+        }
+    )
 
     result1 = generate_hash_for_object(test1)
     result2 = generate_hash_for_object(test2)

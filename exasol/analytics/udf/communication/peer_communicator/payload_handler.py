@@ -1,15 +1,19 @@
 from typing import List
 
 from exasol.analytics.udf.communication import messages
-from exasol.analytics.udf.communication.peer_communicator.payload_receiver import PayloadReceiver
-from exasol.analytics.udf.communication.peer_communicator.payload_sender import PayloadSender
+from exasol.analytics.udf.communication.peer_communicator.payload_receiver import (
+    PayloadReceiver,
+)
+from exasol.analytics.udf.communication.peer_communicator.payload_sender import (
+    PayloadSender,
+)
 from exasol.analytics.udf.communication.socket_factory.abstract import Frame
 
 
 class PayloadHandler:
-    def __init__(self,
-                 payload_sender: PayloadSender,
-                 payload_receiver: PayloadReceiver):
+    def __init__(
+        self, payload_sender: PayloadSender, payload_receiver: PayloadReceiver
+    ):
         self._payload_receiver = payload_receiver
         self._payload_sender = payload_sender
 

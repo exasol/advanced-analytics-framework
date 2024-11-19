@@ -1,12 +1,12 @@
 import pytest
+from exasol.python_extension_common.deployment.language_container_builder import (
+    LanguageContainerBuilder,
+    find_path_backwards,
+)
 
 from exasol.analytics.query_handler.deployment.slc import (
-    custom_slc_builder,
     LANGUAGE_ALIAS,
-)
-from exasol.python_extension_common.deployment.language_container_builder import (
-    find_path_backwards,
-    LanguageContainerBuilder,
+    custom_slc_builder,
 )
 
 

@@ -1,8 +1,14 @@
-import pytest
 import exasol.bucketfs as bfs
+import pytest
 
-from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext, Connection
-from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext, ConnectionLookup
+from exasol.analytics.query_handler.context.scope import (
+    Connection,
+    ScopeQueryHandlerContext,
+)
+from exasol.analytics.query_handler.context.top_level_query_handler_context import (
+    ConnectionLookup,
+    TopLevelQueryHandlerContext,
+)
 
 PREFIX = "PREFIX"
 
@@ -72,10 +78,11 @@ def mocked_temporary_bucketfs_location(tmp_path):
 
 @pytest.fixture
 def top_level_query_handler_context_mock(
-        sample_bucketfs_location: bfs.path.PathLike,
-        tmp_db_obj_prefix: str,
-        aaf_pytest_db_schema: str,
-        connection_lookup_mock: ConnectionLookup) -> TopLevelQueryHandlerContext:
+    sample_bucketfs_location: bfs.path.PathLike,
+    tmp_db_obj_prefix: str,
+    aaf_pytest_db_schema: str,
+    connection_lookup_mock: ConnectionLookup,
+) -> TopLevelQueryHandlerContext:
     query_handler_context = TopLevelQueryHandlerContext(
         temporary_bucketfs_location=sample_bucketfs_location,
         temporary_db_object_name_prefix=tmp_db_obj_prefix,
@@ -87,8 +94,8 @@ def top_level_query_handler_context_mock(
 
 @pytest.fixture(params=["top", "child"])
 def scope_query_handler_context_mock(
-        top_level_query_handler_context_mock: TopLevelQueryHandlerContext,
-        request) -> ScopeQueryHandlerContext:
+    top_level_query_handler_context_mock: TopLevelQueryHandlerContext, request
+) -> ScopeQueryHandlerContext:
     if request.param == "top":
         return top_level_query_handler_context_mock
     else:

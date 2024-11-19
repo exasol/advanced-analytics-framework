@@ -1,4 +1,4 @@
-from exasol.analytics.query_handler.udf.runner.udf     import QueryHandlerRunnerUDF
+from exasol.analytics.query_handler.udf.runner.udf import QueryHandlerRunnerUDF
 
 udf = QueryHandlerRunnerUDF(exa)
 

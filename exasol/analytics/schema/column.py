@@ -2,10 +2,7 @@ import dataclasses
 
 import typeguard
 
-from exasol.analytics.schema import (
-    ColumnType,
-    ColumnName,
-)
+from exasol.analytics.schema import ColumnName, ColumnType
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 

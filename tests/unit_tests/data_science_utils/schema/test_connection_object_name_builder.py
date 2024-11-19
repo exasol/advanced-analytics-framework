@@ -1,10 +1,10 @@
 import pytest
 
 from exasol.analytics.schema import (
-    TableNameImpl,
-    ConnectionObjectNameBuilder,
     ColumnName,
     ColumnNameBuilder,
+    ConnectionObjectNameBuilder,
+    TableNameImpl,
 )
 
 

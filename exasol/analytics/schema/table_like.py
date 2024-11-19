@@ -1,17 +1,13 @@
 from abc import ABC
-from typing import List, TypeVar, Generic
+from typing import Generic, List, TypeVar
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import (
-    Column,
-    DBObject,
-    TableLikeName,
-)
+from exasol.analytics.schema import Column, DBObject, TableLikeName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
 
-NameType = TypeVar('NameType', bound=TableLikeName)
+NameType = TypeVar("NameType", bound=TableLikeName)
 
 
 class TableLike(DBObject[NameType], ABC):
@@ -20,7 +16,7 @@ class TableLike(DBObject[NameType], ABC):
     def __init__(self, name: NameType, columns: List[Column]):
         super().__init__(name)
         self._columns = columns
-        if len(self._columns)==0:
+        if len(self._columns) == 0:
             raise ValueError("At least one column needed.")
         unique_column_names = {column.name for column in self.columns}
         if len(unique_column_names) != len(columns):
@@ -31,8 +27,7 @@ class TableLike(DBObject[NameType], ABC):
         return list(self._columns)
 
     def __eq__(self, other):
-        return super().__eq__(other) and \
-               self._columns == other.columns
+        return super().__eq__(other) and self._columns == other.columns
 
     def __hash__(self):
         return generate_hash_for_object(self)

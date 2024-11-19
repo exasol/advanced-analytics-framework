@@ -1,7 +1,7 @@
-import sys
 import importlib
-from typing import Any
+import sys
 from types import ModuleType
+from typing import Any
 
 
 def _create_module(name: str) -> ModuleType:
@@ -11,7 +11,6 @@ def _create_module(name: str) -> ModuleType:
 
 def _register_module_for_import(name: str, mod: ModuleType):
     sys.modules[name] = mod
-
 
 
 class ModuleExistsException(Exception):

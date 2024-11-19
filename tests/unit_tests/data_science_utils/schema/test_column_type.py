@@ -1,24 +1,26 @@
 import pytest
+from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
-    SchemaName,
-    TableNameBuilder,
     ColumnName,
     ColumnType,
+    SchemaName,
+    TableNameBuilder,
     TableNameImpl,
 )
-from typeguard import TypeCheckError
 
 
 def test_correct_types():
-    ColumnType(name="COLUMN",
-               precision=0,
-               scale=0,
-               size=0,
-               characterSet="UTF-8",
-               withLocalTimeZone=True,
-               fraction=0,
-               srid=0)
+    ColumnType(
+        name="COLUMN",
+        precision=0,
+        scale=0,
+        size=0,
+        characterSet="UTF-8",
+        withLocalTimeZone=True,
+        fraction=0,
+        srid=0,
+    )
 
 
 def test_optionals():
@@ -71,22 +73,26 @@ def test_srid_wrong_type():
 
 
 def test_equality():
-    column1 = ColumnType(name="COLUMN",
-                         precision=0,
-                         scale=0,
-                         size=0,
-                         characterSet="UTF-8",
-                         withLocalTimeZone=True,
-                         fraction=0,
-                         srid=0)
-    column2 = ColumnType(name="COLUMN",
-                         precision=0,
-                         scale=0,
-                         size=0,
-                         characterSet="UTF-8",
-                         withLocalTimeZone=True,
-                         fraction=0,
-                         srid=0)
+    column1 = ColumnType(
+        name="COLUMN",
+        precision=0,
+        scale=0,
+        size=0,
+        characterSet="UTF-8",
+        withLocalTimeZone=True,
+        fraction=0,
+        srid=0,
+    )
+    column2 = ColumnType(
+        name="COLUMN",
+        precision=0,
+        scale=0,
+        size=0,
+        characterSet="UTF-8",
+        withLocalTimeZone=True,
+        fraction=0,
+        srid=0,
+    )
     assert column1 == column2
 
 
@@ -116,7 +122,10 @@ def test_inequality_size():
 
 def test_inequality_characterSet():
     column1 = ColumnType(name="COLUMN", characterSet="UTF-8")
-    column2 = ColumnType(name="COLUMN", characterSet="ASCII", )
+    column2 = ColumnType(
+        name="COLUMN",
+        characterSet="ASCII",
+    )
     assert column1 != column2
 
 
@@ -139,22 +148,26 @@ def test_inequality_srid():
 
 
 def test_hash_equality():
-    column1 = ColumnType(name="COLUMN",
-                         precision=0,
-                         scale=0,
-                         size=0,
-                         characterSet="UTF-8",
-                         withLocalTimeZone=True,
-                         fraction=0,
-                         srid=0)
-    column2 = ColumnType(name="COLUMN",
-                         precision=0,
-                         scale=0,
-                         size=0,
-                         characterSet="UTF-8",
-                         withLocalTimeZone=True,
-                         fraction=0,
-                         srid=0)
+    column1 = ColumnType(
+        name="COLUMN",
+        precision=0,
+        scale=0,
+        size=0,
+        characterSet="UTF-8",
+        withLocalTimeZone=True,
+        fraction=0,
+        srid=0,
+    )
+    column2 = ColumnType(
+        name="COLUMN",
+        precision=0,
+        scale=0,
+        size=0,
+        characterSet="UTF-8",
+        withLocalTimeZone=True,
+        fraction=0,
+        srid=0,
+    )
     assert hash(column1) == hash(column2)
 
 
@@ -184,7 +197,10 @@ def test_hash_inequality_size():
 
 def test_hash_inequality_characterSet():
     column1 = ColumnType(name="COLUMN", characterSet="UTF-8")
-    column2 = ColumnType(name="COLUMN", characterSet="ASCII", )
+    column2 = ColumnType(
+        name="COLUMN",
+        characterSet="ASCII",
+    )
     assert hash(column1) != hash(column2)
 
 

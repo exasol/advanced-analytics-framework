@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any, Union, Optional, Iterator
+from typing import Any, Iterator, List, Optional, Tuple, Union
 
 import pandas as pd
 from exasol_udf_mock_python.column import Column
@@ -42,10 +42,14 @@ class PythonQueryResult(QueryResult):
         self._columns = columns
         self._data = data
         self._iter = iter(data)
-        self._column_name_index_mapping = {column.name.name: index for index, column in enumerate(columns)}
+        self._column_name_index_mapping = {
+            column.name.name: index for index, column in enumerate(columns)
+        }
         self._next()
 
-    def fetch_as_dataframe(self, num_rows: Union[int, str], start_col=0) -> Optional[pd.DataFrame]:
+    def fetch_as_dataframe(
+        self, num_rows: Union[int, str], start_col=0
+    ) -> Optional[pd.DataFrame]:
         batch_list = []
         if num_rows == "all":
             num_rows = len(self._data)
@@ -59,8 +63,9 @@ class PythonQueryResult(QueryResult):
                 break
         self._next()
         if len(batch_list) > 0:
-            df = pd.DataFrame(data=batch_list,
-                              columns=[column.name.name for column in self._columns])  # TODO dtype
+            df = pd.DataFrame(
+                data=batch_list, columns=[column.name.name for column in self._columns]
+            )  # TODO dtype
             df = df.iloc[:, start_col:]
             return df
         else:

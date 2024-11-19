@@ -1,4 +1,4 @@
-from typing import Union, List, Set, Optional, Dict, cast
+from typing import Dict, List, Optional, Set, Union, cast
 from warnings import warn
 
 import structlog
@@ -28,15 +28,18 @@ def _is_address_inproc(address):
 
 class Socket(abstract.Socket):
 
-    def __init__(self, internal_socket: abstract.Socket, send_fault_probability: float,
-                 random_state: RandomState):
+    def __init__(
+        self,
+        internal_socket: abstract.Socket,
+        send_fault_probability: float,
+        random_state: RandomState,
+    ):
         self._random_state = random_state
         if not (0 <= send_fault_probability < 1):
             raise ValueError(
-                f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}.")
-        self._logger = LOGGER.bind(
-            socket=str(self)
-        )
+                f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}."
+            )
+        self._logger = LOGGER.bind(socket=str(self))
         self._send_fault_probability = send_fault_probability
         self._internal_socket = internal_socket
         self._is_inproc = False
@@ -87,10 +90,11 @@ class Socket(abstract.Socket):
         self._is_inproc = _is_address_inproc(address)
         self._internal_socket.connect(address)
 
-    def poll(self,
-             flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]],
-             timeout_in_ms: Optional[int] = None) \
-            -> Optional[Set[abstract.PollerFlag]]:
+    def poll(
+        self,
+        flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]],
+        timeout_in_ms: Optional[int] = None,
+    ) -> Optional[Set[abstract.PollerFlag]]:
         return self._internal_socket.poll(flags, timeout_in_ms)
 
     def close(self, linger=None):
@@ -126,16 +130,20 @@ class Poller(abstract.Poller):
         self._internal_poller = internal_poller
         self._socket_map = {}
 
-    def register(self, socket: abstract.Socket,
-                 flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]]) -> None:
+    def register(
+        self,
+        socket: abstract.Socket,
+        flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]],
+    ) -> None:
         if not isinstance(socket, Socket):
             raise TypeError(f"Socket type not supported {socket}")
         internal_socket = cast(Socket, socket)._internal_socket
         self._socket_map[internal_socket] = socket
         self._internal_poller.register(internal_socket, flags)
 
-    def poll(self, timeout_in_ms: Optional[int] = None) \
-            -> Dict[abstract.Socket, Set[abstract.PollerFlag]]:
+    def poll(
+        self, timeout_in_ms: Optional[int] = None
+    ) -> Dict[abstract.Socket, Set[abstract.PollerFlag]]:
         poll_result = self._internal_poller.poll(timeout_in_ms)
         return {
             self._socket_map[internal_socket]: flags
@@ -145,18 +153,26 @@ class Poller(abstract.Poller):
 
 class FaultInjectionSocketFactory(abstract.SocketFactory):
 
-    def __init__(self, socket_factory: abstract.SocketFactory, send_fault_probability: float,
-                 random_state: RandomState):
+    def __init__(
+        self,
+        socket_factory: abstract.SocketFactory,
+        send_fault_probability: float,
+        random_state: RandomState,
+    ):
         if not (0 <= send_fault_probability < 1):
             raise ValueError(
-                f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}.")
+                f"send_fault_probability needs to be between 0 and 1 (exclusive) was {send_fault_probability}."
+            )
         self._send_fault_probability = send_fault_probability
         self._random_state = random_state
         self._socket_factory = socket_factory
 
     def create_socket(self, socket_type: abstract.SocketType) -> abstract.Socket:
-        return Socket(self._socket_factory.create_socket(socket_type), self._send_fault_probability,
-                      self._random_state)
+        return Socket(
+            self._socket_factory.create_socket(socket_type),
+            self._send_fault_probability,
+            self._random_state,
+        )
 
     def create_frame(self, message_part: bytes) -> abstract.Frame:
         return Frame(self._socket_factory.create_frame(message_part))

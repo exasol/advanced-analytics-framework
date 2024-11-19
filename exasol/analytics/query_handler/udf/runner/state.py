@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from exasol.analytics.schema.column import \
-    Column
-
-from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext
-from exasol.analytics.query_handler.query_handler     import QueryHandler
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.top_level_query_handler_context import (
+    TopLevelQueryHandlerContext,
+)
+from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.udf.connection_lookup import UDFConnectionLookup
+from exasol.analytics.schema.column import Column
 
 
 @dataclass()

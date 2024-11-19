@@ -1,48 +1,59 @@
 import re
+from inspect import cleandoc
 from pathlib import PurePosixPath
 from typing import List, Union
-from inspect import cleandoc
 
 import pytest
-from exasol.analytics.schema import (
-    Column,
-    ColumnType,
-    ColumnName,
-)
-from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
-from exasol.analytics.sql_executor.testing.mock_sql_executor import MockSQLExecutor, ExpectedQuery
 
-from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext
-from exasol.analytics.query_handler.context.top_level_query_handler_context import     TopLevelQueryHandlerContext
-from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition,     SelectQuery
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.context.top_level_query_handler_context import (
+    TopLevelQueryHandlerContext,
+)
+from exasol.analytics.query_handler.python_query_handler_runner import (
+    PythonQueryHandlerRunner,
+)
+from exasol.analytics.query_handler.query.result.interface import QueryResult
+from exasol.analytics.query_handler.query.select import (
+    SelectQuery,
+    SelectQueryWithColumnDefinition,
+)
 from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
-from exasol.analytics.query_handler.query.result.interface import QueryResult
-from exasol.analytics.query_handler.python_query_handler_runner import PythonQueryHandlerRunner
+from exasol.analytics.schema import Column, ColumnName, ColumnType
+from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
+from exasol.analytics.sql_executor.testing.mock_sql_executor import (
+    ExpectedQuery,
+    MockSQLExecutor,
+)
 
 EXPECTED_EXCEPTION = "ExpectedException"
 
 
-def expect_query(template: str, result_set = MockResultSet()):
+def expect_query(template: str, result_set=MockResultSet()):
     return [template, result_set]
 
 
 def create_sql_executor_1(schema: str, *args):
-    return MockSQLExecutor([
-        ExpectedQuery(
-            cleandoc(template.format(schema=schema)),
-            result_set or MockResultSet()
-        ) for template, result_set in args
-    ])
+    return MockSQLExecutor(
+        [
+            ExpectedQuery(
+                cleandoc(template.format(schema=schema)), result_set or MockResultSet()
+            )
+            for template, result_set in args
+        ]
+    )
 
 
 def create_sql_executor(schema: str, prefix: str, *args):
-    return MockSQLExecutor([
-        ExpectedQuery(
-            cleandoc(template.format(schema=schema, prefix=prefix)),
-            result_set or MockResultSet()
-        ) for template, result_set in args
-    ])
+    return MockSQLExecutor(
+        [
+            ExpectedQuery(
+                cleandoc(template.format(schema=schema, prefix=prefix)),
+                result_set or MockResultSet(),
+            )
+            for template, result_set in args
+        ]
+    )
 
 
 @pytest.fixture()
@@ -61,19 +72,24 @@ class TestInput:
 
 class TestOutput:
     __test__ = False
+
     def __init__(self, test_input: TestInput):
         self.test_input = test_input
 
 
 class StartFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         return Finish[TestOutput](TestOutput(self._parameter))
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         pass
 
 
@@ -88,7 +104,7 @@ def test_start_finish(context_mock):
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=StartFinishTestQueryHandler
+        query_handler_factory=StartFinishTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
@@ -96,7 +112,9 @@ def test_start_finish(context_mock):
 
 class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
@@ -104,7 +122,9 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
         self._query_handler_context.get_temporary_table_name()
         return Finish[TestOutput](TestOutput(self._parameter))
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         pass
 
 
@@ -117,23 +137,24 @@ def test_start_finish_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            'DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'
-        ))
+        expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'),
+    )
 
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=StartFinishCleanupQueriesTestQueryHandler
+        query_handler_factory=StartFinishCleanupQueriesTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
 
 
 class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
@@ -141,7 +162,9 @@ class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutpu
         self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         pass
 
 
@@ -154,16 +177,15 @@ def test_start_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock)
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            'DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'
-        ))
+        expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_1";'),
+    )
 
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=StartErrorCleanupQueriesTestQueryHandler
+        query_handler_factory=StartErrorCleanupQueriesTestQueryHandler,
     )
     with pytest.raises(Exception, match="Execution of query handler .* failed.") as ex:
         test_output = query_handler_runner.run()
@@ -171,20 +193,23 @@ def test_start_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mock)
 
 
 class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
-                                                      [Column(ColumnName("a"),
-                                                              ColumnType(name="DECIMAL",
-                                                                         precision=1,
-                                                                         scale=0))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {column_name.quoted_name}""",
+            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+        )
         return Continue(query_list=[], input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         if query_result.a != 1:
             raise AssertionError(f"query_result.a != 1, got {query_result.a}")
         return Finish[TestOutput](TestOutput(self._parameter))
@@ -214,12 +239,15 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
     )
 
     test_input = TestInput()
@@ -227,23 +255,29 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueFinishTestQueryHandler
+        query_handler_factory=ContinueFinishTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
 
 
 class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {ColumnName("b").quoted_name}""",
-                                                      [Column(ColumnName("a"), ColumnType("INTEGER"))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {ColumnName("b").quoted_name}""",
+            [Column(ColumnName("a"), ColumnType("INTEGER"))],
+        )
         return Continue(query_list=[], input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         raise AssertionError("handle_query_result shouldn't be called")
 
 
@@ -271,19 +305,22 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("b"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("b"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueWrongColumnsTestQueryHandler
+        query_handler_factory=ContinueWrongColumnsTestQueryHandler,
     )
     with pytest.raises(RuntimeError) as exception:
         test_output = query_handler_runner.run()
@@ -291,21 +328,24 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, prefix, context_mock):
 
 
 class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
-                                                      [Column(ColumnName("a"),
-                                                              ColumnType(name="DECIMAL",
-                                                                         precision=1,
-                                                                         scale=0))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {column_name.quoted_name}""",
+            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+        )
         query_list = [SelectQuery(query_string="SELECT 1")]
         return Continue(query_list=query_list, input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         return Finish[TestOutput](TestOutput(self._parameter))
 
 
@@ -327,8 +367,13 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
         expect_query(
             """
@@ -338,39 +383,45 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueQueryListTestQueryHandler
+        query_handler_factory=ContinueQueryListTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
 
 
 class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
-                                                      [Column(ColumnName("a"),
-                                                              ColumnType(name="DECIMAL",
-                                                                         precision=1,
-                                                                         scale=0))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {column_name.quoted_name}""",
+            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+        )
         return Continue(query_list=[], input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
@@ -389,7 +440,8 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
             """
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
-            """),
+            """
+        ),
         expect_query(
             """
             SELECT
@@ -398,8 +450,13 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
         expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_3";'),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
@@ -409,7 +466,7 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueErrorCleanupQueriesTestQueryHandler
+        query_handler_factory=ContinueErrorCleanupQueriesTestQueryHandler,
     )
     with pytest.raises(Exception, match="Execution of query handler .* failed."):
         test_output = query_handler_runner.run()
@@ -417,7 +474,9 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
 
 class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
         self._iter = 0
@@ -426,22 +485,25 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(
             f"""SELECT 1 as {column_name.quoted_name}""",
-            [Column(ColumnName("a"),
-                    ColumnType(name="DECIMAL",
-                               precision=1,
-                               scale=0))])
+            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+        )
         return Continue(query_list=[], input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         if self._iter == 0:
             self._iter += 1
             column_name = ColumnName("b")
             input_query = SelectQueryWithColumnDefinition(
                 f"""SELECT 1 as {column_name.quoted_name}""",
-                [Column(ColumnName("b"),
-                        ColumnType(name="DECIMAL",
-                                   precision=1,
-                                   scale=0))])
+                [
+                    Column(
+                        ColumnName("b"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            )
             return Continue(query_list=[], input_query=input_query)
         else:
             return Finish[TestOutput](TestOutput(self._parameter))
@@ -461,7 +523,8 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
-            """),
+            """
+        ),
         expect_query(
             """
             SELECT
@@ -470,17 +533,21 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
         expect_query(
             """
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "b";
-            """),
+            """
+        ),
         expect_query(
             """
             SELECT
@@ -489,50 +556,65 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("b"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("b"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueContinueFinishTestQueryHandler
+        query_handler_factory=ContinueContinueFinishTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
 
 
-class ContinueContinueCleanupFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+class ContinueContinueCleanupFinishTestQueryHandler(
+    QueryHandler[TestInput, TestOutput]
+):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
         self._iter = 0
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        self._child_query_handler_conntext = self._query_handler_context.get_child_query_handler_context()
+        self._child_query_handler_conntext = (
+            self._query_handler_context.get_child_query_handler_context()
+        )
         self._table = self._child_query_handler_conntext.get_temporary_table_name()
         column_name = ColumnName("a")
-        input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
-                                                      [Column(ColumnName("a"),
-                                                              ColumnType(name="DECIMAL",
-                                                                         precision=1,
-                                                                         scale=0))])
+        input_query = SelectQueryWithColumnDefinition(
+            f"""SELECT 1 as {column_name.quoted_name}""",
+            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+        )
         return Continue(query_list=[], input_query=input_query)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         if self._iter == 0:
             self._child_query_handler_conntext.release()
             self._iter += 1
             column_name = ColumnName("b")
-            input_query = SelectQueryWithColumnDefinition(f"""SELECT 1 as {column_name.quoted_name}""",
-                                                          [Column(ColumnName("b"),
-                                                                  ColumnType(name="DECIMAL",
-                                                                             precision=1,
-                                                                             scale=0))])
+            input_query = SelectQueryWithColumnDefinition(
+                f"""SELECT 1 as {column_name.quoted_name}""",
+                [
+                    Column(
+                        ColumnName("b"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            )
             return Continue(query_list=[], input_query=input_query)
         else:
             return Finish[TestOutput](TestOutput(self._parameter))
@@ -554,7 +636,8 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
             """
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "a";
-            """),
+            """
+        ),
         expect_query(
             """
             SELECT
@@ -563,20 +646,22 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("a"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("a"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'
-        ),
-        expect_query(
-            'DROP TABLE IF EXISTS "{schema}"."{prefix}_2_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
+        expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_2_1";'),
         expect_query(
             """
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_6_1" AS
             SELECT 1 as "b";
-            """),
+            """
+        ),
         expect_query(
             """
             SELECT
@@ -585,26 +670,31 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[Column(ColumnName("b"), ColumnType(
-                    name="DECIMAL", precision=1, scale=0))])
+                columns=[
+                    Column(
+                        ColumnName("b"),
+                        ColumnType(name="DECIMAL", precision=1, scale=0),
+                    )
+                ],
+            ),
         ),
-        expect_query(
-            'DROP VIEW IF EXISTS "{schema}"."{prefix}_6_1";'
-        ),
+        expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_6_1";'),
     )
     test_input = TestInput()
     query_handler_runner = PythonQueryHandlerRunner[TestInput, TestOutput](
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=ContinueContinueCleanupFinishTestQueryHandler
+        query_handler_factory=ContinueContinueCleanupFinishTestQueryHandler,
     )
     test_output = query_handler_runner.run()
     assert test_output.test_input == test_input
 
 
 class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
-    def __init__(self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext):
+    def __init__(
+        self, parameter: TestInput, query_handler_context: ScopeQueryHandlerContext
+    ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
         self._iter = 0
@@ -613,7 +703,9 @@ class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
         self._query_handler_context.get_child_query_handler_context()
         raise Exception(EXPECTED_EXCEPTION)
 
-    def handle_query_result(self, query_result: QueryResult) -> Union[Continue, Finish[TestOutput]]:
+    def handle_query_result(
+        self, query_result: QueryResult
+    ) -> Union[Continue, Finish[TestOutput]]:
         pass
 
 
@@ -624,10 +716,12 @@ def test_fail_in_cleanup(aaf_pytest_db_schema, context_mock):
         sql_executor=sql_executor,
         top_level_query_handler_context=context_mock,
         parameter=test_input,
-        query_handler_factory=FailInCleanupAfterException
+        query_handler_factory=FailInCleanupAfterException,
     )
 
-    with pytest.raises(RuntimeError, match="Execution of query handler .* failed.") as e:
+    with pytest.raises(
+        RuntimeError, match="Execution of query handler .* failed."
+    ) as e:
         query_handler_runner.run()
 
     assert e.value.__cause__.args[0] == EXPECTED_EXCEPTION

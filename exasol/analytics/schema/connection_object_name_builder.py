@@ -1,13 +1,13 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
 from exasol.analytics.schema import (
     ConnectionObjectName,
-    SchemaName,
     ConnectionObjectNameImpl,
+    SchemaName,
     TableName,
-    ViewNameImpl,
     TableNameImpl,
     ViewName,
+    ViewNameImpl,
 )
 
 

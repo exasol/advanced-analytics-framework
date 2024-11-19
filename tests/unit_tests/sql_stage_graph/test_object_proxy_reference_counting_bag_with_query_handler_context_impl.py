@@ -1,10 +1,16 @@
 from pathlib import PurePosixPath
 
 import pytest
-from exasol.analytics.query_handler.context.top_level_query_handler_context import TopLevelQueryHandlerContext
-from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import LocalFSMockBucketFSLocation
+from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import (
+    LocalFSMockBucketFSLocation,
+)
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag
+from exasol.analytics.query_handler.context.top_level_query_handler_context import (
+    TopLevelQueryHandlerContext,
+)
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import (
+    ObjectProxyReferenceCountingBag,
+)
 
 
 @pytest.fixture
@@ -34,8 +40,7 @@ def test_single_add_remove(context):
     assert len(context.cleanup_released_object_proxies()) == 1
 
 
-def test_single_add_remove_only_the_added_object_proxy_get_removed(
-        context):
+def test_single_add_remove_only_the_added_object_proxy_get_removed(context):
     """
     This tests adds and removes a object_proxy to a ObjectProxyReferenceCountingBag. Further, it creates an
     additional object proxy which it doesn't add and check if only one proxy was released.
@@ -71,12 +76,13 @@ def test_single_add_remove_add(context):
     bag = ObjectProxyReferenceCountingBag(context)
     bag.add(table_name)
     bag.remove(table_name)
-    with pytest.raises(Exception, match="Object not owned by this ScopeQueryHandlerContext."):
+    with pytest.raises(
+        Exception, match="Object not owned by this ScopeQueryHandlerContext."
+    ):
         bag.add(table_name)
 
 
-def test_transfer_back_to_parent_query_handler_context_after_add(
-        context):
+def test_transfer_back_to_parent_query_handler_context_after_add(context):
     table_name = context.get_temporary_table_name()
     bag = ObjectProxyReferenceCountingBag(context)
     bag.add(table_name)
@@ -86,8 +92,7 @@ def test_transfer_back_to_parent_query_handler_context_after_add(
     assert len(context.cleanup_released_object_proxies()) == 1
 
 
-def test_add_after_transfer_back_to_parent_query_handler_context(
-        context):
+def test_add_after_transfer_back_to_parent_query_handler_context(context):
     table_name = context.get_temporary_table_name()
     bag = ObjectProxyReferenceCountingBag(context)
     bag.add(table_name)

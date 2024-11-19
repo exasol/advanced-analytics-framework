@@ -1,24 +1,27 @@
 from exasol.analytics.udf.communication.discovery import localhost
 from exasol.analytics.udf.communication.ip_address import IPAddress, Port
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
-from exasol.analytics.udf.communication.peer_communicator.forward_register_peer_config import \
-    ForwardRegisterPeerConfig
-from exasol.analytics.udf.communication.peer_communicator.peer_communicator_config import \
-    PeerCommunicatorConfig
+from exasol.analytics.udf.communication.peer_communicator.forward_register_peer_config import (
+    ForwardRegisterPeerConfig,
+)
+from exasol.analytics.udf.communication.peer_communicator.peer_communicator_config import (
+    PeerCommunicatorConfig,
+)
 from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory
 
 
 class CommunicatorFactory:
 
     def create(
-            self,
-            name: str,
-            group_identifier: str,
-            number_of_instances: int,
-            listen_ip: IPAddress,
-            discovery_port: Port,
-            socket_factory: SocketFactory,
-            discovery_socket_factory: localhost.DiscoverySocketFactory) -> PeerCommunicator:
+        self,
+        name: str,
+        group_identifier: str,
+        number_of_instances: int,
+        listen_ip: IPAddress,
+        discovery_port: Port,
+        socket_factory: SocketFactory,
+        discovery_socket_factory: localhost.DiscoverySocketFactory,
+    ) -> PeerCommunicator:
         peer_communicator = PeerCommunicator(
             name=name,
             number_of_peers=number_of_instances,
@@ -30,7 +33,7 @@ class CommunicatorFactory:
                     is_enabled=False,
                 )
             ),
-            socket_factory=socket_factory
+            socket_factory=socket_factory,
         )
         discovery = localhost.DiscoveryStrategy(
             port=discovery_port,

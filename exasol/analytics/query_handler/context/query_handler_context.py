@@ -1,14 +1,11 @@
 import abc
 from abc import ABC
 
-from exasol.analytics.schema import (
-    TableName,
-    UDFName,
-    ViewName,
-)
-
 from exasol.analytics.query_handler.context.connection_name import ConnectionName
-from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import     BucketFSLocationProxy
+from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import (
+    BucketFSLocationProxy,
+)
+from exasol.analytics.schema import TableName, UDFName, ViewName
 
 
 class QueryHandlerContext(ABC):

@@ -4,14 +4,14 @@ import time
 from abc import ABC
 from multiprocessing import Process
 from queue import Queue
-from typing import Any, Callable, List, TypeVar, Generic
+from typing import Any, Callable, Generic, List, TypeVar
 
 import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.ip_address import Port
 
-NANOSECONDS_PER_SECOND = 10 ** 9
+NANOSECONDS_PER_SECOND = 10**9
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -38,7 +38,13 @@ class TestProcessParameter(ABC):
 
 
 class PeerCommunicatorTestProcessParameter(TestProcessParameter):
-    def __init__(self, instance_name: str, group_identifier: str, number_of_instances: int, seed: int):
+    def __init__(
+        self,
+        instance_name: str,
+        group_identifier: str,
+        number_of_instances: int,
+        seed: int,
+    ):
         super().__init__(seed)
         self.number_of_instances = number_of_instances
         self.group_identifier = group_identifier
@@ -46,14 +52,16 @@ class PeerCommunicatorTestProcessParameter(TestProcessParameter):
 
 
 class CommunicatorTestProcessParameter(TestProcessParameter):
-    def __init__(self,
-                 node_name: str,
-                 instance_name: str,
-                 group_identifier: str,
-                 number_of_nodes: int,
-                 number_of_instances_per_node: int,
-                 local_discovery_port: Port,
-                 seed: int):
+    def __init__(
+        self,
+        node_name: str,
+        instance_name: str,
+        group_identifier: str,
+        number_of_nodes: int,
+        number_of_instances_per_node: int,
+        local_discovery_port: Port,
+        seed: int,
+    ):
         super().__init__(seed)
         self.local_discovery_port = local_discovery_port
         self.number_of_instances_per_node = number_of_instances_per_node
@@ -63,16 +71,17 @@ class CommunicatorTestProcessParameter(TestProcessParameter):
         self.instance_name = instance_name
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class TestProcess(Generic[T]):
-    def __init__(self, parameter: T,
-                 run: Callable[[T, BidirectionalQueue], None]):
+    def __init__(self, parameter: T, run: Callable[[T, BidirectionalQueue], None]):
         self.parameter = parameter
         put_queue = multiprocessing.Queue()
         get_queue = multiprocessing.Queue()
-        self._main_thread_queue = BidirectionalQueue(put_queue=get_queue, get_queue=put_queue)
+        self._main_thread_queue = BidirectionalQueue(
+            put_queue=get_queue, get_queue=put_queue
+        )
         thread_queue = BidirectionalQueue(put_queue=put_queue, get_queue=get_queue)
         self._process = Process(target=run, args=(self.parameter, thread_queue))
 
@@ -110,7 +119,9 @@ def assert_processes_finish(processes: List[TestProcess], timeout_in_seconds: in
         if difference_ns > timeout_in_ns:
             break
         time.sleep(0.01)
-    alive_processes_before_kill = [process.parameter for process in get_alive_processes(processes)]
+    alive_processes_before_kill = [
+        process.parameter for process in get_alive_processes(processes)
+    ]
     kill_alive_processes(processes)
     if len(get_alive_processes(processes)) > 0:
         time.sleep(2)

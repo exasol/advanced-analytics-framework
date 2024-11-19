@@ -2,17 +2,19 @@ from enum import Enum, auto
 
 import pytest
 
-from exasol.analytics.schema import (
-    TableBuilder,
-    ViewName,
-    TableName,
-    ColumnBuilder,
-    View,
-    ColumnType,
-    ColumnNameBuilder,
-)
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
-from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxies import find_object_proxies
+from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxies import (
+    find_object_proxies,
+)
+from exasol.analytics.schema import (
+    ColumnBuilder,
+    ColumnNameBuilder,
+    ColumnType,
+    TableBuilder,
+    TableName,
+    View,
+    ViewName,
+)
 
 BUCKETFS_LOCATION = "BUCKETFS_LOCATION"
 
@@ -71,8 +73,9 @@ def test_object_proxy_in_dependency_object(object_proxy):
 
 
 def test_object_proxy_in_sub_dependency(object_proxy):
-    dependency = Dependency(object="test",
-                            dependencies={TestEnum.K1: Dependency(object=object_proxy)})
+    dependency = Dependency(
+        object="test", dependencies={TestEnum.K1: Dependency(object=object_proxy)}
+    )
     result = find_object_proxies(dependency)
     assert result == [object_proxy]
 
@@ -80,12 +83,13 @@ def test_object_proxy_in_sub_dependency(object_proxy):
 def test_object_proxy_in_table(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column = ColumnBuilder() \
-        .with_name(ColumnNameBuilder.create("test")) \
-        .with_type(ColumnType("INTEGER")).build()
-    table = TableBuilder() \
-        .with_name(object_proxy) \
-        .with_columns([column]).build()
+    column = (
+        ColumnBuilder()
+        .with_name(ColumnNameBuilder.create("test"))
+        .with_type(ColumnType("INTEGER"))
+        .build()
+    )
+    table = TableBuilder().with_name(object_proxy).with_columns([column]).build()
     result = find_object_proxies(table)
     assert result == [object_proxy]
 
@@ -93,9 +97,12 @@ def test_object_proxy_in_table(object_proxy):
 def test_object_proxy_in_view(object_proxy):
     if not isinstance(object_proxy, ViewName):
         pytest.skip()
-    column = ColumnBuilder() \
-        .with_name(ColumnNameBuilder.create("test")) \
-        .with_type(ColumnType("INTEGER")).build()
+    column = (
+        ColumnBuilder()
+        .with_name(ColumnNameBuilder.create("test"))
+        .with_type(ColumnType("INTEGER"))
+        .build()
+    )
     view = View(name=object_proxy, columns=[column])
     result = find_object_proxies(view)
     assert result == [object_proxy]
@@ -113,8 +120,11 @@ def test_object_proxy_in_column(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
     column_name = ColumnNameBuilder.create("test", table_like_name=object_proxy)
-    column = ColumnBuilder().with_name(column_name).with_type(ColumnType("INTEGER")).build()
+    column = (
+        ColumnBuilder().with_name(column_name).with_type(ColumnType("INTEGER")).build()
+    )
     result = find_object_proxies(column)
     assert result == [object_proxy]
+
 
 # TODO DataPartition, Dataset, SQLStageInputOutput, arbitrary object

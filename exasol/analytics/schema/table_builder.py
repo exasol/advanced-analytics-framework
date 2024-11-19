@@ -1,10 +1,6 @@
-from typing import Union, List
+from typing import List, Union
 
-from exasol.analytics.schema import (
-    Column,
-    TableName,
-    Table,
-)
+from exasol.analytics.schema import Column, Table, TableName
 
 
 class TableBuilder:

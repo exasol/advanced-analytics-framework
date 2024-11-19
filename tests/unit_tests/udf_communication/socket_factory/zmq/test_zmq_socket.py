@@ -1,20 +1,24 @@
-from typing import Union, Optional
-from typing import Union, Optional
-from unittest.mock import create_autospec, MagicMock
+from typing import Optional, Union
+from unittest.mock import MagicMock, create_autospec
 
 import pytest
 import zmq
 from zmq import ZMQError
 
-from exasol.analytics.udf.communication.socket_factory.abstract import SocketType, \
-    PollerFlag
-from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import ZMQSocketFactory, \
-    ZMQFrame, ZMQSocket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    PollerFlag,
+    SocketType,
+)
+from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
+    ZMQFrame,
+    ZMQSocket,
+    ZMQSocketFactory,
+)
 from tests.mock_cast import mock_cast
 
 
 def test_create_socket_with():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -26,7 +30,7 @@ def test_create_socket_with():
 
 
 def test_socket_send_receive():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -39,7 +43,7 @@ def test_socket_send_receive():
 
 
 def test_socket_bind_random_port():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.ROUTER) as socket1:
             with factory.create_socket(SocketType.DEALER) as socket2:
@@ -52,7 +56,7 @@ def test_socket_bind_random_port():
 
 
 def test_socket_send_receive_multipart():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -60,7 +64,7 @@ def test_socket_send_receive_multipart():
                 socket2.connect("inproc://test")
                 input_message = [
                     factory.create_frame(b"123"),
-                    factory.create_frame(b"456")
+                    factory.create_frame(b"456"),
                 ]
                 socket1.send_multipart(input_message)
                 output_message = socket2.receive_multipart()
@@ -68,13 +72,15 @@ def test_socket_send_receive_multipart():
                 input_message_type = [type(frame) for frame in input_message]
                 output_message_bytes = [frame.to_bytes() for frame in output_message]
                 output_message_type = [type(frame) for frame in output_message]
-                assert input_message_bytes == output_message_bytes \
-                       and input_message_type == output_message_type \
-                       and input_message_type[0] == ZMQFrame
+                assert (
+                    input_message_bytes == output_message_bytes
+                    and input_message_type == output_message_type
+                    and input_message_type[0] == ZMQFrame
+                )
 
 
 def test_socket_poll_in():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -86,7 +92,7 @@ def test_socket_poll_in():
 
 
 def test_socket_poll_out():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -97,7 +103,7 @@ def test_socket_poll_out():
 
 
 def test_socket_poll_in_out():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             with factory.create_socket(SocketType.PAIR) as socket2:
@@ -109,7 +115,7 @@ def test_socket_poll_in_out():
 
 
 def test_socket_set_identity():
-    with  zmq.Context() as context:
+    with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
         with factory.create_socket(SocketType.PAIR) as socket1:
             name = "test"

@@ -3,16 +3,21 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
-    AbortTimeoutSender
-from exasol.analytics.udf.communication.peer_communicator.acknowledge_register_peer_sender import \
-    AcknowledgeRegisterPeerSender
-from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import \
-    RegisterPeerConnection
-from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_is_ready_sender import \
-    RegisterPeerForwarderIsReadySender
-from exasol.analytics.udf.communication.peer_communicator.register_peer_sender import \
-    RegisterPeerSender
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import (
+    AbortTimeoutSender,
+)
+from exasol.analytics.udf.communication.peer_communicator.acknowledge_register_peer_sender import (
+    AcknowledgeRegisterPeerSender,
+)
+from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import (
+    RegisterPeerConnection,
+)
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_is_ready_sender import (
+    RegisterPeerForwarderIsReadySender,
+)
+from exasol.analytics.udf.communication.peer_communicator.register_peer_sender import (
+    RegisterPeerSender,
+)
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
@@ -20,16 +25,20 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 class RegisterPeerForwarder:
 
-    def __init__(self,
-                 peer: Peer,
-                 my_connection_info: ConnectionInfo,
-                 sender: Sender,
-                 register_peer_connection: RegisterPeerConnection,
-                 abort_timeout_sender: AbortTimeoutSender,
-                 acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
-                 register_peer_sender: RegisterPeerSender,
-                 register_peer_forwarder_is_ready_sender: RegisterPeerForwarderIsReadySender):
-        self._register_peer_forwarder_is_ready_sender = register_peer_forwarder_is_ready_sender
+    def __init__(
+        self,
+        peer: Peer,
+        my_connection_info: ConnectionInfo,
+        sender: Sender,
+        register_peer_connection: RegisterPeerConnection,
+        abort_timeout_sender: AbortTimeoutSender,
+        acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
+        register_peer_sender: RegisterPeerSender,
+        register_peer_forwarder_is_ready_sender: RegisterPeerForwarderIsReadySender,
+    ):
+        self._register_peer_forwarder_is_ready_sender = (
+            register_peer_forwarder_is_ready_sender
+        )
         self._register_peer_sender = register_peer_sender
         self._acknowledge_register_peer_sender = acknowledge_register_peer_sender
         self._abort_timeout_sender = abort_timeout_sender
@@ -68,5 +77,3 @@ class RegisterPeerForwarder:
 
     def is_ready_to_stop(self):
         return self._register_peer_forwarder_is_ready_sender.is_ready_to_stop()
-
-

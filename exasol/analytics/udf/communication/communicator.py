@@ -1,9 +1,9 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
 from exasol.analytics.udf.communication.discovery import localhost, multi_node
 from exasol.analytics.udf.communication.gather_operation import GatherOperation
-from exasol.analytics.udf.communication.ip_address import Port, IPAddress
+from exasol.analytics.udf.communication.ip_address import IPAddress, Port
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
 from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory
 
@@ -13,21 +13,22 @@ MULTI_NODE_LEADER_RANK = 0
 
 class Communicator:
 
-    def __init__(self,
-                 multi_node_discovery_ip: IPAddress,
-                 multi_node_discovery_port: Port,
-                 local_discovery_port: Port,
-                 node_name: str,
-                 instance_name: str,
-                 listen_ip: IPAddress,
-                 group_identifier: str,
-                 number_of_nodes: int,
-                 number_of_instances_per_node: int,
-                 is_discovery_leader_node: bool,
-                 socket_factory: SocketFactory,
-                 localhost_communicator_factory: localhost.CommunicatorFactory = localhost.CommunicatorFactory(),
-                 multi_node_communicator_factory: multi_node.CommunicatorFactory = multi_node.CommunicatorFactory(),
-                 ):
+    def __init__(
+        self,
+        multi_node_discovery_ip: IPAddress,
+        multi_node_discovery_port: Port,
+        local_discovery_port: Port,
+        node_name: str,
+        instance_name: str,
+        listen_ip: IPAddress,
+        group_identifier: str,
+        number_of_nodes: int,
+        number_of_instances_per_node: int,
+        is_discovery_leader_node: bool,
+        socket_factory: SocketFactory,
+        localhost_communicator_factory: localhost.CommunicatorFactory = localhost.CommunicatorFactory(),
+        multi_node_communicator_factory: multi_node.CommunicatorFactory = multi_node.CommunicatorFactory(),
+    ):
         self._number_of_nodes = number_of_nodes
         self._number_of_instances_per_node = number_of_instances_per_node
         self._group_identifier = group_identifier
@@ -57,8 +58,8 @@ class Communicator:
         if self._localhost_communicator.rank == LOCALHOST_LEADER_RANK:
             discovery_socket_factory = multi_node.DiscoverySocketFactory()
             is_discovery_leader = (
-                    self._localhost_communicator.rank == LOCALHOST_LEADER_RANK
-                    and self._is_discovery_leader_node
+                self._localhost_communicator.rank == LOCALHOST_LEADER_RANK
+                and self._is_discovery_leader_node
             )
             peer_communicator = self._multi_node_communicator_factory.create(
                 group_identifier=multi_node_group_identifier,
@@ -69,7 +70,8 @@ class Communicator:
                 discovery_ip=self._multi_node_discovery_ip,
                 discovery_port=self._multi_node_discovery_port,
                 socket_factory=self._socket_factory,
-                discovery_socket_factory=discovery_socket_factory)
+                discovery_socket_factory=discovery_socket_factory,
+            )
             return peer_communicator
         else:
             return None
@@ -85,24 +87,31 @@ class Communicator:
             listen_ip=self._localhost_listen_ip,
             discovery_port=self._localhost_discovery_port,
             socket_factory=self._socket_factory,
-            discovery_socket_factory=discovery_socket_factory)
+            discovery_socket_factory=discovery_socket_factory,
+        )
         return peer_communicator
 
     def gather(self, value: bytes) -> Optional[List[bytes]]:
         sequence_number = self._next_sequence_number()
-        gather = GatherOperation(sequence_number=sequence_number, value=value,
-                                 localhost_communicator=self._localhost_communicator,
-                                 multi_node_communicator=self._multi_node_communicator,
-                                 socket_factory=self._socket_factory,
-                                 number_of_instances_per_node=self._number_of_instances_per_node)
+        gather = GatherOperation(
+            sequence_number=sequence_number,
+            value=value,
+            localhost_communicator=self._localhost_communicator,
+            multi_node_communicator=self._multi_node_communicator,
+            socket_factory=self._socket_factory,
+            number_of_instances_per_node=self._number_of_instances_per_node,
+        )
         return gather()
 
     def broadcast(self, value: Optional[bytes]) -> bytes:
         sequence_number = self._next_sequence_number()
-        operation = BroadcastOperation(sequence_number=sequence_number, value=value,
-                                       localhost_communicator=self._localhost_communicator,
-                                       multi_node_communicator=self._multi_node_communicator,
-                                       socket_factory=self._socket_factory)
+        operation = BroadcastOperation(
+            sequence_number=sequence_number,
+            value=value,
+            localhost_communicator=self._localhost_communicator,
+            multi_node_communicator=self._multi_node_communicator,
+            socket_factory=self._socket_factory,
+        )
         return operation()
 
     def is_multi_node_leader(self):

@@ -2,11 +2,7 @@ from typing import Optional
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import (
-    DBObjectNameWithSchemaImpl,
-    SchemaName,
-    UDFName,
-)
+from exasol.analytics.schema import DBObjectNameWithSchemaImpl, SchemaName, UDFName
 
 
 class UDFNameImpl(DBObjectNameWithSchemaImpl, UDFName):

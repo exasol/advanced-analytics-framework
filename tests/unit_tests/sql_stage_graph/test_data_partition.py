@@ -1,19 +1,19 @@
 from enum import Enum, auto
 
 import pytest
-from exasol.analytics.schema import (
-    SchemaName,
-    ColumnName,
-    Table,
-    Column,
-    TableNameBuilder,
-    ViewNameBuilder,
-    View,
-    ColumnType,
-)
 
 from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnType,
+    SchemaName,
+    Table,
+    TableNameBuilder,
+    View,
+    ViewNameBuilder,
+)
 
 
 class TestEnum(Enum):
@@ -25,9 +25,9 @@ class TestEnum(Enum):
 @pytest.fixture
 def table():
     table = Table(
-        TableNameBuilder.create(
-            "table", SchemaName("TEST_SCHEMA")),
-        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))])
+        TableNameBuilder.create("table", SchemaName("TEST_SCHEMA")),
+        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))],
+    )
     return table
 
 
@@ -38,9 +38,9 @@ def test_with_table(table):
 @pytest.fixture()
 def view():
     view = View(
-        ViewNameBuilder.create(
-            "view", SchemaName("TEST_SCHEMA")),
-        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))])
+        ViewNameBuilder.create("view", SchemaName("TEST_SCHEMA")),
+        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))],
+    )
     return view
 
 
@@ -50,9 +50,10 @@ def test_with_view(view):
 
 def test_dependencies(table, view):
     view = View(
-        ViewNameBuilder.create(
-            "view", SchemaName("TEST_SCHEMA")),
-        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))])
-    DataPartition(table_like=view,
-                  dependencies={TestEnum.K1: Dependency(
-                      DataPartition(table_like=table))})
+        ViewNameBuilder.create("view", SchemaName("TEST_SCHEMA")),
+        columns=[Column(ColumnName("x1"), ColumnType("INTEGER"))],
+    )
+    DataPartition(
+        table_like=view,
+        dependencies={TestEnum.K1: Dependency(DataPartition(table_like=table))},
+    )

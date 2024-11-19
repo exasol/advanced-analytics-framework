@@ -5,25 +5,30 @@ from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.messages import Message
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import \
-    AbortTimeoutSender
-from exasol.analytics.udf.communication.peer_communicator.connection_is_ready_sender import \
-    ConnectionIsReadySender
+from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import (
+    AbortTimeoutSender,
+)
+from exasol.analytics.udf.communication.peer_communicator.connection_is_ready_sender import (
+    ConnectionIsReadySender,
+)
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
-from exasol.analytics.udf.communication.peer_communicator.synchronize_connection_sender import \
-    SynchronizeConnectionSender
+from exasol.analytics.udf.communication.peer_communicator.synchronize_connection_sender import (
+    SynchronizeConnectionSender,
+)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class ConnectionEstablisher:
-    def __init__(self,
-                 peer: Peer,
-                 my_connection_info: ConnectionInfo,
-                 sender: Sender,
-                 abort_timeout_sender: AbortTimeoutSender,
-                 connection_is_ready_sender: ConnectionIsReadySender,
-                 synchronize_connection_sender: SynchronizeConnectionSender):
+    def __init__(
+        self,
+        peer: Peer,
+        my_connection_info: ConnectionInfo,
+        sender: Sender,
+        abort_timeout_sender: AbortTimeoutSender,
+        connection_is_ready_sender: ConnectionIsReadySender,
+        synchronize_connection_sender: SynchronizeConnectionSender,
+    ):
         self._synchronize_connection_sender = synchronize_connection_sender
         self._connection_is_ready_sender = connection_is_ready_sender
         self._abort_timeout_sender = abort_timeout_sender
@@ -44,9 +49,10 @@ class ConnectionEstablisher:
         self._sender.send(
             Message(
                 __root__=messages.AcknowledgeConnection(
-                    source=self._my_connection_info,
-                    destination=self._peer
-                )))
+                    source=self._my_connection_info, destination=self._peer
+                )
+            )
+        )
         self._connection_is_ready_sender.received_synchronize_connection()
         self._abort_timeout_sender.stop()
 

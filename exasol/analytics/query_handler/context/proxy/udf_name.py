@@ -1,9 +1,9 @@
-from exasol.analytics.schema import UDFName
-
-
-from exasol.analytics.query_handler.context.proxy.db_object_name_with_schema_proxy import     DBObjectNameWithSchemaProxy
+from exasol.analytics.query_handler.context.proxy.db_object_name_with_schema_proxy import (
+    DBObjectNameWithSchemaProxy,
+)
 from exasol.analytics.query_handler.context.proxy.drop_udf_query import DropUDFQuery
 from exasol.analytics.query_handler.query.interface import Query
+from exasol.analytics.schema import UDFName
 
 
 class UDFNameProxy(DBObjectNameWithSchemaProxy[UDFName], UDFName):

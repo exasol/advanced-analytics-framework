@@ -1,5 +1,6 @@
 import dataclasses
 
+
 @dataclasses.dataclass(frozen=True)
-class Parameter():
+class Parameter:
     pass

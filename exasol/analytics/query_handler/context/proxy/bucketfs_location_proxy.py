@@ -1,7 +1,8 @@
 import logging
 
-from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 import exasol.bucketfs as bfs
+
+from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 
 LOGGER = logging.getLogger(__file__)
 
@@ -18,7 +19,9 @@ class BucketFSLocationProxy(ObjectProxy):
 
     def cleanup(self):
         if self._not_released:
-            raise Exception("Cleanup of BucketFSLocationProxy only allowed after release.")
+            raise Exception(
+                "Cleanup of BucketFSLocationProxy only allowed after release."
+            )
         files = self._list_files()
         for file in files:
             self._remove_file(file)
@@ -33,7 +36,11 @@ class BucketFSLocationProxy(ObjectProxy):
         try:
             return list(self._bucketfs_location.iterdir())
         except FileNotFoundError as e:
-            LOGGER.debug(f"File not found {self._bucketfs_location.as_udf_path} during cleanup.")
+            LOGGER.debug(
+                f"File not found {self._bucketfs_location.as_udf_path} during cleanup."
+            )
         except Exception as e:
-            LOGGER.exception(f"Got exception during listing files in temporary BucketFSLocation")
+            LOGGER.exception(
+                f"Got exception during listing files in temporary BucketFSLocation"
+            )
         return []

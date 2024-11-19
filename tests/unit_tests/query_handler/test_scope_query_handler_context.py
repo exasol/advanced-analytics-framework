@@ -1,20 +1,25 @@
 from contextlib import contextmanager
 
-import pytest
 import exasol.bucketfs as bfs
-from exasol.analytics.schema import (
-    SchemaName,
-    ColumnBuilder,
-    ColumnName,
-    UDFName,
-    ColumnType,
-    View,
-    Table,
-)
+import pytest
 
 from exasol.analytics.query_handler.context.connection_name import ConnectionName
-from exasol.analytics.query_handler.context.scope import     ScopeQueryHandlerContext, Connection
-from exasol.analytics.query_handler.context.top_level_query_handler_context import     ChildContextNotReleasedError
+from exasol.analytics.query_handler.context.scope import (
+    Connection,
+    ScopeQueryHandlerContext,
+)
+from exasol.analytics.query_handler.context.top_level_query_handler_context import (
+    ChildContextNotReleasedError,
+)
+from exasol.analytics.schema import (
+    ColumnBuilder,
+    ColumnName,
+    ColumnType,
+    SchemaName,
+    Table,
+    UDFName,
+    View,
+)
 
 
 @pytest.fixture
@@ -37,7 +42,7 @@ def test_temporary_table_temporary_schema(context_mock, aaf_pytest_db_schema: st
     assert proxy.schema_name.name == aaf_pytest_db_schema
 
 
-def test_temporary_view_prefix_in_name(context_mock,prefix):
+def test_temporary_view_prefix_in_name(context_mock, prefix):
     proxy = context_mock.get_temporary_view_name()
     assert proxy.name.startswith(prefix)
 
@@ -53,16 +58,18 @@ def test_temporary_connection_temporary(context_mock: ScopeQueryHandlerContext):
 
 
 def test_temporary_udf_temporary(
-        context_mock: ScopeQueryHandlerContext,
-        aaf_pytest_db_schema: str):
+    context_mock: ScopeQueryHandlerContext, aaf_pytest_db_schema: str
+):
     proxy = context_mock.get_temporary_udf_name()
-    assert isinstance(proxy, UDFName) and \
-        proxy.schema_name == SchemaName(aaf_pytest_db_schema)
+    assert isinstance(proxy, UDFName) and proxy.schema_name == SchemaName(
+        aaf_pytest_db_schema
+    )
 
 
-def test_temporary_bucketfs_file_prefix_in_name(sample_bucketfs_location: bfs.path.PathLike,
-                                                context_mock: ScopeQueryHandlerContext):
-    proxy =  context_mock.get_temporary_bucketfs_location()
+def test_temporary_bucketfs_file_prefix_in_name(
+    sample_bucketfs_location: bfs.path.PathLike, context_mock: ScopeQueryHandlerContext
+):
+    proxy = context_mock.get_temporary_bucketfs_location()
     actual_path = proxy.bucketfs_location().as_udf_path()
     expected_prefix_path = sample_bucketfs_location.as_udf_path()
     assert actual_path.startswith(expected_prefix_path)
@@ -80,7 +87,9 @@ def test_two_temporary_view_are_not_equal(context_mock: ScopeQueryHandlerContext
     assert proxy1.name != proxy2.name
 
 
-def test_two_temporary_bucketfs_files_are_not_equal(context_mock: ScopeQueryHandlerContext):
+def test_two_temporary_bucketfs_files_are_not_equal(
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy1 = context_mock.get_temporary_bucketfs_location()
     proxy2 = context_mock.get_temporary_bucketfs_location()
     path1 = proxy1.bucketfs_location().as_udf_path()
@@ -88,14 +97,18 @@ def test_two_temporary_bucketfs_files_are_not_equal(context_mock: ScopeQueryHand
     assert path1 != path2
 
 
-def test_temporary_table_name_proxy_use_name_after_release_fails(context_mock: ScopeQueryHandlerContext):
+def test_temporary_table_name_proxy_use_name_after_release_fails(
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_table_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
         proxy_name = proxy.name
 
 
-def test_temporary_view_name_proxy_use_name_after_release_fails(context_mock: ScopeQueryHandlerContext):
+def test_temporary_view_name_proxy_use_name_after_release_fails(
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_view_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
@@ -103,7 +116,8 @@ def test_temporary_view_name_proxy_use_name_after_release_fails(context_mock: Sc
 
 
 def test_temporary_table_name_proxy_use_schema_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_table_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
@@ -111,7 +125,8 @@ def test_temporary_table_name_proxy_use_schema_after_release_fails(
 
 
 def test_temporary_view_name_proxy_use_schema_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_view_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
@@ -119,7 +134,8 @@ def test_temporary_view_name_proxy_use_schema_after_release_fails(
 
 
 def test_temporary_table_name_proxy_use_quoted_name_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_table_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
@@ -127,7 +143,8 @@ def test_temporary_table_name_proxy_use_quoted_name_after_release_fails(
 
 
 def test_temporary_view_name_proxy_use_quoted_name_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_view_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
@@ -135,7 +152,8 @@ def test_temporary_view_name_proxy_use_quoted_name_after_release_fails(
 
 
 def test_temporary_table_name_proxy_use_fully_qualified_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_table_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="TableNameProxy.* already released."):
@@ -143,7 +161,8 @@ def test_temporary_table_name_proxy_use_fully_qualified_after_release_fails(
 
 
 def test_temporary_view_name_proxy_use_fully_qualified_after_release_fails(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     proxy = context_mock.get_temporary_view_name()
     context_mock.release()
     with pytest.raises(RuntimeError, match="ViewNameProxy.* already released."):
@@ -156,13 +175,17 @@ def test_get_temporary_view_after_release_fails(context_mock: ScopeQueryHandlerC
         proxy = context_mock.get_temporary_view_name()
 
 
-def test_get_temporary_table_after_release_fails(context_mock: ScopeQueryHandlerContext):
+def test_get_temporary_table_after_release_fails(
+    context_mock: ScopeQueryHandlerContext,
+):
     context_mock.release()
     with pytest.raises(RuntimeError, match="Context already released."):
         proxy = context_mock.get_temporary_table_name()
 
 
-def test_get_temporary_bucketfs_file_after_release_fails(context_mock: ScopeQueryHandlerContext):
+def test_get_temporary_bucketfs_file_after_release_fails(
+    context_mock: ScopeQueryHandlerContext,
+):
     context_mock.release()
     with pytest.raises(RuntimeError, match="Context already released."):
         proxy = context_mock.get_temporary_bucketfs_location()
@@ -183,7 +206,7 @@ def not_raises(exception):
     try:
         yield
     except exception:
-        raise pytest.fail("DID RAISE {0}".format(exception))
+        raise pytest.fail(f"DID RAISE {exception}")
 
 
 def test_transfer_between_siblings(context_mock: ScopeQueryHandlerContext):
@@ -200,7 +223,9 @@ def test_transfer_between_siblings(context_mock: ScopeQueryHandlerContext):
         _ = object_proxy2.name
 
 
-def test_transfer_siblings_check_ownership_transfer_to_target(context_mock: ScopeQueryHandlerContext):
+def test_transfer_siblings_check_ownership_transfer_to_target(
+    context_mock: ScopeQueryHandlerContext,
+):
     child1 = context_mock.get_child_query_handler_context()
     child2 = context_mock.get_child_query_handler_context()
     object_proxy1 = child1.get_temporary_table_name()
@@ -216,46 +241,58 @@ def test_transfer_siblings_check_ownership_transfer_to_target(context_mock: Scop
 
 
 def test_transfer_child_parent_check_ownership_transfer_to_target(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child1 = parent.get_child_query_handler_context()
     child2 = parent.get_child_query_handler_context()
     object_proxy1 = child1.get_temporary_table_name()
     child1.transfer_object_to(object_proxy1, parent)
-    with pytest.raises(RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."):
+    with pytest.raises(
+        RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."
+    ):
         child1.transfer_object_to(object_proxy1, child2)
 
 
 def test_transfer_parent_child_check_ownership_transfer_to_target(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child1 = parent.get_child_query_handler_context()
     child2 = parent.get_child_query_handler_context()
     object_proxy1 = parent.get_temporary_table_name()
     parent.transfer_object_to(object_proxy1, child1)
-    with pytest.raises(RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."):
+    with pytest.raises(
+        RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."
+    ):
         parent.transfer_object_to(object_proxy1, child2)
 
 
-def test_transfer_siblings_checK_losing_ownership(context_mock: ScopeQueryHandlerContext):
+def test_transfer_siblings_checK_losing_ownership(
+    context_mock: ScopeQueryHandlerContext,
+):
     child1 = context_mock.get_child_query_handler_context()
     child2 = context_mock.get_child_query_handler_context()
     child3 = context_mock.get_child_query_handler_context()
     object_proxy1 = child1.get_temporary_table_name()
     child1.transfer_object_to(object_proxy1, child2)
 
-    with pytest.raises(RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."):
+    with pytest.raises(
+        RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."
+    ):
         child1.transfer_object_to(object_proxy1, child3)
 
 
 def test_transfer_between_siblings_object_from_different_context(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     child1 = context_mock.get_child_query_handler_context()
     child2 = context_mock.get_child_query_handler_context()
     grand_child1 = child1.get_child_query_handler_context()
     object_proxy = grand_child1.get_temporary_table_name()
-    with pytest.raises(RuntimeError,
-                       match="Object not owned by this ScopeQueryHandlerContext."):
+    with pytest.raises(
+        RuntimeError, match="Object not owned by this ScopeQueryHandlerContext."
+    ):
         child1.transfer_object_to(object_proxy, child2)
 
 
@@ -285,29 +322,37 @@ def test_transfer_between_parent_and_child(context_mock: ScopeQueryHandlerContex
 
 
 def test_illegal_transfer_between_grand_child_and_parent(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child = context_mock.get_child_query_handler_context()
     grand_child = child.get_child_query_handler_context()
     object_proxy = grand_child.get_temporary_table_name()
-    with pytest.raises(RuntimeError, match="Given ScopeQueryHandlerContext not a child, parent or sibling."):
+    with pytest.raises(
+        RuntimeError,
+        match="Given ScopeQueryHandlerContext not a child, parent or sibling.",
+    ):
         grand_child.transfer_object_to(object_proxy, parent)
 
 
 def test_illegal_transfer_between_parent_and_grand_child(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child = context_mock.get_child_query_handler_context()
     grand_child = child.get_child_query_handler_context()
     object_proxy = parent.get_temporary_table_name()
-    with pytest.raises(RuntimeError,
-                       match="Given ScopeQueryHandlerContext not a child, parent or sibling.|"
-                             "Given ScopeQueryHandlerContext not a child."):
+    with pytest.raises(
+        RuntimeError,
+        match="Given ScopeQueryHandlerContext not a child, parent or sibling.|"
+        "Given ScopeQueryHandlerContext not a child.",
+    ):
         parent.transfer_object_to(object_proxy, grand_child)
 
 
 def test_release_parent_before_child_with_temporary_object_expect_exception(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child = context_mock.get_child_query_handler_context()
     _ = child.get_temporary_table_name()
@@ -316,7 +361,8 @@ def test_release_parent_before_child_with_temporary_object_expect_exception(
 
 
 def test_release_parent_before_child_without_temporary_object_expect_exception(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     _ = context_mock.get_child_query_handler_context()
     with pytest.raises(ChildContextNotReleasedError):
@@ -324,7 +370,8 @@ def test_release_parent_before_child_without_temporary_object_expect_exception(
 
 
 def test_release_parent_before_grand_child_with_temporary_object_expect_exception(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child = context_mock.get_child_query_handler_context()
     grand_child = child.get_child_query_handler_context()
@@ -334,7 +381,8 @@ def test_release_parent_before_grand_child_with_temporary_object_expect_exceptio
 
 
 def test_release_parent_before_grand_child_without_temporary_object_expect_exception(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     parent = context_mock
     child = context_mock.get_child_query_handler_context()
     _ = child.get_child_query_handler_context()
@@ -343,7 +391,8 @@ def test_release_parent_before_grand_child_without_temporary_object_expect_excep
 
 
 def test_cleanup_parent_before_grand_child_without_temporary_objects(
-        context_mock: ScopeQueryHandlerContext):
+    context_mock: ScopeQueryHandlerContext,
+):
     child1 = context_mock.get_child_query_handler_context()
     child2 = context_mock.get_child_query_handler_context()
     _ = child1.get_child_query_handler_context()
@@ -360,39 +409,43 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
 
 def test_using_table_name_proxy_in_table(context_mock: ScopeQueryHandlerContext):
     table_name = context_mock.get_temporary_table_name()
-    table = Table(table_name,
-                  columns=[
-                      (
-                          ColumnBuilder().
-                          with_name(ColumnName("COLUMN1"))
-                          .with_type(ColumnType("VARCHAR"))
-                          .build()
-                      )
-                  ])
+    table = Table(
+        table_name,
+        columns=[
+            (
+                ColumnBuilder()
+                .with_name(ColumnName("COLUMN1"))
+                .with_type(ColumnType("VARCHAR"))
+                .build()
+            )
+        ],
+    )
     assert table.name is not None
 
 
 def test_using_view_name_proxy_in_view(context_mock: ScopeQueryHandlerContext):
     view_name = context_mock.get_temporary_view_name()
-    view = View(view_name, columns=[
-        (
-            ColumnBuilder().
-            with_name(ColumnName("COLUMN1"))
-            .with_type(ColumnType("VARCHAR"))
-            .build()
-        )])
+    view = View(
+        view_name,
+        columns=[
+            (
+                ColumnBuilder()
+                .with_name(ColumnName("COLUMN1"))
+                .with_type(ColumnType("VARCHAR"))
+                .build()
+            )
+        ],
+    )
     assert view.name is not None
 
 
 def test_get_connection_existing_connection(
-        context_mock: ScopeQueryHandlerContext,
-        connection_mock: Connection
+    context_mock: ScopeQueryHandlerContext, connection_mock: Connection
 ):
     connection = context_mock.get_connection("existing")
     assert connection == connection
 
 
-def test_get_connection_not_existing_connection(
-        context_mock: ScopeQueryHandlerContext):
+def test_get_connection_not_existing_connection(context_mock: ScopeQueryHandlerContext):
     with pytest.raises(KeyError):
         context_mock.get_connection("not_existing")

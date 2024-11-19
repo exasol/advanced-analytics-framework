@@ -8,7 +8,7 @@ def serialize_message(obj: BaseModel) -> bytes:
     return json_str.encode("UTF-8")
 
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 def deserialize_message(message: bytes, base_model_class: Type[T]) -> T:

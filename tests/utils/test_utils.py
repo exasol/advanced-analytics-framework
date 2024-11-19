@@ -1,5 +1,6 @@
 import re
 
+
 class pytest_regex:
     """Assert that a given string meets some expectations."""
 

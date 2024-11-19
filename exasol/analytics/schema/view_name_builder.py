@@ -1,19 +1,16 @@
 from typing import Optional
 
-from exasol.analytics.schema import (
-    SchemaName,
-    ViewNameImpl,
-    ViewName,
-)
-
+from exasol.analytics.schema import SchemaName, ViewName, ViewNameImpl
 
 
 class ViewNameBuilder:
 
-    def __init__(self,
-                 name: Optional[str] = None,
-                 schema: Optional[SchemaName] = None,
-                 view_name: Optional[ViewName] = None):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        schema: Optional[SchemaName] = None,
+        view_name: Optional[ViewName] = None,
+    ):
         """
         Creates a builder for ViewName objects,
         either by copying a ViewName (parameter view_name) object or
