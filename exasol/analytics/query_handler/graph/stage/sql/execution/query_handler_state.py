@@ -10,7 +10,7 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxie
 from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import SQLStageTrainQueryHandlerInput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 
 

@@ -2,7 +2,7 @@ import abc
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.stage import Stage
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
 
 class SQLStage(Stage):
     @abc.abstractmethod

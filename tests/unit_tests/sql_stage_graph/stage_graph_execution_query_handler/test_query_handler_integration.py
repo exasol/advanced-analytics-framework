@@ -28,7 +28,7 @@ from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler import SQLStageGraphExecutionQueryHandler
 from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 
 
