@@ -7,7 +7,7 @@ from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProx
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
 from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import ObjectProxyReferenceCounter, ReferenceCounterStatus
-from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
+from tests.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
 MockObjectProxy = Union[ObjectProxy, MagicMock]

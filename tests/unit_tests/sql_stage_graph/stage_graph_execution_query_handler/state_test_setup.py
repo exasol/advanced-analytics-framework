@@ -12,13 +12,13 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLSt
 from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import SQLStageGraphExecutionQueryHandlerState
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler
-from tests.unit_tests.sql_stage_graph.mock_cast import mock_cast
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import SQLStageQueryHandler
+from tests.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
-MockSQLStageTrainQueryHandler = Union[SQLStageTrainQueryHandler, MagicMock]
+MockSQLStageTrainQueryHandler = Union[SQLStageQueryHandler, MagicMock]
 MockQueryHandlerResult = Union[Continue, Finish, MagicMock]
 MockSQLStageInputOutput = Union[SQLStageInputOutput, MagicMock]
 MockSQLStage = Union[SQLStage, MagicMock]

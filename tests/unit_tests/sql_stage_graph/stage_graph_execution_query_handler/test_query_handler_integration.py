@@ -23,16 +23,16 @@ from exasol.analytics.schema import (
     ColumnNameBuilder,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
-from exasol.analytics.query_handler.graph.stage.sql.execution.data_partition import DataPartition
-from exasol.analytics.query_handler.graph.stage.sql.execution.dataset import Dataset
+from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
+from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import SQLStageGraphExecutionInput
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler import SQLStageGraphExecutionQueryHandler
-from exasol.analytics.query_handler.graph.stage.sql.execution.input_output import SQLStageInputOutput
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_train_query_handler import SQLStageTrainQueryHandler, SQLStageTrainQueryHandlerInput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import SQLStageQueryHandler, SQLStageTrainQueryHandlerInput
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 
 
-class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandler):
+class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
 
     def __init__(self, parameter: SQLStageTrainQueryHandlerInput,
                  query_handler_context: ScopeQueryHandlerContext):
@@ -47,7 +47,7 @@ class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandl
         raise NotImplementedError()
 
 
-class StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandler):
+class StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
 
     def __init__(self, parameter: SQLStageTrainQueryHandlerInput,
                  query_handler_context: ScopeQueryHandlerContext):
@@ -71,7 +71,7 @@ class StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHa
         raise NotImplementedError()
 
 
-class HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageTrainQueryHandler):
+class HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
 
     def __init__(self, parameter: SQLStageTrainQueryHandlerInput,
                  query_handler_context: ScopeQueryHandlerContext):
@@ -102,7 +102,7 @@ class HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageTrai
 
 
 TrainQueryHandlerFactory = Callable[
-    [SQLStageTrainQueryHandlerInput, ScopeQueryHandlerContext], SQLStageTrainQueryHandler]
+    [SQLStageTrainQueryHandlerInput, ScopeQueryHandlerContext], SQLStageQueryHandler]
 
 
 class TestSQLStage(SQLStage):
@@ -112,11 +112,11 @@ class TestSQLStage(SQLStage):
                  index: int,
                  train_query_handler_factory: TrainQueryHandlerFactory):
         self._train_query_handler_factory = train_query_handler_factory
-        self.sql_stage_train_query_handler: Optional[SQLStageTrainQueryHandler] = None
+        self.sql_stage_train_query_handler: Optional[SQLStageQueryHandler] = None
         self._index = index
 
     def create_train_query_handler(self, query_handler_input: SQLStageTrainQueryHandlerInput,
-                                   query_handler_context: ScopeQueryHandlerContext) -> SQLStageTrainQueryHandler:
+                                   query_handler_context: ScopeQueryHandlerContext) -> SQLStageQueryHandler:
         self.sql_stage_train_query_handler = self._train_query_handler_factory(query_handler_input,
                                                                                query_handler_context)
         return self.sql_stage_train_query_handler
