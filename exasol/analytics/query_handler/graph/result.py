@@ -84,9 +84,9 @@ class _Meta(type):
             return _new(cls, result_type)
 
         result_type.__new__ = _configured_new
-        result_type.__init__ = _init
-        result_type.__setattr__ = _setattr
-        result_type.__delattr__ = _delattr
+        result_type.__init__ = _init # type: ignore
+        result_type.__setattr__ = _setattr # type: ignore
+        result_type.__delattr__ = _delattr # type: ignore
         return result_type
 
 

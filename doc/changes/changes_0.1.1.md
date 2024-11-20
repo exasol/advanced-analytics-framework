@@ -19,3 +19,4 @@ Code name:
 * #203: Cleaned-up package names and directory structure
 * #217: Rename dataflow abstraction files
 * #219: Applied PTB checks and fixes
+* TBC: Fixed mypy warnings
