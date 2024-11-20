@@ -72,8 +72,8 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         self._cleanup_query_handler_context()
         self._execute_queries(result.query_list)
         input_query_result = self._run_input_query(result)
-        result = self._state.query_handler.handle_query_result(input_query_result)
-        return result
+        _result = self._state.query_handler.handle_query_result(input_query_result)
+        return _result
 
     def _run_input_query(self, result: Continue) -> PythonQueryResult:
         input_query_view, input_query = self._wrap_return_query(result.input_query)

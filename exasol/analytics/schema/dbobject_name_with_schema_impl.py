@@ -7,6 +7,7 @@ from exasol.analytics.schema.dbobject_name_with_schema import DBObjectNameWithSc
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
+from exasol.analytics.schema.exasol_identifier import qualified_name
 
 
 class DBObjectNameWithSchemaImpl(DBObjectNameImpl, DBObjectNameWithSchema):
@@ -17,15 +18,12 @@ class DBObjectNameWithSchemaImpl(DBObjectNameImpl, DBObjectNameWithSchema):
         self._schema_name = schema
 
     @property
-    def schema_name(self) -> SchemaName:
+    def schema_name(self) -> Optional[SchemaName]:
         return self._schema_name
 
     @property
     def fully_qualified(self) -> str:
-        if self.schema_name is not None:
-            return f"{self._schema_name.fully_qualified}.{self.quoted_name}"
-        else:
-            return self.quoted_name
+        return qualified_name(self._schema_name, self.quoted_name)
 
     def __repr__(self) -> str:
         return generate_repr_for_object(self)

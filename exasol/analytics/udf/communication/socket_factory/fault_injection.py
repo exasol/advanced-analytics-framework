@@ -64,7 +64,7 @@ class Socket(abstract.Socket):
     def receive_multipart(self) -> List[abstract.Frame]:
         message = self._internal_socket.receive_multipart()
         converted_message = [Frame(frame) for frame in message]
-        return converted_message
+        return converted_message # type: ignore
 
     def send_multipart(self, message: List[abstract.Frame]):
         def convert_frame(frame: abstract.Frame):
@@ -128,7 +128,7 @@ class Poller(abstract.Poller):
 
     def __init__(self, internal_poller: abstract.Poller):
         self._internal_poller = internal_poller
-        self._socket_map = {}
+        self._socket_map: Dict[abstract.Socket, abstract.Socket] = {}
 
     def register(
         self,

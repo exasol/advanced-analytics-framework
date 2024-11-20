@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from typing import Mapping, Optional, Union
 
-import pandas as pd
+import pandas as pd # type: ignore
 
 
 class UDFContextWrapper:

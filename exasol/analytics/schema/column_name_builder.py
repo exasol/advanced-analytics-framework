@@ -37,7 +37,9 @@ class ColumnNameBuilder:
         return self
 
     def build(self) -> ColumnName:
-        name = self.create(self._name, table_like_name=self._table_like_name)
+        if self._name is None:
+            raise ValueError("name must not be None")
+        name = self.create(str(self._name), table_like_name=self._table_like_name)
         return name
 
     @staticmethod

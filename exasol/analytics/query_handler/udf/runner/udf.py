@@ -8,13 +8,15 @@ from enum import Enum, auto
 from io import BytesIO
 from typing import Any, List, Optional, Tuple
 
-import exasol.bucketfs as bfs
-import joblib
+import exasol.bucketfs as bfs # type: ignore[import-untyped]
+import joblib # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
     TopLevelQueryHandlerContext,
 )
+from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.result.udf_query_result import UDFQueryResult
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.result import Continue, Finish, Result
@@ -49,6 +51,12 @@ def read_via_joblib(location: bfs.path.PathLike) -> Any:
     return joblib.load(buffer)
 
 
+class IllegalStateException(Exception):
+    """
+    A method of class QueryHandlerRunnerUDF accesses an attribute that has
+    not been initialized before, e.g. in method run().
+    """
+
 @dataclasses.dataclass
 class UDFParameter:
     iter_num: int
@@ -71,9 +79,9 @@ class QueryHandlerStatus(Enum):
 class UDFResult:
     input_query_view: Optional[str] = None
     input_query: Optional[str] = None
-    final_result = {}
-    query_list = []
-    cleanup_query_list = []
+    final_result: Any = {}
+    query_list: List[Query] = []
+    cleanup_query_list: List[Query] = []
     status: QueryHandlerStatus = QueryHandlerStatus.CONTINUE
 
 
@@ -81,12 +89,26 @@ class QueryHandlerRunnerUDF:
 
     def __init__(self, exa):
         self.exa = exa
-        self.bucketfs_location: Optional[bfs.path.PathLike] = None
-        self.parameter: Optional[UDFParameter] = None
+        self._bucketfs_location = None
+        self._parameter = None
+
+    @property
+    def bucketfs_location(self) -> bfs.path.PathLike:
+        if self._bucketfs_location is None:
+            raise IllegalStateException(
+                "attribute _bucketfs_location is not initialized"
+            )
+        return self._bucketfs_location
+
+    @property
+    def parameter(self) -> UDFParameter:
+        if self._parameter is None:
+            raise IllegalStateException("attribute _parameter is not initialized")
+        return self._parameter
 
     def run(self, ctx) -> None:
-        self._get_parameter(ctx)
-        self._create_bucketfs_location()
+        self._parameter = self._get_parameter(ctx)
+        self._bucketfs_location = self._create_bucketfs_location()
         current_state = self._create_state_or_load_latest_state()
         try:
             if self.parameter.iter_num == 0:
@@ -187,10 +209,10 @@ class QueryHandlerRunnerUDF:
             current_state.top_level_query_handler_context.get_child_query_handler_context()
         )
 
-    def _get_parameter(self, ctx):
+    def _get_parameter(self, ctx) -> UDFParameter:
         iter_num = ctx[0]
         if iter_num == 0:
-            self.parameter = UDFParameter(
+            return UDFParameter(
                 iter_num=iter_num,
                 temporary_bfs_location_conn=ctx[1],
                 temporary_bfs_location_directory=ctx[2],
@@ -200,13 +222,12 @@ class QueryHandlerRunnerUDF:
                 python_class_module=ctx[6],
                 parameter=ctx[7],
             )
-        else:
-            self.parameter = UDFParameter(
-                iter_num=iter_num,
-                temporary_bfs_location_conn=ctx[1],
-                temporary_bfs_location_directory=ctx[2],
-                temporary_name_prefix=ctx[3],
-            )
+        return UDFParameter(
+            iter_num=iter_num,
+            temporary_bfs_location_conn=ctx[1],
+            temporary_bfs_location_directory=ctx[2],
+            temporary_name_prefix=ctx[3],
+        )
 
     def _create_bucketfs_location(self):
         bucketfs_connection_obj = self.exa.get_connection(
@@ -226,6 +247,25 @@ class QueryHandlerRunnerUDF:
             query_handler_state = self._create_state()
         return query_handler_state
 
+    def _query_handler_factory(self) -> UDFQueryHandlerFactory:
+        module_name = self.parameter.python_class_module
+        if not module_name:
+            raise ValueError(
+                "UDFQueryHandler parameters must define a python module"
+            )
+        module = importlib.import_module(module_name)
+        class_name = self.parameter.python_class_name
+        if not class_name:
+            raise ValueError(
+                "UDFQueryHandler parameters must define a factory class"
+            )
+        factory = getattr(module, class_name)
+        if factory:
+            raise ValueError(
+                f'class "{class_name}" not found in module "{module_name}"'
+            )
+        return factory
+
     def _create_state(self) -> QueryHandlerRunnerState:
         connection_lookup = UDFConnectionLookup(self.exa)
         context = TopLevelQueryHandlerContext(
@@ -234,10 +274,8 @@ class QueryHandlerRunnerUDF:
             self.parameter.temporary_schema_name,
             connection_lookup,
         )
-        module = importlib.import_module(self.parameter.python_class_module)
-        query_handler_factory_class = getattr(module, self.parameter.python_class_name)
-        query_handler_obj = query_handler_factory_class().create(
-            self.parameter.parameter, context
+        query_handler_obj = self._query_handler_factory().create(
+            self.parameter.parameter or "", context
         )
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,
@@ -260,9 +298,11 @@ class QueryHandlerRunnerUDF:
         self._state_file_bucketfs_location().rm()
 
     def _create_udf_query_result(
-        self, ctx, query_columns: List[Column]
+        self, ctx, query_columns: Optional[List[Column]]
     ) -> UDFQueryResult:
         colum_start_ix = 8 if self.parameter.iter_num == 0 else 4
+        if query_columns is None:
+            query_columns = []
         column_mapping = OrderedDict(
             [
                 (str(colum_start_ix + index), column.name.name)
@@ -298,8 +338,8 @@ class QueryHandlerRunnerUDF:
         )
         return query_create_view, query_query_handler
 
-    def _get_query_columns(self):
-        query_columns: List[Column] = []
+    def _get_query_columns(self) -> List[Column]:
+        query_columns = []
         for i in range(len(self.exa.meta.input_columns)):
             col_name = self.exa.meta.input_columns[i].name
             col_type = self.exa.meta.input_columns[i].sql_type

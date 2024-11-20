@@ -19,7 +19,7 @@ class MockResultSet(ResultSet):
                         raise AssertionError(
                             f"Row {row} doesn't fit columns {self._columns}"
                         )
-            self._iter = self._rows.__iter__()
+            self._iter = rows.__iter__()
 
     def __iter__(self):
         if self._rows is None:

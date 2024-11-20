@@ -1,6 +1,6 @@
 from typing import Any, Callable
 
-import pandas as pd
+import pandas as pd # type: ignore
 
 
 def iterate_trough_dataset(

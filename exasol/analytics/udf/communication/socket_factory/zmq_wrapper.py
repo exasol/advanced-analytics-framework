@@ -60,7 +60,7 @@ class ZMQSocket(Socket):
         return self._internal_socket.recv()
 
     def receive_multipart(self) -> List[Frame]:
-        def convert_frame(frame: Frame):
+        def convert_frame(frame: zmq.Frame):
             if not isinstance(frame, zmq.Frame):
                 raise ValueError(f"Frame not supported {frame}")
             return ZMQFrame(frame)
@@ -129,7 +129,7 @@ class ZMQSocket(Socket):
 class ZMQPoller(Poller):
     def __init__(self):
         self._internal_poller = zmq.Poller()
-        self._sockets_map: Dict[zmq.Socket, ZMQSocket] = {}
+        self._sockets_map = {}
 
     def register(
         self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]
@@ -149,7 +149,7 @@ class ZMQPoller(Poller):
             self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)
             for zmq_socket, bitmask in poll_result.items()
         }
-        return result
+        return result # type: ignore
 
 
 class ZMQSocketFactory(SocketFactory):

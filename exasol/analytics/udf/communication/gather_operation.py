@@ -45,10 +45,11 @@ class GatherOperation:
 
     def __call__(self) -> Optional[List[bytes]]:
         if self._localhost_communicator.rank > LOCALHOST_LEADER_RANK:
-            return self._send_to_localhost_leader()
+            self._send_to_localhost_leader()
+            return None
         return self._handle_messages_from_local_peers()
 
-    def _send_to_localhost_leader(self) -> None:
+    def _send_to_localhost_leader(self):
         leader = self._localhost_communicator.leader
         position = self._localhost_communicator.rank
         source = self._localhost_communicator.peer
@@ -61,10 +62,11 @@ class GatherOperation:
 
     def _handle_messages_from_local_peers(self) -> Optional[List[bytes]]:
         if self._multi_node_communicator.rank > 0:
-            return self._forward_to_multi_node_leader()
+            self._forward_to_multi_node_leader()
+            return None
         return self._handle_messages_from_all_nodes()
 
-    def _forward_to_multi_node_leader(self) -> None:
+    def _forward_to_multi_node_leader(self):
         self._send_local_leader_message_to_multi_node_leader()
         peers_without_message = set(self._localhost_communicator.peers())
         peers_without_message.remove(self._localhost_communicator.peer)

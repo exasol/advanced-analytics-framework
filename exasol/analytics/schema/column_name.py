@@ -1,11 +1,12 @@
 from typeguard import typechecked
+from typing import Optional
 
 from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 from exasol.analytics.schema.exasol_identifier_impl import ExasolIdentifierImpl
 from exasol.analytics.schema.table_like_name import TableLikeName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
-
+from exasol.analytics.schema.exasol_identifier import qualified_name
 
 class ColumnName(ExasolIdentifierImpl):
     @typechecked
@@ -20,7 +21,7 @@ class ColumnName(ExasolIdentifierImpl):
     @property
     def fully_qualified(self) -> str:
         if self.table_like_name is not None:
-            return f"{self._table_like_name.fully_qualified}.{self.quoted_name}"
+            return qualified_name(self._table_like_name, self.quoted_name)
         else:
             return self.quoted_name
 

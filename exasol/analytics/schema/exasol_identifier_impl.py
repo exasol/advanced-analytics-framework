@@ -1,6 +1,7 @@
 import unicodedata
 
 from typeguard import typechecked
+from typing import Optional
 
 from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 
@@ -22,10 +23,10 @@ class UnicodeCategories:
 class ExasolIdentifierImpl(ExasolIdentifier):
 
     @typechecked
-    def __init__(self, name: str):
+    def __init__(self, name: Optional[str]):
         if not self._validate_name(name):
             raise ValueError(f"Name '{name}' is not valid")
-        self._name = name
+        self._name = str(name)
 
     @property
     def name(self) -> str:
@@ -36,7 +37,7 @@ class ExasolIdentifierImpl(ExasolIdentifier):
         return f'"{self._name}"'
 
     @classmethod
-    def _validate_name(cls, name: str) -> bool:
+    def _validate_name(cls, name: Optional[str]) -> bool:
         if name is None or name == "":
             return False
         if not cls._validate_first_character(name[0]):
@@ -47,8 +48,8 @@ class ExasolIdentifierImpl(ExasolIdentifier):
         return True
 
     @classmethod
-    def _validate_first_character(cls, chararcter: str) -> bool:
-        unicode_category = unicodedata.category(chararcter)
+    def _validate_first_character(cls, character: str) -> bool:
+        unicode_category = unicodedata.category(character)
         return (
             unicode_category == UnicodeCategories.UPPERCASE_LETTER
             or unicode_category == UnicodeCategories.LOWERCASE_LETTER
@@ -60,8 +61,8 @@ class ExasolIdentifierImpl(ExasolIdentifier):
         )
 
     @classmethod
-    def _validate_follow_up_character(cls, chararcter: str) -> bool:
-        unicode_category = unicodedata.category(chararcter)
+    def _validate_follow_up_character(cls, character: str) -> bool:
+        unicode_category = unicodedata.category(character)
         return (
             unicode_category == UnicodeCategories.UPPERCASE_LETTER
             or unicode_category == UnicodeCategories.LOWERCASE_LETTER
@@ -74,5 +75,5 @@ class ExasolIdentifierImpl(ExasolIdentifier):
             or unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER
             or unicode_category == UnicodeCategories.CONNECTOR_PUNCTUATION
             or unicode_category == UnicodeCategories.FORMAT
-            or chararcter == "\u00B7"
+            or character == "\u00B7"
         )

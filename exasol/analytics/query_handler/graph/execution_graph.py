@@ -2,7 +2,7 @@ import json
 import typing
 from typing import Generic, List, Set, Tuple, TypeVar
 
-import networkx as nx
+import networkx as nx # type: ignore[import-untyped]
 
 T = TypeVar("T")
 

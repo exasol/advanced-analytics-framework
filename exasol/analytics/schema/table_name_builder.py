@@ -38,6 +38,8 @@ class TableNameBuilder:
         return self
 
     def build(self) -> TableName:
+        if self._name is None:
+            raise ValueError("name must not be None")
         return self.create(self._name, self._schema_name)
 
     @staticmethod

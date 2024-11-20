@@ -97,9 +97,8 @@ class BackgroundListenerInterface:
         message = None
         try:
             message = self._out_control_socket.receive()
-            message_obj: messages.Message = deserialize_message(
-                message, messages.Message
-            )
+            # message_obj: messages.Message
+            message_obj = deserialize_message( message, messages.Message )
             specific_message_obj = message_obj.__root__
             assert isinstance(specific_message_obj, messages.MyConnectionInfo)
             self._my_connection_info = specific_message_obj.my_connection_info
@@ -122,6 +121,7 @@ class BackgroundListenerInterface:
     def receive_messages(
         self, timeout_in_milliseconds: Optional[int] = 0
     ) -> Iterator[Tuple[Message, List[Frame]]]:
+        # TODO: What to do if self._out_control_socket is uninitialized, i.e. None?
         while PollerFlag.POLLIN in self._out_control_socket.poll(
             flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds
         ):

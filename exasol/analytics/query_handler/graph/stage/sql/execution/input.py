@@ -13,5 +13,5 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLSt
 @dataclasses.dataclass(frozen=True, eq=True)
 class SQLStageGraphExecutionInput:
     input: SQLStageInputOutput
-    result_bucketfs_location: AbstractBucketFSLocation
+    result_bucketfs_location: AbstractBucketFSLocation # should this be bfs.path.PathLike?
     sql_stage_graph: SQLStageGraph

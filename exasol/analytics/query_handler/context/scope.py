@@ -62,5 +62,6 @@ class ScopeQueryHandlerContext(QueryHandlerContext):
         """
         pass
 
+    @abstractmethod
     def get_connection(self, name: str) -> Connection:
         pass

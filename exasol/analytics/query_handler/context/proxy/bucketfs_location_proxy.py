@@ -1,6 +1,6 @@
 import logging
 
-import exasol.bucketfs as bfs
+import exasol.bucketfs as bfs # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 

@@ -135,6 +135,9 @@ class BackgroundListenerThread:
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
         self._peer_state: Dict[Peer, BackgroundPeerState] = {}
+        self._listener_socket: Optional[Socket] = None
+        self._in_control_socket: Optional[Socket] = None
+        self._out_control_socket: Optional[Socket] = None
 
     def run(self):
         self._create_in_control_socket()
@@ -157,7 +160,7 @@ class BackgroundListenerThread:
         self._logger.info("end")
 
     def _create_listener_socket(self):
-        self._listener_socket: Socket = self._socket_factory.create_socket(
+        self._listener_socket = self._socket_factory.create_socket(
             SocketType.ROUTER
         )
         self._listener_socket.set_identity(self._name)
@@ -165,13 +168,13 @@ class BackgroundListenerThread:
         return port
 
     def _create_in_control_socket(self):
-        self._in_control_socket: Socket = self._socket_factory.create_socket(
+        self._in_control_socket = self._socket_factory.create_socket(
             SocketType.PAIR
         )
         self._in_control_socket.connect(self._in_control_socket_address)
 
     def _create_out_control_socket(self):
-        self._out_control_socket: Socket = self._socket_factory.create_socket(
+        self._out_control_socket = self._socket_factory.create_socket(
             SocketType.PAIR
         )
         self._out_control_socket.connect(self._out_control_socket_address)
