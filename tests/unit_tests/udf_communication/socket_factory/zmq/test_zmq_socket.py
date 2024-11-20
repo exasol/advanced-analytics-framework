@@ -14,7 +14,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocket,
     ZMQSocketFactory,
 )
-from tests.mock_cast import mock_cast
+from tests.utils.mock_cast import mock_cast
 
 
 def test_create_socket_with():

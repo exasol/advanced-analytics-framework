@@ -6,7 +6,7 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
     SQLStageTrainQueryHandlerInput,
 )
-from tests.mock_cast import mock_cast
+from tests.utils.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
 )

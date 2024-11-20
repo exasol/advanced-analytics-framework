@@ -16,7 +16,7 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
-from tests.mock_cast import mock_cast
+from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)

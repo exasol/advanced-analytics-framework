@@ -22,7 +22,7 @@ from exasol.analytics.udf.communication.peer_communicator.payload_sender import 
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.serialization import serialize_message
 from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
-from tests.mock_cast import mock_cast
+from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass
