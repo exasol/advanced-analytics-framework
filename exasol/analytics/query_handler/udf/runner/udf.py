@@ -1,9 +1,9 @@
-import dataclasses
 import importlib
 import json
 import logging
 import traceback
 from collections import OrderedDict
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from io import BytesIO
 from typing import Any, List, Optional, Tuple
@@ -29,6 +29,7 @@ from exasol.analytics.schema import (
     SchemaName,
     UDFNameBuilder,
 )
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 
 def create_bucketfs_location_from_conn_object(bfs_conn_obj) -> bfs.path.PathLike:
@@ -51,18 +52,17 @@ def read_via_joblib(location: bfs.path.PathLike) -> Any:
     return joblib.load(buffer)
 
 
-class IllegalStateException(Exception):
-    """
-    A method of class QueryHandlerRunnerUDF accesses an attribute that has
-    not been initialized before, e.g. in method run().
-    """
-
-@dataclasses.dataclass
+@dataclass
 class UDFParameter:
     iter_num: int
     temporary_bfs_location_conn: str
     temporary_bfs_location_directory: str
     temporary_name_prefix: str
+    #
+    # The following attributes are only needed in the first iteration and
+    # hence need to be Optional, see method
+    # QueryHandlerRunnerUDF._get_parameter().
+    #
     temporary_schema_name: Optional[str] = None
     python_class_name: Optional[str] = None
     python_class_module: Optional[str] = None
@@ -75,13 +75,13 @@ class QueryHandlerStatus(Enum):
     ERROR = auto()
 
 
-@dataclasses.dataclass
+@dataclass
 class UDFResult:
     input_query_view: Optional[str] = None
     input_query: Optional[str] = None
-    final_result: Any = {}
-    query_list: List[Query] = []
-    cleanup_query_list: List[Query] = []
+    final_result: str = "{}"
+    query_list: List[Query] = field(default_factory=list)
+    cleanup_query_list: List[Query] = field(default_factory=list)
     status: QueryHandlerStatus = QueryHandlerStatus.CONTINUE
 
 
@@ -95,15 +95,13 @@ class QueryHandlerRunnerUDF:
     @property
     def bucketfs_location(self) -> bfs.path.PathLike:
         if self._bucketfs_location is None:
-            raise IllegalStateException(
-                "attribute _bucketfs_location is not initialized"
-            )
+            raise UninitializedAttributeError("BucketFS location is undefined.")
         return self._bucketfs_location
 
     @property
     def parameter(self) -> UDFParameter:
         if self._parameter is None:
-            raise IllegalStateException("attribute _parameter is not initialized")
+            raise UninitializedAttributeError("Parameter is undefined.")
         return self._parameter
 
     def run(self, ctx) -> None:
@@ -134,12 +132,12 @@ class QueryHandlerRunnerUDF:
 
     def handle_exception(self, ctx, current_state: QueryHandlerRunnerState):
         stacktrace = traceback.format_exc()
-        logging.exception("Catched exception, starting cleanup.")
+        logging.exception("Caught exception, starting cleanup.")
         try:
             self.release_query_handler_context(current_state)
         except:
             logging.exception(
-                "Catched exception during handling cleanup of another exception"
+                "Caught exception during handling cleanup of another exception"
             )
         cleanup_queries = (
             current_state.top_level_query_handler_context.cleanup_released_object_proxies()
@@ -193,6 +191,8 @@ class QueryHandlerRunnerUDF:
             query_handler_result.input_query.output_columns
         )
         self.release_and_create_query_handler_context_if_input_query(current_state)
+        if current_state.input_query_query_handler_context is None:
+            raise UninitializedAttributeError("Current state has no input query handler context.")
         udf_result.input_query_view, udf_result.input_query = self._wrap_return_query(
             current_state.input_query_query_handler_context,
             query_handler_result.input_query,
@@ -229,14 +229,12 @@ class QueryHandlerRunnerUDF:
             temporary_name_prefix=ctx[3],
         )
 
-    def _create_bucketfs_location(self):
-        bucketfs_connection_obj = self.exa.get_connection(
+    def _create_bucketfs_location(self) -> bfs.path.PathLike:
+        bfscon = self.exa.get_connection(
             self.parameter.temporary_bfs_location_conn
         )
-        bucketfs_location_from_con = create_bucketfs_location_from_conn_object(
-            bucketfs_connection_obj
-        )
-        self.bucketfs_location = bucketfs_location_from_con.joinpath(
+        bfs_location = create_bucketfs_location_from_conn_object(bfscon)
+        return bfs_location.joinpath(
             self.parameter.temporary_bfs_location_directory
         ).joinpath(self.parameter.temporary_name_prefix)
 
@@ -247,6 +245,7 @@ class QueryHandlerRunnerUDF:
             query_handler_state = self._create_state()
         return query_handler_state
 
+    @property
     def _query_handler_factory(self) -> UDFQueryHandlerFactory:
         module_name = self.parameter.python_class_module
         if not module_name:
@@ -260,22 +259,25 @@ class QueryHandlerRunnerUDF:
                 "UDFQueryHandler parameters must define a factory class"
             )
         factory = getattr(module, class_name)
-        if factory:
+        if not factory:
             raise ValueError(
                 f'class "{class_name}" not found in module "{module_name}"'
             )
-        return factory
+        return factory()
 
     def _create_state(self) -> QueryHandlerRunnerState:
         connection_lookup = UDFConnectionLookup(self.exa)
+        if self.parameter.temporary_schema_name is None:
+            raise UninitializedAttributeError("Temporary schema name is undefined.")
         context = TopLevelQueryHandlerContext(
             self.bucketfs_location,
             self.parameter.temporary_name_prefix,
             self.parameter.temporary_schema_name,
             connection_lookup,
         )
-        query_handler_obj = self._query_handler_factory().create(
-            self.parameter.parameter or "", context
+        str_parameter = self.parameter.parameter or ""
+        query_handler_obj = self._query_handler_factory.create(
+            str_parameter, context,
         )
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,

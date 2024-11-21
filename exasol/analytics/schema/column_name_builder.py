@@ -1,5 +1,6 @@
 from typing import Optional
 
+from typeguard import TypeCheckError
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.table_like_name import TableLikeName
 
@@ -38,8 +39,8 @@ class ColumnNameBuilder:
 
     def build(self) -> ColumnName:
         if self._name is None:
-            raise ValueError("name must not be None")
-        name = self.create(str(self._name), table_like_name=self._table_like_name)
+            raise TypeCheckError("name must not be None")
+        name = self.create(self._name, table_like_name=self._table_like_name)
         return name
 
     @staticmethod

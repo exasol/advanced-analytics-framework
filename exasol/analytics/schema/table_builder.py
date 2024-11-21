@@ -3,6 +3,7 @@ from typing import List, Union
 from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.table import Table
 from exasol.analytics.schema.table_name import TableName
+from typeguard import TypeCheckError
 
 
 class TableBuilder:
@@ -22,8 +23,8 @@ class TableBuilder:
 
     def build(self) -> Table:
         if self._name is None:
-            raise ValueError("name must not be None")
+            raise TypeCheckError("name must not be None")
         if not self._columns:
-            raise ValueError("there must be at least one column")
+            raise TypeCheckError("there must be at least one column")
         table = Table(self._name, self._columns)
         return table

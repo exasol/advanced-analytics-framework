@@ -15,6 +15,10 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
+from exasol.analytics.utils.errors import (
+    IllegalParametersError,
+    UninitializedAttributeError,
+)
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -25,13 +29,13 @@ MULTI_NODE_LEADER_RANK = 0
 class GatherOperation:
 
     def __init__(
-        self,
-        sequence_number: int,
-        value: bytes,
-        localhost_communicator: PeerCommunicator,
-        multi_node_communicator: PeerCommunicator,
-        socket_factory: SocketFactory,
-        number_of_instances_per_node: int,
+            self,
+            sequence_number: int,
+            value: bytes,
+            localhost_communicator: PeerCommunicator,
+            multi_node_communicator: Optional[PeerCommunicator],
+            socket_factory: SocketFactory,
+            number_of_instances_per_node: int,
     ):
         self._number_of_instances_per_node = number_of_instances_per_node
         self._socket_factory = socket_factory
@@ -39,6 +43,15 @@ class GatherOperation:
         self._sequence_number = sequence_number
         self._multi_node_communicator = multi_node_communicator
         self._localhost_communicator = localhost_communicator
+        if (
+                multi_node_communicator is None
+                and localhost_communicator.rank <= LOCALHOST_LEADER_RANK
+        ):
+            raise IllegalParametersError(
+                "Trying to initialize GatherOperation"
+                " with multi_node_communicator = None"
+                " and localhost_communicator.rank <= LOCALHOST_LEADER_RANK"
+            )
         self._logger = LOGGER.bind(
             sequence_number=self._sequence_number,
         )
@@ -61,7 +74,7 @@ class GatherOperation:
         self._localhost_communicator.send(peer=leader, message=frames)
 
     def _handle_messages_from_local_peers(self) -> Optional[List[bytes]]:
-        if self._multi_node_communicator.rank > 0:
+        if self.multi_node_communicator.rank > 0:
             self._forward_to_multi_node_leader()
             return None
         return self._handle_messages_from_all_nodes()
@@ -96,18 +109,25 @@ class GatherOperation:
             local_position=local_position, value_frame=value_frame
         )
 
+    @property
+    def multi_node_communicator(self) -> PeerCommunicator:
+        value = self._multi_node_communicator
+        if value is None:
+            raise UninitializedAttributeError("Multi node communicator is undefined.")
+        return value
+
     def _send_to_multi_node_leader(self, local_position: int, value_frame: Frame):
-        leader = self._multi_node_communicator.leader
-        source = self._multi_node_communicator.peer
+        leader = self.multi_node_communicator.leader
+        source = self.multi_node_communicator.peer
         base_position = (
-            self._multi_node_communicator.rank * self._number_of_instances_per_node
+            self.multi_node_communicator.rank * self._number_of_instances_per_node
         )
         position = base_position + local_position
         frames = self._construct_gather_message(
             source=source, leader=leader, position=position, value_frame=value_frame
         )
         self._logger.info("_send_to_multi_node_leader", frame=frames[0].to_bytes())
-        self._multi_node_communicator.send(peer=leader, message=frames)
+        self.multi_node_communicator.send(peer=leader, message=frames)
 
     def _construct_gather_message(
         self, source: Peer, leader: Peer, position: int, value_frame: Frame
@@ -124,7 +144,7 @@ class GatherOperation:
 
     def _handle_messages_from_all_nodes(self) -> List[bytes]:
         number_of_instances_in_cluster = (
-            self._multi_node_communicator.number_of_peers
+            self.multi_node_communicator.number_of_peers
             * self._number_of_instances_per_node
         )
         result: Dict[int, bytes] = {MULTI_NODE_LEADER_RANK: self._value}
@@ -162,11 +182,11 @@ class GatherOperation:
     def _receive_multi_node_messages(
         self, result: Dict[int, bytes], number_of_instances_in_cluster: int
     ) -> bool:
-        if self._multi_node_communicator.number_of_peers == 1:
+        if self.multi_node_communicator.number_of_peers == 1:
             return True
-        peers_with_messages = self._multi_node_communicator.poll_peers()
+        peers_with_messages = self.multi_node_communicator.poll_peers()
         for peer in peers_with_messages:
-            frames = self._multi_node_communicator.recv(peer)
+            frames = self.multi_node_communicator.recv(peer)
             self._logger.info(
                 "_receive_multi_node_messages", frame=frames[0].to_bytes()
             )

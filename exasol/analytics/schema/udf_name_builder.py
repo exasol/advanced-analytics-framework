@@ -3,6 +3,7 @@ from typing import Optional
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.udf_name import UDFName
 from exasol.analytics.schema.udf_name_impl import UDFNameImpl
+from typeguard import TypeCheckError
 
 
 class UDFNameBuilder:
@@ -39,7 +40,7 @@ class UDFNameBuilder:
 
     def build(self) -> UDFName:
         if self._name is None:
-            raise ValueError("name must not be None")
+            raise TypeCheckError("name must not be None")
         return self.create(self._name, self._schema_name)
 
     @staticmethod

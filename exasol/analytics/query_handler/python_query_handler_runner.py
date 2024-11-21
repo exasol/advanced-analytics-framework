@@ -17,6 +17,7 @@ from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
 from exasol.analytics.query_handler.udf.runner.state import QueryHandlerRunnerState
 from exasol.analytics.sql_executor.interface import SQLExecutor
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 LOGGER = logging.getLogger(__file__)
 
@@ -116,6 +117,10 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def _wrap_return_query(
         self, input_query: SelectQueryWithColumnDefinition
     ) -> Tuple[str, str]:
+        if self._state.input_query_query_handler_context is None:
+            raise UninitializedAttributeError(
+                "Attribute _state.input_query_query_handler_context is None"
+            )
         temporary_view_name = (
             self._state.input_query_query_handler_context.get_temporary_view_name()
         )

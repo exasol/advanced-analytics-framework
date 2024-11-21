@@ -51,7 +51,7 @@ class PythonQueryResult(QueryResult):
         if isinstance(num_rows, int):
             return range(num_rows - 1)
         if num_rows == "all":
-            return range(len(self.data) - 1)
+            return range(len(self._data) - 1)
         raise ValueError(
             f'num_rows must be an int or str "all" but is {num_rows}'
         )
