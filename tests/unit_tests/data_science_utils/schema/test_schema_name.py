@@ -1,7 +1,6 @@
 from exasol.analytics.schema import SchemaName
 
 
-
 def test_fully_qualified():
     schema = SchemaName("schema")
     assert schema.fully_qualified == '"schema"'

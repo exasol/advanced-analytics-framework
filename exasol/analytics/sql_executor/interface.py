@@ -4,7 +4,6 @@ from typing import List, Tuple
 from exasol.analytics.schema import Column
 
 
-
 class ResultSet(ABC):
     @abstractmethod
     def __iter__(self):

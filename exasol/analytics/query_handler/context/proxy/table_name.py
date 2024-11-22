@@ -1,9 +1,9 @@
-from exasol.analytics.schema import TableName
-
-
-from exasol.analytics.query_handler.context.proxy.table_like_name_proxy import TableLikeNameProxy
+from exasol.analytics.query_handler.context.proxy.table_like_name_proxy import (
+    TableLikeNameProxy,
+)
 from exasol.analytics.query_handler.query.drop.table import DropTableQuery
 from exasol.analytics.query_handler.query.interface import Query
+from exasol.analytics.schema import TableName
 
 
 class TableNameProxy(TableLikeNameProxy[TableName], TableName):

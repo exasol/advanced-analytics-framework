@@ -1,6 +1,5 @@
 from exasol.analytics.schema import ConnectionObjectNameImpl
 
-
 CONNECTION_UPPER = "CONNECTION"
 
 CONNECTION = "connection"

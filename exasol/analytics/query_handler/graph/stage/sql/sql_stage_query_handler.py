@@ -2,10 +2,14 @@ import dataclasses
 from abc import ABC
 from typing import List, Sized
 
-from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import AbstractBucketFSLocation
+from exasol_bucketfs_utils_python.abstract_bucketfs_location import (
+    AbstractBucketFSLocation,
+)
 
-from exasol.analytics.query_handler.graph.stage.sql.input_output import SQLStageInputOutput
+from exasol.analytics.query_handler.graph.stage.sql.input_output import (
+    SQLStageInputOutput,
+)
+from exasol.analytics.query_handler.query_handler import QueryHandler
 
 
 def is_empty(obj: Sized):
@@ -23,5 +27,6 @@ class SQLStageTrainQueryHandlerInput:
 
 
 class SQLStageQueryHandler(
-    QueryHandler[SQLStageTrainQueryHandlerInput, SQLStageInputOutput], ABC):
+    QueryHandler[SQLStageTrainQueryHandlerInput, SQLStageInputOutput], ABC
+):
     pass

@@ -1,14 +1,20 @@
 import dataclasses
-from typing import Union, List
-from unittest.mock import create_autospec, MagicMock, call, Mock
+from typing import List, Union
+from unittest.mock import MagicMock, Mock, call, create_autospec
 
 import pytest
+
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
-
-from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import ObjectProxyReferenceCounter, ReferenceCounterStatus
-from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import ObjectProxyReferenceCountingBag, ObjectProxyReferenceCounterFactory
-from tests.mock_cast import mock_cast
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import (
+    ObjectProxyReferenceCounter,
+    ReferenceCounterStatus,
+)
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import (
+    ObjectProxyReferenceCounterFactory,
+    ObjectProxyReferenceCountingBag,
+)
+from tests.utils.mock_cast import mock_cast
 
 MockObjectProxyReferenceCounter = Union[ObjectProxyReferenceCounter, MagicMock]
 MockObjectProxyReferenceCounterFactory = Union[ObjectProxyReferenceCounterFactory, Mock]
@@ -34,27 +40,40 @@ class TestSetup:
 
 
 def create_test_setup(*, proxy_count: int) -> TestSetup:
-    parent_query_context_handler: MockScopeQueryHandlerContext = \
-        create_autospec(ScopeQueryHandlerContext)
-    object_proxies: List[MockObjectProxy] = \
-        [create_autospec(ObjectProxy) for i in range(proxy_count)]
-    object_proxy_reference_counter_factory: MockObjectProxyReferenceCounterFactory = Mock()
-    object_proxy_reference_counters = create_test_setup_with_reference_counters(object_proxies)
+    parent_query_context_handler: MockScopeQueryHandlerContext = create_autospec(
+        ScopeQueryHandlerContext
+    )
+    object_proxies: List[MockObjectProxy] = [
+        create_autospec(ObjectProxy) for i in range(proxy_count)
+    ]
+    object_proxy_reference_counter_factory: MockObjectProxyReferenceCounterFactory = (
+        Mock()
+    )
+    object_proxy_reference_counters = create_test_setup_with_reference_counters(
+        object_proxies
+    )
     object_proxy_reference_counter_factory.side_effect = object_proxy_reference_counters
-    return TestSetup(parent_query_context_handler,
-                     object_proxy_reference_counter_factory,
-                     object_proxies,
-                     object_proxy_reference_counters)
+    return TestSetup(
+        parent_query_context_handler,
+        object_proxy_reference_counter_factory,
+        object_proxies,
+        object_proxy_reference_counters,
+    )
 
 
-def create_test_setup_with_reference_counters(mock_object_proxies: List[MockObjectProxy]):
-    object_proxy_reference_counters = [create_mock_reference_counter()
-                                       for _ in mock_object_proxies]
+def create_test_setup_with_reference_counters(
+    mock_object_proxies: List[MockObjectProxy],
+):
+    object_proxy_reference_counters = [
+        create_mock_reference_counter() for _ in mock_object_proxies
+    ]
     return object_proxy_reference_counters
 
 
 def create_mock_reference_counter() -> MockObjectProxyReferenceCounter:
-    object_proxy_reference_counter: MockObjectProxyReferenceCounter = create_autospec(ObjectProxyReferenceCounter)
+    object_proxy_reference_counter: MockObjectProxyReferenceCounter = create_autospec(
+        ObjectProxyReferenceCounter
+    )
 
     @dataclasses.dataclass
     class Counter:
@@ -82,7 +101,8 @@ def test_init():
     test_setup = create_test_setup(proxy_count=1)
     bag = ObjectProxyReferenceCountingBag(
         test_setup.mock_parent_query_context_handler,
-        test_setup.mock_object_proxy_reference_counter_factory)
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     test_setup.mock_parent_query_context_handler.assert_not_called()
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
     assert test_setup.mock_object_proxy_reference_counters[0].mock_calls == []
@@ -96,12 +116,16 @@ def test_single_object_proxy_add():
     test_setup = create_test_setup(proxy_count=1)
     bag = ObjectProxyReferenceCountingBag(
         test_setup.mock_parent_query_context_handler,
-        test_setup.mock_object_proxy_reference_counter_factory)
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.mock_object_proxy_reference_counter_factory.assert_called_once_with(
-        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxies[0])
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxies[0]
+    )
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_not_called()
 
 
 def test_single_object_proxy_add_contains():
@@ -112,7 +136,8 @@ def test_single_object_proxy_add_contains():
     test_setup = create_test_setup(proxy_count=1)
     bag = ObjectProxyReferenceCountingBag(
         test_setup.mock_parent_query_context_handler,
-        test_setup.mock_object_proxy_reference_counter_factory)
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     assert test_setup.mock_object_proxies[0] in bag
 
@@ -124,7 +149,8 @@ def test_single_object_proxy_not_added_contains():
     test_setup = create_test_setup(proxy_count=1)
     bag = ObjectProxyReferenceCountingBag(
         test_setup.mock_parent_query_context_handler,
-        test_setup.mock_object_proxy_reference_counter_factory)
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     assert test_setup.mock_object_proxies[0] not in bag
 
 
@@ -137,7 +163,8 @@ def test_single_object_proxy_add_remove_contains():
     test_setup = create_test_setup(proxy_count=1)
     bag = ObjectProxyReferenceCountingBag(
         test_setup.mock_parent_query_context_handler,
-        test_setup.mock_object_proxy_reference_counter_factory)
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.remove(test_setup.mock_object_proxies[0])
     assert test_setup.mock_object_proxies[0] not in bag
@@ -149,11 +176,16 @@ def test_multiple_object_proxy_add_contains():
     expects that __contains__ returns true for these object proxy mocks
     """
     test_setup = create_test_setup(proxy_count=2)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[1])
-    assert test_setup.mock_object_proxies[0] in bag and test_setup.mock_object_proxies[1] in bag
+    assert (
+        test_setup.mock_object_proxies[0] in bag
+        and test_setup.mock_object_proxies[1] in bag
+    )
 
 
 def test_single_object_proxy_add_remove():
@@ -162,15 +194,21 @@ def test_single_object_proxy_add_remove():
     expects that the remove method of the ObjectProxyReferenceCounter is called
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.remove(test_setup.mock_object_proxies[0])
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_called_once()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].add).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].add
+    ).assert_not_called()
 
 
 def test_single_object_proxy_add_add():
@@ -179,15 +217,21 @@ def test_single_object_proxy_add_add():
     expects besides the behavior for the first add, no further interactions with the mocks.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.add(test_setup.mock_object_proxies[0])
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].add).assert_called_once()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].add
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_not_called()
 
 
 def test_single_object_proxy_add_add_remove():
@@ -196,16 +240,22 @@ def test_single_object_proxy_add_add_remove():
     It expects the behavior for the first add and a call to remove of the ObjectProxyRefereneCounter
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.remove(test_setup.mock_object_proxies[0])
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_called_once()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].add).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].add
+    ).assert_not_called()
 
 
 def test_single_object_proxy_add_add_remove_remove():
@@ -214,8 +264,10 @@ def test_single_object_proxy_add_add_remove_remove():
     Besides behavior of the adds and the first remove, we expect a call to the remove of ObjectProxyReferenceCounter
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[0])
     bag.remove(test_setup.mock_object_proxies[0])
@@ -223,8 +275,12 @@ def test_single_object_proxy_add_add_remove_remove():
     bag.remove(test_setup.mock_object_proxies[0])
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_called_once()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].add).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].add
+    ).assert_not_called()
 
 
 def test_multiple_object_proxies_add():
@@ -233,18 +289,30 @@ def test_multiple_object_proxies_add():
     It expects the create or two ObjectProxyReferenceCounter with the factory.
     """
     test_setup = create_test_setup(proxy_count=2)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[1])
-    test_setup.mock_object_proxy_reference_counter_factory.assert_has_calls([
-        call(test_setup.mock_parent_query_context_handler,
-             test_setup.mock_object_proxies[0]),
-        call(test_setup.mock_parent_query_context_handler,
-             test_setup.mock_object_proxies[1], )
-    ])
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[1].remove).assert_not_called()
+    test_setup.mock_object_proxy_reference_counter_factory.assert_has_calls(
+        [
+            call(
+                test_setup.mock_parent_query_context_handler,
+                test_setup.mock_object_proxies[0],
+            ),
+            call(
+                test_setup.mock_parent_query_context_handler,
+                test_setup.mock_object_proxies[1],
+            ),
+        ]
+    )
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[1].remove
+    ).assert_not_called()
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
 
 
@@ -254,8 +322,10 @@ def test_multiple_object_proxies_add_remove():
     It expects besides the behavior of the adds, calls to remove on the two ObjectProxyReferenceCounter
     """
     test_setup = create_test_setup(proxy_count=2)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[1])
     test_setup.reset_mock()
@@ -263,8 +333,12 @@ def test_multiple_object_proxies_add_remove():
     bag.remove(test_setup.mock_object_proxies[1])
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
     test_setup.mock_object_proxy_reference_counter_factory.assert_not_called()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_called_once()
-    mock_cast(test_setup.mock_object_proxy_reference_counters[1].remove).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[1].remove
+    ).assert_called_once()
 
 
 def test_transfer_back_to_parent_query_handler_context_for_not_added_element():
@@ -273,10 +347,14 @@ def test_transfer_back_to_parent_query_handler_context_for_not_added_element():
     and expects that it fails.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     with pytest.raises(KeyError):
-        bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
+        bag.transfer_back_to_parent_query_handler_context(
+            test_setup.mock_object_proxies[0]
+        )
 
 
 def test_transfer_back_to_parent_query_handler_context_for_added_element():
@@ -285,15 +363,22 @@ def test_transfer_back_to_parent_query_handler_context_for_added_element():
     It expects that transfer_back_to_parent_query_handler_context on the corresponding reference counter is called.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].transfer_back_to_parent_query_handler_context) \
-        .assert_called_once()
-    assert test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           test_setup.mock_object_proxy_reference_counter_factory.mock_calls == []
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[
+            0
+        ].transfer_back_to_parent_query_handler_context
+    ).assert_called_once()
+    assert (
+        test_setup.mock_parent_query_context_handler.mock_calls == []
+        and test_setup.mock_object_proxy_reference_counter_factory.mock_calls == []
+    )
 
 
 def test_transfer_back_to_parent_query_handler_context_after_remove():
@@ -302,13 +387,17 @@ def test_transfer_back_to_parent_query_handler_context_after_remove():
     It expects that the call fails.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.remove(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     with pytest.raises(KeyError):
-        bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
+        bag.transfer_back_to_parent_query_handler_context(
+            test_setup.mock_object_proxies[0]
+        )
 
 
 def test_transfer_back_to_parent_query_handler_context_after_multiple_adds():
@@ -317,16 +406,23 @@ def test_transfer_back_to_parent_query_handler_context_after_multiple_adds():
     It expects the same behavior as after the first add.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].transfer_back_to_parent_query_handler_context) \
-        .assert_called_once()
-    assert test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           test_setup.mock_object_proxy_reference_counter_factory.mock_calls == []
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[
+            0
+        ].transfer_back_to_parent_query_handler_context
+    ).assert_called_once()
+    assert (
+        test_setup.mock_parent_query_context_handler.mock_calls == []
+        and test_setup.mock_object_proxy_reference_counter_factory.mock_calls == []
+    )
 
 
 def test_remove_after_transfer_back_to_parent_query_handler_context():
@@ -335,8 +431,10 @@ def test_remove_after_transfer_back_to_parent_query_handler_context():
     It expects the remove to fail.
     """
     test_setup = create_test_setup(proxy_count=1)
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
@@ -354,18 +452,24 @@ def test_add_after_transfer_back_to_parent_query_handler_context():
     """
     test_setup = create_test_setup(proxy_count=1)
     # For this test we need allow the creation of a second reference counter for the same proxy count
-    test_setup.mock_object_proxy_reference_counter_factory.side_effect = \
+    test_setup.mock_object_proxy_reference_counter_factory.side_effect = (
         test_setup.mock_object_proxy_reference_counters * 2
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    )
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()
     bag.add(test_setup.mock_object_proxies[0])
     test_setup.mock_object_proxy_reference_counter_factory.assert_called_once_with(
-        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxies[0])
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxies[0]
+    )
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
-    mock_cast(test_setup.mock_object_proxy_reference_counters[0].remove).assert_not_called()
+    mock_cast(
+        test_setup.mock_object_proxy_reference_counters[0].remove
+    ).assert_not_called()
 
 
 def test_contains_after_transfer_back_to_parent_query_handler_context():
@@ -375,10 +479,13 @@ def test_contains_after_transfer_back_to_parent_query_handler_context():
     """
     test_setup = create_test_setup(proxy_count=1)
     # For this test we need allow the creation of a second reference counter for the same proxy count
-    test_setup.mock_object_proxy_reference_counter_factory.side_effect = \
+    test_setup.mock_object_proxy_reference_counter_factory.side_effect = (
         test_setup.mock_object_proxy_reference_counters * 2
-    bag = ObjectProxyReferenceCountingBag(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy_reference_counter_factory)
+    )
+    bag = ObjectProxyReferenceCountingBag(
+        test_setup.mock_parent_query_context_handler,
+        test_setup.mock_object_proxy_reference_counter_factory,
+    )
     bag.add(test_setup.mock_object_proxies[0])
     bag.transfer_back_to_parent_query_handler_context(test_setup.mock_object_proxies[0])
     test_setup.reset_mock()

@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import List, IO, Union
+from typing import IO, List, Union
 
 from importlib_resources.abc import Traversable
 
@@ -14,10 +14,12 @@ PathLike = Union[Path, Traversable]
 
 
 class LuaScriptBundle:
-    def __init__(self,
-                 lua_main_file: PathLike,
-                 lua_source_files: List[PathLike],
-                 lua_modules: List[str]):
+    def __init__(
+        self,
+        lua_main_file: PathLike,
+        lua_source_files: List[PathLike],
+        lua_modules: List[str],
+    ):
         self.lua_main_file = lua_main_file
         self.lua_modules = lua_modules
         self.lua_source_files = lua_source_files
@@ -36,12 +38,12 @@ class LuaScriptBundle:
 
     def run_lua_amlg(self, tmp_dir: Path, output_buffer: IO):
         output_file = tmp_dir / f"bundle_{time.time()}.lua"
-        bash_command = \
-            "amalg.lua -o {out_path} -s {main_file} {modules}".format(
-                tmp_dir=tmp_dir,
-                out_path=output_file,
-                main_file=self.lua_main_file.name,
-                modules=" ".join(self.lua_modules))
+        bash_command = "amalg.lua -o {out_path} -s {main_file} {modules}".format(
+            tmp_dir=tmp_dir,
+            out_path=output_file,
+            main_file=self.lua_main_file.name,
+            modules=" ".join(self.lua_modules),
+        )
         subprocess.check_call(bash_command, shell=True, cwd=tmp_dir)
         with output_file.open() as f:
             shutil.copyfileobj(f, output_buffer)

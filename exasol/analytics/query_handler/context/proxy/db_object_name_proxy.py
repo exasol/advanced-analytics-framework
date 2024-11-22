@@ -1,14 +1,12 @@
 from abc import abstractmethod
-from typing import TypeVar, Generic
-
-from exasol.analytics.schema import DBObjectName
-
-from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
+from typing import Generic, TypeVar
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.query.interface import Query
+from exasol.analytics.schema import DBObjectName
+from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
 
-NameType = TypeVar('NameType', bound=DBObjectName)
+NameType = TypeVar("NameType", bound=DBObjectName)
 
 
 class DBObjectNameProxy(ObjectProxy, DBObjectName, Generic[NameType]):

@@ -1,13 +1,16 @@
-from typing import Callable, Any
+from typing import Any, Callable
 
 import pandas as pd
 
 
-def iterate_trough_dataset(ctx, batch_size: int,
-                           map_function: Callable[[pd.DataFrame], Any],
-                           init_function: Callable[[], Any],
-                           aggregate_function: Callable[[Any, Any], Any],
-                           reset_function: Callable[[], Any]):
+def iterate_trough_dataset(
+    ctx,
+    batch_size: int,
+    map_function: Callable[[pd.DataFrame], Any],
+    init_function: Callable[[], Any],
+    aggregate_function: Callable[[Any, Any], Any],
+    reset_function: Callable[[], Any],
+):
     reset_function()
     number_of_tuples_left = ctx.size()
     state = init_function()

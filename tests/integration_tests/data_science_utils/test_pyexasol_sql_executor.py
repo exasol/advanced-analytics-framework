@@ -1,11 +1,7 @@
 import pyexasol
 import pytest
 
-from exasol.analytics.schema import (
-    Column,
-    ColumnType,
-    ColumnNameBuilder,
-)
+from exasol.analytics.schema import Column, ColumnNameBuilder, ColumnType
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 
 
@@ -24,17 +20,24 @@ EXPECTED_COLUMNS_INDEX = 2
 @pytest.fixture()
 def pyexasol_result_set(pyexasol_sql_executor):
     row_count = 100000
-    expected_result = [(1, "a", '1.1')] * row_count
+    expected_result = [(1, "a", "1.1")] * row_count
     expected_columns = [
-        Column(ColumnNameBuilder.create("c1"),
-               ColumnType(name="DECIMAL", precision=1, scale=0)),
-        Column(ColumnNameBuilder.create("c2"),
-               ColumnType(name="CHAR", size=1, characterSet="ASCII")),
-        Column(ColumnNameBuilder.create("c3"),
-               ColumnType(name="DECIMAL", precision=2, scale=1)),
+        Column(
+            ColumnNameBuilder.create("c1"),
+            ColumnType(name="DECIMAL", precision=1, scale=0),
+        ),
+        Column(
+            ColumnNameBuilder.create("c2"),
+            ColumnType(name="CHAR", size=1, characterSet="ASCII"),
+        ),
+        Column(
+            ColumnNameBuilder.create("c3"),
+            ColumnType(name="DECIMAL", precision=2, scale=1),
+        ),
     ]
     result_set = pyexasol_sql_executor.execute(
-        f"""SELECT 1 as "c1", 'a' as "c2", 1.1 as "c3" FROM VALUES BETWEEN 1 and {row_count} as t(i);""")
+        f"""SELECT 1 as "c1", 'a' as "c2", 1.1 as "c3" FROM VALUES BETWEEN 1 and {row_count} as t(i);"""
+    )
     return result_set, expected_result, expected_columns
 
 

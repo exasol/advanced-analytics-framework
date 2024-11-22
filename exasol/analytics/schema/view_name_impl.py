@@ -2,11 +2,9 @@ from typing import Optional
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import (
-    SchemaName,
-    TableLikeNameImpl,
-    ViewName,
-)
+from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.table_like_name_impl import TableLikeNameImpl
+from exasol.analytics.schema.view_name import ViewName
 
 
 class ViewNameImpl(TableLikeNameImpl, ViewName):

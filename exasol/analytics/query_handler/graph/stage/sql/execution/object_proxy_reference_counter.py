@@ -17,18 +17,30 @@ class ObjectProxyReferenceCounter:
     calls release on it, when the counter gets 0. This releases the ObjectProxy.
     """
 
-    def __init__(self, parent_query_context_handler: ScopeQueryHandlerContext, object_proxy: ObjectProxy):
+    def __init__(
+        self,
+        parent_query_context_handler: ScopeQueryHandlerContext,
+        object_proxy: ObjectProxy,
+    ):
         self._object_proxy = object_proxy
         self._valid = True
         self._parent_query_context_handler = parent_query_context_handler
-        self._child_query_context_handler = self._parent_query_context_handler.get_child_query_handler_context()
-        self._parent_query_context_handler.transfer_object_to(object_proxy, self._child_query_context_handler)
-        self._counter = 1  # counter is one, because with zero this object wouldn't exist
+        self._child_query_context_handler = (
+            self._parent_query_context_handler.get_child_query_handler_context()
+        )
+        self._parent_query_context_handler.transfer_object_to(
+            object_proxy, self._child_query_context_handler
+        )
+        self._counter = (
+            1  # counter is one, because with zero this object wouldn't exist
+        )
 
     def _check_if_valid(self):
         if not self._valid:
-            raise RuntimeError("ReferenceCounter not valid anymore. "
-                               "ObjectProxy got already garbage collected or transfered back.")
+            raise RuntimeError(
+                "ReferenceCounter not valid anymore. "
+                "ObjectProxy got already garbage collected or transfered back."
+            )
 
     def add(self):
         self._check_if_valid()
@@ -49,7 +61,8 @@ class ObjectProxyReferenceCounter:
     def transfer_back_to_parent_query_handler_context(self):
         self._check_if_valid()
         self._child_query_context_handler.transfer_object_to(
-            self._object_proxy, self._parent_query_context_handler)
+            self._object_proxy, self._parent_query_context_handler
+        )
         self._invalidate_and_release()
 
     def _invalidate_and_release(self):

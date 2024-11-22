@@ -5,7 +5,7 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.ip_address import IPAddress, Port
 
-NANO_SECOND = 10 ** -9
+NANO_SECOND = 10**-9
 
 LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -15,12 +15,11 @@ class DiscoverySocket:
     def __init__(self, ip_address: IPAddress, port: Port):
         self._port = port
         self._ip_address = ip_address
-        self._logger = LOGGER.bind(
-            ip_address=ip_address.dict(),
-            port=port.dict()
-        )
+        self._logger = LOGGER.bind(ip_address=ip_address.dict(), port=port.dict())
         self._logger.info("create")
-        self._udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self._udp_socket = socket.socket(
+            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP
+        )
 
     def bind(self):
         self._logger.info("bind")
@@ -32,7 +31,9 @@ class DiscoverySocket:
 
     def recvfrom(self, timeout_in_seconds: float) -> bytes:
         if timeout_in_seconds < 0.0:
-            raise ValueError(f"Timeout needs to be larger than or equal to 0.0, but got {timeout_in_seconds}")
+            raise ValueError(
+                f"Timeout needs to be larger than or equal to 0.0, but got {timeout_in_seconds}"
+            )
         # We need to adjust the timeout with a very small number, to avoid 0.0,
         # because this leads the following error
         # BlockingIOError: [Errno 11] Resource temporarily unavailable

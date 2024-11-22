@@ -1,5 +1,10 @@
-from exasol.analytics.query_handler.context.connection_name import ConnectionName, ConnectionNameImpl
-from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
+from exasol.analytics.query_handler.context.connection_name import (
+    ConnectionName,
+    ConnectionNameImpl,
+)
+from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
+    DBObjectNameProxy,
+)
 from exasol.analytics.query_handler.query.drop.connection import DropConnectionQuery
 from exasol.analytics.query_handler.query.interface import Query
 

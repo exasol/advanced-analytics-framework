@@ -1,15 +1,10 @@
-from typing import List, Any, Tuple
+from typing import Any, List, Tuple
 
 import pyexasol
 from pyexasol import ExaStatement
 
-from exasol.analytics.schema import (
-    Column,
-    ColumnType,
-    ColumnName,
-    ColumnNameBuilder,
-)
-from exasol.analytics.sql_executor.interface import SQLExecutor, ResultSet
+from exasol.analytics.schema import Column, ColumnName, ColumnNameBuilder, ColumnType
+from exasol.analytics.sql_executor.interface import ResultSet, SQLExecutor
 
 SRID = "srid"
 
@@ -56,17 +51,27 @@ class PyExasolResultSet(ResultSet):
                 ColumnNameBuilder.create(column_name),
                 ColumnType(
                     name=column_type["type"],
-                    precision=column_type[PRECISION] if PRECISION in column_type else None,
+                    precision=(
+                        column_type[PRECISION] if PRECISION in column_type else None
+                    ),
                     scale=column_type[SCALE] if SCALE in column_type else None,
                     size=column_type[SIZE] if SIZE in column_type else None,
-                    characterSet=column_type[CHARACTER_SET] if CHARACTER_SET in column_type else None,
-                    withLocalTimeZone=column_type[
-                        WITH_LOCAL_TIME_ZONE] if WITH_LOCAL_TIME_ZONE in column_type else None,
+                    characterSet=(
+                        column_type[CHARACTER_SET]
+                        if CHARACTER_SET in column_type
+                        else None
+                    ),
+                    withLocalTimeZone=(
+                        column_type[WITH_LOCAL_TIME_ZONE]
+                        if WITH_LOCAL_TIME_ZONE in column_type
+                        else None
+                    ),
                     fraction=column_type[FRACTION] if FRACTION in column_type else None,
                     srid=column_type[SRID] if SRID in column_type else None,
-                )
+                ),
             )
-            for column_name, column_type in self.statement.columns().items()]
+            for column_name, column_type in self.statement.columns().items()
+        ]
         return columns
 
     def close(self):

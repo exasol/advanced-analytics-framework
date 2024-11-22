@@ -11,11 +11,13 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class CloseConnectionSender:
-    def __init__(self,
-                 my_connection_info: ConnectionInfo,
-                 peer: Peer,
-                 sender: Sender,
-                 timer: Timer):
+    def __init__(
+        self,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        sender: Sender,
+        timer: Timer,
+    ):
         self._my_connection_info = my_connection_info
         self._timer = timer
         self._sender = sender
@@ -23,8 +25,8 @@ class CloseConnectionSender:
         self._send_attempt_count = 0
         self._peer = peer
         self._logger = LOGGER.bind(
-            peer=peer.dict(),
-            my_connection_info=my_connection_info.dict())
+            peer=peer.dict(), my_connection_info=my_connection_info.dict()
+        )
         self._logger.debug("init")
 
     def stop(self):
@@ -48,7 +50,9 @@ class CloseConnectionSender:
             __root__=messages.CloseConnection(
                 source=self._my_connection_info,
                 destination=self._peer,
-                attempt=self._send_attempt_count))
+                attempt=self._send_attempt_count,
+            )
+        )
         self._sender.send(message)
 
     def _should_we_send(self):
@@ -58,15 +62,14 @@ class CloseConnectionSender:
 
 
 class CloseConnectionSenderFactory:
-    def create(self,
-               my_connection_info: ConnectionInfo,
-               peer: Peer,
-               sender: Sender,
-               timer: Timer) -> CloseConnectionSender:
+    def create(
+        self,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        sender: Sender,
+        timer: Timer,
+    ) -> CloseConnectionSender:
         close_connection_sender = CloseConnectionSender(
-            my_connection_info=my_connection_info,
-            peer=peer,
-            sender=sender,
-            timer=timer
+            my_connection_info=my_connection_info, peer=peer, sender=sender, timer=timer
         )
         return close_connection_sender

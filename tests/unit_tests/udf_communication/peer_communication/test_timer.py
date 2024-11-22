@@ -1,9 +1,9 @@
 from typing import Union
-from unittest.mock import create_autospec, MagicMock, call
+from unittest.mock import MagicMock, call, create_autospec
 
 from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
-from tests.mock_cast import mock_cast
+from tests.utils.mock_cast import mock_cast
 
 
 def test_init():
@@ -34,6 +34,7 @@ def test_is_time_true():
     result = timer.is_time()
 
     assert result == True and clock_mock.mock_calls == [call.current_timestamp_in_ms()]
+
 
 def test_is_time_true_after_true():
     clock_mock: Union[MagicMock, Clock] = create_autospec(Clock)

@@ -1,10 +1,6 @@
 import pytest
 
-from exasol.analytics.schema import (
-    Column,
-    ColumnType,
-    ColumnNameBuilder,
-)
+from exasol.analytics.schema import Column, ColumnNameBuilder, ColumnType
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 
 
@@ -75,14 +71,18 @@ def test_fetchmany():
 
 def test_columns():
     input = [("a", 1), ("b", 2), ("c", 4)]
-    columns = [Column(ColumnNameBuilder.create("t1"), ColumnType(name="VARCHAR(200000)")),
-               Column(ColumnNameBuilder.create("t2"), ColumnType(name="INTEGER"))]
+    columns = [
+        Column(ColumnNameBuilder.create("t1"), ColumnType(name="VARCHAR(200000)")),
+        Column(ColumnNameBuilder.create("t2"), ColumnType(name="INTEGER")),
+    ]
     result_set = MockResultSet(rows=input, columns=columns)
     assert columns == result_set.columns()
 
 
 def test_rows_and_columns_different_length():
     input = [("a", 1), ("b", 2), ("c", 4)]
-    columns = [Column(ColumnNameBuilder.create("t1"), ColumnType(name="VARCHAR(200000)"))]
+    columns = [
+        Column(ColumnNameBuilder.create("t1"), ColumnType(name="VARCHAR(200000)"))
+    ]
     with pytest.raises(AssertionError):
         result_set = MockResultSet(rows=input, columns=columns)

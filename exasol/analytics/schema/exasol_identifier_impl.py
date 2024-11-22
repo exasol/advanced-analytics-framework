@@ -2,22 +2,21 @@ import unicodedata
 
 from typeguard import typechecked
 
-from exasol.analytics.schema import ExasolIdentifier
-
+from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 
 
 class UnicodeCategories:
-    UPPERCASE_LETTER = 'Lu'
-    LOWERCASE_LETTER = 'Ll'
-    TITLECASE_LETTER = 'Lt'
-    MODIFIER_LETTER = 'Lm'
-    OTHER_LETTER = 'Lo'
-    LETTER_NUMBER = 'Nl'
-    NON_SPACING_MARK = 'Mn'
-    COMBINING_SPACING_MARK = 'Mc'
-    DECIMAL_DIGIT_NUMBER = 'Nd'
-    CONNECTOR_PUNCTUATION = 'Pc'
-    FORMAT = 'Cf'
+    UPPERCASE_LETTER = "Lu"
+    LOWERCASE_LETTER = "Ll"
+    TITLECASE_LETTER = "Lt"
+    MODIFIER_LETTER = "Lm"
+    OTHER_LETTER = "Lo"
+    LETTER_NUMBER = "Nl"
+    NON_SPACING_MARK = "Mn"
+    COMBINING_SPACING_MARK = "Mc"
+    DECIMAL_DIGIT_NUMBER = "Nd"
+    CONNECTOR_PUNCTUATION = "Pc"
+    FORMAT = "Cf"
 
 
 class ExasolIdentifierImpl(ExasolIdentifier):
@@ -50,28 +49,30 @@ class ExasolIdentifierImpl(ExasolIdentifier):
     @classmethod
     def _validate_first_character(cls, chararcter: str) -> bool:
         unicode_category = unicodedata.category(chararcter)
-        return \
-            unicode_category == UnicodeCategories.UPPERCASE_LETTER or \
-            unicode_category == UnicodeCategories.LOWERCASE_LETTER or \
-            unicode_category == UnicodeCategories.TITLECASE_LETTER or \
-            unicode_category == UnicodeCategories.MODIFIER_LETTER or \
-            unicode_category == UnicodeCategories.OTHER_LETTER or \
-            unicode_category == UnicodeCategories.LETTER_NUMBER or \
-            unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER
+        return (
+            unicode_category == UnicodeCategories.UPPERCASE_LETTER
+            or unicode_category == UnicodeCategories.LOWERCASE_LETTER
+            or unicode_category == UnicodeCategories.TITLECASE_LETTER
+            or unicode_category == UnicodeCategories.MODIFIER_LETTER
+            or unicode_category == UnicodeCategories.OTHER_LETTER
+            or unicode_category == UnicodeCategories.LETTER_NUMBER
+            or unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER
+        )
 
     @classmethod
     def _validate_follow_up_character(cls, chararcter: str) -> bool:
         unicode_category = unicodedata.category(chararcter)
-        return \
-            unicode_category == UnicodeCategories.UPPERCASE_LETTER or \
-            unicode_category == UnicodeCategories.LOWERCASE_LETTER or \
-            unicode_category == UnicodeCategories.TITLECASE_LETTER or \
-            unicode_category == UnicodeCategories.MODIFIER_LETTER or \
-            unicode_category == UnicodeCategories.OTHER_LETTER or \
-            unicode_category == UnicodeCategories.LETTER_NUMBER or \
-            unicode_category == UnicodeCategories.NON_SPACING_MARK or \
-            unicode_category == UnicodeCategories.COMBINING_SPACING_MARK or \
-            unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER or \
-            unicode_category == UnicodeCategories.CONNECTOR_PUNCTUATION or \
-            unicode_category == UnicodeCategories.FORMAT or \
-            chararcter == '\u00B7'
+        return (
+            unicode_category == UnicodeCategories.UPPERCASE_LETTER
+            or unicode_category == UnicodeCategories.LOWERCASE_LETTER
+            or unicode_category == UnicodeCategories.TITLECASE_LETTER
+            or unicode_category == UnicodeCategories.MODIFIER_LETTER
+            or unicode_category == UnicodeCategories.OTHER_LETTER
+            or unicode_category == UnicodeCategories.LETTER_NUMBER
+            or unicode_category == UnicodeCategories.NON_SPACING_MARK
+            or unicode_category == UnicodeCategories.COMBINING_SPACING_MARK
+            or unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER
+            or unicode_category == UnicodeCategories.CONNECTOR_PUNCTUATION
+            or unicode_category == UnicodeCategories.FORMAT
+            or chararcter == "\u00B7"
+        )

@@ -5,24 +5,29 @@ from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import \
-    RegisterPeerConnection
+from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import (
+    RegisterPeerConnection,
+)
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
-class RegisterPeerSender():
-    def __init__(self,
-                 register_peer_connection: Optional[RegisterPeerConnection],
-                 needs_to_send_for_peer: bool,
-                 my_connection_info: ConnectionInfo,
-                 peer: Peer,
-                 timer: Timer):
+class RegisterPeerSender:
+    def __init__(
+        self,
+        register_peer_connection: Optional[RegisterPeerConnection],
+        needs_to_send_for_peer: bool,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        timer: Timer,
+    ):
         self._needs_to_send_for_peer = needs_to_send_for_peer
         self._register_peer_connection = register_peer_connection
         if needs_to_send_for_peer and self._register_peer_connection is None:
-            raise ValueError("_register_peer_connection is None while needs_to_send_for_peer is true")
+            raise ValueError(
+                "_register_peer_connection is None while needs_to_send_for_peer is true"
+            )
         self._my_connection_info = my_connection_info
         self._timer = timer
         self._finished = False
@@ -31,7 +36,7 @@ class RegisterPeerSender():
         self._logger = LOGGER.bind(
             peer=peer.dict(),
             my_connection_info=my_connection_info.dict(),
-            needs_to_send_for_peer=self._needs_to_send_for_peer
+            needs_to_send_for_peer=self._needs_to_send_for_peer,
         )
         self._logger.debug("init")
 
@@ -60,13 +65,15 @@ class RegisterPeerSender():
         return self._finished or not self._needs_to_send_for_peer
 
 
-class RegisterPeerSenderFactory():
-    def create(self,
-               register_peer_connection: Optional[RegisterPeerConnection],
-               needs_to_send_for_peer: bool,
-               my_connection_info: ConnectionInfo,
-               peer: Peer,
-               timer: Timer) -> RegisterPeerSender:
+class RegisterPeerSenderFactory:
+    def create(
+        self,
+        register_peer_connection: Optional[RegisterPeerConnection],
+        needs_to_send_for_peer: bool,
+        my_connection_info: ConnectionInfo,
+        peer: Peer,
+        timer: Timer,
+    ) -> RegisterPeerSender:
         register_peer_sender = RegisterPeerSender(
             register_peer_connection=register_peer_connection,
             needs_to_send_for_peer=needs_to_send_for_peer,

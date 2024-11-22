@@ -1,9 +1,7 @@
 from abc import abstractmethod
 
-from exasol.analytics.schema import (
-    SchemaName,
-    DBObjectName,
-)
+from exasol.analytics.schema.dbobject_name import DBObjectName
+from exasol.analytics.schema.schema_name import SchemaName
 
 
 class DBObjectNameWithSchema(DBObjectName):

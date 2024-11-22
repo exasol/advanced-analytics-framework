@@ -6,8 +6,14 @@ from structlog.typing import FilteringBoundLogger
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
-from exasol.analytics.udf.communication.serialization import serialize_message, deserialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory, Frame
+from exasol.analytics.udf.communication.serialization import (
+    deserialize_message,
+    serialize_message,
+)
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    SocketFactory,
+)
 
 _LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -17,12 +23,14 @@ MULTI_NODE_LEADER_RANK = 0
 
 class BroadcastOperation:
 
-    def __init__(self,
-                 sequence_number: int,
-                 value: Optional[bytes],
-                 localhost_communicator: PeerCommunicator,
-                 multi_node_communicator: PeerCommunicator,
-                 socket_factory: SocketFactory):
+    def __init__(
+        self,
+        sequence_number: int,
+        value: Optional[bytes],
+        localhost_communicator: PeerCommunicator,
+        multi_node_communicator: PeerCommunicator,
+        socket_factory: SocketFactory,
+    ):
         self._socket_factory = socket_factory
         self._value = value
         self._sequence_number = sequence_number
@@ -55,13 +63,13 @@ class BroadcastOperation:
         self._logger.info("_forward_from_multi_node_leader")
         value_frame = self.receive_value_frame_from_multi_node_leader()
         leader = self._localhost_communicator.leader
-        peers = [peer for peer in self._localhost_communicator.peers() if peer != leader]
+        peers = [
+            peer for peer in self._localhost_communicator.peers() if peer != leader
+        ]
 
         for peer in peers:
             frames = self._construct_broadcast_message(
-                destination=peer,
-                leader=leader,
-                value_frame=value_frame
+                destination=peer, leader=leader, value_frame=value_frame
             )
             self._localhost_communicator.send(peer=peer, message=frames)
 
@@ -87,14 +95,14 @@ class BroadcastOperation:
 
         self._logger.info("_send_messages_to_local_leaders")
         leader = self._multi_node_communicator.leader
-        peers = [peer for peer in self._multi_node_communicator.peers() if peer != leader]
+        peers = [
+            peer for peer in self._multi_node_communicator.peers() if peer != leader
+        ]
 
         for peer in peers:
             value_frame = self._socket_factory.create_frame(self._value)
             frames = self._construct_broadcast_message(
-                destination=peer,
-                leader=leader,
-                value_frame=value_frame
+                destination=peer, leader=leader, value_frame=value_frame
             )
             self._multi_node_communicator.send(peer=peer, message=frames)
 
@@ -105,9 +113,7 @@ class BroadcastOperation:
         for peer in peers:
             value_frame = self._socket_factory.create_frame(self._value)
             frames = self._construct_broadcast_message(
-                destination=peer,
-                leader=leader,
-                value_frame=value_frame
+                destination=peer, leader=leader, value_frame=value_frame
             )
             self._localhost_communicator.send(peer=peer, message=frames)
 
@@ -116,23 +122,29 @@ class BroadcastOperation:
             raise RuntimeError(
                 f"Got message with different sequence number. "
                 f"We expect the sequence number {self._sequence_number} "
-                f"but we got {self._sequence_number} in message {specific_message_obj}")
+                f"but we got {self._sequence_number} in message {specific_message_obj}"
+            )
 
-    def _get_and_check_specific_message_obj(self, message: messages.Message) -> messages.Broadcast:
+    def _get_and_check_specific_message_obj(
+        self, message: messages.Message
+    ) -> messages.Broadcast:
         specific_message_obj = message.__root__
         if not isinstance(specific_message_obj, messages.Broadcast):
-            raise TypeError(f"Received the wrong message type. "
-                            f"Expected {messages.Broadcast.__name__} got {type(message)}. "
-                            f"For message {message}.")
+            raise TypeError(
+                f"Received the wrong message type. "
+                f"Expected {messages.Broadcast.__name__} got {type(message)}. "
+                f"For message {message}."
+            )
         return specific_message_obj
 
-    def _construct_broadcast_message(self, destination: Peer, leader: Peer, value_frame: Frame):
-        message = messages.Broadcast(sequence_number=self._sequence_number,
-                                     destination=destination,
-                                     source=leader)
+    def _construct_broadcast_message(
+        self, destination: Peer, leader: Peer, value_frame: Frame
+    ):
+        message = messages.Broadcast(
+            sequence_number=self._sequence_number,
+            destination=destination,
+            source=leader,
+        )
         serialized_message = serialize_message(message)
-        frames = [
-            self._socket_factory.create_frame(serialized_message),
-            value_frame
-        ]
+        frames = [self._socket_factory.create_frame(serialized_message), value_frame]
         return frames

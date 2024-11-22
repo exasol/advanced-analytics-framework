@@ -1,18 +1,18 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
-from exasol.analytics.schema import (
-    SchemaName,
-    TableNameImpl,
-    TableName,
-)
+from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.table_name import TableName
+from exasol.analytics.schema.table_name_impl import TableNameImpl
 
 
 class TableNameBuilder:
 
-    def __init__(self,
-                 name: Optional[str] = None,
-                 schema: Optional[SchemaName] = None,
-                 table_name: Optional[TableName] = None):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        schema: Optional[SchemaName] = None,
+        table_name: Optional[TableName] = None,
+    ):
         """
         Creates a builder for TableName objects,
         either by copying a TableName object (parameter "table_like_name") or

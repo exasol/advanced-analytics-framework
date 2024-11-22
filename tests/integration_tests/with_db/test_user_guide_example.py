@@ -1,10 +1,11 @@
 import importlib.resources
-import pytest
 import re
-
 from contextlib import ExitStack
-from exasol.analytics.query_handler.deployment import constants
+
+import pytest
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
+
+from exasol.analytics.query_handler.deployment import constants
 
 
 @pytest.fixture
@@ -22,8 +23,14 @@ def test_user_guide_example(database_with_slc, pyexasol_connection, example_db_s
     own python module.
     """
     bucketfs_connection_name, schema_name = database_with_slc
-    dir = importlib.resources.files(constants.BASE_PACKAGE) \
-        / ".." / ".." / "doc" / "user_guide" / "example-udf-script"
+    dir = (
+        importlib.resources.files(constants.BASE_PACKAGE)
+        / ".."
+        / ".."
+        / "doc"
+        / "user_guide"
+        / "example-udf-script"
+    )
 
     statement = (
         (dir / "create.sql")

@@ -1,7 +1,6 @@
 from abc import abstractmethod
 
-from exasol.analytics.schema import DBObjectName
-
+from exasol.analytics.schema.dbobject_name import DBObjectName
 
 
 class ConnectionObjectName(DBObjectName):

@@ -1,16 +1,16 @@
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
-from exasol.analytics.schema import (
-    DBObjectNameWithSchema,
-    SchemaName,
+from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
+    DBObjectNameProxy,
 )
+from exasol.analytics.schema import DBObjectNameWithSchema, SchemaName
 
-from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import DBObjectNameProxy
-
-NameType = TypeVar('NameType', bound=DBObjectNameWithSchema)
+NameType = TypeVar("NameType", bound=DBObjectNameWithSchema)
 
 
-class DBObjectNameWithSchemaProxy(DBObjectNameProxy[NameType], DBObjectNameWithSchema, Generic[NameType]):
+class DBObjectNameWithSchemaProxy(
+    DBObjectNameProxy[NameType], DBObjectNameWithSchema, Generic[NameType]
+):
     def __init__(self, db_object_name_with_schema: NameType, global_counter_value: int):
         super().__init__(db_object_name_with_schema, global_counter_value)
 

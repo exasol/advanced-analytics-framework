@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from exasol.analytics.query_handler.query_handler import QueryHandler
 

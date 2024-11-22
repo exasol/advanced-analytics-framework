@@ -1,11 +1,14 @@
 import dataclasses
 
-from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_behavior_config \
-    import RegisterPeerForwarderBehaviorConfig
-from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import \
-    RegisterPeerConnection
-from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_timeout_config \
-    import RegisterPeerForwarderTimeoutConfig
+from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import (
+    RegisterPeerConnection,
+)
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_behavior_config import (
+    RegisterPeerForwarderBehaviorConfig,
+)
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_timeout_config import (
+    RegisterPeerForwarderTimeoutConfig,
+)
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,9 +1,8 @@
-from typing import Hashable, Dict, Any, Iterable, Set
+from typing import Any, Dict, Hashable, Iterable, Set
 
 
 def generate_hash_for_object(obj: Any) -> int:
-    return hash(tuple(_hash_object(v, set())
-                      for k, v in sorted(obj.__dict__.items())))
+    return hash(tuple(_hash_object(v, set()) for k, v in sorted(obj.__dict__.items())))
 
 
 def _hash_object(obj: Any, already_seen: Set[int]) -> int:
@@ -23,13 +22,12 @@ def _hash_object(obj: Any, already_seen: Set[int]) -> int:
         if isinstance(obj, Hashable):
             return hash(obj)
         elif isinstance(obj, Dict):
-            return \
-                hash(
-                    (
-                        _hash_object(obj.keys(), already_seen),
-                        _hash_object(obj.values(), already_seen)
-                    )
+            return hash(
+                (
+                    _hash_object(obj.keys(), already_seen),
+                    _hash_object(obj.values(), already_seen),
                 )
+            )
         elif isinstance(obj, Iterable):
             return hash(tuple(_hash_object(item, already_seen) for item in obj))
         else:

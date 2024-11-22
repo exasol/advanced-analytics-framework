@@ -7,8 +7,9 @@ from structlog.typing import FilteringBoundLogger
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_behavior_config \
-    import RegisterPeerForwarderBehaviorConfig
+from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarder_behavior_config import (
+    RegisterPeerForwarderBehaviorConfig,
+)
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from exasol.analytics.udf.communication.serialization import serialize_message
 from exasol.analytics.udf.communication.socket_factory.abstract import Socket
@@ -25,12 +26,14 @@ class _States(IntFlag):
 
 class RegisterPeerForwarderIsReadySender:
 
-    def __init__(self,
-                 peer: Peer,
-                 my_connection_info: ConnectionInfo,
-                 timer: Timer,
-                 out_control_socket: Socket,
-                 behavior_config: RegisterPeerForwarderBehaviorConfig):
+    def __init__(
+        self,
+        peer: Peer,
+        my_connection_info: ConnectionInfo,
+        timer: Timer,
+        out_control_socket: Socket,
+        behavior_config: RegisterPeerForwarderBehaviorConfig,
+    ):
         self._behavior_config = behavior_config
         self._peer = peer
         self._timer = timer
@@ -40,7 +43,8 @@ class RegisterPeerForwarderIsReadySender:
         self._logger = LOGGER.bind(
             peer=self._peer.dict(),
             my_connection_info=my_connection_info.dict(),
-            behavior_config=asdict(self._behavior_config))
+            behavior_config=asdict(self._behavior_config),
+        )
 
     def received_acknowledge_register_peer(self):
         self._logger.debug("received_acknowledge_register_peer")
@@ -64,40 +68,37 @@ class RegisterPeerForwarderIsReadySender:
         is_time = self._timer.is_time()
         send_time_dependent = self._is_send_time_dependent()
         send_time_independent = self._is_send_time_independent()
-        result = (
-                not _States.FINISHED in self._states
-                and (
-                        (is_time and send_time_dependent) or
-                        send_time_independent
-                )
+        result = not _States.FINISHED in self._states and (
+            (is_time and send_time_dependent) or send_time_independent
         )
-        self._logger.debug("_should_we_send",
-                           result=result,
-                           is_time=is_time,
-                           send_time_dependent=send_time_dependent,
-                           send_time_independent=send_time_independent,
-                           states=self._states)
+        self._logger.debug(
+            "_should_we_send",
+            result=result,
+            is_time=is_time,
+            send_time_dependent=send_time_dependent,
+            send_time_independent=send_time_independent,
+            states=self._states,
+        )
         return result
 
     def _is_send_time_independent(self):
         received_acknowledge_register_peer = (
-                not self._behavior_config.needs_to_send_register_peer
-                or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
+            not self._behavior_config.needs_to_send_register_peer
+            or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
         )
         received_register_peer_complete = (
-                not self._behavior_config.needs_to_send_acknowledge_register_peer
-                or _States.REGISTER_PEER_COMPLETED in self._states
+            not self._behavior_config.needs_to_send_acknowledge_register_peer
+            or _States.REGISTER_PEER_COMPLETED in self._states
         )
         send_independent_of_time = (
-                received_acknowledge_register_peer
-                and received_register_peer_complete
+            received_acknowledge_register_peer and received_register_peer_complete
         )
         return send_independent_of_time
 
     def _is_send_time_dependent(self):
         received_acknowledge_register_peer = (
-                not self._behavior_config.needs_to_send_register_peer
-                or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
+            not self._behavior_config.needs_to_send_register_peer
+            or _States.REGISTER_PEER_ACKNOWLEDGED in self._states
         )
         return received_acknowledge_register_peer
 
@@ -113,16 +114,18 @@ class RegisterPeerForwarderIsReadySender:
 
 class RegisterPeerForwarderIsReadySenderFactory:
 
-    def create(self,
-               peer: Peer,
-               my_connection_info: ConnectionInfo,
-               timer: Timer,
-               out_control_socket: Socket,
-               behavior_config: RegisterPeerForwarderBehaviorConfig):
+    def create(
+        self,
+        peer: Peer,
+        my_connection_info: ConnectionInfo,
+        timer: Timer,
+        out_control_socket: Socket,
+        behavior_config: RegisterPeerForwarderBehaviorConfig,
+    ):
         return RegisterPeerForwarderIsReadySender(
             peer=peer,
             my_connection_info=my_connection_info,
             behavior_config=behavior_config,
             timer=timer,
-            out_control_socket=out_control_socket
+            out_control_socket=out_control_socket,
         )

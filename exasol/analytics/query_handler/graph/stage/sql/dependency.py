@@ -27,8 +27,9 @@ class Dependency:
         # We can't use check_dataclass_types(self) here, because the forward definition of "Dependency"
         # can be only resolved if check_type uses the locals and globals of this frame
         try:
-            typeguard.check_type(value=self.dependencies,
-                                 expected_type=Dict[Enum, "Dependency"])
+            typeguard.check_type(
+                value=self.dependencies, expected_type=Dict[Enum, "Dependency"]
+            )
         except TypeCheckError as e:
             raise TypeCheckError(f"Field 'dependencies' has wrong type: {e}")
 

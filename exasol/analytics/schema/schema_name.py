@@ -1,7 +1,6 @@
 from typeguard import typechecked
 
-from exasol.analytics.schema import DBObjectNameImpl
-
+from exasol.analytics.schema.dbobject_name_impl import DBObjectNameImpl
 
 
 class SchemaName(DBObjectNameImpl):

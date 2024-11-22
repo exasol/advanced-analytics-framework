@@ -1,6 +1,6 @@
 import threading
 from dataclasses import asdict
-from typing import Optional, Iterator, List, Tuple
+from typing import Iterator, List, Optional, Tuple
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -8,38 +8,53 @@ from structlog.types import FilteringBoundLogger
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import IPAddress
-from exasol.analytics.udf.communication.messages import Message, IsReadyToStop, Stop, PrepareToStop
+from exasol.analytics.udf.communication.messages import (
+    IsReadyToStop,
+    Message,
+    PrepareToStop,
+    Stop,
+)
 from exasol.analytics.udf.communication.peer import Peer
-from exasol.analytics.udf.communication.peer_communicator.background_listener_thread import \
-    BackgroundListenerThread
+from exasol.analytics.udf.communication.peer_communicator.background_listener_thread import (
+    BackgroundListenerThread,
+)
 from exasol.analytics.udf.communication.peer_communicator.clock import Clock
-from exasol.analytics.udf.communication.peer_communicator.peer_communicator_config import \
-    PeerCommunicatorConfig
-from exasol.analytics.udf.communication.serialization import deserialize_message, serialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory, \
-    SocketType, Socket, PollerFlag, Frame
+from exasol.analytics.udf.communication.peer_communicator.peer_communicator_config import (
+    PeerCommunicatorConfig,
+)
+from exasol.analytics.udf.communication.serialization import (
+    deserialize_message,
+    serialize_message,
+)
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    PollerFlag,
+    Socket,
+    SocketFactory,
+    SocketType,
+)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class BackgroundListenerInterface:
 
-    def __init__(self,
-                 name: str,
-                 number_of_peers: int,
-                 socket_factory: SocketFactory,
-                 listen_ip: IPAddress,
-                 group_identifier: str,
-                 config: PeerCommunicatorConfig,
-                 clock: Clock,
-                 trace_logging: bool):
+    def __init__(
+        self,
+        name: str,
+        number_of_peers: int,
+        socket_factory: SocketFactory,
+        listen_ip: IPAddress,
+        group_identifier: str,
+        config: PeerCommunicatorConfig,
+        clock: Clock,
+        trace_logging: bool,
+    ):
         self._socket_factory = socket_factory
         self._config = config
         self._name = name
         self._logger = LOGGER.bind(
-            name=self._name,
-            group_identifier=group_identifier,
-            config=asdict(config)
+            name=self._name, group_identifier=group_identifier, config=asdict(config)
         )
         out_control_socket_address = self._create_out_control_socket(socket_factory)
         in_control_socket_address = self._create_in_control_socket(socket_factory)
@@ -64,13 +79,17 @@ class BackgroundListenerInterface:
 
     def _create_in_control_socket(self, socket_factory: SocketFactory) -> str:
         self._in_control_socket: Socket = socket_factory.create_socket(SocketType.PAIR)
-        in_control_socket_address = f"inproc://BackgroundListener_in_control_socket{id(self)}"
+        in_control_socket_address = (
+            f"inproc://BackgroundListener_in_control_socket{id(self)}"
+        )
         self._in_control_socket.bind(in_control_socket_address)
         return in_control_socket_address
 
     def _create_out_control_socket(self, socket_factory: SocketFactory) -> str:
         self._out_control_socket: Socket = socket_factory.create_socket(SocketType.PAIR)
-        out_control_socket_address = f"inproc://BackgroundListener_out_control_socket{id(self)}"
+        out_control_socket_address = (
+            f"inproc://BackgroundListener_out_control_socket{id(self)}"
+        )
         self._out_control_socket.bind(out_control_socket_address)
         return out_control_socket_address
 
@@ -78,7 +97,9 @@ class BackgroundListenerInterface:
         message = None
         try:
             message = self._out_control_socket.receive()
-            message_obj: messages.Message = deserialize_message(message, messages.Message)
+            message_obj: messages.Message = deserialize_message(
+                message, messages.Message
+            )
             specific_message_obj = message_obj.__root__
             assert isinstance(specific_message_obj, messages.MyConnectionInfo)
             self._my_connection_info = specific_message_obj.my_connection_info
@@ -98,15 +119,19 @@ class BackgroundListenerInterface:
         frame = self._socket_factory.create_frame(serialized_message)
         self._in_control_socket.send_multipart([frame] + payload)
 
-    def receive_messages(self, timeout_in_milliseconds: Optional[int] = 0) -> Iterator[Tuple[Message, List[Frame]]]:
+    def receive_messages(
+        self, timeout_in_milliseconds: Optional[int] = 0
+    ) -> Iterator[Tuple[Message, List[Frame]]]:
         while PollerFlag.POLLIN in self._out_control_socket.poll(
-                flags=PollerFlag.POLLIN,
-                timeout_in_ms=timeout_in_milliseconds):
+            flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds
+        ):
             message = None
             try:
                 timeout_in_milliseconds = 0
                 frames = self._out_control_socket.receive_multipart()
-                message_obj: Message = deserialize_message(frames[0].to_bytes(), Message)
+                message_obj: Message = deserialize_message(
+                    frames[0].to_bytes(), Message
+                )
                 yield message_obj, frames
             except Exception as e:
                 self._logger.exception("Exception", raw_message=message)

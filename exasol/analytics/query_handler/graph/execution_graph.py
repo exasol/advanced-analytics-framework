@@ -1,18 +1,15 @@
 import json
 import typing
-from typing import TypeVar, Generic, Set, Tuple, List
+from typing import Generic, List, Set, Tuple, TypeVar
 
 import networkx as nx
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ExecutionGraph(Generic[T]):
 
-    def __init__(self,
-                 start_node: T,
-                 end_node: T,
-                 edges: Set[Tuple[T, T]]):
+    def __init__(self, start_node: T, end_node: T, edges: Set[Tuple[T, T]]):
         self._graph = nx.DiGraph()
         self._graph.add_edges_from(edges)
         self._graph.add_node(start_node)
@@ -22,18 +19,24 @@ class ExecutionGraph(Generic[T]):
         if not nx.is_directed_acyclic_graph(self._graph):
             raise Exception("Graph not directed acyclic")
         nodes = set(self._graph)
-        descendants_plus_start_node = nx.descendants(self._graph, self._start_node) | {self._start_node}
+        descendants_plus_start_node = nx.descendants(self._graph, self._start_node) | {
+            self._start_node
+        }
         if not descendants_plus_start_node == nodes:
             raise Exception("Not all Nodes are reachable from start node")
-        ancestors_plus_end_node = nx.ancestors(self._graph, self._end_node) | {self._end_node}
+        ancestors_plus_end_node = nx.ancestors(self._graph, self._end_node) | {
+            self._end_node
+        }
         if not ancestors_plus_end_node == nodes:
             raise Exception("End node not reachable by all nodes")
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
-            result = self._start_node == other._start_node and \
-                     self._end_node == other._end_node and \
-                     self._graph.edges == other._graph.edges
+            result = (
+                self._start_node == other._start_node
+                and self._end_node == other._end_node
+                and self._graph.edges == other._graph.edges
+            )
             return result
         else:
             return False
@@ -43,7 +46,7 @@ class ExecutionGraph(Generic[T]):
         result = {
             "start_node": str(self._start_node),
             "end_node": str(self._end_node),
-            "edges": sorted_edges
+            "edges": sorted_edges,
         }
         # return f"ExecutionGraph(start_node={self._start_node},end_node={self._end_node},edges={sorted_edges})"
         return json.dumps(result, indent=2)
@@ -74,13 +77,17 @@ class ExecutionGraph(Generic[T]):
 
     def compute_reverse_dependency_order(self) -> List[T]:
         reversed_graph = self._graph.reverse()
-        post_order_of_reversed_graph = \
-            list(nx.traversal.dfs_postorder_nodes(reversed_graph, self._end_node))
-        reversed_post_order_of_reversed_graph = list(reversed(post_order_of_reversed_graph))
+        post_order_of_reversed_graph = list(
+            nx.traversal.dfs_postorder_nodes(reversed_graph, self._end_node)
+        )
+        reversed_post_order_of_reversed_graph = list(
+            reversed(post_order_of_reversed_graph)
+        )
         return reversed_post_order_of_reversed_graph
 
     def compute_dependency_order(self) -> List[T]:
-        post_order_of__graph = \
-            list(nx.traversal.dfs_postorder_nodes(self._graph, self._start_node))
+        post_order_of__graph = list(
+            nx.traversal.dfs_postorder_nodes(self._graph, self._start_node)
+        )
         reversed_post_order_of_graph = list(reversed(post_order_of__graph))
         return reversed_post_order_of_graph

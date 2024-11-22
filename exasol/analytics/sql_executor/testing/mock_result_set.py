@@ -1,24 +1,24 @@
 import itertools
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
 from exasol.analytics.schema import Column
-
 from exasol.analytics.sql_executor.interface import ResultSet
 
 
 class MockResultSet(ResultSet):
 
-    def __init__(self,
-                 rows: Optional[List[Tuple]] = None,
-                 columns: Optional[List[Column]] = None
-                 ):
+    def __init__(
+        self, rows: Optional[List[Tuple]] = None, columns: Optional[List[Column]] = None
+    ):
         self._columns = columns
         self._rows = rows
         if rows is not None:
             if self._columns is not None:
                 for row in rows:
                     if len(row) != len(self._columns):
-                        raise AssertionError(f"Row {row} doesn't fit columns {self._columns}")
+                        raise AssertionError(
+                            f"Row {row} doesn't fit columns {self._columns}"
+                        )
             self._iter = self._rows.__iter__()
 
     def __iter__(self):

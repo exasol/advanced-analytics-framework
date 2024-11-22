@@ -1,6 +1,6 @@
 import dataclasses
-from typing import Union, List, Optional
-from unittest.mock import MagicMock, create_autospec, call, Mock
+from typing import List, Optional, Union
+from unittest.mock import MagicMock, Mock, call, create_autospec
 
 from polyfactory.factories.pydantic_factory import ModelFactory
 
@@ -9,8 +9,11 @@ from exasol.analytics.udf.communication.broadcast_operation import BroadcastOper
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
 from exasol.analytics.udf.communication.serialization import serialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory, Frame
-from tests.mock_cast import mock_cast
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    SocketFactory,
+)
+from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)
@@ -30,15 +33,21 @@ class Fixture:
 
 def create_setup(value: Optional[bytes]) -> Fixture:
     sequence_number = 0
-    localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(PeerCommunicator)
-    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(PeerCommunicator)
-    socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(SocketFactory)
+    localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+        PeerCommunicator
+    )
+    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+        PeerCommunicator
+    )
+    socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(
+        SocketFactory
+    )
     broadcast_operation = BroadcastOperation(
         sequence_number=sequence_number,
         value=value,
         localhost_communicator=localhost_communicator_mock,
         multi_node_communicator=multi_node_communicator_mock,
-        socket_factory=socket_factory_mock
+        socket_factory=socket_factory_mock,
     )
     test_setup = Fixture(
         sequence_number=sequence_number,
@@ -46,7 +55,7 @@ def create_setup(value: Optional[bytes]) -> Fixture:
         localhost_communicator_mock=localhost_communicator_mock,
         multi_node_communicator_mock=multi_node_communicator_mock,
         socket_factory_mock=socket_factory_mock,
-        broadcast_operation=broadcast_operation
+        broadcast_operation=broadcast_operation,
     )
     return test_setup
 
@@ -54,9 +63,9 @@ def create_setup(value: Optional[bytes]) -> Fixture:
 def test_init():
     test_setup = create_setup(value=None)
     assert (
-            test_setup.multi_node_communicator_mock.mock_calls == []
-            and test_setup.localhost_communicator_mock.mock_calls == []
-            and test_setup.socket_factory_mock.mock_calls == []
+        test_setup.multi_node_communicator_mock.mock_calls == []
+        and test_setup.localhost_communicator_mock.mock_calls == []
+        and test_setup.socket_factory_mock.mock_calls == []
     )
 
 
@@ -69,19 +78,27 @@ def test_call_localhost_rank_greater_zero():
     leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.peer = peer
     test_setup.localhost_communicator_mock.leader = leader
-    frames: List[Union[Frame, MagicMock]] = [create_autospec(Frame), create_autospec(Frame)]
-    mock_cast(frames[0].to_bytes).return_value = serialize_message(messages.Broadcast(
-        source=leader,
-        destination=peer,
-        sequence_number=test_setup.sequence_number,
-    ))
+    frames: List[Union[Frame, MagicMock]] = [
+        create_autospec(Frame),
+        create_autospec(Frame),
+    ]
+    mock_cast(frames[0].to_bytes).return_value = serialize_message(
+        messages.Broadcast(
+            source=leader,
+            destination=peer,
+            sequence_number=test_setup.sequence_number,
+        )
+    )
     mock_cast(frames[1].to_bytes).return_value = expected_value
     mock_cast(test_setup.localhost_communicator_mock.recv).side_effect = [frames]
     result = test_setup.broadcast_operation()
-    assert result == expected_value \
-           and mock_cast(test_setup.localhost_communicator_mock.recv).mock_calls == [call(peer=leader)] \
-           and test_setup.socket_factory_mock.mock_calls == [] \
-           and test_setup.multi_node_communicator_mock.mock_calls == []
+    assert (
+        result == expected_value
+        and mock_cast(test_setup.localhost_communicator_mock.recv).mock_calls
+        == [call(peer=leader)]
+        and test_setup.socket_factory_mock.mock_calls == []
+        and test_setup.multi_node_communicator_mock.mock_calls == []
+    )
 
 
 def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
@@ -98,32 +115,43 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frames: List[Union[Frame, MagicMock]] = [create_autospec(Frame), create_autospec(Frame)]
-    mock_cast(frames[0].to_bytes).return_value = serialize_message(messages.Broadcast(
-        source=multi_node_leader,
-        destination=multi_node_peer,
-        sequence_number=test_setup.sequence_number,
-    ))
+    frames: List[Union[Frame, MagicMock]] = [
+        create_autospec(Frame),
+        create_autospec(Frame),
+    ]
+    mock_cast(frames[0].to_bytes).return_value = serialize_message(
+        messages.Broadcast(
+            source=multi_node_leader,
+            destination=multi_node_peer,
+            sequence_number=test_setup.sequence_number,
+        )
+    )
     mock_cast(frames[1].to_bytes).return_value = expected_value
     mock_cast(test_setup.multi_node_communicator_mock.recv).side_effect = [frames]
-    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [localhost_leader, localhost_peer]
+    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [
+        localhost_leader,
+        localhost_peer,
+    ]
     result = test_setup.broadcast_operation()
-    assert result == expected_value \
-           and mock_cast(test_setup.localhost_communicator_mock.send).mock_calls == [
-               call(peer=localhost_peer, message=[frame_mocks[0], frames[1]])
-           ] \
-           and mock_cast(test_setup.multi_node_communicator_mock.recv).mock_calls == [
-               call(multi_node_leader)
-           ] \
-           and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls == [
-               call(serialize_message(
-                   messages.Broadcast(
-                       source=localhost_leader,
-                       destination=localhost_peer,
-                       sequence_number=0
-                   )
-               ))
-           ]
+    assert (
+        result == expected_value
+        and mock_cast(test_setup.localhost_communicator_mock.send).mock_calls
+        == [call(peer=localhost_peer, message=[frame_mocks[0], frames[1]])]
+        and mock_cast(test_setup.multi_node_communicator_mock.recv).mock_calls
+        == [call(multi_node_leader)]
+        and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls
+        == [
+            call(
+                serialize_message(
+                    messages.Broadcast(
+                        source=localhost_leader,
+                        destination=localhost_peer,
+                        sequence_number=0,
+                    )
+                )
+            )
+        ]
+    )
 
 
 def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_number_of_peers_one():
@@ -136,32 +164,47 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: List[Union[Frame, MagicMock]] = [create_autospec(Frame), create_autospec(Frame)]
+    frame_mocks: List[Union[Frame, MagicMock]] = [
+        create_autospec(Frame),
+        create_autospec(Frame),
+    ]
     mock_cast(test_setup.socket_factory_mock.create_frame).side_effect = frame_mocks
-    mock_cast(frame_mocks[0].to_bytes).return_value = serialize_message(messages.Broadcast(
-        source=localhost_leader,
-        destination=localhost_peer,
-        sequence_number=test_setup.sequence_number,
-    ))
+    mock_cast(frame_mocks[0].to_bytes).return_value = serialize_message(
+        messages.Broadcast(
+            source=localhost_leader,
+            destination=localhost_peer,
+            sequence_number=test_setup.sequence_number,
+        )
+    )
     mock_cast(frame_mocks[1].to_bytes).return_value = test_setup.value
-    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [localhost_leader, localhost_peer]
-    mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [multi_node_leader]
+    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [
+        localhost_leader,
+        localhost_peer,
+    ]
+    mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [
+        multi_node_leader
+    ]
     result = test_setup.broadcast_operation()
-    assert result == test_setup.value \
-           and mock_cast(test_setup.localhost_communicator_mock.send).mock_calls == [
-               call(peer=localhost_peer, message=[frame_mocks[1], frame_mocks[0]])
-           ] \
-           and mock_cast(test_setup.multi_node_communicator_mock.peers).mock_calls == [call()] \
-           and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls == [
-               call(b'0'),
-               call(serialize_message(
-                   messages.Broadcast(
-                       source=localhost_leader,
-                       destination=localhost_peer,
-                       sequence_number=0
-                   )
-               ))
-           ]
+    assert (
+        result == test_setup.value
+        and mock_cast(test_setup.localhost_communicator_mock.send).mock_calls
+        == [call(peer=localhost_peer, message=[frame_mocks[1], frame_mocks[0]])]
+        and mock_cast(test_setup.multi_node_communicator_mock.peers).mock_calls
+        == [call()]
+        and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls
+        == [
+            call(b"0"),
+            call(
+                serialize_message(
+                    messages.Broadcast(
+                        source=localhost_leader,
+                        destination=localhost_peer,
+                        sequence_number=0,
+                    )
+                )
+            ),
+        ]
+    )
 
 
 def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_number_of_peers_two():
@@ -174,29 +217,44 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: List[Union[Frame, MagicMock]] = [create_autospec(Frame), create_autospec(Frame)]
+    frame_mocks: List[Union[Frame, MagicMock]] = [
+        create_autospec(Frame),
+        create_autospec(Frame),
+    ]
     mock_cast(test_setup.socket_factory_mock.create_frame).side_effect = frame_mocks
-    mock_cast(frame_mocks[0].to_bytes).return_value = serialize_message(messages.Broadcast(
-        source=multi_node_leader,
-        destination=multi_node_peer,
-        sequence_number=test_setup.sequence_number,
-    ))
+    mock_cast(frame_mocks[0].to_bytes).return_value = serialize_message(
+        messages.Broadcast(
+            source=multi_node_leader,
+            destination=multi_node_peer,
+            sequence_number=test_setup.sequence_number,
+        )
+    )
     mock_cast(frame_mocks[1].to_bytes).return_value = test_setup.value
-    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [localhost_leader]
-    mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [multi_node_leader, multi_node_peer]
+    mock_cast(test_setup.localhost_communicator_mock.peers).return_value = [
+        localhost_leader
+    ]
+    mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [
+        multi_node_leader,
+        multi_node_peer,
+    ]
     result = test_setup.broadcast_operation()
-    assert result == test_setup.value \
-           and mock_cast(test_setup.multi_node_communicator_mock.send).mock_calls == [
-               call(peer=multi_node_peer, message=[frame_mocks[1], frame_mocks[0]])
-           ] \
-           and mock_cast(test_setup.localhost_communicator_mock.peers).mock_calls == [call()] \
-           and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls == [
-               call(b'0'),
-               call(serialize_message(
-                   messages.Broadcast(
-                       source=multi_node_leader,
-                       destination=multi_node_peer,
-                       sequence_number=0
-                   )
-               ))
-           ]
+    assert (
+        result == test_setup.value
+        and mock_cast(test_setup.multi_node_communicator_mock.send).mock_calls
+        == [call(peer=multi_node_peer, message=[frame_mocks[1], frame_mocks[0]])]
+        and mock_cast(test_setup.localhost_communicator_mock.peers).mock_calls
+        == [call()]
+        and mock_cast(test_setup.socket_factory_mock.create_frame).mock_calls
+        == [
+            call(b"0"),
+            call(
+                serialize_message(
+                    messages.Broadcast(
+                        source=multi_node_leader,
+                        destination=multi_node_peer,
+                        sequence_number=0,
+                    )
+                )
+            ),
+        ]
+    )

@@ -1,10 +1,8 @@
 from typing import Union
 
-from exasol.analytics.schema import (
-    Column,
-    ColumnType,
-    ColumnName,
-)
+from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.column_type import ColumnType
 
 
 class ColumnBuilder:

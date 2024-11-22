@@ -19,8 +19,5 @@ def insert(log_file_path: Path, es: Elasticsearch):
 if __name__ == "__main__":
     root = Path(__file__).parent
     log_file_path = root / "test_add_peer_forward.log"
-    es = Elasticsearch(
-        "http://localhost:9200",
-        basic_auth=("elastic", "changeme")
-    )
+    es = Elasticsearch("http://localhost:9200", basic_auth=("elastic", "changeme"))
     insert(log_file_path, es)

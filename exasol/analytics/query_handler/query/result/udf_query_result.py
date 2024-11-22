@@ -1,26 +1,23 @@
 import collections
-from typing import Union, List, Any, OrderedDict, Iterator
+from typing import Any, Iterator, List, OrderedDict, Union
 
-from exasol.analytics.schema.column import \
-    Column
-from exasol.analytics.schema.column_name import \
-    ColumnName
-from exasol.analytics.schema.column_type import \
-    ColumnType
-
-from exasol.analytics.query_handler.query.result.interface     import QueryResult, Row
+from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
+from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.column_type import ColumnType
 
 
 class UDFQueryResult(QueryResult):
 
-    def __init__(self, ctx, exa, column_mapping: OrderedDict[str, str],
-                 start_col: int = 0):
+    def __init__(
+        self, ctx, exa, column_mapping: OrderedDict[str, str], start_col: int = 0
+    ):
         self._start_col = start_col
         self._ctx = ctx
         self._has_next = True
-        self._reverse_column_mapping = \
-            collections.OrderedDict(
-                [(value, key) for key, value in column_mapping.items()])
+        self._reverse_column_mapping = collections.OrderedDict(
+            [(value, key) for key, value in column_mapping.items()]
+        )
         self._columns = self._compute_columns(exa)
         self._initialized = False
 
@@ -52,7 +49,9 @@ class UDFQueryResult(QueryResult):
     def rowcount(self) -> int:
         return self._ctx.size()
 
-    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0) -> "pandas.DataFrame":
+    def fetch_as_dataframe(
+        self, num_rows: Union[str, int], start_col: int = 0
+    ) -> "pandas.DataFrame":
         df = self._ctx.get_dataframe(num_rows, start_col=self._start_col)
         self._initialized = True
         if df is None:
@@ -67,10 +66,13 @@ class UDFQueryResult(QueryResult):
         return list(self._columns)
 
     def _compute_columns(self, exa) -> List[Column]:
-        column_dict = {column.name: column.sql_type
-                       for column in exa.meta.input_columns}
-        columns = [Column(ColumnName(key), ColumnType(column_dict[value]))
-                   for key, value in self._reverse_column_mapping.items()]
+        column_dict = {
+            column.name: column.sql_type for column in exa.meta.input_columns
+        }
+        columns = [
+            Column(ColumnName(key), ColumnType(column_dict[value]))
+            for key, value in self._reverse_column_mapping.items()
+        ]
         return columns
 
     def column_names(self) -> List[str]:

@@ -1,5 +1,8 @@
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
-from exasol.analytics.sql_executor.testing.mock_sql_executor import MockSQLExecutor, ExpectedQuery
+from exasol.analytics.sql_executor.testing.mock_sql_executor import (
+    ExpectedQuery,
+    MockSQLExecutor,
+)
 
 
 def test_no_resultset():

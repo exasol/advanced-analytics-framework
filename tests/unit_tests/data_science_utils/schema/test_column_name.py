@@ -1,10 +1,6 @@
 import pytest
 
-from exasol.analytics.schema import (
-    TableNameBuilder,
-    SchemaName,
-    ColumnName,
-)
+from exasol.analytics.schema import ColumnName, SchemaName, TableNameBuilder
 
 
 def test_fully_qualified():
@@ -18,7 +14,9 @@ def test_fully_qualified_with_table():
 
 
 def test_fully_qualified_with_table_and_schema():
-    column = ColumnName("column", TableNameBuilder.create("table", schema=SchemaName("schema")))
+    column = ColumnName(
+        "column", TableNameBuilder.create("table", schema=SchemaName("schema"))
+    )
     assert column.fully_qualified == '"schema"."table"."column"'
 
 

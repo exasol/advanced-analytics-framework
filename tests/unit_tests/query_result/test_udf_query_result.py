@@ -6,24 +6,28 @@ from exasol_udf_mock_python.udf_mock_executor import UDFMockExecutor
 
 DATA_SIZE = 100
 FETCH_SIZE = 10
-INPUT_DATA = [(i, (1.0 * i / DATA_SIZE), str(2 * i))
-              for i in range(1, DATA_SIZE + 1)]
+INPUT_DATA = [(i, (1.0 * i / DATA_SIZE), str(2 * i)) for i in range(1, DATA_SIZE + 1)]
 INPUT_COLUMNS = [
     Column("t1", int, "INTEGER"),
     Column("t2", float, "FLOAT"),
-    Column("t3", str, "VARCHAR(2000)")]
+    Column("t3", str, "VARCHAR(2000)"),
+]
 
 
 def test_fetch_as_dataframe_column_names():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             df = wrapper.fetch_as_dataframe(num_rows=1)
             for column in df.columns:
                 ctx.emit(column)
@@ -34,7 +38,9 @@ def test_fetch_as_dataframe_column_names():
         input_type="SET",
         input_columns=INPUT_COLUMNS,
         output_type="EMITS",
-        output_columns=[Column("column", str, "VARCHAR(2000000)"), ]
+        output_columns=[
+            Column("column", str, "VARCHAR(2000000)"),
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -44,14 +50,18 @@ def test_fetch_as_dataframe_column_names():
 
 def test_fetch_as_dataframe_first_batch():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             df = wrapper.fetch_as_dataframe(num_rows=10)
             ctx.emit(df[["a", "c", "b"]])
 
@@ -65,7 +75,7 @@ def test_fetch_as_dataframe_first_batch():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -75,14 +85,18 @@ def test_fetch_as_dataframe_first_batch():
 
 def test_fetch_as_dataframe_second_batch():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             df = wrapper.fetch_as_dataframe(num_rows=10)
             df = wrapper.fetch_as_dataframe(num_rows=20)
             ctx.emit(df[["a", "c", "b"]])
@@ -97,7 +111,7 @@ def test_fetch_as_dataframe_second_batch():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -107,14 +121,18 @@ def test_fetch_as_dataframe_second_batch():
 
 def test_fetch_as_dataframe_after_last_batch():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             while True:
                 df = wrapper.fetch_as_dataframe(num_rows=10)
                 if df is None:
@@ -131,7 +149,7 @@ def test_fetch_as_dataframe_after_last_batch():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -141,14 +159,18 @@ def test_fetch_as_dataframe_after_last_batch():
 
 def test_fetch_as_dataframe_all_rows():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             df = wrapper.fetch_as_dataframe(num_rows="all")
             ctx.emit(df[["a", "c", "b"]])
 
@@ -162,7 +184,7 @@ def test_fetch_as_dataframe_all_rows():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -172,14 +194,18 @@ def test_fetch_as_dataframe_all_rows():
 
 def test_fetch_as_dataframe_start_col():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             df = wrapper.fetch_as_dataframe(num_rows=1, start_col=1)
             ctx.emit(df[["c", "b"]])
 
@@ -192,7 +218,7 @@ def test_fetch_as_dataframe_start_col():
         output_columns=[
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -202,14 +228,18 @@ def test_fetch_as_dataframe_start_col():
 
 def test_rowcount():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             ctx.emit(wrapper.rowcount())
 
     executor = UDFMockExecutor()
@@ -220,7 +250,7 @@ def test_rowcount():
         output_type="EMITS",
         output_columns=[
             Column("rowcount", int, "INTEGER"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -230,14 +260,18 @@ def test_rowcount():
 
 def test_column_names():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             for column_name in wrapper.column_names():
                 ctx.emit(column_name)
 
@@ -249,7 +283,7 @@ def test_column_names():
         output_type="EMITS",
         output_columns=[
             Column("column_name", str, "VARCHAR(1000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -259,14 +293,18 @@ def test_column_names():
 
 def test_columns():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             for column in wrapper.columns():
                 ctx.emit(column.name.name, column.type.name)
 
@@ -279,7 +317,7 @@ def test_columns():
         output_columns=[
             Column("column_name", str, "VARCHAR(1000)"),
             Column("sql_type", str, "VARCHAR(1000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -289,14 +327,18 @@ def test_columns():
 
 def test_column_get_attr():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             a = wrapper.a
             b = wrapper.b
             c = wrapper.c
@@ -312,7 +354,7 @@ def test_column_get_attr():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -322,14 +364,18 @@ def test_column_get_attr():
 
 def test_column_get_item():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             a = wrapper["a"]
             b = wrapper["b"]
             c = wrapper["c"]
@@ -345,7 +391,7 @@ def test_column_get_item():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -355,14 +401,18 @@ def test_column_get_item():
 
 def test_column_next_get_item():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             while True:
                 a = wrapper["a"]
                 b = wrapper["b"]
@@ -381,7 +431,7 @@ def test_column_next_get_item():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -391,14 +441,18 @@ def test_column_next_get_item():
 
 def test_column_next_get_attr():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             while True:
                 a = wrapper.a
                 b = wrapper.b
@@ -417,7 +471,7 @@ def test_column_next_get_attr():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)
@@ -427,14 +481,18 @@ def test_column_next_get_attr():
 
 def test_column_iterator():
     def udf_wrapper():
-        from exasol_udf_mock_python.udf_context import UDFContext
-        from exasol.analytics.query_handler.query.result.udf_query_result \
-            import UDFQueryResult
         from collections import OrderedDict
+
+        from exasol_udf_mock_python.udf_context import UDFContext
+
+        from exasol.analytics.query_handler.query.result.udf_query_result import (
+            UDFQueryResult,
+        )
 
         def run(ctx: UDFContext):
             wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")]))
+                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            )
             for row in wrapper:
                 ctx.emit(row[0], row[2], row[1])
 
@@ -448,7 +506,7 @@ def test_column_iterator():
             Column("a", int, "INTEGER"),
             Column("c", float, "FLOAT"),
             Column("b", str, "VARCHAR(2000)"),
-        ]
+        ],
     )
 
     exa = MockExaEnvironment(meta)

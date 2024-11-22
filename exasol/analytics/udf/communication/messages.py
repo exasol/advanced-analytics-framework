@@ -1,4 +1,4 @@
-from typing import Literal, Union, Optional
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel
 
@@ -29,8 +29,9 @@ class RegisterPeerComplete(BaseMessage, frozen=True):
 
 
 class PeerRegisterForwarderIsReady(BaseMessage, frozen=True):
-    message_type: Literal["PeerRegisterForwarderIsReady"] = \
+    message_type: Literal["PeerRegisterForwarderIsReady"] = (
         "PeerRegisterForwarderIsReady"
+    )
     peer: Peer
 
 
@@ -154,5 +155,5 @@ class Message(BaseModel, frozen=True):
         ConnectionIsClosed,
         Timeout,
         Gather,
-        Broadcast
+        Broadcast,
     ]

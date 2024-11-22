@@ -6,9 +6,11 @@ from exasol.analytics.query_handler.deployment.lua_script_bundle import LuaScrip
 
 def test(tmp_path):
     resource_dir = Path(__file__).parent / "resources" / "lua_bundle"
-    bundle = LuaScriptBundle(lua_main_file=resource_dir / "main.lua",
-                             lua_source_files=[resource_dir / "test_module_1.lua"],
-                             lua_modules=["test_module_1"])
+    bundle = LuaScriptBundle(
+        lua_main_file=resource_dir / "main.lua",
+        lua_source_files=[resource_dir / "test_module_1.lua"],
+        lua_modules=["test_module_1"],
+    )
     bundle_file_name = "bundle.lua"
     bundle_lua = tmp_path / bundle_file_name
     with bundle_lua.open("w") as file:

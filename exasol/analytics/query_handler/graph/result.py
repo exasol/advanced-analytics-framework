@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Any, Tuple
+from typing import Any, Tuple, Type, TypeVar
 
 
 def _init(self):
@@ -12,10 +12,13 @@ def _setattr(self, key: str, value: Any):
     If an attribute, already exists this functions raises a AttributeError.
     """
     if key not in self.__annotations__ and key != "result_id":
-        raise AttributeError(f"Attribute '{key}' is not defined for class '{self.__class__.__name__}'.")
+        raise AttributeError(
+            f"Attribute '{key}' is not defined for class '{self.__class__.__name__}'."
+        )
     if hasattr(self, key):
         raise AttributeError(f"Attribute '{key}' is already set.")
     object.__setattr__(self, key, value)
+
 
 def _delattr(self, key: str):
     """
@@ -23,7 +26,9 @@ def _delattr(self, key: str):
     If an attribute, already exists this functions raises a AttributeError.
     """
     if key not in self.__annotations__ and key != "result_id":
-        raise AttributeError(f"Attribute '{key}' is not defined for class '{self.__class__.__name__}'.")
+        raise AttributeError(
+            f"Attribute '{key}' is not defined for class '{self.__class__.__name__}'."
+        )
     else:
         raise AttributeError(f"Attribute '{key}' cannnot be deleted.")
 
@@ -103,14 +108,18 @@ class Result(metaclass=_Meta):
 
     def update(self, other: "Result"):
         if self.__class__ != other.__class__:
-            raise TypeError(f"Incompatible classes for "
-                            f"self '{self.__class__.__name__}' and "
-                            f"other '{other.__class__.__name__}'.")
+            raise TypeError(
+                f"Incompatible classes for "
+                f"self '{self.__class__.__name__}' and "
+                f"other '{other.__class__.__name__}'."
+            )
         if self.result_id != other.result_id:
             raise ValueError("Self and other have different result ids.")
         for key in self.__annotations__.keys():
             if not hasattr(other, key) and hasattr(self, key):
-                raise AttributeError(f"Attribute '{key}' is set in self, but not in other.")
+                raise AttributeError(
+                    f"Attribute '{key}' is set in self, but not in other."
+                )
             if not hasattr(other, key):
                 continue
             other_value = getattr(other, key)
@@ -119,7 +128,8 @@ class Result(metaclass=_Meta):
                 if other_value == self_value:
                     continue
                 raise AttributeError(
-                    f"Values for attribute '{key}' are different in self '{self_value}' and other '{other_value}'")
+                    f"Values for attribute '{key}' are different in self '{self_value}' and other '{other_value}'"
+                )
             setattr(self, key, other_value)
         return self
 

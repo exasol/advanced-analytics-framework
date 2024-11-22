@@ -1,13 +1,12 @@
-from typing import Union, Optional
-from unittest.mock import create_autospec, MagicMock, call
+from typing import Optional, Union
+from unittest.mock import MagicMock, call, create_autospec
 
 import numpy as np
 import pytest
 from numpy.random import RandomState
 
-from exasol.analytics.udf.communication.socket_factory import abstract
-from exasol.analytics.udf.communication.socket_factory import fault_injection
-from tests.mock_cast import mock_cast
+from exasol.analytics.udf.communication.socket_factory import abstract, fault_injection
+from tests.utils.mock_cast import mock_cast
 
 
 def test_create_socket_with():
@@ -72,8 +71,9 @@ def test_socket_send_no_fault_connect_inproc():
 
 def test_socket_send_mulitpart_fault():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
-    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(abstract.Frame,
-                                                                   spec_set=True)
+    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(
+        abstract.Frame, spec_set=True
+    )
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     mock_cast(random_state_mock.random_sample).side_effect = [np.array([0.09])]
     message = [frame_mock]
@@ -84,8 +84,9 @@ def test_socket_send_mulitpart_fault():
 
 def test_socket_send_mulitpart_should_be_fault_but_bind_inproc_is_reliable():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
-    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(abstract.Frame,
-                                                                   spec_set=True)
+    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(
+        abstract.Frame, spec_set=True
+    )
     frame = fault_injection.Frame(frame_mock)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     mock_cast(random_state_mock.random_sample).side_effect = [np.array([0.09])]
@@ -98,8 +99,9 @@ def test_socket_send_mulitpart_should_be_fault_but_bind_inproc_is_reliable():
 
 def test_socket_send_mulitpart_should_be_fault_but_bind_random_port_inproc_is_reliable():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
-    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(abstract.Frame,
-                                                                   spec_set=True)
+    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(
+        abstract.Frame, spec_set=True
+    )
     frame = fault_injection.Frame(frame_mock)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     mock_cast(random_state_mock.random_sample).side_effect = [np.array([0.09])]
@@ -112,8 +114,9 @@ def test_socket_send_mulitpart_should_be_fault_but_bind_random_port_inproc_is_re
 
 def test_socket_send_mulitpart_should_be_fault_but_connect_inproc_is_reiliable():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
-    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(abstract.Frame,
-                                                                   spec_set=True)
+    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(
+        abstract.Frame, spec_set=True
+    )
     frame = fault_injection.Frame(frame_mock)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     mock_cast(random_state_mock.random_sample).side_effect = [np.array([0.09])]
@@ -126,8 +129,9 @@ def test_socket_send_mulitpart_should_be_fault_but_connect_inproc_is_reiliable()
 
 def test_socket_send_multipart_no_fault():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
-    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(abstract.Frame,
-                                                                   spec_set=True)
+    frame_mock: Union[abstract.Frame, MagicMock] = create_autospec(
+        abstract.Frame, spec_set=True
+    )
     frame = fault_injection.Frame(frame_mock)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     mock_cast(random_state_mock.random_sample).side_effect = [np.array([0.1])]
@@ -148,7 +152,7 @@ def test_socket_receive():
 def test_socket_bind():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
-    address = 'address'
+    address = "address"
     with fault_injection.Socket(socket_mock, 0.1, random_state_mock) as socket:
         socket.bind(address)
     assert mock_cast(socket_mock.bind).mock_calls == [call(address)]
@@ -157,7 +161,7 @@ def test_socket_bind():
 def test_socket_bind_random_port():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
-    address = 'address'
+    address = "address"
     with fault_injection.Socket(socket_mock, 0.1, random_state_mock) as socket:
         socket.bind_to_random_port(address)
     assert mock_cast(socket_mock.bind_to_random_port).mock_calls == [call(address)]
@@ -166,7 +170,7 @@ def test_socket_bind_random_port():
 def test_socket_connect():
     socket_mock: Union[abstract.Socket, MagicMock] = create_autospec(abstract.Socket)
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
-    address = 'address'
+    address = "address"
     with fault_injection.Socket(socket_mock, 0.1, random_state_mock) as socket:
         socket.connect(address)
     assert mock_cast(socket_mock.connect).mock_calls == [call(address)]
@@ -177,7 +181,9 @@ def test_socket_poll():
     random_state_mock: Union[RandomState, MagicMock] = create_autospec(RandomState)
     with fault_injection.Socket(socket_mock, 0.1, random_state_mock) as socket:
         socket.poll(abstract.PollerFlag.POLLIN, timeout_in_ms=1)
-    assert mock_cast(socket_mock.poll).mock_calls == [call(abstract.PollerFlag.POLLIN, 1)]
+    assert mock_cast(socket_mock.poll).mock_calls == [
+        call(abstract.PollerFlag.POLLIN, 1)
+    ]
 
 
 def test_socket_set_identity():

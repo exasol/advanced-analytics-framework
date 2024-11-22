@@ -1,5 +1,7 @@
 import contextlib
-import pyexasol   # type: ignore
+
+import pyexasol  # type: ignore
+
 
 @contextlib.contextmanager
 def revert_language_settings(connection: pyexasol.ExaConnection):
@@ -11,5 +13,9 @@ def revert_language_settings(connection: pyexasol.ExaConnection):
     try:
         yield
     finally:
-        connection.execute(f"ALTER SYSTEM SET SCRIPT_LANGUAGES='{language_settings[0]}';")
-        connection.execute(f"ALTER SESSION SET SCRIPT_LANGUAGES='{language_settings[1]}';")
+        connection.execute(
+            f"ALTER SYSTEM SET SCRIPT_LANGUAGES='{language_settings[0]}';"
+        )
+        connection.execute(
+            f"ALTER SESSION SET SCRIPT_LANGUAGES='{language_settings[1]}';"
+        )

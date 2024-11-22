@@ -1,11 +1,15 @@
-from typing import Dict, Callable
+from typing import Callable, Dict
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import (
+    ObjectProxyReferenceCounter,
+    ReferenceCounterStatus,
+)
 
-from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import ObjectProxyReferenceCounter, ReferenceCounterStatus
-
-ObjectProxyReferenceCounterFactory = Callable[[ScopeQueryHandlerContext, ObjectProxy], ObjectProxyReferenceCounter]
+ObjectProxyReferenceCounterFactory = Callable[
+    [ScopeQueryHandlerContext, ObjectProxy], ObjectProxyReferenceCounter
+]
 
 
 class ObjectProxyReferenceCountingBag:
@@ -15,18 +19,24 @@ class ObjectProxyReferenceCountingBag:
     reaches zero the corresponding ScopeQueryHandlerContext gets released.
     """
 
-    def __init__(self,
-                 parent_query_context_handler: ScopeQueryHandlerContext,
-                 object_proxy_reference_counter_factory: ObjectProxyReferenceCounterFactory =
-                 ObjectProxyReferenceCounter):
-        self._object_proxy_reference_counter_factory = object_proxy_reference_counter_factory
+    def __init__(
+        self,
+        parent_query_context_handler: ScopeQueryHandlerContext,
+        object_proxy_reference_counter_factory: ObjectProxyReferenceCounterFactory = ObjectProxyReferenceCounter,
+    ):
+        self._object_proxy_reference_counter_factory = (
+            object_proxy_reference_counter_factory
+        )
         self._parent_query_context_handler = parent_query_context_handler
         self._reference_counter_map: Dict[ObjectProxy, ObjectProxyReferenceCounter] = {}
 
     def add(self, object_proxy: ObjectProxy):
         if object_proxy not in self._reference_counter_map:
-            self._reference_counter_map[object_proxy] = \
-                self._object_proxy_reference_counter_factory(self._parent_query_context_handler, object_proxy)
+            self._reference_counter_map[object_proxy] = (
+                self._object_proxy_reference_counter_factory(
+                    self._parent_query_context_handler, object_proxy
+                )
+            )
         else:
             self._reference_counter_map[object_proxy].add()
 
@@ -40,5 +50,7 @@ class ObjectProxyReferenceCountingBag:
         return result
 
     def transfer_back_to_parent_query_handler_context(self, object_proxy: ObjectProxy):
-        self._reference_counter_map[object_proxy].transfer_back_to_parent_query_handler_context()
+        self._reference_counter_map[
+            object_proxy
+        ].transfer_back_to_parent_query_handler_context()
         del self._reference_counter_map[object_proxy]

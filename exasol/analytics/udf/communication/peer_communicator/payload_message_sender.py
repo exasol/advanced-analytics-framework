@@ -13,13 +13,15 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
 class PayloadMessageSender:
-    def __init__(self,
-                 message: messages.Payload,
-                 frames: List[Frame],
-                 retry_timer: Timer,
-                 abort_timer: Timer,
-                 sender: Sender,
-                 out_control_socket: Socket):
+    def __init__(
+        self,
+        message: messages.Payload,
+        frames: List[Frame],
+        retry_timer: Timer,
+        abort_timer: Timer,
+        sender: Sender,
+        out_control_socket: Socket,
+    ):
         self._logger = LOGGER.bind(message=message)
         self._abort_timer = abort_timer
         self._out_control_socket = out_control_socket
@@ -68,8 +70,7 @@ class PayloadMessageSender:
 
     def _send_abort(self):
         abort_payload_message = messages.AbortPayload(
-            payload=self._message,
-            reason="Send timeout reached"
+            payload=self._message, reason="Send timeout reached"
         )
         serialized_message = serialize_message(abort_payload_message)
         self._out_control_socket.send(serialized_message)

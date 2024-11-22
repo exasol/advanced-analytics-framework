@@ -1,13 +1,16 @@
 import dataclasses
 from typing import Union
-from unittest.mock import MagicMock, create_autospec, call
+from unittest.mock import MagicMock, call, create_autospec
 
 import pytest
+
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
-
-from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import ObjectProxyReferenceCounter, ReferenceCounterStatus
-from tests.mock_cast import mock_cast
+from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counter import (
+    ObjectProxyReferenceCounter,
+    ReferenceCounterStatus,
+)
+from tests.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
 MockObjectProxy = Union[ObjectProxy, MagicMock]
@@ -27,15 +30,21 @@ class TestMockSetup:
 
 
 def create_test_setup() -> TestMockSetup:
-    parent_query_context_handler: MockScopeQueryHandlerContext = \
-        create_autospec(ScopeQueryHandlerContext)
-    child_query_context_handler: MockScopeQueryHandlerContext = \
-        create_autospec(ScopeQueryHandlerContext)
-    mock_cast(parent_query_context_handler.get_child_query_handler_context).side_effect = [child_query_context_handler]
+    parent_query_context_handler: MockScopeQueryHandlerContext = create_autospec(
+        ScopeQueryHandlerContext
+    )
+    child_query_context_handler: MockScopeQueryHandlerContext = create_autospec(
+        ScopeQueryHandlerContext
+    )
+    mock_cast(
+        parent_query_context_handler.get_child_query_handler_context
+    ).side_effect = [child_query_context_handler]
     object_proxy: MockObjectProxy = create_autospec(ObjectProxy)
-    return TestMockSetup(mock_parent_query_context_handler=parent_query_context_handler,
-                         mock_child_query_context_handler=child_query_context_handler,
-                         mock_object_proxy=object_proxy)
+    return TestMockSetup(
+        mock_parent_query_context_handler=parent_query_context_handler,
+        mock_child_query_context_handler=child_query_context_handler,
+        mock_object_proxy=object_proxy,
+    )
 
 
 def test_init():
@@ -46,11 +55,17 @@ def test_init():
     child_query_context_handler.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
-    mock_cast(test_setup.mock_parent_query_context_handler.get_child_query_handler_context).assert_called_once()
-    mock_cast(test_setup.mock_parent_query_context_handler.transfer_object_to).assert_called_once_with(
-        test_setup.mock_object_proxy, test_setup.mock_child_query_context_handler)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
+    mock_cast(
+        test_setup.mock_parent_query_context_handler.get_child_query_handler_context
+    ).assert_called_once()
+    mock_cast(
+        test_setup.mock_parent_query_context_handler.transfer_object_to
+    ).assert_called_once_with(
+        test_setup.mock_object_proxy, test_setup.mock_child_query_context_handler
+    )
 
 
 def test_single_add():
@@ -59,12 +74,15 @@ def test_single_add():
     It expects no calls to the parent_query_context_handler and child_query_handler_context.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     counter.add()
-    assert test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           test_setup.mock_child_query_context_handler.mock_calls == []
+    assert (
+        test_setup.mock_parent_query_context_handler.mock_calls == []
+        and test_setup.mock_child_query_context_handler.mock_calls == []
+    )
 
 
 def test_single_add_and_single_remove():
@@ -74,14 +92,17 @@ def test_single_add_and_single_remove():
     and that the remove returns NOT_RELEASED.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.add()
     test_setup.reset_mock()
     reference_counter_status = counter.remove()
-    assert reference_counter_status == ReferenceCounterStatus.NOT_RELEASED and \
-           test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           test_setup.mock_child_query_context_handler.mock_calls == []
+    assert (
+        reference_counter_status == ReferenceCounterStatus.NOT_RELEASED
+        and test_setup.mock_parent_query_context_handler.mock_calls == []
+        and test_setup.mock_child_query_context_handler.mock_calls == []
+    )
 
 
 def test_single_add_and_two_removes():
@@ -91,15 +112,18 @@ def test_single_add_and_two_removes():
     and that the remove returns RELEASED.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.add()
     counter.remove()
     test_setup.reset_mock()
     reference_counter_status = counter.remove()
-    assert reference_counter_status == ReferenceCounterStatus.RELEASED and \
-           test_setup.mock_child_query_context_handler.mock_calls == [call.release()] and \
-           test_setup.mock_parent_query_context_handler.mock_calls == []
+    assert (
+        reference_counter_status == ReferenceCounterStatus.RELEASED
+        and test_setup.mock_child_query_context_handler.mock_calls == [call.release()]
+        and test_setup.mock_parent_query_context_handler.mock_calls == []
+    )
 
 
 def test_single_remove():
@@ -109,13 +133,16 @@ def test_single_remove():
     and that mock_child_query_context_handler.release is called
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     reference_counter_status = counter.remove()
-    assert reference_counter_status == ReferenceCounterStatus.RELEASED and \
-           test_setup.mock_child_query_context_handler.mock_calls == [call.release()] and \
-           test_setup.mock_parent_query_context_handler.mock_calls == []
+    assert (
+        reference_counter_status == ReferenceCounterStatus.RELEASED
+        and test_setup.mock_child_query_context_handler.mock_calls == [call.release()]
+        and test_setup.mock_parent_query_context_handler.mock_calls == []
+    )
 
 
 def test_add_after_release():
@@ -123,13 +150,17 @@ def test_add_after_release():
     This test checks that we fail, when we call add after we already released the counter.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     reference_counter_status = counter.remove()
     assert reference_counter_status == ReferenceCounterStatus.RELEASED
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.add()
 
 
@@ -138,13 +169,17 @@ def test_remove_after_release():
     This test checks that we fail, when we call remove after we already released the counter.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     reference_counter_status = counter.remove()
     assert reference_counter_status == ReferenceCounterStatus.RELEASED
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.remove()
 
 
@@ -158,17 +193,21 @@ def test_multiple_adds_and_removes_after_each_other(count: int):
         - that release gets called on the child query handler context
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     for i in range(count):
         counter.add()
     reference_counter_status_of_first_removes = [counter.remove() for i in range(count)]
     last_reference_counter_status = counter.remove()
-    assert last_reference_counter_status == ReferenceCounterStatus.RELEASED and \
-           test_setup.mock_child_query_context_handler.mock_calls == [call.release()] and \
-           test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           reference_counter_status_of_first_removes == [ReferenceCounterStatus.NOT_RELEASED] * count
+    assert (
+        last_reference_counter_status == ReferenceCounterStatus.RELEASED
+        and test_setup.mock_child_query_context_handler.mock_calls == [call.release()]
+        and test_setup.mock_parent_query_context_handler.mock_calls == []
+        and reference_counter_status_of_first_removes
+        == [ReferenceCounterStatus.NOT_RELEASED] * count
+    )
 
 
 @pytest.mark.parametrize("count", list(range(2, 10)))
@@ -181,8 +220,9 @@ def test_multiple_adds_and_removes_after_alternating(count: int):
         - that release gets called on the child query handler context
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
 
     reference_counter_status_of_first_removes = []
@@ -191,10 +231,13 @@ def test_multiple_adds_and_removes_after_alternating(count: int):
         reference_counter_status_of_first_removes.append(counter.remove())
 
     last_reference_counter_status = counter.remove()
-    assert last_reference_counter_status == ReferenceCounterStatus.RELEASED and \
-           test_setup.mock_child_query_context_handler.mock_calls == [call.release()] and \
-           test_setup.mock_parent_query_context_handler.mock_calls == [] and \
-           reference_counter_status_of_first_removes == [ReferenceCounterStatus.NOT_RELEASED] * count
+    assert (
+        last_reference_counter_status == ReferenceCounterStatus.RELEASED
+        and test_setup.mock_child_query_context_handler.mock_calls == [call.release()]
+        and test_setup.mock_parent_query_context_handler.mock_calls == []
+        and reference_counter_status_of_first_removes
+        == [ReferenceCounterStatus.NOT_RELEASED] * count
+    )
 
 
 def test_transfer_back_to_parent_query_handler_context_after_init():
@@ -205,15 +248,21 @@ def test_transfer_back_to_parent_query_handler_context_after_init():
     and the parent query context handler, followed by a release call.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     test_setup.reset_mock()
     counter.transfer_back_to_parent_query_handler_context()
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
-    test_setup.mock_child_query_context_handler.assert_has_calls([
-        call.transfer_object_to(test_setup.mock_object_proxy, test_setup.mock_parent_query_context_handler),
-        call.release()
-    ])
+    test_setup.mock_child_query_context_handler.assert_has_calls(
+        [
+            call.transfer_object_to(
+                test_setup.mock_object_proxy,
+                test_setup.mock_parent_query_context_handler,
+            ),
+            call.release(),
+        ]
+    )
 
 
 def test_transfer_back_to_parent_query_handler_context_after_add():
@@ -223,16 +272,22 @@ def test_transfer_back_to_parent_query_handler_context_after_add():
     ObjectProxyReferenceCounter.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.add()
     test_setup.reset_mock()
     counter.transfer_back_to_parent_query_handler_context()
     assert test_setup.mock_parent_query_context_handler.mock_calls == []
-    test_setup.mock_child_query_context_handler.assert_has_calls([
-        call.transfer_object_to(test_setup.mock_object_proxy, test_setup.mock_parent_query_context_handler),
-        call.release()
-    ])
+    test_setup.mock_child_query_context_handler.assert_has_calls(
+        [
+            call.transfer_object_to(
+                test_setup.mock_object_proxy,
+                test_setup.mock_parent_query_context_handler,
+            ),
+            call.release(),
+        ]
+    )
 
 
 def test_transfer_back_to_parent_query_handler_context_after_release():
@@ -242,12 +297,16 @@ def test_transfer_back_to_parent_query_handler_context_after_release():
     which lead to the release of the ObjectProxy.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.remove()
     test_setup.reset_mock()
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.transfer_back_to_parent_query_handler_context()
 
 
@@ -257,12 +316,16 @@ def test_two_transfer_back_to_parent_query_handler_context():
     fails after a first successful transfer_back_to_parent_query_handler_context.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.transfer_back_to_parent_query_handler_context()
     test_setup.reset_mock()
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.transfer_back_to_parent_query_handler_context()
 
 
@@ -271,12 +334,16 @@ def test_remove_after_transfer_back_to_parent_query_handler_context():
     This tests if a remove after a call to transfer_back_to_parent_query_handler_context fails.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.transfer_back_to_parent_query_handler_context()
     test_setup.reset_mock()
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.remove()
 
 
@@ -285,10 +352,14 @@ def test_add_after_transfer_back_to_parent_query_handler_context():
     This tests if a add after a call to transfer_back_to_parent_query_handler_context fails.
     """
     test_setup = create_test_setup()
-    counter = ObjectProxyReferenceCounter(test_setup.mock_parent_query_context_handler,
-                                          test_setup.mock_object_proxy)
+    counter = ObjectProxyReferenceCounter(
+        test_setup.mock_parent_query_context_handler, test_setup.mock_object_proxy
+    )
     counter.transfer_back_to_parent_query_handler_context()
     test_setup.reset_mock()
-    with pytest.raises(RuntimeError, match="ReferenceCounter not valid anymore. "
-                                           "ObjectProxy got already garbage collected or transfered back."):
+    with pytest.raises(
+        RuntimeError,
+        match="ReferenceCounter not valid anymore. "
+        "ObjectProxy got already garbage collected or transfered back.",
+    ):
         counter.add()

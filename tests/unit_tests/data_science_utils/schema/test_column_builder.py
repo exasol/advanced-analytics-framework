@@ -1,11 +1,8 @@
 import pytest
-
-from exasol.analytics.schema import (
-    ColumnBuilder,
-    ColumnType,
-    ColumnNameBuilder,
-)
 from typeguard import TypeCheckError
+
+from exasol.analytics.schema import ColumnBuilder, ColumnNameBuilder, ColumnType
+
 
 def test_create_column_with_name_only():
     with pytest.raises(TypeCheckError):
@@ -18,5 +15,10 @@ def test_create_column_with_type_only():
 
 
 def test_create_column_with_name_and_type():
-    column = ColumnBuilder().with_name(ColumnNameBuilder.create("column")).with_type(type=ColumnType("INTEGER")).build()
+    column = (
+        ColumnBuilder()
+        .with_name(ColumnNameBuilder.create("column"))
+        .with_type(type=ColumnType("INTEGER"))
+        .build()
+    )
     assert column.name.name == "column" and column.type.name == "INTEGER"
