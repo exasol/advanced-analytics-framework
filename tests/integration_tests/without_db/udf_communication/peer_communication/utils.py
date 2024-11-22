@@ -30,6 +30,7 @@ class BidirectionalQueue:
 
 
 class TestProcessParameter(ABC):
+    __test__ = False
     def __init__(self, seed: int):
         self.seed = seed
 
@@ -75,6 +76,7 @@ T = TypeVar("T")
 
 
 class TestProcess(Generic[T]):
+    __test__ = False
     def __init__(self, parameter: T, run: Callable[[T, BidirectionalQueue], None]):
         self.parameter = parameter
         put_queue = multiprocessing.Queue()
