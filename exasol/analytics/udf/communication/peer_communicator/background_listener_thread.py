@@ -297,7 +297,7 @@ class BackgroundListenerThread:
             raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
             parameter = RegisterPeerForwarderBuilderParameter(
-                register_peer_connection=self.register_peer_connection,
+                register_peer_connection=self._register_peer_connection,
                 timeout_config=self._config.register_peer_forwarder_timeout_config,
                 behavior_config=register_peer_forwarder_behavior_config,
             )
@@ -415,12 +415,12 @@ class BackgroundListenerThread:
         if not self._config.forward_register_peer_config.is_enabled:
             self._add_peer(message.peer)
         elif self._register_peer_connection is None:
-            self._create_register_peer_connection(message)
+            self._register_peer_connection = self._create_register_peer_connection(message)
             self._add_peer(message.peer, config(needs_register=False))
         else:
             self._add_peer(message.peer, config(needs_register=True))
 
-    def _create_register_peer_connection(self, message: messages.RegisterPeer):
+    def _create_register_peer_connection(self, message: messages.RegisterPeer) -> RegisterPeerConnection:
         successor_send_socket_factory = SendSocketFactory(
             my_connection_info=self._my_connection_info,
             peer=message.peer,
@@ -434,7 +434,7 @@ class BackgroundListenerThread:
             )
         else:
             predecessor_send_socket_factory = None
-        self._register_peer_connection = RegisterPeerConnection(
+        return RegisterPeerConnection(
             predecessor=message.source,
             predecessor_send_socket_factory=predecessor_send_socket_factory,
             successor=message.peer,
@@ -445,9 +445,7 @@ class BackgroundListenerThread:
     @property
     def register_peer_connection(self) -> RegisterPeerConnection:
         if self._register_peer_connection is None:
-            raise UninitializedAttributeError(
-                "Attribute _register_peer_connection is None"
-            )
+            raise UninitializedAttributeError("Register peer connection is undefined.")
         return self._register_peer_connection
 
     def _handle_acknowledge_register_peer_message(

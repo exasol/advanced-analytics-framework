@@ -1,4 +1,5 @@
 import structlog
+from typing import Optional
 from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
@@ -19,6 +20,7 @@ from exasol.analytics.udf.communication.peer_communicator.register_peer_sender i
     RegisterPeerSender,
 )
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -30,7 +32,7 @@ class RegisterPeerForwarder:
         peer: Peer,
         my_connection_info: ConnectionInfo,
         sender: Sender,
-        register_peer_connection: RegisterPeerConnection,
+        register_peer_connection: Optional[RegisterPeerConnection],
         abort_timeout_sender: AbortTimeoutSender,
         acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
         register_peer_sender: RegisterPeerSender,
@@ -59,6 +61,8 @@ class RegisterPeerForwarder:
 
     def received_acknowledge_register_peer(self):
         self._logger.debug("received_acknowledge_register_peer")
+        if self._register_peer_connection is None:
+            raise UninitializedAttributeError("Register peer connection is undefined.")
         self._register_peer_connection.complete(self._peer)
         self._register_peer_sender.stop()
         self._abort_timeout_sender.stop()
