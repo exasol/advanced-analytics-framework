@@ -277,7 +277,7 @@ class BackgroundListenerThread:
     @property
     def sockets(self) -> RuntimeSockets:
         if self._sockets is None:
-            raise UninitializedAttributeError("Attribute _sockets is None")
+            raise UninitializedAttributeError("Runtime Sockets are not initialized.")
         return self._sockets
 
     def _add_peer(

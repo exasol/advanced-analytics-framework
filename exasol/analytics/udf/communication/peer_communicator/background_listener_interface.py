@@ -108,7 +108,7 @@ class BackgroundListenerInterface:
             message = generic.__root__
             if not isinstance(message, messages.MyConnectionInfo):
                 raise UnexpectedMessageError(
-                    f"Unexpected message of type {type(message)}"
+                    f"Unexpected message of type {type(message)}."
                 )
             return message.my_connection_info
         except Exception as e:

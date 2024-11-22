@@ -49,8 +49,8 @@ class GatherOperation:
         ):
             raise IllegalParametersError(
                 "Trying to initialize GatherOperation"
-                " with multi_node_communicator = None"
-                " and localhost_communicator.rank <= LOCALHOST_LEADER_RANK"
+                " without multi node communicator"
+                " and localhost communicator rank <= Localhost Leader Rank"
             )
         self._logger = LOGGER.bind(
             sequence_number=self._sequence_number,

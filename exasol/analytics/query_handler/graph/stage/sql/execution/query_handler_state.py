@@ -71,20 +71,22 @@ class SQLStageGraphExecutionQueryHandlerState:
     def current_query_handler_context(self) -> ScopeQueryHandlerContext:
         value = self._current_query_handler_context
         if value is None:
-            raise UninitializedAttributeError("current query handler context is None.")
+            raise UninitializedAttributeError(
+                "Current query handler context is undefined."
+            )
         return value
 
     @property
     def current_stage(self) -> SQLStage:
         value = self._current_stage
         if value is None:
-            raise UninitializedAttributeError("current stage is None.")
+            raise UninitializedAttributeError("Current stage is None.")
         return value
 
     def handle_result(
         self, result: Union[Continue, Finish[SQLStageInputOutput]]
     ) -> ResultHandlerReturnValue:
-        # _check_is_valid()
+        # check if current query handler is set
         self.get_current_query_handler()
         if isinstance(result, Finish):
             return self._handle_finished_result(result)

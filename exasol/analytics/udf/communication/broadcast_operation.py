@@ -96,7 +96,7 @@ class BroadcastOperation:
         self._send_messages_to_local_leaders()
         self._send_messages_to_local_peers_from_multi_node_leaders()
         if self._value is None:
-            raise UninitializedAttributeError("Value is None.")
+            raise UninitializedAttributeError("Value is unset.")
         return self._value
 
     def _send_messages_to_local_leaders(self):

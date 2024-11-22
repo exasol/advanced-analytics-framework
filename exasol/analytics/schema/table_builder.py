@@ -21,8 +21,8 @@ class TableBuilder:
 
     def build(self) -> Table:
         if self._name is None:
-            raise TypeCheckError("name must not be None")
+            raise TypeCheckError("Name must not be None.")
         if not self._columns:
-            raise TypeCheckError("there must be at least one column")
+            raise TypeCheckError("There must be at least one column.")
         table = Table(self._name, self._columns)
         return table
