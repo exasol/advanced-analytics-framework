@@ -3,7 +3,7 @@ import time
 from typing import Optional, cast
 
 from exasol.analytics.udf.communication import messages
-from exasol.analytics.udf.communication.discovery.localhost import (
+from exasol.analytics.udf.communication.discovery.localhost.discovery_socket import (
     DiscoverySocket,
     DiscoverySocketFactory,
 )
