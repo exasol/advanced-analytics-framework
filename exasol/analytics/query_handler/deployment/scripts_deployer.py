@@ -1,6 +1,6 @@
 import logging
 
-import pyexasol # type: ignore[import-untyped]
+import pyexasol  # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.deployment import constants, utils
 from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (

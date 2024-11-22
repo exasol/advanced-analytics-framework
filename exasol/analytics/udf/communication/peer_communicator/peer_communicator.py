@@ -38,7 +38,9 @@ def key_for_peer(peer: Peer):
     )
 
 
-def _compute_handle_message_timeout(start_time_ns: int, timeout_in_milliseconds: int) -> int:
+def _compute_handle_message_timeout(
+    start_time_ns: int, timeout_in_milliseconds: int
+) -> int:
     time_difference_ns = time.monotonic_ns() - start_time_ns
     time_difference_ms = time_difference_ns // 10**6
     handle_message_timeout_ms = timeout_in_milliseconds - time_difference_ms
@@ -156,9 +158,7 @@ class PeerCommunicator:
             self._are_all_peers_connected, timeout_in_milliseconds
         )
 
-    def peers(
-        self, timeout_in_milliseconds: Optional[int] = None
-    ) -> List[Peer]:
+    def peers(self, timeout_in_milliseconds: Optional[int] = None) -> List[Peer]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
             peers = [peer for peer in self._peer_states.keys()] + [

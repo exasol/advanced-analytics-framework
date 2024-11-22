@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 import structlog
 from structlog.types import FilteringBoundLogger
 
-from exasol.analytics.utils.errors import UninitializedAttributeError
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import IPAddress, Port
@@ -59,12 +58,13 @@ from exasol.analytics.udf.communication.serialization import (
 )
 from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
+    Poller,
     PollerFlag,
     Socket,
     SocketFactory,
-    Poller,
     SocketType,
 )
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -108,11 +108,11 @@ class RuntimeSockets:
 
     @classmethod
     def create(
-            cls,
-            socket_factory: SocketFactory,
-            name: str,
-            in_control_address: str,
-            out_control_address: str,
+        cls,
+        socket_factory: SocketFactory,
+        name: str,
+        in_control_address: str,
+        out_control_address: str,
     ) -> "RuntimeSockets":
         def listen_socket():
             socket = socket_factory.create_socket(SocketType.ROUTER)
@@ -445,7 +445,9 @@ class BackgroundListenerThread:
     @property
     def register_peer_connection(self) -> RegisterPeerConnection:
         if self._register_peer_connection is None:
-            raise UninitializedAttributeError("Attribute _register_peer_connection is None")
+            raise UninitializedAttributeError(
+                "Attribute _register_peer_connection is None"
+            )
         return self._register_peer_connection
 
     def _handle_acknowledge_register_peer_message(
@@ -458,7 +460,6 @@ class BackgroundListenerThread:
             )
         peer = message.peer
         self._peer_state[peer].received_acknowledge_register_peer()
-
 
     def _handle_register_peer_complete_message(
         self, message: messages.RegisterPeerComplete

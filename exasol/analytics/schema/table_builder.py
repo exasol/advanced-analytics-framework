@@ -1,17 +1,15 @@
 from typing import List, Union
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.table import Table
 from exasol.analytics.schema.table_name import TableName
-from typeguard import TypeCheckError
 
 
 class TableBuilder:
     def __init__(self, table: Union[Table, None] = None):
-        self._name, self._columns = (
-            (table.name, table.columns) if table
-            else (None, [])
-        )
+        self._name, self._columns = (table.name, table.columns) if table else (None, [])
 
     def with_name(self, name: TableName) -> "TableBuilder":
         self._name = name

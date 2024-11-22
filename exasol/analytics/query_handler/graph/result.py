@@ -83,10 +83,10 @@ class _Meta(type):
             """This function is called for subclasses of classes that declare _Meta as their metaclass."""
             return _new(cls, result_type)
 
-        result_type.__new__ = _configured_new # type: ignore
-        result_type.__init__ = _init # type: ignore
-        result_type.__setattr__ = _setattr # type: ignore
-        result_type.__delattr__ = _delattr # type: ignore
+        result_type.__new__ = _configured_new  # type: ignore
+        result_type.__init__ = _init  # type: ignore
+        result_type.__setattr__ = _setattr  # type: ignore
+        result_type.__delattr__ = _delattr  # type: ignore
         return result_type
 
 

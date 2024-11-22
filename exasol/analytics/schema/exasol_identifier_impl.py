@@ -1,7 +1,7 @@
 import unicodedata
+from typing import Optional
 
 from typeguard import typechecked
-from typing import Optional
 
 from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 

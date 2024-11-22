@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+
 class ExasolIdentifier(ABC):
 
     @property

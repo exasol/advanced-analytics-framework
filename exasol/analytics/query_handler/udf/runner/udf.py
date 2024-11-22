@@ -8,11 +8,10 @@ from enum import Enum, auto
 from io import BytesIO
 from typing import Any, List, Optional, Tuple
 
-import exasol.bucketfs as bfs # type: ignore[import-untyped]
-import joblib # type: ignore[import-untyped]
+import exasol.bucketfs as bfs  # type: ignore[import-untyped]
+import joblib  # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
-from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
     TopLevelQueryHandlerContext,
 )
@@ -21,6 +20,7 @@ from exasol.analytics.query_handler.query.result.udf_query_result import UDFQuer
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.result import Continue, Finish, Result
 from exasol.analytics.query_handler.udf.connection_lookup import UDFConnectionLookup
+from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 from exasol.analytics.query_handler.udf.runner.state import QueryHandlerRunnerState
 from exasol.analytics.schema import (
     Column,
@@ -192,7 +192,9 @@ class QueryHandlerRunnerUDF:
         )
         self.release_and_create_query_handler_context_if_input_query(current_state)
         if current_state.input_query_query_handler_context is None:
-            raise UninitializedAttributeError("Current state has no input query handler context.")
+            raise UninitializedAttributeError(
+                "Current state has no input query handler context."
+            )
         udf_result.input_query_view, udf_result.input_query = self._wrap_return_query(
             current_state.input_query_query_handler_context,
             query_handler_result.input_query,
@@ -230,9 +232,7 @@ class QueryHandlerRunnerUDF:
         )
 
     def _create_bucketfs_location(self) -> bfs.path.PathLike:
-        bfscon = self.exa.get_connection(
-            self.parameter.temporary_bfs_location_conn
-        )
+        bfscon = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
         bfs_location = create_bucketfs_location_from_conn_object(bfscon)
         return bfs_location.joinpath(
             self.parameter.temporary_bfs_location_directory
@@ -249,15 +249,11 @@ class QueryHandlerRunnerUDF:
     def _query_handler_factory(self) -> UDFQueryHandlerFactory:
         module_name = self.parameter.python_class_module
         if not module_name:
-            raise ValueError(
-                "UDFQueryHandler parameters must define a python module"
-            )
+            raise ValueError("UDFQueryHandler parameters must define a python module")
         module = importlib.import_module(module_name)
         class_name = self.parameter.python_class_name
         if not class_name:
-            raise ValueError(
-                "UDFQueryHandler parameters must define a factory class"
-            )
+            raise ValueError("UDFQueryHandler parameters must define a factory class")
         factory = getattr(module, class_name)
         if not factory:
             raise ValueError(
@@ -277,7 +273,8 @@ class QueryHandlerRunnerUDF:
         )
         str_parameter = self.parameter.parameter or ""
         query_handler_obj = self._query_handler_factory.create(
-            str_parameter, context,
+            str_parameter,
+            context,
         )
         query_handler_state = QueryHandlerRunnerState(
             top_level_query_handler_context=context,

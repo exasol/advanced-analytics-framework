@@ -1,12 +1,13 @@
-from typeguard import typechecked
 from typing import Optional
 
-from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
+from typeguard import typechecked
+
+from exasol.analytics.schema.exasol_identifier import ExasolIdentifier, qualified_name
 from exasol.analytics.schema.exasol_identifier_impl import ExasolIdentifierImpl
 from exasol.analytics.schema.table_like_name import TableLikeName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_object
-from exasol.analytics.schema.exasol_identifier import qualified_name
+
 
 class ColumnName(ExasolIdentifierImpl):
     @typechecked

@@ -57,7 +57,6 @@ class SocketWithAddress:
         return SocketWithAddress(socket, address)
 
 
-
 class BackgroundListenerInterface:
 
     def __init__(
@@ -77,8 +76,12 @@ class BackgroundListenerInterface:
         self._logger = LOGGER.bind(
             name=self._name, group_identifier=group_identifier, config=asdict(config)
         )
-        self._out_control = SocketWithAddress.create(socket_factory, f"out_control_socket{id(self)}")
-        self._in_control = SocketWithAddress.create(socket_factory, f"in_control_socket{id(self)}")
+        self._out_control = SocketWithAddress.create(
+            socket_factory, f"out_control_socket{id(self)}"
+        )
+        self._in_control = SocketWithAddress.create(
+            socket_factory, f"in_control_socket{id(self)}"
+        )
         self._is_ready_to_stop = False
         self._background_listener_run = BackgroundListenerThread(
             name=self._name,
@@ -104,7 +107,9 @@ class BackgroundListenerInterface:
             generic = deserialize_message(received, messages.Message)
             message = generic.__root__
             if not isinstance(message, messages.MyConnectionInfo):
-                raise UnexpectedMessageError(f"Unexpected message of type {type(message)}")
+                raise UnexpectedMessageError(
+                    f"Unexpected message of type {type(message)}"
+                )
             return message.my_connection_info
         except Exception as e:
             self._logger.exception("Exception", raw_message=received)
@@ -127,11 +132,13 @@ class BackgroundListenerInterface:
         self, timeout_in_milliseconds: Optional[int] = 0
     ) -> Iterator[Tuple[Message, List[Frame]]]:
         def poll() -> Set[PollerFlag]:
-            return self._out_control.socket.poll(
-                flags=PollerFlag.POLLIN,
-                timeout_in_ms=timeout_in_milliseconds,
-            ) or set()
-
+            return (
+                self._out_control.socket.poll(
+                    flags=PollerFlag.POLLIN,
+                    timeout_in_ms=timeout_in_milliseconds,
+                )
+                or set()
+            )
 
         while PollerFlag.POLLIN in poll():
             message = None

@@ -1,9 +1,10 @@
 from typing import Optional, Union
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.table_name import TableName
 from exasol.analytics.schema.table_name_impl import TableNameImpl
-from typeguard import TypeCheckError
 
 
 class TableNameBuilder:

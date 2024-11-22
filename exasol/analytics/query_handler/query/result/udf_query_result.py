@@ -51,7 +51,7 @@ class UDFQueryResult(QueryResult):
 
     def fetch_as_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> "pandas.DataFrame": # type: ignore
+    ) -> "pandas.DataFrame":  # type: ignore
         df = self._ctx.get_dataframe(num_rows, start_col=self._start_col)
         self._initialized = True
         if df is None:

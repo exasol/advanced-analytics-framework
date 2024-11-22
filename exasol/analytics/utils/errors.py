@@ -1,9 +1,9 @@
-
 class UninitializedAttributeError(Exception):
     """
     A method of a class accesses an attribute that has not been
     initialized dynamically before, e.g. in method run().
     """
+
 
 class IllegalParametersError(Exception):
     """

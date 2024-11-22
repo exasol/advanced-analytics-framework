@@ -1,6 +1,6 @@
 import dataclasses
 
-import exasol.bucketfs as bfs # type: ignore[import-untyped]
+import exasol.bucketfs as bfs  # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,

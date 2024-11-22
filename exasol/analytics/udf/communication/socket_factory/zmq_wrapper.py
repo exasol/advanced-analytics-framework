@@ -149,7 +149,7 @@ class ZMQPoller(Poller):
             self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)
             for zmq_socket, bitmask in poll_result.items()
         }
-        return result # type: ignore
+        return result  # type: ignore
 
 
 class ZMQSocketFactory(SocketFactory):

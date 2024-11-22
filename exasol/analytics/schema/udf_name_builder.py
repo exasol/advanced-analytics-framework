@@ -1,9 +1,10 @@
 from typing import Optional
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.udf_name import UDFName
 from exasol.analytics.schema.udf_name_impl import UDFNameImpl
-from typeguard import TypeCheckError
 
 
 class UDFNameBuilder:

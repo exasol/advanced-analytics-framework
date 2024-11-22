@@ -1,9 +1,10 @@
 from typing import Optional
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.view_name import ViewName
 from exasol.analytics.schema.view_name_impl import ViewNameImpl
-from typeguard import TypeCheckError
 
 
 class ViewNameBuilder:

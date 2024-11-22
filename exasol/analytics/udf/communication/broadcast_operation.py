@@ -16,7 +16,6 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 )
 from exasol.analytics.utils.errors import UninitializedAttributeError
 
-
 _LOGGER: FilteringBoundLogger = structlog.getLogger()
 
 LOCALHOST_LEADER_RANK = 0

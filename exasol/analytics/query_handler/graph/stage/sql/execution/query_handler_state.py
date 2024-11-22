@@ -60,7 +60,7 @@ class SQLStageGraphExecutionQueryHandlerState:
         self._create_current_query_handler()
 
     def get_current_query_handler(
-            self
+        self,
     ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
         value = self._current_query_handler
         if value is None:

@@ -1,6 +1,6 @@
 from typing import Any, List, Tuple
 
-import pyexasol # type: ignore[import-untyped]
+import pyexasol  # type: ignore[import-untyped]
 from pyexasol import ExaStatement
 
 from exasol.analytics.schema import Column, ColumnName, ColumnNameBuilder, ColumnType

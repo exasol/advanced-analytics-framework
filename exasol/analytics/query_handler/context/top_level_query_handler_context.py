@@ -3,7 +3,7 @@ import traceback
 from abc import ABC
 from typing import Callable, List, Set
 
-import exasol.bucketfs as bfs # type: ignore[import-untyped]
+import exasol.bucketfs as bfs  # type: ignore[import-untyped]
 
 from exasol.analytics.query_handler.context.connection_name import (
     ConnectionName,

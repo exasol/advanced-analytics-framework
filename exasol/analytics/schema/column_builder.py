@@ -1,4 +1,5 @@
 from typing import Union
+
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.column import Column
@@ -9,8 +10,7 @@ from exasol.analytics.schema.column_type import ColumnType
 class ColumnBuilder:
     def __init__(self, column: Union[Column, None] = None):
         self._name, self._type = (
-            (None, None) if column is None
-            else (column.name, column.type)
+            (None, None) if column is None else (column.name, column.type)
         )
 
     def with_name(self, name: ColumnName) -> "ColumnBuilder":

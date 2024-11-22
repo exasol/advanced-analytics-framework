@@ -29,13 +29,13 @@ MULTI_NODE_LEADER_RANK = 0
 class GatherOperation:
 
     def __init__(
-            self,
-            sequence_number: int,
-            value: bytes,
-            localhost_communicator: PeerCommunicator,
-            multi_node_communicator: Optional[PeerCommunicator],
-            socket_factory: SocketFactory,
-            number_of_instances_per_node: int,
+        self,
+        sequence_number: int,
+        value: bytes,
+        localhost_communicator: PeerCommunicator,
+        multi_node_communicator: Optional[PeerCommunicator],
+        socket_factory: SocketFactory,
+        number_of_instances_per_node: int,
     ):
         self._number_of_instances_per_node = number_of_instances_per_node
         self._socket_factory = socket_factory
@@ -44,8 +44,8 @@ class GatherOperation:
         self._multi_node_communicator = multi_node_communicator
         self._localhost_communicator = localhost_communicator
         if (
-                multi_node_communicator is None
-                and localhost_communicator.rank <= LOCALHOST_LEADER_RANK
+            multi_node_communicator is None
+            and localhost_communicator.rank <= LOCALHOST_LEADER_RANK
         ):
             raise IllegalParametersError(
                 "Trying to initialize GatherOperation"
