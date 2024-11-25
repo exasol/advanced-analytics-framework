@@ -1,7 +1,7 @@
 import logging
 
 import click
-from exasol.python_extension_common.deployment.language_container_deployer_cli import (  # type: ignore[import-untyped]
+from exasol.python_extension_common.deployment.language_container_deployer_cli import (
     CustomizableParameters,
     language_container_deployer_main,
     slc_parameter_formatters,

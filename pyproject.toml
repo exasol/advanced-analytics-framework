@@ -56,12 +56,17 @@ build-backend = "poetry.core.masonry.api"
 
 
 [[tool.mypy.overrides]]
+module = "exasol.analytics.*"
+disable_error_code = ["import-untyped"]
+
+
+[[tool.mypy.overrides]]
 module = [
-    "language_container.*",
     "tests.*",
     "noxfile",
 ]
 ignore_errors = true
+
 
 [tool.pylint.master]
 fail-under = 6.0

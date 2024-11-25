@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from exasol.python_extension_common.deployment.language_container_builder import (  # type: ignore[import-untyped]
+from exasol.python_extension_common.deployment.language_container_builder import (
     LanguageContainerBuilder,
     find_path_backwards,
 )

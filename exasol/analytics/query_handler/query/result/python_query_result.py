@@ -1,7 +1,7 @@
 from typing import Any, Iterator, List, Optional, Tuple, Union
 
-import pandas as pd  # type: ignore[import-untyped]
-from exasol_udf_mock_python.column import Column  # type: ignore[import-untyped]
+import pandas as pd
+from exasol_udf_mock_python.column import Column
 
 from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
 

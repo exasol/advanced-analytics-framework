@@ -2,7 +2,7 @@ import dataclasses
 from abc import ABC
 from typing import List, Sized
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import (  # type: ignore[import-untyped]
+from exasol_bucketfs_utils_python.abstract_bucketfs_location import (
     AbstractBucketFSLocation,
 )
 

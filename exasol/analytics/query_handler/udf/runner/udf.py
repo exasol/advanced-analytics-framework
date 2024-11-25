@@ -8,8 +8,8 @@ from enum import Enum, auto
 from io import BytesIO
 from typing import Any, List, Optional, Tuple
 
-import exasol.bucketfs as bfs  # type: ignore[import-untyped]
-import joblib  # type: ignore[import-untyped]
+import exasol.bucketfs as bfs
+import joblib
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
