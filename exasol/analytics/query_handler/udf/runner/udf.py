@@ -93,13 +93,13 @@ class QueryHandlerRunnerUDF:
         self._parameter = None
 
     @property
-    def bucketfs_location(self) -> bfs.path.PathLike:
+    def _checked_bucketfs_location(self) -> bfs.path.PathLike:
         if self._bucketfs_location is None:
             raise UninitializedAttributeError("BucketFS location is undefined.")
         return self._bucketfs_location
 
     @property
-    def parameter(self) -> UDFParameter:
+    def _checked_parameter(self) -> UDFParameter:
         if self._parameter is None:
             raise UninitializedAttributeError("Parameter is undefined.")
         return self._parameter
@@ -109,7 +109,7 @@ class QueryHandlerRunnerUDF:
         self._bucketfs_location = self._create_bucketfs_location()
         current_state = self._create_state_or_load_latest_state()
         try:
-            if self.parameter.iter_num == 0:
+            if self._checked_parameter.iter_num == 0:
                 query_handler_result = current_state.query_handler.start()
             else:
                 query_result = self._create_udf_query_result(
@@ -124,7 +124,7 @@ class QueryHandlerRunnerUDF:
             )
             if isinstance(query_handler_result, Continue):
                 self._save_current_state(current_state)
-            if self.parameter.iter_num > 0:
+            if self._checked_parameter.iter_num > 0:
                 self._remove_previous_state()
             self.emit_udf_result(ctx, udf_result)
         except Exception as e:
@@ -232,14 +232,14 @@ class QueryHandlerRunnerUDF:
         )
 
     def _create_bucketfs_location(self) -> bfs.path.PathLike:
-        bfscon = self.exa.get_connection(self.parameter.temporary_bfs_location_conn)
+        bfscon = self.exa.get_connection(self._checked_parameter.temporary_bfs_location_conn)
         bfs_location = create_bucketfs_location_from_conn_object(bfscon)
         return bfs_location.joinpath(
-            self.parameter.temporary_bfs_location_directory
-        ).joinpath(self.parameter.temporary_name_prefix)
+            self._checked_parameter.temporary_bfs_location_directory
+        ).joinpath(self._checked_parameter.temporary_name_prefix)
 
     def _create_state_or_load_latest_state(self) -> QueryHandlerRunnerState:
-        if self.parameter.iter_num > 0:
+        if self._checked_parameter.iter_num > 0:
             query_handler_state = self._load_latest_state()
         else:
             query_handler_state = self._create_state()
@@ -247,11 +247,11 @@ class QueryHandlerRunnerUDF:
 
     @property
     def _query_handler_factory(self) -> UDFQueryHandlerFactory:
-        module_name = self.parameter.python_class_module
+        module_name = self._checked_parameter.python_class_module
         if not module_name:
             raise ValueError("UDFQueryHandler parameters must define a python module")
         module = importlib.import_module(module_name)
-        class_name = self.parameter.python_class_name
+        class_name = self._checked_parameter.python_class_name
         if not class_name:
             raise ValueError("UDFQueryHandler parameters must define a factory class")
         factory = getattr(module, class_name)
@@ -263,15 +263,15 @@ class QueryHandlerRunnerUDF:
 
     def _create_state(self) -> QueryHandlerRunnerState:
         connection_lookup = UDFConnectionLookup(self.exa)
-        if self.parameter.temporary_schema_name is None:
+        if self._checked_parameter.temporary_schema_name is None:
             raise UninitializedAttributeError("Temporary schema name is undefined.")
         context = TopLevelQueryHandlerContext(
-            self.bucketfs_location,
-            self.parameter.temporary_name_prefix,
-            self.parameter.temporary_schema_name,
+            self._checked_bucketfs_location,
+            self._checked_parameter.temporary_name_prefix,
+            self._checked_parameter.temporary_schema_name,
             connection_lookup,
         )
-        str_parameter = self.parameter.parameter or ""
+        str_parameter = self._checked_parameter.parameter or ""
         query_handler_obj = self._query_handler_factory.create(
             str_parameter,
             context,
@@ -299,7 +299,7 @@ class QueryHandlerRunnerUDF:
     def _create_udf_query_result(
         self, ctx, query_columns: Optional[List[Column]]
     ) -> UDFQueryResult:
-        colum_start_ix = 8 if self.parameter.iter_num == 0 else 4
+        colum_start_ix = 8 if self._checked_parameter.iter_num == 0 else 4
         if query_columns is None:
             query_columns = []
         column_mapping = OrderedDict(
@@ -325,10 +325,10 @@ class QueryHandlerRunnerUDF:
             col.name.fully_qualified for col in input_query.output_columns
         ]
         call_columns = [
-            f"{self.parameter.iter_num + 1}",
-            f"'{self.parameter.temporary_bfs_location_conn}'",
-            f"'{self.parameter.temporary_bfs_location_directory}'",
-            f"'{self.parameter.temporary_name_prefix}'",
+            f"{self._checked_parameter.iter_num + 1}",
+            f"'{self._checked_parameter.temporary_bfs_location_conn}'",
+            f"'{self._checked_parameter.temporary_bfs_location_directory}'",
+            f"'{self._checked_parameter.temporary_name_prefix}'",
         ]
         columns_str = ",".join(call_columns + full_qualified_columns)
         query_query_handler = (
@@ -346,8 +346,8 @@ class QueryHandlerRunnerUDF:
         return query_columns
 
     def _state_file_bucketfs_location(self, iter_offset: int = 0) -> bfs.path.PathLike:
-        num_iter = self.parameter.iter_num + iter_offset
-        return self.bucketfs_location / f"state/{str(num_iter)}.pkl"
+        num_iter = self._checked_parameter.iter_num + iter_offset
+        return self._checked_bucketfs_location / f"state/{str(num_iter)}.pkl"
 
     @staticmethod
     def emit_udf_result(ctx, udf_result: UDFResult):

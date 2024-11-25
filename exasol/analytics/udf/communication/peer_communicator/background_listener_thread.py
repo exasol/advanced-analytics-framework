@@ -442,16 +442,12 @@ class BackgroundListenerThread:
             my_connection_info=self._my_connection_info,
         )
 
-    @property
-    def register_peer_connection(self) -> RegisterPeerConnection:
-        if self._register_peer_connection is None:
-            raise UninitializedAttributeError("Register peer connection is undefined.")
-        return self._register_peer_connection
-
     def _handle_acknowledge_register_peer_message(
         self, message: messages.AcknowledgeRegisterPeer
     ):
-        if self.register_peer_connection.successor != message.source:
+        if self._register_peer_connection is None:
+            raise UninitializedAttributeError("Register peer connection is undefined.")
+        if self._register_peer_connection.successor != message.source:
             self._logger.error(
                 "AcknowledgeRegisterPeer message not from successor",
                 message_obj=message.dict(),
@@ -462,7 +458,9 @@ class BackgroundListenerThread:
     def _handle_register_peer_complete_message(
         self, message: messages.RegisterPeerComplete
     ):
-        if self.register_peer_connection.predecessor != message.source:
+        if self._register_peer_connection is None:
+            raise UninitializedAttributeError("Register peer connection is undefined.")
+        if self._register_peer_connection.predecessor != message.source:
             self._logger.error(
                 "RegisterPeerComplete message not from predecessor",
                 message_obj=message.dict(),
