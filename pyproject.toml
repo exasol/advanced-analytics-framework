@@ -57,7 +57,6 @@ build-backend = "poetry.core.masonry.api"
 
 [[tool.mypy.overrides]]
 module = [
-    "exasol.analytics.tests.*",
     "language_container.*",
     "tests.*",
     "noxfile",
