@@ -26,9 +26,9 @@ class LuaScriptBundle:
 
     def bundle_lua_scripts(self, output_buffer: IO):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            path = Path(tmp_dir)
-            self.copy_lua_source_files(path)
-            self.run_lua_amlg(path, output_buffer)
+            tmp_path = Path(tmp_dir)
+            self.copy_lua_source_files(tmp_path)
+            self.run_lua_amlg(tmp_path, output_buffer)
 
     def copy_lua_source_files(self, tmp_dir: Path):
         for src in self.lua_source_files + [self.lua_main_file]:
