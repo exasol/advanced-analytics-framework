@@ -1,5 +1,4 @@
 import collections
-import pandas
 from typing import Any, Iterator, List, Optional, OrderedDict, Union
 
 from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
@@ -51,7 +50,9 @@ class UDFQueryResult(QueryResult):
 
     def fetch_as_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> Optional[pandas.DataFrame]:
+    ) -> Optional[ForwardRef("pandas.DataFrame")]:
+        # This place intentionally uses a forward reference to avoid importing
+        # pandas which might take several seconds.
         df = self._ctx.get_dataframe(num_rows, start_col=self._start_col)
         self._initialized = True
         if df is None:

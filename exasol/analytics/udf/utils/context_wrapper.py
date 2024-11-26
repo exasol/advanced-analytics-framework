@@ -1,9 +1,6 @@
 from collections import OrderedDict
 from typing import Mapping, Optional, Union
 
-import pandas as pd  # type: ignore
-
-
 class UDFContextWrapper:
     def __init__(self, ctx, column_mapping: Mapping[str, str], start_col: int = 0):
         self.start_col = start_col
@@ -28,7 +25,9 @@ class UDFContextWrapper:
 
     def get_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> Optional[pd.DataFrame]:
+    ) -> Optional[ForwardRef("pandas.DataFrame")]:
+        # This place intentionally uses a forward reference to avoid importing
+        # pandas which might take several seconds.
         df = self.ctx.get_dataframe(num_rows, start_col=self.start_col)
         filtered_df = df[self.original_columns]
         filtered_df.columns = [
