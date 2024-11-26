@@ -1,4 +1,4 @@
-import logging # xtype: ignore[import-untyped]
+import logging
 
 import exasol.bucketfs as bfs
 
