@@ -63,8 +63,8 @@ class Socket(abstract.Socket):
 
     def receive_multipart(self) -> List[abstract.Frame]:
         message = self._internal_socket.receive_multipart()
-        converted_message = [Frame(frame) for frame in message]
-        return converted_message  # type: ignore
+        converted_message: List[abstract.Frame] = [Frame(frame) for frame in message]
+        return converted_message
 
     def send_multipart(self, message: List[abstract.Frame]):
         def convert_frame(frame: abstract.Frame):
