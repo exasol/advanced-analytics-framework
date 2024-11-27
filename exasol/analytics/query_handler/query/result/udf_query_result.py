@@ -1,5 +1,5 @@
 import collections
-from typing import Any, Iterator, List, Optional, OrderedDict, Union
+from typing import Any, ForwardRef, Iterator, List, Optional, OrderedDict, Union
 
 from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
 from exasol.analytics.schema.column import Column

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Mapping, Optional, Union
+from typing import ForwardRef, Mapping, Optional, Union
 
 class UDFContextWrapper:
     def __init__(self, ctx, column_mapping: Mapping[str, str], start_col: int = 0):
