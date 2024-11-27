@@ -25,7 +25,7 @@ class UDFContextWrapper:
 
     def get_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> Optional[ForwardRef["pandas.DataFrame"]]:
+    ) -> Optional[ForwardRef("pandas.DataFrame")]:  # type: ignore[valid-type]
         # This place intentionally uses a forward reference to avoid importing
         # pandas which might take several seconds.
         df = self.ctx.get_dataframe(num_rows, start_col=self.start_col)
