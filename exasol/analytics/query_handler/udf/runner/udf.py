@@ -301,7 +301,9 @@ class QueryHandlerRunnerUDF:
     ) -> UDFQueryResult:
         colum_start_ix = 8 if self._checked_parameter.iter_num == 0 else 4
         if query_columns is None:
-            query_columns = []
+            raise UninitializedAttributeError(
+                "Query Columns is not initialized."
+            )
         column_mapping = OrderedDict(
             [
                 (str(colum_start_ix + index), column.name.name)

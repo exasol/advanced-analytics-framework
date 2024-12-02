@@ -1,5 +1,15 @@
 from collections import OrderedDict
-from typing import ForwardRef, Mapping, Optional, Union
+from typing import Mapping, Optional, TYPE_CHECKING, Union
+
+
+if TYPE_CHECKING:
+    # Importing pandas might take several seconds.  At runtime pandas is
+    # imported on-demand by UDF context.
+    #
+    # This file only imports pandas for type checking, see also
+    # https://legacy.python.org/dev/peps/pep-0484/#runtime-or-type-checking
+    import pandas
+
 
 class UDFContextWrapper:
     def __init__(self, ctx, column_mapping: Mapping[str, str], start_col: int = 0):
@@ -25,9 +35,10 @@ class UDFContextWrapper:
 
     def get_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> Optional[ForwardRef("pandas.DataFrame")]:  # type: ignore[valid-type]
-        # This place intentionally uses a forward reference to avoid importing
-        # pandas which might take several seconds.
+    ) -> Optional["pandas.DataFrame"]:
+        # This place intentionally uses a forward reference, to avoid
+        # importing pandas which might take several seconds, see comment at
+        # the beginning of the file.
         df = self.ctx.get_dataframe(num_rows, start_col=self.start_col)
         filtered_df = df[self.original_columns]
         filtered_df.columns = [
