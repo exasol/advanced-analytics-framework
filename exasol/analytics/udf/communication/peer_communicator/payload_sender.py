@@ -45,8 +45,8 @@ class PayloadSender:
         self._payload_message_sender_factory = payload_message_sender_factory
         self._sender = sender
         self._logger = LOGGER.bind(
-            peer=self._peer.dict(),
-            my_connection_info=self._my_connection_info.dict(),
+            peer=self._peer.model_dump(),
+            my_connection_info=self._my_connection_info.model_dump(),
         )
         self._next_send_payload_sequence_number = 0
         self._payload_message_sender_dict: Dict[int, PayloadMessageSender] = (
@@ -58,16 +58,16 @@ class PayloadSender:
             payload_sender.try_send()
 
     def received_acknowledge_payload(self, message: messages.AcknowledgePayload):
-        self._logger.info("received_acknowledge_payload", message=message.dict())
+        self._logger.info("received_acknowledge_payload", message=message.model_dump())
         if message.sequence_number in self._payload_message_sender_dict:
             self._payload_message_sender_dict[message.sequence_number].stop()
             del self._payload_message_sender_dict[message.sequence_number]
             self._out_control_socket.send(
-                serialize_message(messages.Message(__root__=message))
+                serialize_message(messages.Message(root=message))
             )
 
     def send_payload(self, message: messages.Payload, frames: List[Frame]):
-        self._logger.info("send_payload", message=message.dict())
+        self._logger.info("send_payload", message=message.model_dump())
         self._payload_message_sender_dict[message.sequence_number] = (
             self._payload_message_sender_factory.create(
                 message=message,

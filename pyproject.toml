@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "exasol-advanced-analytics-framework"
-version = "0.1.0"
+version = "0.2.0"
 description = "Framework for building complex data analysis algorithms with Exasol"
 
 packages = [
@@ -27,7 +27,7 @@ exasol-bucketfs = ">=0.6.0,<1.0.0"
 click = "^8.0.4"
 pyexasol = ">=0.25.0,<1.0.0"
 pandas = "^2.2.3"
-pydantic = "^1.10.2"
+pydantic = "^2.10.2"
 pyzmq = "^26.0.3"
 sortedcontainers = "^2.4.0"
 structlog = "^24.2.0"

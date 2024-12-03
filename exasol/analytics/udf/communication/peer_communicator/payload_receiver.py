@@ -25,14 +25,14 @@ class PayloadReceiver:
         self._out_control_socket = out_control_socket
         self._sender = sender
         self._logger = LOGGER.bind(
-            peer=self._peer.dict(),
-            my_connection_info=self._my_connection_info.dict(),
+            peer=self._peer.model_dump(),
+            my_connection_info=self._my_connection_info.model_dump(),
         )
         self._next_received_payload_sequence_number = 0
         self._received_payload_dict: Dict[int, List[Frame]] = {}
 
     def received_payload(self, message: messages.Payload, frames: List[Frame]):
-        self._logger.info("received_payload", message=message.dict())
+        self._logger.info("received_payload", message=message.model_dump())
         self._send_acknowledge_payload_message(message.sequence_number)
         if message.sequence_number == self._next_received_payload_sequence_number:
             self._forward_new_message_directly(message, frames)
@@ -43,13 +43,13 @@ class PayloadReceiver:
     def _add_new_message_to_buffer(
         self, message: messages.Payload, frames: List[Frame]
     ):
-        self._logger.info("put_to_buffer", message=message.dict())
+        self._logger.info("put_to_buffer", message=message.model_dump())
         self._received_payload_dict[message.sequence_number] = frames
 
     def _forward_new_message_directly(
         self, message: messages.Payload, frames: List[Frame]
     ):
-        self._logger.info("forward_from_message", message=message.dict())
+        self._logger.info("forward_from_message", message=message.model_dump())
         self._forward_received_payload(frames)
 
     def _forward_messages_from_buffer(self):
@@ -74,10 +74,10 @@ class PayloadReceiver:
         )
         self._logger.info(
             "_send_acknowledge_payload_message",
-            message=acknowledge_payload_message.dict(),
+            message=acknowledge_payload_message.model_dump(),
         )
         self._sender.send(
-            message=messages.Message(__root__=acknowledge_payload_message)
+            message=messages.Message(root=acknowledge_payload_message)
         )
 
     def _forward_received_payload(self, frames: List[Frame]):

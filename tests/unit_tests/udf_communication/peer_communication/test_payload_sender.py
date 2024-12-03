@@ -103,7 +103,7 @@ def create_acknowledge_payload_message(
     test_setup: TestSetup, message: messages.Payload
 ) -> messages.Message:
     acknowledge_message = messages.Message(
-        __root__=messages.AcknowledgePayload(
+        root=messages.AcknowledgePayload(
             source=Peer(connection_info=test_setup.my_connection_info),
             sequence_number=message.sequence_number,
             destination=test_setup.peer,
@@ -194,7 +194,7 @@ def test_received_acknowledge_payload_after_send_payload():
         test_setup, payload_message
     )
     test_setup.payload_sender.received_acknowledge_payload(
-        message=acknowledge_payload_message.__root__
+        message=acknowledge_payload_message.root
     )
     assert (
         test_setup.out_control_socket_mock.mock_calls
@@ -214,11 +214,11 @@ def test_received_acknowledge_payload_twice_after_send_payload():
         test_setup, payload_message
     )
     test_setup.payload_sender.received_acknowledge_payload(
-        message=acknowledge_payload_message.__root__
+        message=acknowledge_payload_message.root
     )
     test_setup.reset_mock()
     test_setup.payload_sender.received_acknowledge_payload(
-        message=acknowledge_payload_message.__root__
+        message=acknowledge_payload_message.root
     )
     assert (
         test_setup.out_control_socket_mock.mock_calls == []

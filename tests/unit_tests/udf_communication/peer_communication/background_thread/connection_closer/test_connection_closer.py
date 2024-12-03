@@ -120,7 +120,7 @@ def test_received_close_connection():
         == [
             call.send(
                 Message(
-                    __root__=messages.AcknowledgeCloseConnection(
+                    root=messages.AcknowledgeCloseConnection(
                         source=test_setup.my_connection_info,
                         destination=test_setup.peer,
                     )

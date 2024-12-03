@@ -49,8 +49,8 @@ class RegisterPeerForwarder:
         self._peer = peer
         self._sender = sender
         self._logger = LOGGER.bind(
-            peer=self._peer.dict(),
-            my_connection_info=self._my_connection_info.dict(),
+            peer=self._peer.model_dump(),
+            my_connection_info=self._my_connection_info.model_dump(),
         )
         self._send_initial_messages()
 

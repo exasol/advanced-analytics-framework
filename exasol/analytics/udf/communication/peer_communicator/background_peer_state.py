@@ -45,8 +45,8 @@ class BackgroundPeerState:
         self._sender = sender
         self._prepare_to_stop = False
         self._logger = LOGGER.bind(
-            peer=self._peer.dict(),
-            my_connection_info=self._my_connection_info.dict(),
+            peer=self._peer.model_dump(),
+            my_connection_info=self._my_connection_info.model_dump(),
         )
         self._logger.debug("__init__")
 

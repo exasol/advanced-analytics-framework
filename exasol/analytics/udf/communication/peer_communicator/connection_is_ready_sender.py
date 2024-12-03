@@ -33,8 +33,8 @@ class ConnectionIsReadySender:
         self._out_control_socket = out_control_socket
         self._states = _States.INIT
         self._logger = LOGGER.bind(
-            peer=self._peer.dict(),
-            my_connection_info=my_connection_info.dict(),
+            peer=self._peer.model_dump(),
+            my_connection_info=my_connection_info.model_dump(),
         )
         self._logger.debug("init")
 

@@ -240,7 +240,7 @@ class BackgroundListenerThread:
             message_obj: messages.Message = deserialize_message(
                 frames[0].to_bytes(), messages.Message
             )
-            specific_message_obj = message_obj.__root__
+            specific_message_obj = message_obj.root
             if isinstance(specific_message_obj, messages.Stop):
                 return BackgroundListenerThread.Status.STOPPED
             elif isinstance(specific_message_obj, PrepareToStop):
@@ -251,13 +251,13 @@ class BackgroundListenerThread:
                 else:
                     self._logger.error(
                         "RegisterPeer message not allowed",
-                        message_obj=specific_message_obj.dict(),
+                        message_obj=specific_message_obj.model_dump(),
                     )
             elif isinstance(specific_message_obj, messages.Payload):
                 self.send_payload(payload=specific_message_obj, frames=frames)
             else:
                 self._logger.error(
-                    "Unknown message type", message_obj=specific_message_obj.dict()
+                    "Unknown message type", message_obj=specific_message_obj.model_dump()
                 )
         except Exception as e:
             self._logger.exception("Exception during handling message", message=frames)
@@ -291,8 +291,8 @@ class BackgroundListenerThread:
         ):
             self._logger.error(
                 "Peer belongs to a different group",
-                my_connection_info=self._my_connection_info.dict(),
-                peer=peer.dict(),
+                my_connection_info=self._my_connection_info.model_dump(),
+                peer=peer.model_dump(),
             )
             raise ValueError("Peer belongs to a different group")
         if peer not in self._peer_state:
@@ -321,7 +321,7 @@ class BackgroundListenerThread:
             message_obj: messages.Message = deserialize_message(
                 message_content_bytes, messages.Message
             )
-            specific_message_obj = message_obj.__root__
+            specific_message_obj = message_obj.root
             if isinstance(specific_message_obj, messages.SynchronizeConnection):
                 self._handle_synchronize_connection(specific_message_obj)
             elif isinstance(specific_message_obj, messages.AcknowledgeConnection):
@@ -336,7 +336,7 @@ class BackgroundListenerThread:
                 else:
                     logger.error(
                         "RegisterPeer message not allowed",
-                        message_obj=specific_message_obj.dict(),
+                        message_obj=specific_message_obj.model_dump(),
                     )
             elif isinstance(specific_message_obj, messages.AcknowledgeRegisterPeer):
                 self._handle_acknowledge_register_peer_message(specific_message_obj)
@@ -348,7 +348,7 @@ class BackgroundListenerThread:
                 self._handle_acknowledge_payload_message(specific_message_obj)
             else:
                 logger.error(
-                    "Unknown message type", message_obj=specific_message_obj.dict()
+                    "Unknown message type", message_obj=specific_message_obj.model_dump()
                 )
         except Exception as e:
             logger.exception(
@@ -450,7 +450,7 @@ class BackgroundListenerThread:
         if self._register_peer_connection.successor != message.source:
             self._logger.error(
                 "AcknowledgeRegisterPeer message not from successor",
-                message_obj=message.dict(),
+                message_obj=message.model_dump(),
             )
         peer = message.peer
         self._peer_state[peer].received_acknowledge_register_peer()
@@ -463,7 +463,7 @@ class BackgroundListenerThread:
         if self._register_peer_connection.predecessor != message.source:
             self._logger.error(
                 "RegisterPeerComplete message not from predecessor",
-                message_obj=message.dict(),
+                message_obj=message.model_dump(),
             )
         peer = message.peer
         self._peer_state[peer].received_register_peer_complete()

@@ -1,4 +1,4 @@
-# advanced-analytics-framework 0.1.1, released ????-??-??
+# 0.2.0 - 2024-12-03
 
 Code name:
 
@@ -20,3 +20,4 @@ Code name:
 * #217: Rename dataflow abstraction files
 * #219: Applied PTB checks and fixes
 * #221: Fixed mypy warnings
+* #233: Upgraded pydantic to version 2
