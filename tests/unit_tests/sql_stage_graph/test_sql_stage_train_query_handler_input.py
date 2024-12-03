@@ -10,7 +10,7 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
-    SQLStageTrainQueryHandlerInput,
+    SQLStageQueryHandlerInput,
 )
 
 
@@ -19,7 +19,7 @@ def test_empty_stage_inputs():
         AbstractBucketFSLocation
     )
     with pytest.raises(AssertionError, match="Empty sql_stage_inputs not allowed."):
-        SQLStageTrainQueryHandlerInput(
+        SQLStageQueryHandlerInput(
             sql_stage_inputs=[], result_bucketfs_location=bucketfs_location
         )
 
@@ -31,7 +31,7 @@ def test_non_empty_stage_inputs():
     sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
         SQLStageInputOutput
     )
-    obj = SQLStageTrainQueryHandlerInput(
+    obj = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input], result_bucketfs_location=bucketfs_location
     )
     assert (
@@ -47,10 +47,10 @@ def test_equality():
     sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
         SQLStageInputOutput
     )
-    obj1 = SQLStageTrainQueryHandlerInput(
+    obj1 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input], result_bucketfs_location=bucketfs_location
     )
-    obj2 = SQLStageTrainQueryHandlerInput(
+    obj2 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input], result_bucketfs_location=bucketfs_location
     )
     assert obj1 == obj2
@@ -66,10 +66,10 @@ def test_inequality_sql_stage_input():
     sql_stage_input2: Union[SQLStageInputOutput, MagicMock] = create_autospec(
         SQLStageInputOutput
     )
-    obj1 = SQLStageTrainQueryHandlerInput(
+    obj1 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input1], result_bucketfs_location=bucketfs_location
     )
-    obj2 = SQLStageTrainQueryHandlerInput(
+    obj2 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input2], result_bucketfs_location=bucketfs_location
     )
     assert obj1 != obj2
@@ -85,10 +85,10 @@ def test_inequality_bucketfs_location():
     sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
         SQLStageInputOutput
     )
-    obj1 = SQLStageTrainQueryHandlerInput(
+    obj1 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input], result_bucketfs_location=bucketfs_location1
     )
-    obj2 = SQLStageTrainQueryHandlerInput(
+    obj2 = SQLStageQueryHandlerInput(
         sql_stage_inputs=[sql_stage_input], result_bucketfs_location=bucketfs_location2
     )
     assert obj1 != obj2

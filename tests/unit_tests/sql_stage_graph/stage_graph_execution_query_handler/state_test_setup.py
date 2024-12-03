@@ -30,7 +30,7 @@ from exasol.analytics.query_handler.result import Continue, Finish
 from tests.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
-MockSQLStageTrainQueryHandler = Union[SQLStageQueryHandler, MagicMock]
+MockSQLStageQueryHandler = Union[SQLStageQueryHandler, MagicMock]
 MockQueryHandlerResult = Union[Continue, Finish, MagicMock]
 MockSQLStageInputOutput = Union[SQLStageInputOutput, MagicMock]
 MockSQLStage = Union[SQLStage, MagicMock]
@@ -47,7 +47,7 @@ MockBucketFSLocation = Union[AbstractBucketFSLocation, MagicMock]
 class StageSetup:
     index: int
     child_query_handler_context: MockScopeQueryHandlerContext
-    train_query_handler: MockSQLStageTrainQueryHandler
+    train_query_handler: MockSQLStageQueryHandler
     stage: MockSQLStage
     results: List[MockQueryHandlerResult]
     result_bucketfs_location: MockBucketFSLocation
@@ -173,7 +173,7 @@ def create_mocks_for_stage(
     result: List[MockQueryHandlerResult] = [
         create_autospec(result_prototype) for result_prototype in result_prototypes
     ]
-    train_query_handler: MockSQLStageTrainQueryHandler = create_autospec(QueryHandler)
+    train_query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)
     sql_stage.create_train_query_handler.return_value = train_query_handler
     mock_result_bucketfs_location: MockBucketFSLocation = create_autospec(
         AbstractBucketFSLocation

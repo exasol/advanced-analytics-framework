@@ -4,7 +4,7 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
-    SQLStageTrainQueryHandlerInput,
+    SQLStageQueryHandlerInput,
 )
 from tests.utils.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
@@ -56,7 +56,7 @@ def assert_stage_train_query_handler_created(
     result_bucketfs_location = test_setup.stage_setups[
         stage_index
     ].result_bucketfs_location
-    stage_input = SQLStageTrainQueryHandlerInput(
+    stage_input = SQLStageQueryHandlerInput(
         result_bucketfs_location=result_bucketfs_location, sql_stage_inputs=stage_inputs
     )
     mock_cast(stage_setup.stage.create_train_query_handler).assert_called_once_with(

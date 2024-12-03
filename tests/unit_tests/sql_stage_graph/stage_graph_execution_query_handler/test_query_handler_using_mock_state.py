@@ -29,7 +29,7 @@ MockSQLStageGraphExecutionQueryHandlerState = Union[
     SQLStageGraphExecutionQueryHandlerState, MagicMock
 ]
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
-MockSQLStageTrainQueryHandler = Union[SQLStageQueryHandler, MagicMock]
+MockSQLStageQueryHandler = Union[SQLStageQueryHandler, MagicMock]
 MockQueryHandlerResult = Union[Continue, Finish, MagicMock]
 MockSQLStageGraphExecutionInput = Union[SQLStageGraphExecutionInput, MagicMock]
 MockSQLStageInputOutput = Union[SQLStageInputOutput, MagicMock]
@@ -40,9 +40,9 @@ MockSQLStageGraphExecutionQueryHandlerStateFactory = Union[
 
 
 @dataclasses.dataclass
-class TrainQueryHandlerMockSetup:
+class SQLStageQueryHandlerMockSetup:
     results: List[MockQueryHandlerResult]
-    train_query_handler: MockSQLStageTrainQueryHandler
+    train_query_handler: MockSQLStageQueryHandler
 
     def reset_mock(self):
         self.train_query_handler.reset_mock()
@@ -51,25 +51,25 @@ class TrainQueryHandlerMockSetup:
 
 
 @dataclasses.dataclass
-class TrainQueryHandlerSetupDefinition:
+class SQLStageQueryHandlerSetupDefinition:
     result_prototypes: List[Union[Continue, Finish]]
 
-    def create_mock_setup(self) -> TrainQueryHandlerMockSetup:
+    def create_mock_setup(self) -> SQLStageQueryHandlerMockSetup:
         results: List[MockQueryHandlerResult] = [
             create_autospec(result_prototype)
             for result_prototype in self.result_prototypes
         ]
-        train_query_handler: MockSQLStageTrainQueryHandler = create_autospec(
+        train_query_handler: MockSQLStageQueryHandler = create_autospec(
             QueryHandler
         )
         train_query_handler.start.side_effect = [results[0]]
         train_query_handler.handle_query_result.side_effect = results[1:]
-        return TrainQueryHandlerMockSetup(results, train_query_handler)
+        return SQLStageQueryHandlerMockSetup(results, train_query_handler)
 
 
 @dataclasses.dataclass
 class StateMockSetup:
-    train_query_handler_mock_setups: List[TrainQueryHandlerMockSetup]
+    train_query_handler_mock_setups: List[SQLStageQueryHandlerMockSetup]
     state: MockSQLStageGraphExecutionQueryHandlerState
 
     def reset_mock(self):
@@ -80,7 +80,7 @@ class StateMockSetup:
 
 @dataclasses.dataclass
 class StateSetupDefinition:
-    train_query_handler_setup_definitions: List[TrainQueryHandlerSetupDefinition]
+    train_query_handler_setup_definitions: List[SQLStageQueryHandlerSetupDefinition]
 
     def create_mock_setup(self) -> StateMockSetup:
         train_query_handler_mock_setups = [
@@ -164,13 +164,13 @@ def create_test_setup_with_two_train_query_handler_returning_continue_finish() -
 ):
     state_setup_definition = StateSetupDefinition(
         train_query_handler_setup_definitions=[
-            TrainQueryHandlerSetupDefinition(
+            SQLStageQueryHandlerSetupDefinition(
                 result_prototypes=[
                     Continue(query_list=None, input_query=None),
                     Finish(result=None),
                 ]
             ),
-            TrainQueryHandlerSetupDefinition(
+            SQLStageQueryHandlerSetupDefinition(
                 result_prototypes=[
                     Continue(query_list=None, input_query=None),
                     Finish(result=None),
@@ -193,7 +193,7 @@ def test_init():
     def arrange() -> StateSetupDefinition:
         state_setup_definition = StateSetupDefinition(
             train_query_handler_setup_definitions=[
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 )
             ]
@@ -230,7 +230,7 @@ def test_start_single_train_query_handler_returning_finish():
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
             train_query_handler_setup_definitions=[
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 )
             ]
@@ -276,7 +276,7 @@ def test_start_single_train_query_handler_returning_continue():
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
             train_query_handler_setup_definitions=[
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[
                         Continue(query_list=None, input_query=None),
                     ]
@@ -327,7 +327,7 @@ def test_handle_query_result_single_train_query_handler_returning_continue_finis
     def arrange() -> Tuple[TestSetup, MockQueryResult]:
         state_setup_definition = StateSetupDefinition(
             train_query_handler_setup_definitions=[
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[
                         Continue(query_list=None, input_query=None),
                         Finish(result=None),
@@ -385,10 +385,10 @@ def test_start_two_train_query_handler_returning_finish():
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
             train_query_handler_setup_definitions=[
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 ),
-                TrainQueryHandlerSetupDefinition(
+                SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 ),
             ]

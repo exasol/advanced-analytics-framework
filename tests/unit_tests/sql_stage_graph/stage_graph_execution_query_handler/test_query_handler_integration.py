@@ -29,7 +29,7 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
     SQLStageQueryHandler,
-    SQLStageTrainQueryHandlerInput,
+    SQLStageQueryHandlerInput,
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
@@ -45,11 +45,11 @@ from exasol.analytics.schema import (
 )
 
 
-class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
+class StartOnlyForwardInputTestSQLStageQueryHandler(SQLStageQueryHandler):
 
     def __init__(
         self,
-        parameter: SQLStageTrainQueryHandlerInput,
+        parameter: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,
     ):
         super().__init__(parameter, query_handler_context)
@@ -64,11 +64,11 @@ class StartOnlyForwardInputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
         raise NotImplementedError()
 
 
-class StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageQueryHandler):
+class StartOnlyCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
 
     def __init__(
         self,
-        parameter: SQLStageTrainQueryHandlerInput,
+        parameter: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,
     ):
         super().__init__(parameter, query_handler_context)
@@ -94,13 +94,13 @@ class StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler(SQLStageQueryHandler
         raise NotImplementedError()
 
 
-class HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler(
+class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(
     SQLStageQueryHandler
 ):
 
     def __init__(
         self,
-        parameter: SQLStageTrainQueryHandlerInput,
+        parameter: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,
     ):
         super().__init__(parameter, query_handler_context)
@@ -131,8 +131,8 @@ class HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler(
         return Finish[SQLStageInputOutput](self.stage_input_output)
 
 
-TrainQueryHandlerFactory = Callable[
-    [SQLStageTrainQueryHandlerInput, ScopeQueryHandlerContext], SQLStageQueryHandler
+SQLStageQueryHandlerFactory = Callable[
+    [SQLStageQueryHandlerInput, ScopeQueryHandlerContext], SQLStageQueryHandler
 ]
 
 
@@ -140,7 +140,7 @@ class TestSQLStage(SQLStage):
     __test__ = False
 
     def __init__(
-        self, *, index: int, train_query_handler_factory: TrainQueryHandlerFactory
+        self, *, index: int, train_query_handler_factory: SQLStageQueryHandlerFactory
     ):
         self._train_query_handler_factory = train_query_handler_factory
         self.sql_stage_train_query_handler: Optional[SQLStageQueryHandler] = None
@@ -148,7 +148,7 @@ class TestSQLStage(SQLStage):
 
     def create_train_query_handler(
         self,
-        query_handler_input: SQLStageTrainQueryHandlerInput,
+        query_handler_input: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,
     ) -> SQLStageQueryHandler:
         self.sql_stage_train_query_handler = self._train_query_handler_factory(
@@ -256,7 +256,7 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
-    on a SQLStageGraph with a single stage which returns a StartOnlyForwardInputTestSQLStageTrainQueryHandler.
+    on a SQLStageGraph with a single stage which returns a StartOnlyForwardInputTestSQLStageQueryHandler.
     It expects:
         - that the dataset of the result is the dataset we initialed the SQLStageGraphExecutionQueryHandler with
         - that context.cleanup_released_object_proxies() directly
@@ -268,7 +268,7 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -306,7 +306,7 @@ def test_start_with_two_stages_with_start_only_forward_train_query_handler(
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
-    on a SQLStageGraph with two stages which return a StartOnlyForwardInputTestSQLStageTrainQueryHandler.
+    on a SQLStageGraph with two stages which return a StartOnlyForwardInputTestSQLStageQueryHandler.
     It expects:
         - that the dataset of the result is the dataset we initialized the SQLStageGraphExecutionQueryHandler with
         - that context.cleanup_released_object_proxies() directly
@@ -318,11 +318,11 @@ def test_start_with_two_stages_with_start_only_forward_train_query_handler(
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         stage2 = TestSQLStage(
             index=2,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(
             start_node=stage1, end_node=stage2, edges=[(stage1, stage2)]
@@ -370,11 +370,11 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
-    on a SQLStageGraph with a single stage which return a StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler.
+    on a SQLStageGraph with a single stage which return a StartOnlyCreateNewOutputTestSQLStageQueryHandler.
     It expects:
         - that the dataset of the result is the dataset created by the
-          StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler of the single stage
-        - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler is not None
+          StartOnlyCreateNewOutputTestSQLStageQueryHandler of the single stage
+        - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageQueryHandler is not None
         - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup queries
         - that context.cleanup_released_object_proxies() after a call to
@@ -384,7 +384,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -409,7 +409,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
         and result.result.dataset != test_setup.stage_input_output.dataset
         and isinstance(
             stage_1_train_query_handler,
-            StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and result.result.dataset
         == stage_1_train_query_handler.stage_input_output.dataset
@@ -435,11 +435,11 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
-    on a SQLStageGraph with two stages which return a StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler.
+    on a SQLStageGraph with two stages which return a StartOnlyCreateNewOutputTestSQLStageQueryHandler.
     It expects:
         - that the dataset of the result is the dataset created by the
-          StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler of the second stage
-        - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler is not None
+          StartOnlyCreateNewOutputTestSQLStageQueryHandler of the second stage
+        - that input_table_like_name of the StartOnlyCreateNewOutputTestSQLStageQueryHandler is not None
         - that context.cleanup_released_object_proxies() directly
           after the call to start, returns a single cleanup query
         - that context.cleanup_released_object_proxies() after a call to
@@ -449,11 +449,11 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         stage2 = TestSQLStage(
             index=2,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(
             start_node=stage1, end_node=stage2, edges=[(stage1, stage2)]
@@ -481,11 +481,11 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
         and result.result.dataset != test_setup.stage_input_output.dataset
         and isinstance(
             stage_1_train_query_handler,
-            StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and isinstance(
             stage_2_train_query_handler,
-            StartOnlyCreateNewOutputTestSQLStageTrainQueryHandler,
+            StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and result.result.dataset
         == stage_2_train_query_handler.stage_input_output.dataset
@@ -512,7 +512,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
-    on a SQLStageGraph with a single stage which return a HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler.
+    on a SQLStageGraph with a single stage which return a HandleQueryResultCreateNewOutputTestSQLStageQueryHandler.
     It expects:
         - that the result of start is the same as the continue of the train query handler of the stage
         - that stage_input_output of train query handler of the stage is None
@@ -523,7 +523,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -545,7 +545,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
     assert (
         isinstance(
             stage_1_train_query_handler,
-            HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler,
+            HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         and result == stage_1_train_query_handler.continue_result
         and stage_1_train_query_handler.stage_input_output is None
@@ -574,7 +574,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
     def arrange() -> Tuple[TestSetup, QueryResult]:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler,
+            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -601,7 +601,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
         isinstance(result, Finish)
         and isinstance(
             stage_1_train_query_handler,
-            HandleQueryResultCreateNewOutputTestSQLStageTrainQueryHandler,
+            HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         and result.result == stage_1_train_query_handler.stage_input_output
         and query_result == stage_1_train_query_handler.query_result

@@ -17,7 +17,7 @@ def is_empty(obj: Sized):
 
 
 @dataclasses.dataclass(eq=True)
-class SQLStageTrainQueryHandlerInput:
+class SQLStageQueryHandlerInput:
     sql_stage_inputs: List[SQLStageInputOutput]
     result_bucketfs_location: AbstractBucketFSLocation
 
@@ -27,6 +27,6 @@ class SQLStageTrainQueryHandlerInput:
 
 
 class SQLStageQueryHandler(
-    QueryHandler[SQLStageTrainQueryHandlerInput, SQLStageInputOutput], ABC
+    QueryHandler[SQLStageQueryHandlerInput, SQLStageInputOutput], ABC
 ):
     pass
