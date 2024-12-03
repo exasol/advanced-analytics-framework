@@ -146,7 +146,7 @@ class TestSQLStage(SQLStage):
         self.sql_stage_train_query_handler: Optional[SQLStageQueryHandler] = None
         self._index = index
 
-    def create_train_query_handler(
+    def create_query_handler(
         self,
         query_handler_input: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,

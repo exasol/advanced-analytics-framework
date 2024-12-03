@@ -139,7 +139,7 @@ class SQLStageGraphExecutionQueryHandlerState:
             result_bucketfs_location=result_bucketfs_location,
             sql_stage_inputs=stage_inputs,
         )
-        self._current_query_handler = self._checked_current_stage.create_train_query_handler(
+        self._current_query_handler = self._checked_current_stage.create_query_handler(
             stage_input, self._current_qh_context
         )
 

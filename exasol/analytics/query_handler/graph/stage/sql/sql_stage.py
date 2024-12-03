@@ -10,7 +10,7 @@ from exasol.analytics.query_handler.graph.stage.stage import Stage
 
 class SQLStage(Stage):
     @abc.abstractmethod
-    def create_train_query_handler(
+    def create_query_handler(
         self,
         stage_input: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,

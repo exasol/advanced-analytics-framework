@@ -174,7 +174,7 @@ def create_mocks_for_stage(
         create_autospec(result_prototype) for result_prototype in result_prototypes
     ]
     train_query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)
-    sql_stage.create_train_query_handler.return_value = train_query_handler
+    sql_stage.create_query_handler.return_value = train_query_handler
     mock_result_bucketfs_location: MockBucketFSLocation = create_autospec(
         AbstractBucketFSLocation
     )
