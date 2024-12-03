@@ -18,7 +18,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert
     assert_reference_counting_bag_not_called,
     assert_release_on_query_handler_context_for_stage,
     assert_stage_not_called,
-    assert_stage_train_query_handler_created,
+    assert_stage_query_handler_created,
 )
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
@@ -70,7 +70,7 @@ def test_get_current_query_handler_two_stage_return_finish_part1():
     result = act(test_setup)
 
     assert_reference_counting_bag_creation(test_setup)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=0,
         stage_inputs=[test_setup.state_setup.sql_stage_input_output],
@@ -112,7 +112,7 @@ def test_handle_result_two_stage_return_finish_part2():
 
     assert_reference_counting_bag_not_called(test_setup)
     assert_release_on_query_handler_context_for_stage(test_setup, stage_index=0)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=1,
         stage_inputs=[test_setup.stage_setups[0].results[0].result],

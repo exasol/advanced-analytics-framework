@@ -43,7 +43,7 @@ def assert_stage_not_called(test_setup: TestSetup, *, stage_index: int):
     assert stage_setup.child_query_handler_context.mock_calls == []
 
 
-def assert_stage_train_query_handler_created(
+def assert_stage_query_handler_created(
     test_setup: TestSetup, *, stage_index: int, stage_inputs: List[SQLStageInputOutput]
 ):
     stage_setup = test_setup.stage_setups[stage_index]
