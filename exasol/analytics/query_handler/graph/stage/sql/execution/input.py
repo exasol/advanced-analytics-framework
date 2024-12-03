@@ -1,8 +1,6 @@
 import dataclasses
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import (
-    AbstractBucketFSLocation,
-)
+import exasol.bucketfs as bfs
 
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
@@ -13,5 +11,5 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLSt
 @dataclasses.dataclass(frozen=True, eq=True)
 class SQLStageGraphExecutionInput:
     input: SQLStageInputOutput
-    result_bucketfs_location: AbstractBucketFSLocation
+    result_bucketfs_location: bfs.path.PathLike
     sql_stage_graph: SQLStageGraph

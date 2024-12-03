@@ -39,7 +39,7 @@ def key_for_peer(peer: Peer):
 
 
 def _compute_handle_message_timeout(
-    start_time_ns: int, timeout_in_milliseconds: Optional[int] = None
+    start_time_ns: int, timeout_in_milliseconds: int
 ) -> int:
     time_difference_ns = time.monotonic_ns() - start_time_ns
     time_difference_ms = time_difference_ns // 10**6
@@ -158,9 +158,7 @@ class PeerCommunicator:
             self._are_all_peers_connected, timeout_in_milliseconds
         )
 
-    def peers(
-        self, timeout_in_milliseconds: Optional[int] = None
-    ) -> Optional[List[Peer]]:
+    def peers(self, timeout_in_milliseconds: Optional[int] = None) -> List[Peer]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
             peers = [peer for peer in self._peer_states.keys()] + [
@@ -168,7 +166,7 @@ class PeerCommunicator:
             ]
             return sorted(peers, key=key_for_peer)
         else:
-            return None
+            return []
 
     def register_peer(self, peer_connection_info: ConnectionInfo):
         self._logger.info(
@@ -246,12 +244,11 @@ class PeerCommunicator:
     ) -> List[Peer]:
         self.wait_for_peers()
 
-        if peers is None:
-            peers = self._peer_states.keys()
+        _peers = self._peer_states.keys() if peers is None else peers
 
         def have_peers_received_messages() -> bool:
             result = any(
-                self._peer_states[peer].has_received_messages() for peer in peers
+                self._peer_states[peer].has_received_messages() for peer in _peers
             )
             return result
 
@@ -260,7 +257,7 @@ class PeerCommunicator:
             timeout_in_milliseconds=timeout_in_milliseconds,
         )
         return [
-            peer for peer in peers if self._peer_states[peer].has_received_messages()
+            peer for peer in _peers if self._peer_states[peer].has_received_messages()
         ]
 
     def stop(self):

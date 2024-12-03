@@ -13,7 +13,7 @@ class BaseMessage(BaseModel, frozen=True):
 class RegisterPeer(BaseMessage, frozen=True):
     message_type: Literal["RegisterPeer"] = "RegisterPeer"
     peer: Peer
-    source: Optional["Peer"]
+    source: Optional[Peer] = None
 
 
 class AcknowledgeRegisterPeer(BaseMessage, frozen=True):

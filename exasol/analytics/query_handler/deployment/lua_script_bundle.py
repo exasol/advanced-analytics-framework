@@ -26,20 +26,19 @@ class LuaScriptBundle:
 
     def bundle_lua_scripts(self, output_buffer: IO):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir = Path(tmp_dir)
-            self.copy_lua_source_files(tmp_dir)
-            self.run_lua_amlg(tmp_dir, output_buffer)
+            tmp_path = Path(tmp_dir)
+            self.copy_lua_source_files(tmp_path)
+            self.run_lua_amlg(tmp_path, output_buffer)
 
     def copy_lua_source_files(self, tmp_dir: Path):
         for src in self.lua_source_files + [self.lua_main_file]:
             dst = tmp_dir / src.name
             logger.debug(f"Copy {src} to {tmp_dir}")
-            shutil.copy(src, dst)
+            shutil.copy(str(src), dst)
 
     def run_lua_amlg(self, tmp_dir: Path, output_buffer: IO):
         output_file = tmp_dir / f"bundle_{time.time()}.lua"
         bash_command = "amalg.lua -o {out_path} -s {main_file} {modules}".format(
-            tmp_dir=tmp_dir,
             out_path=output_file,
             main_file=self.lua_main_file.name,
             modules=" ".join(self.lua_modules),

@@ -1,10 +1,18 @@
 import collections
-from typing import Any, Iterator, List, OrderedDict, Union
+from typing import Any, Iterator, List, Optional, OrderedDict, TYPE_CHECKING, Union
 
 from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
 from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type import ColumnType
+
+if TYPE_CHECKING:
+    # Importing pandas might take several seconds.  At runtime pandas is
+    # imported on-demand by UDF context.
+    #
+    # This file only imports pandas for type checking, see also
+    # https://legacy.python.org/dev/peps/pep-0484/#runtime-or-type-checking
+    import pandas
 
 
 class UDFQueryResult(QueryResult):
@@ -51,7 +59,10 @@ class UDFQueryResult(QueryResult):
 
     def fetch_as_dataframe(
         self, num_rows: Union[str, int], start_col: int = 0
-    ) -> "pandas.DataFrame":
+    ) -> Optional["pandas.DataFrame"]:
+        # This place intentionally uses a forward reference, to avoid
+        # importing pandas which might take several seconds, see comment at
+        # the beginning of the file.
         df = self._ctx.get_dataframe(num_rows, start_col=self._start_col)
         self._initialized = True
         if df is None:

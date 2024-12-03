@@ -1,5 +1,9 @@
-from exasol.analytics.udf.communication.discovery.localhost.discovery_socket import DiscoverySocketFactory
-from exasol.analytics.udf.communication.discovery.localhost.discovery_strategy import DiscoveryStrategy 
+from exasol.analytics.udf.communication.discovery.localhost.discovery_socket import (
+    DiscoverySocketFactory,
+)
+from exasol.analytics.udf.communication.discovery.localhost.discovery_strategy import (
+    DiscoveryStrategy,
+)
 from exasol.analytics.udf.communication.ip_address import IPAddress, Port
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
 from exasol.analytics.udf.communication.peer_communicator.forward_register_peer_config import (

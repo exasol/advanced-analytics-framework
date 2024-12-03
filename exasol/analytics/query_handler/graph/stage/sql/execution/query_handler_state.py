@@ -21,6 +21,7 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
 )
 from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 
 class ResultHandlerReturnValue(enum.Enum):
@@ -55,23 +56,38 @@ class SQLStageGraphExecutionQueryHandlerState:
         self._current_query_handler: Optional[
             QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]
         ] = None
-        self._current_query_handler_context: Optional[ScopeQueryHandlerContext] = None
+        self._current_qh_context: Optional[ScopeQueryHandlerContext] = None
         self._create_current_query_handler()
-
-    def _check_is_valid(self):
-        if self._current_query_handler is None:
-            raise RuntimeError("No current query handler set.")
 
     def get_current_query_handler(
         self,
     ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
-        self._check_is_valid()
-        return self._current_query_handler
+        value = self._current_query_handler
+        if value is None:
+            raise RuntimeError("No current query handler set.")
+        return value
+
+    @property
+    def _checked_current_qh_context(self) -> ScopeQueryHandlerContext:
+        value = self._current_qh_context
+        if value is None:
+            raise UninitializedAttributeError(
+                "Current query handler context is undefined."
+            )
+        return value
+
+    @property
+    def _checked_current_stage(self) -> SQLStage:
+        value = self._current_stage
+        if value is None:
+            raise UninitializedAttributeError("Current stage is None.")
+        return value
 
     def handle_result(
         self, result: Union[Continue, Finish[SQLStageInputOutput]]
     ) -> ResultHandlerReturnValue:
-        self._check_is_valid()
+        # check if current query handler is set
+        self.get_current_query_handler()
         if isinstance(result, Finish):
             return self._handle_finished_result(result)
         elif isinstance(result, Continue):
@@ -90,7 +106,7 @@ class SQLStageGraphExecutionQueryHandlerState:
         return self._try_to_move_to_next_stage()
 
     def _try_to_move_to_next_stage(self) -> ResultHandlerReturnValue:
-        self._current_query_handler_context.release()
+        self._checked_current_qh_context.release()
         if self._is_not_last_stage():
             self._move_to_next_stage()
             return ResultHandlerReturnValue.CONTINUE_PROCESSING
@@ -101,7 +117,7 @@ class SQLStageGraphExecutionQueryHandlerState:
     def invalidate(self):
         self._current_stage = None
         self._current_query_handler = None
-        self._current_query_handler_context = None
+        self._current_qh_context = None
 
     def _is_not_last_stage(self):
         return self._current_stage_index < len(self._stages_in_execution_order) - 1
@@ -113,7 +129,7 @@ class SQLStageGraphExecutionQueryHandlerState:
 
     def _create_current_query_handler(self):
         stage_inputs = self._stage_inputs_map[self._current_stage]
-        self._current_query_handler_context = (
+        self._current_qh_context = (
             self._query_handler_context.get_child_query_handler_context()
         )
         result_bucketfs_location = self._result_bucketfs_location.joinpath(
@@ -123,12 +139,12 @@ class SQLStageGraphExecutionQueryHandlerState:
             result_bucketfs_location=result_bucketfs_location,
             sql_stage_inputs=stage_inputs,
         )
-        self._current_query_handler = self._current_stage.create_train_query_handler(
-            stage_input, self._current_query_handler_context
+        self._current_query_handler = self._checked_current_stage.create_train_query_handler(
+            stage_input, self._current_qh_context
         )
 
     def _add_result_to_successors(self, result: SQLStageInputOutput):
-        successors = self._sql_stage_graph.successors(self._current_stage)
+        successors = self._sql_stage_graph.successors(self._checked_current_stage)
         if len(successors) == 0:
             raise RuntimeError("Programming error")
         self._add_result_to_inputs_of_successors(result, successors)
@@ -146,7 +162,7 @@ class SQLStageGraphExecutionQueryHandlerState:
         object_proxies = find_object_proxies(result)
         for object_proxy in object_proxies:
             if object_proxy not in self._reference_counting_bag:
-                self._current_query_handler_context.transfer_object_to(
+                self._checked_current_qh_context.transfer_object_to(
                     object_proxy, self._query_handler_context
                 )
             for _ in successors:
@@ -160,7 +176,7 @@ class SQLStageGraphExecutionQueryHandlerState:
                     object_proxy
                 )
             else:
-                self._current_query_handler_context.transfer_object_to(
+                self._checked_current_qh_context.transfer_object_to(
                     object_proxy, self._query_handler_context
                 )
 

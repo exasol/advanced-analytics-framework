@@ -47,15 +47,20 @@ class PythonQueryResult(QueryResult):
         }
         self._next()
 
+    def _range(self, num_rows: Union[int, str]) -> range:
+        if isinstance(num_rows, int):
+            return range(num_rows - 1)
+        if num_rows == "all":
+            return range(len(self._data) - 1)
+        raise ValueError(f'num_rows must be an int or str "all" but is {num_rows}')
+
     def fetch_as_dataframe(
         self, num_rows: Union[int, str], start_col=0
     ) -> Optional[pd.DataFrame]:
         batch_list = []
-        if num_rows == "all":
-            num_rows = len(self._data)
         if self._current_row is not None:
             batch_list.append(self._current_row)
-        for i in range(num_rows - 1):
+        for i in self._range(num_rows):
             self._next()
             if self._current_row is not None:
                 batch_list.append(self._current_row)

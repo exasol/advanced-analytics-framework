@@ -17,6 +17,7 @@ from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
 from exasol.analytics.query_handler.udf.runner.state import QueryHandlerRunnerState
 from exasol.analytics.sql_executor.interface import SQLExecutor
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 LOGGER = logging.getLogger(__file__)
 
@@ -72,8 +73,8 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         self._cleanup_query_handler_context()
         self._execute_queries(result.query_list)
         input_query_result = self._run_input_query(result)
-        result = self._state.query_handler.handle_query_result(input_query_result)
-        return result
+        _result = self._state.query_handler.handle_query_result(input_query_result)
+        return _result
 
     def _run_input_query(self, result: Continue) -> PythonQueryResult:
         input_query_view, input_query = self._wrap_return_query(result.input_query)
@@ -116,14 +117,18 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
     def _wrap_return_query(
         self, input_query: SelectQueryWithColumnDefinition
     ) -> Tuple[str, str]:
+        if self._state.input_query_query_handler_context is None:
+            raise UninitializedAttributeError(
+                "Current state's input query query handler context is not set."
+            )
         temporary_view_name = (
             self._state.input_query_query_handler_context.get_temporary_view_name()
         )
         input_query_create_view_string = cleandoc(
             f"""
-CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
-{input_query.query_string};
-"""
+            CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
+            {input_query.query_string};
+            """
         )
         full_qualified_columns = [
             col.name.fully_qualified for col in input_query.output_columns
@@ -131,9 +136,9 @@ CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
         columns_str = ",\n".join(full_qualified_columns)
         input_query_string = cleandoc(
             f"""
-SELECT
-{textwrap.indent(columns_str, " " * 4)}
-FROM {temporary_view_name.fully_qualified};
-"""
+            SELECT
+            {textwrap.indent(columns_str, " " * 4)}
+            FROM {temporary_view_name.fully_qualified};
+            """
         )
         return input_query_create_view_string, input_query_string

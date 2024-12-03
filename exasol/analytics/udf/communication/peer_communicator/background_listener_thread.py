@@ -58,11 +58,13 @@ from exasol.analytics.udf.communication.serialization import (
 )
 from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
+    Poller,
     PollerFlag,
     Socket,
     SocketFactory,
     SocketType,
 )
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -96,6 +98,50 @@ def create_background_peer_state_builder() -> BackgroundPeerStateBuilder:
     return background_peer_state_factory
 
 
+@dataclasses.dataclass
+class RuntimeSockets:
+    in_control: Socket
+    out_control: Socket
+    listen: Socket
+    listen_port: int
+    poller: Poller
+
+    @classmethod
+    def create(
+        cls,
+        socket_factory: SocketFactory,
+        name: str,
+        in_control_address: str,
+        out_control_address: str,
+    ) -> "RuntimeSockets":
+        def listen_socket():
+            socket = socket_factory.create_socket(SocketType.ROUTER)
+            socket.set_identity(name)
+            port = socket.bind_to_random_port(f"tcp://*")
+            return (socket, port)
+
+        def control_socket(address: str):
+            socket = socket_factory.create_socket(SocketType.PAIR)
+            socket.connect(address)
+            return socket
+
+        in_control = control_socket(in_control_address)
+        out_control = control_socket(out_control_address)
+        listen, listen_port = listen_socket()
+
+        poller = socket_factory.create_poller()
+        poller.register(in_control, flags=PollerFlag.POLLIN)
+        poller.register(listen, flags=PollerFlag.POLLIN)
+
+        return cls(
+            in_control,
+            out_control,
+            listen,
+            listen_port,
+            poller,
+        )
+
+
 class BackgroundListenerThread:
     class Status(enum.Enum):
         RUNNING = enum.auto()
@@ -119,7 +165,6 @@ class BackgroundListenerThread:
         self._number_of_peers = number_of_peers
         self._config = config
         self._background_peer_state_factory = background_peer_state_factory
-        self._register_peer_connection: Optional[RegisterPeerConnection] = None
         self._trace_logging = trace_logging
         self._clock = clock
         self._name = name
@@ -135,13 +180,17 @@ class BackgroundListenerThread:
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
         self._peer_state: Dict[Peer, BackgroundPeerState] = {}
+        self._register_peer_connection: Optional[RegisterPeerConnection] = None
+        self._sockets: Optional[RuntimeSockets] = None
 
     def run(self):
-        self._create_in_control_socket()
-        self._create_out_control_socket()
-        port = self._create_listener_socket()
-        self._set_my_connection_info(port)
-        self._create_poller()
+        self._sockets = RuntimeSockets.create(
+            self._socket_factory,
+            self._name,
+            self._in_control_socket_address,
+            self._out_control_socket_address,
+        )
+        self._set_my_connection_info(self.sockets.listen_port)
         try:
             self._run_message_loop()
         finally:
@@ -151,35 +200,10 @@ class BackgroundListenerThread:
         self._logger.info("start")
         if self._register_peer_connection is not None:
             self._register_peer_connection.close()
-        self._out_control_socket.close(linger=0)
-        self._in_control_socket.close(linger=0)
-        self._listener_socket.close(linger=0)
+        self.sockets.out_control.close(linger=0)
+        self.sockets.in_control.close(linger=0)
+        self.sockets.listen.close(linger=0)
         self._logger.info("end")
-
-    def _create_listener_socket(self):
-        self._listener_socket: Socket = self._socket_factory.create_socket(
-            SocketType.ROUTER
-        )
-        self._listener_socket.set_identity(self._name)
-        port = self._listener_socket.bind_to_random_port(f"tcp://*")
-        return port
-
-    def _create_in_control_socket(self):
-        self._in_control_socket: Socket = self._socket_factory.create_socket(
-            SocketType.PAIR
-        )
-        self._in_control_socket.connect(self._in_control_socket_address)
-
-    def _create_out_control_socket(self):
-        self._out_control_socket: Socket = self._socket_factory.create_socket(
-            SocketType.PAIR
-        )
-        self._out_control_socket.connect(self._out_control_socket_address)
-
-    def _create_poller(self):
-        self.poller = self._socket_factory.create_poller()
-        self.poller.register(self._in_control_socket, flags=PollerFlag.POLLIN)
-        self.poller.register(self._listener_socket, flags=PollerFlag.POLLIN)
 
     def _run_message_loop(self):
         try:
@@ -197,18 +221,18 @@ class BackgroundListenerThread:
                 peer_state.try_send()
 
     def _handle_message(self):
-        poll = self.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
+        poll = self.sockets.poller.poll(timeout_in_ms=self._config.poll_timeout_in_ms)
         if (
-            self._in_control_socket in poll
-            and PollerFlag.POLLIN in poll[self._in_control_socket]
+            self.sockets.in_control in poll
+            and PollerFlag.POLLIN in poll[self.sockets.in_control]
         ):
-            message = self._in_control_socket.receive_multipart()
+            message = self.sockets.in_control.receive_multipart()
             self._status = self._handle_control_message(message)
         if (
-            self._listener_socket in poll
-            and PollerFlag.POLLIN in poll[self._listener_socket]
+            self.sockets.listen in poll
+            and PollerFlag.POLLIN in poll[self.sockets.listen]
         ):
-            message = self._listener_socket.receive_multipart()
+            message = self.sockets.listen.receive_multipart()
             self._handle_listener_message(message)
 
     def _handle_control_message(self, frames: List[Frame]) -> Status:
@@ -250,6 +274,12 @@ class BackgroundListenerThread:
             message=payload, frames=frames
         )
 
+    @property
+    def sockets(self) -> RuntimeSockets:
+        if self._sockets is None:
+            raise UninitializedAttributeError("Runtime Sockets are not initialized.")
+        return self._sockets
+
     def _add_peer(
         self,
         peer: Peer,
@@ -274,7 +304,7 @@ class BackgroundListenerThread:
             self._peer_state[peer] = self._background_peer_state_factory.create(
                 my_connection_info=self._my_connection_info,
                 peer=peer,
-                out_control_socket=self._out_control_socket,
+                out_control_socket=self.sockets.out_control,
                 socket_factory=self._socket_factory,
                 clock=self._clock,
                 send_socket_linger_time_in_ms=self._config.send_socket_linger_time_in_ms,
@@ -372,32 +402,25 @@ class BackgroundListenerThread:
             group_identifier=self._group_identifier,
         )
         message = messages.MyConnectionInfo(my_connection_info=self._my_connection_info)
-        self._out_control_socket.send(serialize_message(message))
+        self.sockets.out_control.send(serialize_message(message))
 
     def _handle_register_peer_message(self, message: messages.RegisterPeer):
+        def config(needs_register: bool):
+            needs_ack = not self._config.forward_register_peer_config.is_leader
+            return RegisterPeerForwarderBehaviorConfig(
+                needs_to_send_register_peer=needs_register,
+                needs_to_send_acknowledge_register_peer=needs_ack,
+            )
+
         if not self._config.forward_register_peer_config.is_enabled:
             self._add_peer(message.peer)
-            return
+        elif self._register_peer_connection is None:
+            self._register_peer_connection = self._create_register_peer_connection(message)
+            self._add_peer(message.peer, config(needs_register=False))
+        else:
+            self._add_peer(message.peer, config(needs_register=True))
 
-        if self._register_peer_connection is None:
-            self._create_register_peer_connection(message)
-            self._add_peer(
-                message.peer,
-                register_peer_forwarder_behavior_config=RegisterPeerForwarderBehaviorConfig(
-                    needs_to_send_acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader
-                ),
-            )
-            return
-
-        self._add_peer(
-            message.peer,
-            register_peer_forwarder_behavior_config=RegisterPeerForwarderBehaviorConfig(
-                needs_to_send_register_peer=True,
-                needs_to_send_acknowledge_register_peer=not self._config.forward_register_peer_config.is_leader,
-            ),
-        )
-
-    def _create_register_peer_connection(self, message: messages.RegisterPeer):
+    def _create_register_peer_connection(self, message: messages.RegisterPeer) -> RegisterPeerConnection:
         successor_send_socket_factory = SendSocketFactory(
             my_connection_info=self._my_connection_info,
             peer=message.peer,
@@ -411,7 +434,7 @@ class BackgroundListenerThread:
             )
         else:
             predecessor_send_socket_factory = None
-        self._register_peer_connection = RegisterPeerConnection(
+        return RegisterPeerConnection(
             predecessor=message.source,
             predecessor_send_socket_factory=predecessor_send_socket_factory,
             successor=message.peer,
@@ -422,6 +445,8 @@ class BackgroundListenerThread:
     def _handle_acknowledge_register_peer_message(
         self, message: messages.AcknowledgeRegisterPeer
     ):
+        if self._register_peer_connection is None:
+            raise UninitializedAttributeError("Register peer connection is undefined.")
         if self._register_peer_connection.successor != message.source:
             self._logger.error(
                 "AcknowledgeRegisterPeer message not from successor",
@@ -433,6 +458,8 @@ class BackgroundListenerThread:
     def _handle_register_peer_complete_message(
         self, message: messages.RegisterPeerComplete
     ):
+        if self._register_peer_connection is None:
+            raise UninitializedAttributeError("Register peer connection is undefined.")
         if self._register_peer_connection.predecessor != message.source:
             self._logger.error(
                 "RegisterPeerComplete message not from predecessor",

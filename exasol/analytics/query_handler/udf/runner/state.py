@@ -14,6 +14,6 @@ from exasol.analytics.schema.column import Column
 class QueryHandlerRunnerState:
     top_level_query_handler_context: TopLevelQueryHandlerContext
     query_handler: QueryHandler
-    connection_lookup: UDFConnectionLookup
+    connection_lookup: Optional[UDFConnectionLookup] = None
     input_query_query_handler_context: Optional[ScopeQueryHandlerContext] = None
     input_query_output_columns: Optional[List[Column]] = None

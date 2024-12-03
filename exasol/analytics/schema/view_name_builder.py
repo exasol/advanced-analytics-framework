@@ -1,5 +1,7 @@
 from typing import Optional
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.view_name import ViewName
 from exasol.analytics.schema.view_name_impl import ViewNameImpl
@@ -38,6 +40,8 @@ class ViewNameBuilder:
         return self
 
     def build(self) -> ViewName:
+        if self._name is None:
+            raise TypeCheckError("Name must not be None.")
         return self.create(self._name, self._schema_name)
 
     @staticmethod

@@ -1,5 +1,7 @@
 from typing import Optional, Union
 
+from typeguard import TypeCheckError
+
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.table_name import TableName
 from exasol.analytics.schema.table_name_impl import TableNameImpl
@@ -38,6 +40,8 @@ class TableNameBuilder:
         return self
 
     def build(self) -> TableName:
+        if self._name is None:
+            raise TypeCheckError("Name must not be None.")
         return self.create(self._name, self._schema_name)
 
     @staticmethod

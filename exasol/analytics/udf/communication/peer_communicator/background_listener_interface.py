@@ -1,6 +1,6 @@
 import threading
-from dataclasses import asdict
-from typing import Iterator, List, Optional, Tuple
+from dataclasses import asdict, dataclass
+from typing import Iterator, List, Optional, Set, Tuple
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -37,6 +37,26 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
+class UnexpectedMessageError(Exception):
+    """
+    BackgroundListenerInterface received a message of an unexpected type
+    instead of messages.MyConnectionInfo.
+    """
+
+
+@dataclass
+class SocketWithAddress:
+    socket: Socket
+    address: str
+
+    @classmethod
+    def create(self, socket_factory: SocketFactory, name: str) -> "SocketWithAddress":
+        socket = socket_factory.create_socket(SocketType.PAIR)
+        address = f"inproc://BackgroundListener_{name}"
+        socket.bind(address)
+        return SocketWithAddress(socket, address)
+
+
 class BackgroundListenerInterface:
 
     def __init__(
@@ -56,9 +76,12 @@ class BackgroundListenerInterface:
         self._logger = LOGGER.bind(
             name=self._name, group_identifier=group_identifier, config=asdict(config)
         )
-        out_control_socket_address = self._create_out_control_socket(socket_factory)
-        in_control_socket_address = self._create_in_control_socket(socket_factory)
-        self._my_connection_info: Optional[ConnectionInfo] = None
+        self._out_control = SocketWithAddress.create(
+            socket_factory, f"out_control_socket{id(self)}"
+        )
+        self._in_control = SocketWithAddress.create(
+            socket_factory, f"in_control_socket{id(self)}"
+        )
         self._is_ready_to_stop = False
         self._background_listener_run = BackgroundListenerThread(
             name=self._name,
@@ -66,8 +89,8 @@ class BackgroundListenerInterface:
             socket_factory=socket_factory,
             listen_ip=listen_ip,
             group_identifier=group_identifier,
-            out_control_socket_address=out_control_socket_address,
-            in_control_socket_address=in_control_socket_address,
+            out_control_socket_address=self._out_control.address,
+            in_control_socket_address=self._in_control.address,
             clock=clock,
             config=config,
             trace_logging=trace_logging,
@@ -75,36 +98,22 @@ class BackgroundListenerInterface:
         self._thread = threading.Thread(target=self._background_listener_run.run)
         self._thread.daemon = True
         self._thread.start()
-        self._set_my_connection_info()
+        self._my_connection_info = self._get_my_connection_info()
 
-    def _create_in_control_socket(self, socket_factory: SocketFactory) -> str:
-        self._in_control_socket: Socket = socket_factory.create_socket(SocketType.PAIR)
-        in_control_socket_address = (
-            f"inproc://BackgroundListener_in_control_socket{id(self)}"
-        )
-        self._in_control_socket.bind(in_control_socket_address)
-        return in_control_socket_address
-
-    def _create_out_control_socket(self, socket_factory: SocketFactory) -> str:
-        self._out_control_socket: Socket = socket_factory.create_socket(SocketType.PAIR)
-        out_control_socket_address = (
-            f"inproc://BackgroundListener_out_control_socket{id(self)}"
-        )
-        self._out_control_socket.bind(out_control_socket_address)
-        return out_control_socket_address
-
-    def _set_my_connection_info(self):
-        message = None
+    def _get_my_connection_info(self) -> ConnectionInfo:
+        received = None
         try:
-            message = self._out_control_socket.receive()
-            message_obj: messages.Message = deserialize_message(
-                message, messages.Message
-            )
-            specific_message_obj = message_obj.__root__
-            assert isinstance(specific_message_obj, messages.MyConnectionInfo)
-            self._my_connection_info = specific_message_obj.my_connection_info
+            received = self._out_control.socket.receive()
+            generic = deserialize_message(received, messages.Message)
+            message = generic.__root__
+            if not isinstance(message, messages.MyConnectionInfo):
+                raise UnexpectedMessageError(
+                    f"Unexpected message of type {type(message)}."
+                )
+            return message.my_connection_info
         except Exception as e:
-            self._logger.exception("Exception", raw_message=message)
+            self._logger.exception("Exception", raw_message=received)
+            raise
 
     @property
     def my_connection_info(self) -> ConnectionInfo:
@@ -112,23 +121,30 @@ class BackgroundListenerInterface:
 
     def register_peer(self, peer: Peer):
         register_message = messages.RegisterPeer(peer=peer)
-        self._in_control_socket.send(serialize_message(register_message))
+        self._in_control.socket.send(serialize_message(register_message))
 
     def send_payload(self, message: messages.Payload, payload: List[Frame]):
         serialized_message = serialize_message(message)
         frame = self._socket_factory.create_frame(serialized_message)
-        self._in_control_socket.send_multipart([frame] + payload)
+        self._in_control.socket.send_multipart([frame] + payload)
 
     def receive_messages(
         self, timeout_in_milliseconds: Optional[int] = 0
     ) -> Iterator[Tuple[Message, List[Frame]]]:
-        while PollerFlag.POLLIN in self._out_control_socket.poll(
-            flags=PollerFlag.POLLIN, timeout_in_ms=timeout_in_milliseconds
-        ):
+        def poll() -> Set[PollerFlag]:
+            return (
+                self._out_control.socket.poll(
+                    flags=PollerFlag.POLLIN,
+                    timeout_in_ms=timeout_in_milliseconds,
+                )
+                or set()
+            )
+
+        while PollerFlag.POLLIN in poll():
             message = None
             try:
                 timeout_in_milliseconds = 0
-                frames = self._out_control_socket.receive_multipart()
+                frames = self._out_control.socket.receive_multipart()
                 message_obj: Message = deserialize_message(
                     frames[0].to_bytes(), Message
                 )
@@ -140,12 +156,12 @@ class BackgroundListenerInterface:
         self._logger.info("start")
         self._send_stop()
         self._thread.join()
-        self._out_control_socket.close(linger=0)
-        self._in_control_socket.close(linger=0)
+        self._out_control.socket.close(linger=0)
+        self._in_control.socket.close(linger=0)
         self._logger.info("end")
 
     def _send_stop(self):
-        self._in_control_socket.send(serialize_message(Stop()))
+        self._in_control.socket.send(serialize_message(Stop()))
 
     def prepare_to_stop(self):
         self._logger.info("start")
@@ -153,4 +169,4 @@ class BackgroundListenerInterface:
         self._logger.info("end")
 
     def _send_prepare_to_stop(self):
-        self._in_control_socket.send(serialize_message(PrepareToStop()))
+        self._in_control.socket.send(serialize_message(PrepareToStop()))

@@ -40,5 +40,6 @@ class SendSocketFactory:
             return send_socket
         except Exception:
             self._logger.exception("Error during connect")
-            send_socket.close()
+            if send_socket:
+                send_socket.close()
             raise

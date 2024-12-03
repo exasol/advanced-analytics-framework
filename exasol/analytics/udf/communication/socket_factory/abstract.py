@@ -60,7 +60,7 @@ class Socket(abc.ABC):
         """
 
     @abc.abstractmethod
-    def close(self, linger: int = None):
+    def close(self, linger: Optional[int] = None):
         """
         Closes the socket asynchronously. but waits until no unsent messages are queued.
         If linger is not None it forces the close after the number of seconds.

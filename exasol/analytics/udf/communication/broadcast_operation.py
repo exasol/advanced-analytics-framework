@@ -14,6 +14,7 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
+from exasol.analytics.utils.errors import UninitializedAttributeError
 
 _LOGGER: FilteringBoundLogger = structlog.getLogger()
 
@@ -28,7 +29,7 @@ class BroadcastOperation:
         sequence_number: int,
         value: Optional[bytes],
         localhost_communicator: PeerCommunicator,
-        multi_node_communicator: PeerCommunicator,
+        multi_node_communicator: Optional[PeerCommunicator],
         socket_factory: SocketFactory,
     ):
         self._socket_factory = socket_factory
@@ -55,6 +56,8 @@ class BroadcastOperation:
         return frames[1].to_bytes()
 
     def _send_messages_to_local_peers(self) -> bytes:
+        if self._multi_node_communicator is None:
+            raise UninitializedAttributeError("Multi node communicator is undefined.")
         if self._multi_node_communicator.rank > 0:
             return self._forward_from_multi_node_leader()
         return self._send_messages_from_multi_node_leaders()
@@ -76,6 +79,8 @@ class BroadcastOperation:
         return value_frame.to_bytes()
 
     def receive_value_frame_from_multi_node_leader(self) -> Frame:
+        if self._multi_node_communicator is None:
+            raise UninitializedAttributeError("Multi node communicator is undefined.")
         leader = self._multi_node_communicator.leader
         frames = self._multi_node_communicator.recv(leader)
         self._logger.info("received")
@@ -87,6 +92,8 @@ class BroadcastOperation:
     def _send_messages_from_multi_node_leaders(self) -> bytes:
         self._send_messages_to_local_leaders()
         self._send_messages_to_local_peers_from_multi_node_leaders()
+        if self._value is None:
+            raise UninitializedAttributeError("Value is unset.")
         return self._value
 
     def _send_messages_to_local_leaders(self):
