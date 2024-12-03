@@ -34,8 +34,8 @@ class RegisterPeerSender:
         self._peer = peer
         self._send_attempt_count = 0
         self._logger = LOGGER.bind(
-            peer=peer.dict(),
-            my_connection_info=my_connection_info.dict(),
+            peer=peer.model_dump(),
+            my_connection_info=my_connection_info.model_dump(),
             needs_to_send_for_peer=self._needs_to_send_for_peer,
         )
         self._logger.debug("init")

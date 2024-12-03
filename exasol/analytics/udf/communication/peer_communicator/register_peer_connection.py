@@ -26,9 +26,9 @@ class RegisterPeerConnection:
         my_connection_info: ConnectionInfo,
     ):
         self._logger = LOGGER.bind(
-            successor=successor.dict(),
-            predecessor=None if predecessor is None else predecessor.dict(),
-            my_connection_info=my_connection_info.dict(),
+            successor=successor.model_dump(),
+            predecessor=None if predecessor is None else predecessor.model_dump(),
+            my_connection_info=my_connection_info.model_dump(),
         )
         self._successor = successor
         self._predecessor = predecessor
@@ -49,7 +49,7 @@ class RegisterPeerConnection:
         return self._predecessor
 
     def forward(self, peer: Peer):
-        self._logger.debug("forward", peer=peer.dict())
+        self._logger.debug("forward", peer=peer.model_dump())
         message = messages.RegisterPeer(
             peer=peer, source=Peer(connection_info=self._my_connection_info)
         )
@@ -57,7 +57,7 @@ class RegisterPeerConnection:
         self._successor_socket.send(serialized_message)
 
     def ack(self, peer: Peer):
-        self._logger.debug("ack", peer=peer.dict())
+        self._logger.debug("ack", peer=peer.model_dump())
         if self._predecessor_socket is not None:
             message = messages.AcknowledgeRegisterPeer(
                 peer=peer, source=Peer(connection_info=self._my_connection_info)
@@ -66,7 +66,7 @@ class RegisterPeerConnection:
             self._predecessor_socket.send(serialized_message)
 
     def complete(self, peer: Peer):
-        self._logger.debug("complete", peer=peer.dict())
+        self._logger.debug("complete", peer=peer.model_dump())
         message = messages.RegisterPeerComplete(
             peer=peer, source=Peer(connection_info=self._my_connection_info)
         )

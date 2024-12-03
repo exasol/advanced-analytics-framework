@@ -32,7 +32,7 @@ class AbortTimeoutSender:
         self._out_control_socket = out_control_socket
         self._states = _States.INIT
         self._logger = LOGGER.bind(
-            peer=peer.dict(), my_connection_info=my_connection_info.dict()
+            peer=peer.model_dump(), my_connection_info=my_connection_info.model_dump()
         )
 
     def stop(self):

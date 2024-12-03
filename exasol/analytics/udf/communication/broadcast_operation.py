@@ -135,7 +135,7 @@ class BroadcastOperation:
     def _get_and_check_specific_message_obj(
         self, message: messages.Message
     ) -> messages.Broadcast:
-        specific_message_obj = message.__root__
+        specific_message_obj = message.root
         if not isinstance(specific_message_obj, messages.Broadcast):
             raise TypeError(
                 f"Received the wrong message type. "

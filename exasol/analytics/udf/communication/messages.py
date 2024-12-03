@@ -1,6 +1,6 @@
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
@@ -133,8 +133,8 @@ class Broadcast(BaseMessage, frozen=True):
     sequence_number: int
 
 
-class Message(BaseModel, frozen=True):
-    __root__: Union[
+class Message(RootModel, frozen=True):
+    root: Union[
         Ping,
         RegisterPeer,
         AcknowledgeRegisterPeer,

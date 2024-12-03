@@ -120,7 +120,7 @@ def test_received_synchronize_connection():
         == [
             call.send(
                 Message(
-                    __root__=AcknowledgeConnection(
+                    root=AcknowledgeConnection(
                         source=test_setup.my_connection_info,
                         destination=test_setup.peer,
                     )

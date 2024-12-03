@@ -37,7 +37,7 @@ class FrontendPeerState:
         self._peer_register_forwarder_is_ready = False
         self._sequence_number = 0
         self._logger = LOGGER.bind(
-            peer=peer.dict(), my_connection_info=my_connection_info.dict()
+            peer=peer.model_dump(), my_connection_info=my_connection_info.model_dump()
         )
 
     def _next_sequence_number(self):
@@ -72,7 +72,7 @@ class FrontendPeerState:
             destination=self._peer,
             sequence_number=self._next_sequence_number(),
         )
-        self._logger.debug("send", message=message.dict())
+        self._logger.debug("send", message=message.model_dump())
         self._background_listener.send_payload(message=message, payload=payload)
         return message.sequence_number
 

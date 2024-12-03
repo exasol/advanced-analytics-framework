@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 def serialize_message(obj: BaseModel) -> bytes:
-    json_str = obj.json()
+    json_str = obj.model_dump_json()
     return json_str.encode("UTF-8")
 
 

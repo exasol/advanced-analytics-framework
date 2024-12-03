@@ -105,7 +105,7 @@ class BackgroundListenerInterface:
         try:
             received = self._out_control.socket.receive()
             generic = deserialize_message(received, messages.Message)
-            message = generic.__root__
+            message = generic.root
             if not isinstance(message, messages.MyConnectionInfo):
                 raise UnexpectedMessageError(
                     f"Unexpected message of type {type(message)}."

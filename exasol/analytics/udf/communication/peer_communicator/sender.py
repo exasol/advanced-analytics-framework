@@ -35,7 +35,7 @@ class Sender:
 
     def send(self, message: Message):
         with self._send_socket_factory.create_send_socket() as send_socket:
-            serialized_message = serialize_message(message.__root__)
+            serialized_message = serialize_message(message.root)
             send_socket.send(serialized_message)
             send_socket.close(self._send_socket_linger_time_in_ms)
 

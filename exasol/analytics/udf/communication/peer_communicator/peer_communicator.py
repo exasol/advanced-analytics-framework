@@ -84,7 +84,7 @@ class PeerCommunicator:
         )
         self._my_connection_info = self._background_listener.my_connection_info
         self._logger = self._logger.bind(
-            my_connection_info=self._my_connection_info.dict()
+            my_connection_info=self._my_connection_info.model_dump()
         )
         self._logger.info("my_connection_info")
         self._peer_states: Dict[Peer, FrontendPeerState] = {}
@@ -93,7 +93,7 @@ class PeerCommunicator:
         for message_obj, frames in self._background_listener.receive_messages(
             timeout_in_milliseconds
         ):
-            specific_message_obj = message_obj.__root__
+            specific_message_obj = message_obj.root
             if isinstance(specific_message_obj, messages.ConnectionIsReady):
                 peer = specific_message_obj.peer
                 self._add_peer_state(peer)
@@ -122,7 +122,7 @@ class PeerCommunicator:
                 raise TimeoutError(specific_message_obj.reason)
             else:
                 self._logger.error(
-                    "Unknown message", message_obj=specific_message_obj.dict()
+                    "Unknown message", message_obj=specific_message_obj.model_dump()
                 )
 
     def _add_peer_state(self, peer: Peer):
@@ -170,7 +170,7 @@ class PeerCommunicator:
 
     def register_peer(self, peer_connection_info: ConnectionInfo):
         self._logger.info(
-            "register_peer", peer_connection_info=peer_connection_info.dict()
+            "register_peer", peer_connection_info=peer_connection_info.model_dump()
         )
         self._handle_messages()
         if (
