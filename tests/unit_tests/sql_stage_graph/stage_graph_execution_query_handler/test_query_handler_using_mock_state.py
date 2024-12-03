@@ -42,10 +42,10 @@ MockSQLStageGraphExecutionQueryHandlerStateFactory = Union[
 @dataclasses.dataclass
 class SQLStageQueryHandlerMockSetup:
     results: List[MockQueryHandlerResult]
-    train_query_handler: MockSQLStageQueryHandler
+    query_handler: MockSQLStageQueryHandler
 
     def reset_mock(self):
-        self.train_query_handler.reset_mock()
+        self.query_handler.reset_mock()
         for result in self.results:
             result.reset_mock()
 
@@ -59,52 +59,52 @@ class SQLStageQueryHandlerSetupDefinition:
             create_autospec(result_prototype)
             for result_prototype in self.result_prototypes
         ]
-        train_query_handler: MockSQLStageQueryHandler = create_autospec(
+        query_handler: MockSQLStageQueryHandler = create_autospec(
             QueryHandler
         )
-        train_query_handler.start.side_effect = [results[0]]
-        train_query_handler.handle_query_result.side_effect = results[1:]
-        return SQLStageQueryHandlerMockSetup(results, train_query_handler)
+        query_handler.start.side_effect = [results[0]]
+        query_handler.handle_query_result.side_effect = results[1:]
+        return SQLStageQueryHandlerMockSetup(results, query_handler)
 
 
 @dataclasses.dataclass
 class StateMockSetup:
-    train_query_handler_mock_setups: List[SQLStageQueryHandlerMockSetup]
+    query_handler_mock_setups: List[SQLStageQueryHandlerMockSetup]
     state: MockSQLStageGraphExecutionQueryHandlerState
 
     def reset_mock(self):
         self.state.reset_mock()
-        for train_query_handler_mock_setup in self.train_query_handler_mock_setups:
-            train_query_handler_mock_setup.reset_mock()
+        for query_handler_mock_setup in self.query_handler_mock_setups:
+            query_handler_mock_setup.reset_mock()
 
 
 @dataclasses.dataclass
 class StateSetupDefinition:
-    train_query_handler_setup_definitions: List[SQLStageQueryHandlerSetupDefinition]
+    query_handler_setup_definitions: List[SQLStageQueryHandlerSetupDefinition]
 
     def create_mock_setup(self) -> StateMockSetup:
-        train_query_handler_mock_setups = [
-            train_query_handler_setup_definition.create_mock_setup()
-            for train_query_handler_setup_definition in self.train_query_handler_setup_definitions
+        query_handler_mock_setups = [
+            query_handler_setup_definition.create_mock_setup()
+            for query_handler_setup_definition in self.query_handler_setup_definitions
         ]
         state: MockSQLStageGraphExecutionQueryHandlerState = create_autospec(
             SQLStageGraphExecutionQueryHandlerState
         )
-        train_query_handlers = [
-            train_query_handler_mock_setup.train_query_handler
-            for train_query_handler_mock_setup in train_query_handler_mock_setups
-            for _ in train_query_handler_mock_setup.results
+        query_handlers = [
+            query_handler_mock_setup.query_handler
+            for query_handler_mock_setup in query_handler_mock_setups
+            for _ in query_handler_mock_setup.results
         ]
-        state.get_current_query_handler.side_effect = train_query_handlers
+        state.get_current_query_handler.side_effect = query_handlers
         result_handler_return_values = [
             self._create_result_handler_return_value(result)
-            for train_query_handler_mock_setup in train_query_handler_mock_setups
-            for result in train_query_handler_mock_setup.results
+            for query_handler_mock_setup in query_handler_mock_setups
+            for result in query_handler_mock_setup.results
         ]
         result_handler_return_values[-1] = ResultHandlerReturnValue.RETURN_RESULT
         state.handle_result.side_effect = result_handler_return_values
         return StateMockSetup(
-            train_query_handler_mock_setups=train_query_handler_mock_setups, state=state
+            query_handler_mock_setups=query_handler_mock_setups, state=state
         )
 
     @staticmethod
@@ -159,11 +159,11 @@ def create_test_setup(state_setup_definition: StateSetupDefinition) -> TestSetup
     )
 
 
-def create_test_setup_with_two_train_query_handler_returning_continue_finish() -> (
+def create_test_setup_with_two_query_handler_returning_continue_finish() -> (
     TestSetup
 ):
     state_setup_definition = StateSetupDefinition(
-        train_query_handler_setup_definitions=[
+        query_handler_setup_definitions=[
             SQLStageQueryHandlerSetupDefinition(
                 result_prototypes=[
                     Continue(query_list=None, input_query=None),
@@ -192,7 +192,7 @@ def test_init():
 
     def arrange() -> StateSetupDefinition:
         state_setup_definition = StateSetupDefinition(
-            train_query_handler_setup_definitions=[
+            query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 )
@@ -211,25 +211,25 @@ def test_init():
         test_setup.mock_execution_input, test_setup.mock_scope_query_handler_context
     )
     test_setup.state_mock_setup.state.assert_not_called()
-    test_setup.state_mock_setup.train_query_handler_mock_setups[
+    test_setup.state_mock_setup.query_handler_mock_setups[
         0
-    ].train_query_handler.assert_not_called()
+    ].query_handler.assert_not_called()
 
 
-def test_start_single_train_query_handler_returning_finish():
+def test_start_single_query_handler_returning_finish():
     """
     This test calls start on a newly created SQLStageGraphExecutionQueryHandler
-    which was initialized with a state that has a train_query_handler which returns Finish.
+    which was initialized with a state that has a query_handler which returns Finish.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the result of the train_query_handler
-        - that start is called on the train_query_handler
-        - that the result is equal to the result of train_query_handler.start
+        - that handle_result is called on the state with the result of the query_handler
+        - that start is called on the query_handler
+        - that the result is equal to the result of query_handler.start
     """
 
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
-            train_query_handler_setup_definitions=[
+            query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 )
@@ -246,36 +246,36 @@ def test_start_single_train_query_handler_returning_finish():
     test_setup = arrange()
     result = act(test_setup)
 
-    train_query_handler_mock_setup = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups[0]
+    query_handler_mock_setup = (
+        test_setup.state_mock_setup.query_handler_mock_setups[0]
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setup.results[0]),
+            call.handle_result(query_handler_mock_setup.results[0]),
         ]
     )
-    train_query_handler_mock_setup.train_query_handler.assert_has_calls([call.start()])
+    query_handler_mock_setup.query_handler.assert_has_calls([call.start()])
     mock_cast(
-        train_query_handler_mock_setup.train_query_handler.handle_query_result
+        query_handler_mock_setup.query_handler.handle_query_result
     ).assert_not_called()
-    assert result == train_query_handler_mock_setup.results[0]
+    assert result == query_handler_mock_setup.results[0]
 
 
-def test_start_single_train_query_handler_returning_continue():
+def test_start_single_query_handler_returning_continue():
     """
     This test calls start on a newly created SQLStageGraphExecutionQueryHandler
-    which was initialized with a state that has a train_query_handler which returns Continue.
+    which was initialized with a state that has a query_handler which returns Continue.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the result of the train_query_handler
-        - that start is called on the train_query_handler
-        - that the result is equal to the result of train_query_handler.start
+        - that handle_result is called on the state with the result of the query_handler
+        - that start is called on the query_handler
+        - that the result is equal to the result of query_handler.start
     """
 
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
-            train_query_handler_setup_definitions=[
+            query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[
                         Continue(query_list=None, input_query=None),
@@ -294,39 +294,39 @@ def test_start_single_train_query_handler_returning_continue():
     test_setup = arrange()
     result = act(test_setup)
 
-    train_query_handler_mock_setup = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups[0]
+    query_handler_mock_setup = (
+        test_setup.state_mock_setup.query_handler_mock_setups[0]
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setup.results[0]),
+            call.handle_result(query_handler_mock_setup.results[0]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setup.train_query_handler.start
+        query_handler_mock_setup.query_handler.start
     ).assert_called_once()
     mock_cast(
-        train_query_handler_mock_setup.train_query_handler.handle_query_result
+        query_handler_mock_setup.query_handler.handle_query_result
     ).assert_not_called()
-    assert result == train_query_handler_mock_setup.results[0]
+    assert result == query_handler_mock_setup.results[0]
 
 
-def test_handle_query_result_single_train_query_handler_returning_continue_finish():
+def test_handle_query_result_single_query_handler_returning_continue_finish():
     """
     This test calls handle_query_result on a SQLStageGraphExecutionQueryHandler
-    which was initialized with a state that has a train_query_handler which returns first Finish
+    which was initialized with a state that has a query_handler which returns first Finish
     and then Continue.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the result of the train_query_handler
-        - that handle_query_result is called on the train_query_handler
-        - that the result is equal to the result of train_query_handler.handle_query_result
+        - that handle_result is called on the state with the result of the query_handler
+        - that handle_query_result is called on the query_handler
+        - that the result is equal to the result of query_handler.handle_query_result
     """
 
     def arrange() -> Tuple[TestSetup, MockQueryResult]:
         state_setup_definition = StateSetupDefinition(
-            train_query_handler_setup_definitions=[
+            query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[
                         Continue(query_list=None, input_query=None),
@@ -350,41 +350,41 @@ def test_handle_query_result_single_train_query_handler_returning_continue_finis
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    train_query_handler_mock_setup = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups[0]
+    query_handler_mock_setup = (
+        test_setup.state_mock_setup.query_handler_mock_setups[0]
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setup.results[1]),
+            call.handle_result(query_handler_mock_setup.results[1]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setup.train_query_handler.handle_query_result
+        query_handler_mock_setup.query_handler.handle_query_result
     ).assert_called_once_with(query_result)
     mock_cast(
-        train_query_handler_mock_setup.train_query_handler.start
+        query_handler_mock_setup.query_handler.start
     ).assert_not_called()
-    assert result == train_query_handler_mock_setup.results[1]
+    assert result == query_handler_mock_setup.results[1]
 
 
-def test_start_two_train_query_handler_returning_finish():
+def test_start_two_query_handler_returning_finish():
     """
     This test calls start on a newly created SQLStageGraphExecutionQueryHandler
-    which was initialized with a state that has two train_query_handler which return Finish
+    which was initialized with a state that has two query_handler which return Finish
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the result of the first train_query_handler
+        - that handle_result is called on the state with the result of the first query_handler
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the result of the second train_query_handler
-        - that start is called on the first train_query_handler
-        - that start is called on the second train_query_handler
-        - that the result is equal to the result of the second train_query_handler.start
+        - that handle_result is called on the state with the result of the second query_handler
+        - that start is called on the first query_handler
+        - that start is called on the second query_handler
+        - that the result is equal to the result of the second query_handler.start
     """
 
     def arrange() -> TestSetup:
         state_setup_definition = StateSetupDefinition(
-            train_query_handler_setup_definitions=[
+            query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
                     result_prototypes=[Finish(result=None)]
                 ),
@@ -404,41 +404,41 @@ def test_start_two_train_query_handler_returning_finish():
     test_setup = arrange()
     result = act(test_setup)
 
-    train_query_handler_mock_setups = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups
+    query_handler_mock_setups = (
+        test_setup.state_mock_setup.query_handler_mock_setups
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[0].results[0]),
+            call.handle_result(query_handler_mock_setups[0].results[0]),
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[1].results[0]),
+            call.handle_result(query_handler_mock_setups[1].results[0]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.start
+        query_handler_mock_setups[0].query_handler.start
     ).assert_called_once()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.start
+        query_handler_mock_setups[1].query_handler.start
     ).assert_called_once()
-    assert result == train_query_handler_mock_setups[1].results[0]
+    assert result == query_handler_mock_setups[1].results[0]
 
 
-def test_start_two_train_query_handler_returning_continue_finish_part1():
+def test_start_two_query_handler_returning_continue_finish_part1():
     """
     This test calls start on a newly created SQLStageGraphExecutionQueryHandler
-    which was initialized with a state that has two train_query_handler which returns first Continue
+    which was initialized with a state that has two query_handler which returns first Continue
     and then Finish.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the first result of the first train_query_handler
-        - that start is called on the first train_query_handler
-        - that the result is equal to the result of the second train_query_handler.start
+        - that handle_result is called on the state with the first result of the first query_handler
+        - that start is called on the first query_handler
+        - that the result is equal to the result of the second query_handler.start
     """
 
     def arrange() -> TestSetup:
         test_setup = (
-            create_test_setup_with_two_train_query_handler_returning_continue_finish()
+            create_test_setup_with_two_query_handler_returning_continue_finish()
         )
         test_setup.reset_mock()
         return test_setup
@@ -450,44 +450,44 @@ def test_start_two_train_query_handler_returning_continue_finish_part1():
     test_setup = arrange()
     result = act(test_setup)
 
-    train_query_handler_mock_setups = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups
+    query_handler_mock_setups = (
+        test_setup.state_mock_setup.query_handler_mock_setups
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[0].results[0]),
+            call.handle_result(query_handler_mock_setups[0].results[0]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.start
+        query_handler_mock_setups[0].query_handler.start
     ).assert_called_once()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.start
+        query_handler_mock_setups[1].query_handler.start
     ).assert_not_called()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.handle_query_result
+        query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_not_called()
-    assert result == train_query_handler_mock_setups[0].results[0]
+    assert result == query_handler_mock_setups[0].results[0]
 
 
-def test_handle_query_result_two_train_query_handler_returning_continue_finish_part2():
+def test_handle_query_result_two_query_handler_returning_continue_finish_part2():
     """
-    This test uses test_start_two_train_query_handler_returning_continue_finish_part1 as setup and
+    This test uses test_start_two_query_handler_returning_continue_finish_part1 as setup and
     calls again handle_query_result.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the second result of the first train_query_handler
+        - that handle_result is called on the state with the second result of the first query_handler
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the first result of the second train_query_handler
-        - that handle_query_result is called on the first train_query_handler
-        - that start is called on the second train_query_handler
-        - that the result is equal to the result of the second train_query_handler.start
+        - that handle_result is called on the state with the first result of the second query_handler
+        - that handle_query_result is called on the first query_handler
+        - that start is called on the second query_handler
+        - that the result is equal to the result of the second query_handler.start
     """
 
     def arrange() -> Tuple[TestSetup, QueryResult]:
         test_setup = (
-            create_test_setup_with_two_train_query_handler_returning_continue_finish()
+            create_test_setup_with_two_query_handler_returning_continue_finish()
         )
         test_setup.execution_query_handler.start()
         test_setup.reset_mock()
@@ -503,46 +503,46 @@ def test_handle_query_result_two_train_query_handler_returning_continue_finish_p
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    train_query_handler_mock_setups = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups
+    query_handler_mock_setups = (
+        test_setup.state_mock_setup.query_handler_mock_setups
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[0].results[1]),
+            call.handle_result(query_handler_mock_setups[0].results[1]),
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[1].results[0]),
+            call.handle_result(query_handler_mock_setups[1].results[0]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.start
+        query_handler_mock_setups[0].query_handler.start
     ).assert_not_called()
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.handle_query_result
+        query_handler_mock_setups[0].query_handler.handle_query_result
     ).assert_called_once()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.start
+        query_handler_mock_setups[1].query_handler.start
     ).assert_called_once()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.handle_query_result
+        query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_not_called()
-    assert result == train_query_handler_mock_setups[1].results[0]
+    assert result == query_handler_mock_setups[1].results[0]
 
 
-def test_handle_query_result_two_train_query_handler_returning_continue_finish_part3():
+def test_handle_query_result_two_query_handler_returning_continue_finish_part3():
     """
-    This test uses test_start_two_train_query_handler_returning_continue_finish_part2 as setup and
+    This test uses test_start_two_query_handler_returning_continue_finish_part2 as setup and
     calls again handle_query_result.
     It expects:
         - that get_current_query_handler is called on the state
-        - that handle_result is called on the state with the second result of the second train_query_handler
-        - that handle_query_result is called on the second train_query_handler
-        - that the result is equal to the result of the second train_query_handler.handle_query_result
+        - that handle_result is called on the state with the second result of the second query_handler
+        - that handle_query_result is called on the second query_handler
+        - that the result is equal to the result of the second query_handler.handle_query_result
     """
 
     def arrange() -> Tuple[TestSetup, QueryResult]:
         test_setup = (
-            create_test_setup_with_two_train_query_handler_returning_continue_finish()
+            create_test_setup_with_two_query_handler_returning_continue_finish()
         )
         query_result1: MockQueryResult = create_autospec(QueryResult)
         test_setup.execution_query_handler.start()
@@ -560,25 +560,25 @@ def test_handle_query_result_two_train_query_handler_returning_continue_finish_p
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    train_query_handler_mock_setups = (
-        test_setup.state_mock_setup.train_query_handler_mock_setups
+    query_handler_mock_setups = (
+        test_setup.state_mock_setup.query_handler_mock_setups
     )
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
-            call.handle_result(train_query_handler_mock_setups[1].results[1]),
+            call.handle_result(query_handler_mock_setups[1].results[1]),
         ]
     )
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.start
+        query_handler_mock_setups[0].query_handler.start
     ).assert_not_called()
     mock_cast(
-        train_query_handler_mock_setups[0].train_query_handler.handle_query_result
+        query_handler_mock_setups[0].query_handler.handle_query_result
     ).assert_not_called()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.start
+        query_handler_mock_setups[1].query_handler.start
     ).assert_not_called()
     mock_cast(
-        train_query_handler_mock_setups[1].train_query_handler.handle_query_result
+        query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_called_once_with(query_result)
-    assert result == train_query_handler_mock_setups[1].results[1]
+    assert result == query_handler_mock_setups[1].results[1]

@@ -140,10 +140,10 @@ class TestSQLStage(SQLStage):
     __test__ = False
 
     def __init__(
-        self, *, index: int, train_query_handler_factory: SQLStageQueryHandlerFactory
+        self, *, index: int, query_handler_factory: SQLStageQueryHandlerFactory
     ):
-        self._train_query_handler_factory = train_query_handler_factory
-        self.sql_stage_train_query_handler: Optional[SQLStageQueryHandler] = None
+        self._query_handler_factory = query_handler_factory
+        self.sql_stage_query_handler: Optional[SQLStageQueryHandler] = None
         self._index = index
 
     def create_query_handler(
@@ -151,10 +151,10 @@ class TestSQLStage(SQLStage):
         query_handler_input: SQLStageQueryHandlerInput,
         query_handler_context: ScopeQueryHandlerContext,
     ) -> SQLStageQueryHandler:
-        self.sql_stage_train_query_handler = self._train_query_handler_factory(
+        self.sql_stage_query_handler = self._query_handler_factory(
             query_handler_input, query_handler_context
         )
-        return self.sql_stage_train_query_handler
+        return self.sql_stage_query_handler
 
     def __eq__(self, other):
         if isinstance(other, TestSQLStage):
@@ -251,7 +251,7 @@ def create_test_setup(
     )
 
 
-def test_start_with_single_stage_with_start_only_forward_train_query_handler(
+def test_start_with_single_stage_with_start_only_forward_query_handler(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
@@ -268,7 +268,7 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -301,7 +301,7 @@ def test_start_with_single_stage_with_start_only_forward_train_query_handler(
     )
 
 
-def test_start_with_two_stages_with_start_only_forward_train_query_handler(
+def test_start_with_two_stages_with_start_only_forward_query_handler(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
@@ -318,11 +318,11 @@ def test_start_with_two_stages_with_start_only_forward_train_query_handler(
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         stage2 = TestSQLStage(
             index=2,
-            train_query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyForwardInputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(
             start_node=stage1, end_node=stage2, edges=[(stage1, stage2)]
@@ -365,7 +365,7 @@ def not_raises(exception):
         raise pytest.fail(f"DID RAISE {exception}")
 
 
-def test_start_with_single_stage_with_start_only_create_new_output_train_query_handler(
+def test_start_with_single_stage_with_start_only_create_new_output_query_handler(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
@@ -384,7 +384,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -402,18 +402,18 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
     test_setup = arrange()
     result = act(test_setup)
 
-    stage_1_train_query_handler = test_setup.stages[0].sql_stage_train_query_handler
+    stage_1_query_handler = test_setup.stages[0].sql_stage_query_handler
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
         and result.result.dataset != test_setup.stage_input_output.dataset
         and isinstance(
-            stage_1_train_query_handler,
+            stage_1_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and result.result.dataset
-        == stage_1_train_query_handler.stage_input_output.dataset
-        and stage_1_train_query_handler.input_table_like_name is not None
+        == stage_1_query_handler.stage_input_output.dataset
+        and stage_1_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
     )
@@ -430,7 +430,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_train_query_h
     )
 
 
-def test_start_with_two_stages_with_start_only_create_new_output_train_query_handler(
+def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
@@ -449,11 +449,11 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         stage2 = TestSQLStage(
             index=2,
-            train_query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
+            query_handler_factory=StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(
             start_node=stage1, end_node=stage2, edges=[(stage1, stage2)]
@@ -473,24 +473,24 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
     test_setup = arrange()
     result = act(test_setup)
 
-    stage_1_train_query_handler = test_setup.stages[0].sql_stage_train_query_handler
-    stage_2_train_query_handler = test_setup.stages[1].sql_stage_train_query_handler
+    stage_1_query_handler = test_setup.stages[0].sql_stage_query_handler
+    stage_2_query_handler = test_setup.stages[1].sql_stage_query_handler
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
         and result.result.dataset != test_setup.stage_input_output.dataset
         and isinstance(
-            stage_1_train_query_handler,
+            stage_1_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and isinstance(
-            stage_2_train_query_handler,
+            stage_2_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
         and result.result.dataset
-        == stage_2_train_query_handler.stage_input_output.dataset
-        and stage_1_train_query_handler.input_table_like_name is not None
-        and stage_2_train_query_handler.input_table_like_name is not None
+        == stage_2_query_handler.stage_input_output.dataset
+        and stage_1_query_handler.input_table_like_name is not None
+        and stage_2_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 1
     )
@@ -507,15 +507,15 @@ def test_start_with_two_stages_with_start_only_create_new_output_train_query_han
     )
 
 
-def test_start_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part1(
+def test_start_with_single_stage_with_handle_query_result_create_new_output_query_handler_part1(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
     on a SQLStageGraph with a single stage which return a HandleQueryResultCreateNewOutputTestSQLStageQueryHandler.
     It expects:
-        - that the result of start is the same as the continue of the train query handler of the stage
-        - that stage_input_output of train query handler of the stage is None
+        - that the result of start is the same as the continue of the query handler of the stage
+        - that stage_input_output of query handler of the stage is None
         - that context.cleanup_released_object_proxies() directly
           after the call to start, returns a single cleanup query
     """
@@ -523,7 +523,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
     def arrange() -> TestSetup:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
+            query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -541,30 +541,30 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_trai
     test_setup = arrange()
     result = act(test_setup)
 
-    stage_1_train_query_handler = test_setup.stages[0].sql_stage_train_query_handler
+    stage_1_query_handler = test_setup.stages[0].sql_stage_query_handler
     assert (
         isinstance(
-            stage_1_train_query_handler,
+            stage_1_query_handler,
             HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result == stage_1_train_query_handler.continue_result
-        and stage_1_train_query_handler.stage_input_output is None
-        and stage_1_train_query_handler.query_result is None
+        and result == stage_1_query_handler.continue_result
+        and stage_1_query_handler.stage_input_output is None
+        and stage_1_query_handler.query_result is None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
     )
 
 
-def test_handle_query_result_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part2(
+def test_handle_query_result_with_single_stage_with_handle_query_result_create_new_output_query_handler_part2(
     top_level_query_handler_context_mock, tmp_path
 ):
     """
-    This test uses test_start_with_single_stage_with_handle_query_result_create_new_output_train_query_handler_part1
+    This test uses test_start_with_single_stage_with_handle_query_result_create_new_output_query_handler_part1
     as setup and runs handle_query_result on the SQLStageGraphExecutionQueryHandler.
     It expects:
         - that the result of handle_query_result is the same as the stage_input_output
-          of the train query handler of the stage
-        - that recorded query_result in the train query handler is the same as we put into the handle_query_result call
+          of the query handler of the stage
+        - that recorded query_result in the query handler is the same as we put into the handle_query_result call
         - that context.cleanup_released_object_proxies() directly
           after the call to start, returns no cleanup query
         - that context.cleanup_released_object_proxies() after a call to
@@ -574,7 +574,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
     def arrange() -> Tuple[TestSetup, QueryResult]:
         stage1 = TestSQLStage(
             index=1,
-            train_query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
+            query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
         sql_stage_graph = SQLStageGraph(start_node=stage1, end_node=stage1, edges=[])
         test_setup = create_test_setup(
@@ -596,15 +596,15 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    stage_1_train_query_handler = test_setup.stages[0].sql_stage_train_query_handler
+    stage_1_query_handler = test_setup.stages[0].sql_stage_query_handler
     assert (
         isinstance(result, Finish)
         and isinstance(
-            stage_1_train_query_handler,
+            stage_1_query_handler,
             HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result.result == stage_1_train_query_handler.stage_input_output
-        and query_result == stage_1_train_query_handler.query_result
+        and result.result == stage_1_query_handler.stage_input_output
+        and query_result == stage_1_query_handler.query_result
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
     )

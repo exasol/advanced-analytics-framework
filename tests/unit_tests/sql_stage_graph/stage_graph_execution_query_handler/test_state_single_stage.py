@@ -68,7 +68,7 @@ def test_get_current_query_handler_single_stage_after_init():
         stage_index=0,
         stage_inputs=[test_setup.state_setup.sql_stage_input_output],
     )
-    assert test_setup.stage_setups[0].train_query_handler == result
+    assert test_setup.stage_setups[0].query_handler == result
 
 
 def test_handle_result_single_stage_return_finish():
@@ -165,7 +165,7 @@ def test_get_current_query_handler_single_stage_return_continue_finish():
         stage_index=0,
         stage_inputs=[test_setup.state_setup.sql_stage_input_output],
     )
-    assert test_setup.stage_setups[0].train_query_handler == result
+    assert test_setup.stage_setups[0].query_handler == result
 
 
 def test_handle_result_single_stage_return_continue_finish_part1():
@@ -242,7 +242,7 @@ def test_get_current_query_handler_single_stage_return_continue_finish_part2():
     assert_reference_counting_bag_not_called(test_setup)
     assert_parent_query_handler_context_not_called(test_setup)
     assert_stage_not_called(test_setup, stage_index=0)
-    assert result == test_setup.stage_setups[0].train_query_handler
+    assert result == test_setup.stage_setups[0].query_handler
 
 
 def test_handle_result_single_stage_return_continue_finish_part3():
