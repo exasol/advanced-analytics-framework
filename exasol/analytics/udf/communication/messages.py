@@ -1,6 +1,6 @@
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, Field, RootModel
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
@@ -156,4 +156,4 @@ class Message(RootModel, frozen=True):
         Timeout,
         Gather,
         Broadcast,
-    ]
+    ] = Field(discriminator='message_type')
