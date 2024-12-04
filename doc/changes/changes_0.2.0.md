@@ -21,4 +21,5 @@ Code name:
 * #219: Applied PTB checks and fixes
 * #221: Fixed mypy warnings
 * #233: Upgraded pydantic to version 2
+* #231: Renamed `TrainQueryHandler` to `SQLStageQueryHandler`
 * #232: Redesigned `SQLStageInputOutput`

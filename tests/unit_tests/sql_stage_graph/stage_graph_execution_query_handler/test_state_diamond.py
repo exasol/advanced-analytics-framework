@@ -18,7 +18,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert
     assert_reference_counting_bag_not_called,
     assert_release_on_query_handler_context_for_stage,
     assert_stage_not_called,
-    assert_stage_train_query_handler_created,
+    assert_stage_query_handler_created,
 )
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
@@ -94,7 +94,7 @@ def test_get_current_query_handler_diamond_return_finish_part1():
     result = act(test_setup)
 
     assert_reference_counting_bag_creation(test_setup)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=0,
         stage_inputs=[test_setup.state_setup.sql_stage_input_output],
@@ -102,7 +102,7 @@ def test_get_current_query_handler_diamond_return_finish_part1():
     assert_stage_not_called(test_setup, stage_index=1)
     assert_stage_not_called(test_setup, stage_index=2)
     assert_stage_not_called(test_setup, stage_index=3)
-    assert result == test_setup.stage_setups[0].train_query_handler
+    assert result == test_setup.stage_setups[0].query_handler
 
 
 def test_handle_result_diamond_return_finish_part2():
@@ -110,7 +110,7 @@ def test_handle_result_diamond_return_finish_part2():
     Test handle_result after the creation of a state with stages arranged in a diamond
     where the stages return directly Finish, after the first call to handle_result.
     Note: The state creates for the second stage a new
-          train_query_handler which gets the output of the first
+          query_handler which gets the output of the first
           stage as input, this is important because also the third stage
           got the output of the first stage as input.
     """
@@ -135,7 +135,7 @@ def test_handle_result_diamond_return_finish_part2():
 
     assert_reference_counting_bag_not_called(test_setup)
     assert_release_on_query_handler_context_for_stage(test_setup, stage_index=0)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=1,
         stage_inputs=[test_setup.stage_setups[0].results[0].result],
@@ -181,7 +181,7 @@ def test_get_current_query_handler_diamond_return_finish_part3():
     assert_stage_not_called(test_setup, stage_index=1)
     assert_stage_not_called(test_setup, stage_index=2)
     assert_stage_not_called(test_setup, stage_index=3)
-    assert result == test_setup.stage_setups[1].train_query_handler
+    assert result == test_setup.stage_setups[1].query_handler
 
 
 def test_handle_result_diamond_return_finish_part4():
@@ -189,7 +189,7 @@ def test_handle_result_diamond_return_finish_part4():
     Test handle_result on a state with stages arranged in a diamond
     where the stages return directly Finish, after the first call to handle_result.
     Note: The state creates for the third stage a new
-          train_query_handler which gets the output of the first
+          query_handler which gets the output of the first
           stage as input, this is important because also the second stage
           got the output of the first stage as input.
     """
@@ -219,7 +219,7 @@ def test_handle_result_diamond_return_finish_part4():
     assert_reference_counting_bag_not_called(test_setup)
     assert_stage_not_called(test_setup, stage_index=0)
     assert_release_on_query_handler_context_for_stage(test_setup, stage_index=1)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=2,
         stage_inputs=[test_setup.stage_setups[0].results[0].result],
@@ -268,7 +268,7 @@ def test_get_current_query_handler_diamond_return_finish_part5():
     assert_stage_not_called(test_setup, stage_index=1)
     assert_stage_not_called(test_setup, stage_index=2)
     assert_stage_not_called(test_setup, stage_index=3)
-    assert result == test_setup.stage_setups[2].train_query_handler
+    assert result == test_setup.stage_setups[2].query_handler
 
 
 def test_handle_result_diamond_return_finish_part6():
@@ -276,7 +276,7 @@ def test_handle_result_diamond_return_finish_part6():
     Test handle_result on a state with stages arranged in a diamond
     where the stages return directly Finish, after the second call to handle_result.
     Note: The state creates for the third stage a new
-          train_query_handler which gets the output of the second
+          query_handler which gets the output of the second
           and third stage as input,
     """
 
@@ -310,7 +310,7 @@ def test_handle_result_diamond_return_finish_part6():
     assert_stage_not_called(test_setup, stage_index=0)
     assert_stage_not_called(test_setup, stage_index=1)
     assert_release_on_query_handler_context_for_stage(test_setup, stage_index=2)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=3,
         stage_inputs=[
@@ -365,7 +365,7 @@ def test_get_current_query_handler_diamond_return_finish_part7():
     assert_stage_not_called(test_setup, stage_index=1)
     assert_stage_not_called(test_setup, stage_index=2)
     assert_stage_not_called(test_setup, stage_index=3)
-    assert result == test_setup.stage_setups[3].train_query_handler
+    assert result == test_setup.stage_setups[3].query_handler
 
 
 def test_handle_result_diamond_return_finish_part8():

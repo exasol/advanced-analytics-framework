@@ -30,7 +30,7 @@ from exasol.analytics.query_handler.result import Continue, Finish
 from tests.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
-MockSQLStageTrainQueryHandler = Union[SQLStageQueryHandler, MagicMock]
+MockSQLStageQueryHandler = Union[SQLStageQueryHandler, MagicMock]
 MockQueryHandlerResult = Union[Continue, Finish, MagicMock]
 MockSQLStageInputOutput = Union[SQLStageInputOutput, MagicMock]
 MockSQLStage = Union[SQLStage, MagicMock]
@@ -47,14 +47,14 @@ MockBucketFSLocation = Union[AbstractBucketFSLocation, MagicMock]
 class StageSetup:
     index: int
     child_query_handler_context: MockScopeQueryHandlerContext
-    train_query_handler: MockSQLStageTrainQueryHandler
+    query_handler: MockSQLStageQueryHandler
     stage: MockSQLStage
     results: List[MockQueryHandlerResult]
     result_bucketfs_location: MockBucketFSLocation
 
     def reset_mock(self):
         self.child_query_handler_context.reset_mock()
-        self.train_query_handler.reset_mock()
+        self.query_handler.reset_mock()
         self.stage.reset_mock()
         self.result_bucketfs_location.reset_mock()
         for result in self.results:
@@ -173,15 +173,15 @@ def create_mocks_for_stage(
     result: List[MockQueryHandlerResult] = [
         create_autospec(result_prototype) for result_prototype in result_prototypes
     ]
-    train_query_handler: MockSQLStageTrainQueryHandler = create_autospec(QueryHandler)
-    sql_stage.create_train_query_handler.return_value = train_query_handler
+    query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)
+    sql_stage.create_query_handler.return_value = query_handler
     mock_result_bucketfs_location: MockBucketFSLocation = create_autospec(
         AbstractBucketFSLocation
     )
     return StageSetup(
         index=stage_index,
         child_query_handler_context=child_scoped_query_handler_context,
-        train_query_handler=train_query_handler,
+        query_handler=query_handler,
         stage=sql_stage,
         results=result,
         result_bucketfs_location=mock_result_bucketfs_location,

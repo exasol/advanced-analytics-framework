@@ -17,7 +17,7 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
-    SQLStageTrainQueryHandlerInput,
+    SQLStageQueryHandlerInput,
 )
 from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
@@ -135,11 +135,11 @@ class SQLStageGraphExecutionQueryHandlerState:
         result_bucketfs_location = self._result_bucketfs_location.joinpath(
             str(self._current_stage_index)
         )
-        stage_input = SQLStageTrainQueryHandlerInput(
+        stage_input = SQLStageQueryHandlerInput(
             result_bucketfs_location=result_bucketfs_location,
             sql_stage_inputs=stage_inputs,
         )
-        self._current_query_handler = self._checked_current_stage.create_train_query_handler(
+        self._current_query_handler = self._checked_current_stage.create_query_handler(
             stage_input, self._current_qh_context
         )
 
