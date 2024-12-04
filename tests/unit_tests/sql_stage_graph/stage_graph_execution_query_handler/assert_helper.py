@@ -4,7 +4,7 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
-    SQLStageTrainQueryHandlerInput,
+    SQLStageQueryHandlerInput,
 )
 from tests.utils.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
@@ -38,12 +38,12 @@ def assert_parent_query_handler_context_not_called(test_setup: TestSetup):
 
 def assert_stage_not_called(test_setup: TestSetup, *, stage_index: int):
     stage_setup = test_setup.stage_setups[stage_index]
-    mock_cast(stage_setup.stage.create_train_query_handler).assert_not_called()
-    assert stage_setup.train_query_handler.mock_calls == []
+    mock_cast(stage_setup.stage.create_query_handler).assert_not_called()
+    assert stage_setup.query_handler.mock_calls == []
     assert stage_setup.child_query_handler_context.mock_calls == []
 
 
-def assert_stage_train_query_handler_created(
+def assert_stage_query_handler_created(
     test_setup: TestSetup, *, stage_index: int, stage_inputs: List[SQLStageInputOutput]
 ):
     stage_setup = test_setup.stage_setups[stage_index]
@@ -56,13 +56,13 @@ def assert_stage_train_query_handler_created(
     result_bucketfs_location = test_setup.stage_setups[
         stage_index
     ].result_bucketfs_location
-    stage_input = SQLStageTrainQueryHandlerInput(
+    stage_input = SQLStageQueryHandlerInput(
         result_bucketfs_location=result_bucketfs_location, sql_stage_inputs=stage_inputs
     )
-    mock_cast(stage_setup.stage.create_train_query_handler).assert_called_once_with(
+    mock_cast(stage_setup.stage.create_query_handler).assert_called_once_with(
         stage_input, stage_setup.child_query_handler_context
     )
-    assert stage_setup.train_query_handler.mock_calls == []
+    assert stage_setup.query_handler.mock_calls == []
     assert stage_setup.child_query_handler_context.mock_calls == []
 
 
@@ -70,6 +70,6 @@ def assert_release_on_query_handler_context_for_stage(
     test_setup: TestSetup, *, stage_index: int
 ):
     stage_setup = test_setup.stage_setups[stage_index]
-    assert stage_setup.train_query_handler.mock_calls == []
+    assert stage_setup.query_handler.mock_calls == []
     mock_cast(stage_setup.child_query_handler_context.release).assert_called_once()
-    mock_cast(stage_setup.stage.create_train_query_handler).assert_not_called()
+    mock_cast(stage_setup.stage.create_query_handler).assert_not_called()

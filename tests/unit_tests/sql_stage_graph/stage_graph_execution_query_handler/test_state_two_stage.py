@@ -18,7 +18,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert
     assert_reference_counting_bag_not_called,
     assert_release_on_query_handler_context_for_stage,
     assert_stage_not_called,
-    assert_stage_train_query_handler_created,
+    assert_stage_query_handler_created,
 )
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
@@ -70,13 +70,13 @@ def test_get_current_query_handler_two_stage_return_finish_part1():
     result = act(test_setup)
 
     assert_reference_counting_bag_creation(test_setup)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=0,
         stage_inputs=[test_setup.state_setup.sql_stage_input_output],
     )
     assert_stage_not_called(test_setup, stage_index=1)
-    assert result == test_setup.stage_setups[0].train_query_handler
+    assert result == test_setup.stage_setups[0].query_handler
 
 
 def test_handle_result_two_stage_return_finish_part2():
@@ -85,7 +85,7 @@ def test_handle_result_two_stage_return_finish_part2():
     where the stages return directly Finish and a single call
     to get_current_query_handler.
     Note: The state creates for the second stage a new
-          train_query_handler which gets the output of the previous
+          query_handler which gets the output of the previous
           stage as input.
     """
 
@@ -112,7 +112,7 @@ def test_handle_result_two_stage_return_finish_part2():
 
     assert_reference_counting_bag_not_called(test_setup)
     assert_release_on_query_handler_context_for_stage(test_setup, stage_index=0)
-    assert_stage_train_query_handler_created(
+    assert_stage_query_handler_created(
         test_setup,
         stage_index=1,
         stage_inputs=[test_setup.stage_setups[0].results[0].result],
@@ -157,7 +157,7 @@ def test_get_current_query_handler_two_stage_return_finish_part3():
     assert_parent_query_handler_context_not_called(test_setup)
     assert_stage_not_called(test_setup, stage_index=0)
     assert_stage_not_called(test_setup, stage_index=1)
-    assert result == test_setup.stage_setups[1].train_query_handler
+    assert result == test_setup.stage_setups[1].query_handler
 
 
 def test_handle_result_two_stage_return_finish_part4():
