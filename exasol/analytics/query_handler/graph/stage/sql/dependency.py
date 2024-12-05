@@ -11,10 +11,11 @@ from exasol.analytics.utils.data_classes_runtime_type_check import check_datacla
 @dataclasses.dataclass(frozen=True)
 class Dependency:
     """
-    An instance of this class expresses that a object depends on something
-    which in fact can depend on something else.  The exact meaning of a
-    dependency is user-defined.  For example, a dependency could express that
-    a view depends on a certain table.
+    An instance of this class represents a node in a dependency graph.
+
+    The exact meaning of a dependency is user-defined.  For example, a
+    dependency could express that a database view depends on a particular
+    table.
     """
 
     object: Any
