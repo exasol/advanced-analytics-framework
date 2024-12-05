@@ -11,6 +11,6 @@ hidden:
 ---
 unreleased
 changes_0.2.0
-changes_0.10
+changes_0.1.0
 
 ```
