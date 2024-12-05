@@ -75,6 +75,18 @@ ignore_errors = true
 fail-under = 6.0
 
 
+
+[tool.black]
+line-length = 88
+verbose = false
+include = "\\.pyi?$"
+
+
 [tool.isort]
 profile = "black"
 force_grid_wrap = 2
+
+
+[tool.pylint.format]
+max-line-length = 88
+max-module-lines = 800
