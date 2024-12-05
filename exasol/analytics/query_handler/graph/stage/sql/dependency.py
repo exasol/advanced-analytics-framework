@@ -35,4 +35,4 @@ class Dependency:
             raise TypeCheckError(f"Field 'dependencies' has wrong type: {e}")
 
 
-Dependencies = Dict[Enum, Dependency]
+Dependencies = Dict[object, Dependency]
