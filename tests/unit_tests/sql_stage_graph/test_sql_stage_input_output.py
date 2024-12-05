@@ -4,7 +4,6 @@ from typing import List
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
 from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.dependency import (
     Dependencies,
@@ -12,6 +11,7 @@ from exasol.analytics.query_handler.graph.stage.sql.dependency import (
 )
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
+    MultiDatasetSQLStageInputOutput,
 )
 from exasol.analytics.schema import (
     Column,
@@ -47,46 +47,45 @@ def target():
     return target
 
 
-def create_table_data_partition(
-    name: str, columns: List[Column], dependencies: Dependencies
-):
-    return DataPartition(
-        table_like=Table(
-            TableNameBuilder.create(name, SchemaName("TEST_SCHEMA")), columns=columns
-        ),
-        dependencies=dependencies,
+def create_table_like(name: str, columns: List[Column]):
+    return Table(
+        TableNameBuilder.create(name, SchemaName("TEST_SCHEMA")),
+        columns=columns,
     )
 
 
 @pytest.fixture()
 def dataset(identifier, sample, target):
-    partition1 = create_table_data_partition(
-        name="TRAIN", columns=[identifier, sample, target], dependencies={}
-    )
+    table_like = create_table_like(name="TRAIN", columns=[identifier, sample, target])
     dataset = Dataset(
-        data_partitions={TestEnum.K1: partition1},
+        table_like=table_like,
         identifier_columns=[identifier],
-        sample_columns=[sample],
-        target_columns=[target],
+        columns=[sample, target],
     )
     return dataset
 
 
-def test_no_dataset(dataset):
+@pytest.fixture()
+def datasets(dataset):
+    return { "TRAIN": dataset }
+
+
+def test_no_dataset():
     with pytest.raises(TypeError):
-        SQLStageInputOutput()
+        MultiDatasetSQLStageInputOutput()
 
 
-def test_none_dataset(dataset):
+@pytest.mark.skip("Runtime type check have been removed")
+def test_datasets_None():
     with pytest.raises(TypeCheckError):
-        SQLStageInputOutput(dataset=None)
+        MultiDatasetSQLStageInputOutput(datasets=None)
 
 
-def test_dataset(dataset):
-    SQLStageInputOutput(dataset=dataset)
+def test_dataset(datasets):
+    MultiDatasetSQLStageInputOutput(datasets=datasets)
 
 
-def test_dependencies(dataset):
-    SQLStageInputOutput(
-        dataset=dataset, dependencies={TestEnum.K2: Dependency(object="mystr")}
+def test_dependencies(datasets):
+    MultiDatasetSQLStageInputOutput(
+        datasets=datasets, dependencies={TestEnum.K2: Dependency(object="mystr")}
     )

@@ -1,4 +1,4 @@
-# 0.2.0 - 2024-12-03
+# 0.2.0 - 2024-12-06
 
 Code name:
 
@@ -22,3 +22,4 @@ Code name:
 * #221: Fixed mypy warnings
 * #233: Upgraded pydantic to version 2
 * #231: Renamed `TrainQueryHandler` to `SQLStageQueryHandler`
+* #232: Redesigned `SQLStageInputOutput`

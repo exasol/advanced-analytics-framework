@@ -14,7 +14,6 @@ from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContex
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
     TopLevelQueryHandlerContext,
 )
-from exasol.analytics.query_handler.graph.stage.sql.data_partition import DataPartition
 from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
     SQLStageGraphExecutionInput,
@@ -24,6 +23,7 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler impo
 )
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
+    MultiDatasetSQLStageInputOutput,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
@@ -77,10 +77,8 @@ class StartOnlyCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
         self.input_table_like_name: Optional[str] = None
 
     def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
-        dataset = self._parameter.sql_stage_inputs[0].dataset
-        input_table_like = dataset.data_partitions[
-            TestDatasetPartitionName.TRAIN
-        ].table_like
+        datasets = self._parameter.sql_stage_inputs[0].datasets
+        input_table_like = datasets[TestDatasetName.TRAIN].table_like
         # This tests also, if temporary table names are still valid
         self.input_table_like_name = input_table_like.name.fully_qualified
 
@@ -110,8 +108,8 @@ class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(
         self.query_result: Optional[QueryResult] = None
 
     def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
-        dataset = self._parameter.sql_stage_inputs[0].dataset
-        table_like = dataset.data_partitions[TestDatasetPartitionName.TRAIN].table_like
+        datasets = self._parameter.sql_stage_inputs[0].datasets
+        table_like = datasets[TestDatasetName.TRAIN].table_like
         table_like_name = table_like.name
         table_like_columns = table_like.columns
         select_query_with_column_definition = SelectQueryWithColumnDefinition(
@@ -166,7 +164,7 @@ class TestSQLStage(SQLStage):
         return self._index
 
 
-class TestDatasetPartitionName(enum.Enum):
+class TestDatasetName(enum.Enum):
     __test__ = False
     TRAIN = enum.auto()
 
@@ -202,16 +200,13 @@ def create_stage_input_output(table_name: TableName):
         target_column,
     ]
     table_like = TableBuilder().with_name(table_name).with_columns(columns).build()
-    data_partition = DataPartition(
-        table_like=table_like,
-    )
     dataset = Dataset(
-        data_partitions={TestDatasetPartitionName.TRAIN: data_partition},
-        target_columns=[target_column],
-        sample_columns=[sample_column],
+        table_like = table_like,
+        columns=[target_column, sample_column],
         identifier_columns=[identifier_column],
     )
-    stage_input_output = SQLStageInputOutput(dataset=dataset)
+    datasets = { TestDatasetName.TRAIN: dataset }
+    stage_input_output = MultiDatasetSQLStageInputOutput(datasets=datasets)
     return stage_input_output
 
 
@@ -289,7 +284,7 @@ def test_start_with_single_stage_with_start_only_forward_query_handler(
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
-        and result.result.dataset == test_setup.stage_input_output.dataset
+        and result.result.datasets == test_setup.stage_input_output.datasets
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
     )
@@ -345,7 +340,7 @@ def test_start_with_two_stages_with_start_only_forward_query_handler(
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
-        and result.result.dataset == test_setup.stage_input_output.dataset
+        and result.result.datasets == test_setup.stage_input_output.datasets
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
     )
@@ -406,13 +401,13 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
-        and result.result.dataset != test_setup.stage_input_output.dataset
+        and result.result.datasets != test_setup.stage_input_output.datasets
         and isinstance(
             stage_1_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result.result.dataset
-        == stage_1_query_handler.stage_input_output.dataset
+        and result.result.datasets
+        == stage_1_query_handler.stage_input_output.datasets
         and stage_1_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
@@ -420,8 +415,8 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
-            name = result.result.dataset.data_partitions[
-                TestDatasetPartitionName.TRAIN
+            name = result.result.datasets[
+                TestDatasetName.TRAIN
             ].table_like.name
 
     test_setup.child_query_handler_context.release()
@@ -478,7 +473,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
     assert (
         isinstance(result, Finish)
         and isinstance(result.result, SQLStageInputOutput)
-        and result.result.dataset != test_setup.stage_input_output.dataset
+        and result.result.datasets != test_setup.stage_input_output.datasets
         and isinstance(
             stage_1_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
@@ -487,8 +482,8 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
             stage_2_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result.result.dataset
-        == stage_2_query_handler.stage_input_output.dataset
+        and result.result.datasets
+        == stage_2_query_handler.stage_input_output.datasets
         and stage_1_query_handler.input_table_like_name is not None
         and stage_2_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
@@ -497,9 +492,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
-            name = result.result.dataset.data_partitions[
-                TestDatasetPartitionName.TRAIN
-            ].table_like.name
+            name = result.result.datasets[TestDatasetName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
     assert (
@@ -611,9 +604,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
-            name = result.result.dataset.data_partitions[
-                TestDatasetPartitionName.TRAIN
-            ].table_like.name
+            name = result.result.datasets[TestDatasetName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
     assert (
