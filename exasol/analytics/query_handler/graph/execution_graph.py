@@ -8,6 +8,11 @@ T = TypeVar("T")
 
 
 class ExecutionGraph(Generic[T]):
+    """
+    The class is a generic implementation of a directed acyclic graph, with nodes
+    of type T.
+    The graph provides a node traverse order.
+    """
 
     def __init__(self, start_node: T, end_node: T, edges: Set[Tuple[T, T]]):
         self._graph = nx.DiGraph()

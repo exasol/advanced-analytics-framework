@@ -9,6 +9,12 @@ from exasol.analytics.query_handler.graph.stage.stage import Stage
 
 
 class SQLStage(Stage):
+    """
+    This is a node of an ExecutionGraph.
+    Essentially, this is a node-level query handler factory. The query handler
+    itself is user-provided and so is this factory.
+    """
+
     @abc.abstractmethod
     def create_query_handler(
         self,
