@@ -18,7 +18,7 @@ def test_empty_stage_inputs():
     bucketfs_location: Union[AbstractBucketFSLocation, MagicMock] = create_autospec(
         AbstractBucketFSLocation
     )
-    with pytest.raises(AssertionError, match="Empty sql_stage_inputs not allowed."):
+    with pytest.raises(AssertionError, match="Empty sql_stage_inputs are not allowed."):
         SQLStageQueryHandlerInput(
             sql_stage_inputs=[], result_bucketfs_location=bucketfs_location
         )

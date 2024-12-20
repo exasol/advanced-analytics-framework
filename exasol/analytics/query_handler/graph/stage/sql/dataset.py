@@ -13,6 +13,9 @@ class Dataset:
 
     The TableLike refers to a database table containing the actual data that
     can be used for instance in training or testing.
+
+    Q. A TableLike is basically a list of columns and a name. Why do we have
+    a separate list of columns here?
     """
     table_like: TableLike
     identifier_columns: List[Column]
