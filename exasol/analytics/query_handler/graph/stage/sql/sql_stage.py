@@ -12,7 +12,7 @@ class SQLStage(Stage):
     """
     This is a node of an ExecutionGraph.
     Essentially, this is a node-level query handler factory. The query handler
-    itself is user-provided and so is this factory.
+    itself is user-provided and so are the factories implementing this interface.
     """
 
     @abc.abstractmethod
