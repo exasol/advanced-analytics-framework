@@ -17,9 +17,8 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
-    SQLStageQueryHandlerInput,
+    SQLStageQueryHandlerInput, SQLStageQueryHandler
 )
-from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import Continue, Finish
 from exasol.analytics.utils.errors import UninitializedAttributeError
 
@@ -53,15 +52,13 @@ class SQLStageGraphExecutionQueryHandlerState:
             self._current_stage_index
         ]
         self._stage_inputs_map[self._current_stage].append(parameter.input)
-        self._current_query_handler: Optional[
-            QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]
-        ] = None
+        self._current_query_handler: Optional[SQLStageQueryHandler] = None
         self._current_qh_context: Optional[ScopeQueryHandlerContext] = None
         self._create_current_query_handler()
 
     def get_current_query_handler(
         self,
-    ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
+    ) -> SQLStageQueryHandler:
         value = self._current_query_handler
         if value is None:
             raise RuntimeError("No current query handler set.")
@@ -86,6 +83,16 @@ class SQLStageGraphExecutionQueryHandlerState:
     def handle_result(
         self, result: Union[Continue, Finish[SQLStageInputOutput]]
     ) -> ResultHandlerReturnValue:
+        """
+        Here we look at the provided last result obtained at the current node.
+
+        If it is encapsulated in a Finish object we then either save the result so that
+        it can be used as an input at the next node, or take it as the final output in
+        case this node is the last one. In the former case we move to the next node and
+        return CONTINUE_PROCESSING. In the latter case we return RETURN_RESULT.
+
+        If the result is encapsulated in a Continue object we return RETURN_RESULT.
+        """
         # check if current query handler is set
         self.get_current_query_handler()
         if isinstance(result, Finish):
@@ -98,6 +105,11 @@ class SQLStageGraphExecutionQueryHandlerState:
     def _handle_finished_result(
         self, result: Finish[SQLStageInputOutput]
     ) -> ResultHandlerReturnValue:
+        """
+        We are done with the current node.
+        If there are successors, then we need to add the final output from this node to the
+        list of inputs of all the successors.
+        """
         if self._is_not_last_stage():
             self._add_result_to_successors(result.result)
         else:
