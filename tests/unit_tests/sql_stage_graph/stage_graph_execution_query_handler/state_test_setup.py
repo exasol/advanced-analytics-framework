@@ -2,9 +2,7 @@ import dataclasses
 from typing import List, Union
 from unittest.mock import MagicMock, Mock, create_autospec
 
-from exasol_bucketfs_utils_python.abstract_bucketfs_location import (
-    AbstractBucketFSLocation,
-)
+import exasol.bucketfs as bfs
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
@@ -40,7 +38,7 @@ MockObjectProxyReferenceCountingBag = Union[ObjectProxyReferenceCountingBag, Mag
 MockObjectProxyReferenceCountingBagFactory = Union[
     ObjectProxyReferenceCountingBag, Mock
 ]
-MockBucketFSLocation = Union[AbstractBucketFSLocation, MagicMock]
+MockBucketFSLocation = Union[bfs.path.PathLike, MagicMock]
 
 
 @dataclasses.dataclass
@@ -111,7 +109,7 @@ def create_execution_query_handler_state_setup(
         SQLStageInputOutput
     )
     mock_result_bucketfs_location: MockBucketFSLocation = create_autospec(
-        AbstractBucketFSLocation
+        bfs.path.PathLike
     )
     stage_result_bucketfs_locations = [
         stage_setup.result_bucketfs_location for stage_setup in stage_setups
@@ -176,7 +174,7 @@ def create_mocks_for_stage(
     query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)
     sql_stage.create_query_handler.return_value = query_handler
     mock_result_bucketfs_location: MockBucketFSLocation = create_autospec(
-        AbstractBucketFSLocation
+        bfs.path.PathLike
     )
     return StageSetup(
         index=stage_index,
