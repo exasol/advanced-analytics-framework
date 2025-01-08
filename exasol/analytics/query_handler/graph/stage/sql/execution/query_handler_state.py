@@ -107,7 +107,7 @@ class SQLStageGraphExecutionQueryHandlerState:
     ) -> ResultHandlerReturnValue:
         """
         We are done with the current node.
-        If there are successors we need to add the final output from this node to the
+        If there are successors, then we need to add the final output from this node to the
         list of inputs of all the successors.
         """
         if self._is_not_last_stage():
