@@ -1,9 +1,6 @@
 from pathlib import PurePosixPath
 
 import pytest
-from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import (
-    LocalFSMockBucketFSLocation,
-)
 
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
     TopLevelQueryHandlerContext,

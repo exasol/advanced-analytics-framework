@@ -6,9 +6,7 @@ from typing import Callable, List, Optional, Tuple, Union
 from unittest.mock import Mock
 
 import pytest
-from exasol_bucketfs_utils_python.localfs_mock_bucketfs_location import (
-    LocalFSMockBucketFSLocation,
-)
+import exasol.bucketfs as bfs
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
@@ -224,14 +222,12 @@ def create_test_setup(
     sql_stage_graph: SQLStageGraph,
     stages: List[TestSQLStage],
     context: TopLevelQueryHandlerContext,
-    local_fs_mock_bucket_fs_tmp_path: PurePosixPath,
+    bucketfs_location: bfs.path.PathLike,
 ) -> TestSetup:
     stage_input_output = create_input()
     parameter = SQLStageGraphExecutionInput(
         sql_stage_graph=sql_stage_graph,
-        result_bucketfs_location=LocalFSMockBucketFSLocation(
-            local_fs_mock_bucket_fs_tmp_path
-        ),
+        result_bucketfs_location=bucketfs_location,
         input=stage_input_output,
     )
     child_query_handler_context = context.get_child_query_handler_context()
@@ -247,7 +243,8 @@ def create_test_setup(
 
 
 def test_start_with_single_stage_with_start_only_forward_query_handler(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
@@ -270,7 +267,7 @@ def test_start_with_single_stage_with_start_only_forward_query_handler(
             sql_stage_graph=sql_stage_graph,
             stages=[stage1],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         return test_setup
 
@@ -297,7 +294,8 @@ def test_start_with_single_stage_with_start_only_forward_query_handler(
 
 
 def test_start_with_two_stages_with_start_only_forward_query_handler(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
@@ -326,7 +324,7 @@ def test_start_with_two_stages_with_start_only_forward_query_handler(
             sql_stage_graph=sql_stage_graph,
             stages=[stage1, stage2],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         return test_setup
 
@@ -361,7 +359,8 @@ def not_raises(exception):
 
 
 def test_start_with_single_stage_with_start_only_create_new_output_query_handler(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
@@ -386,7 +385,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
             sql_stage_graph=sql_stage_graph,
             stages=[stage1],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         return test_setup
 
@@ -426,7 +425,8 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
 
 
 def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
@@ -457,7 +457,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
             sql_stage_graph=sql_stage_graph,
             stages=[stage1, stage2],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         return test_setup
 
@@ -501,7 +501,8 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
 
 
 def test_start_with_single_stage_with_handle_query_result_create_new_output_query_handler_part1(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test runs an integration test for the start method of a SQLStageGraphExecutionQueryHandler
@@ -523,7 +524,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_quer
             sql_stage_graph=sql_stage_graph,
             stages=[stage1],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         return test_setup
 
@@ -549,7 +550,8 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_quer
 
 
 def test_handle_query_result_with_single_stage_with_handle_query_result_create_new_output_query_handler_part2(
-    top_level_query_handler_context_mock, tmp_path
+    top_level_query_handler_context_mock,
+    mocked_temporary_bucketfs_location,
 ):
     """
     This test uses test_start_with_single_stage_with_handle_query_result_create_new_output_query_handler_part1
@@ -574,7 +576,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
             sql_stage_graph=sql_stage_graph,
             stages=[stage1],
             context=top_level_query_handler_context_mock,
-            local_fs_mock_bucket_fs_tmp_path=PurePosixPath(tmp_path),
+            bucketfs_location=mocked_temporary_bucketfs_location,
         )
         test_setup.query_handler.start()
         query_result: QueryResult = Mock()
