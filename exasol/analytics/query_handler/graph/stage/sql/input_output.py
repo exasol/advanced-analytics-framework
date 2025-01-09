@@ -8,9 +8,9 @@ from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependenci
 @dataclass(frozen=True)
 class SQLStageInputOutput:
     """
-    This is a type root for a class representing an input/output data for a customer
-    provided node-level query handler - SQLStageQueryHandler. The actual content of
-    the input/output is application specific.
+    This is a type root for a class representing input/output data for a customer
+    provided node-level query handler extending class SQLStageQueryHandler. The actual content of
+    the input/output is application-specific.
     """
     pass
 
