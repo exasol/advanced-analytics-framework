@@ -23,8 +23,8 @@ class SQLStageQueryHandlerInput:
     Contains a list of Input/Output objects and a location in the BucketFS for
     persisting the data if needed.
 
-    Why is the list? Because the input data for a node can come from multiple
-    predecessors.
+    The `sql_stage_inputs` is a list because the input data for a node can come
+    from multiple predecessors.
     """
     sql_stage_inputs: List[SQLStageInputOutput]
     result_bucketfs_location: AbstractBucketFSLocation
