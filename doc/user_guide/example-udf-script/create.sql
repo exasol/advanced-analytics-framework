@@ -9,7 +9,7 @@ from exasol.analytics.query_handler.context.query_handler_context import QueryHa
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.result import Result, Continue, Finish
 from exasol.analytics.query_handler.query.select import SelectQuery, SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import     BucketFSLocationProxy
+from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import BucketFSLocationProxy
 from exasol.analytics.schema import (
     Column,
     ColumnType,
