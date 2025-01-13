@@ -59,7 +59,7 @@ build-backend = "poetry.core.masonry.api"
 module = [
     "pandas.*", "exasol.bucketfs.*", "pyexasol.*", "exasol.pytnsion_common.*",
     "networkx.*", "exasol_udf_mock_python.*", "joblib.*",
-    "exasol.python_extension_common.*", "exasol_bucketfs_utils_python.*", ]
+    "exasol.python_extension_common.*", ]
 ignore_missing_imports = true
 
 
