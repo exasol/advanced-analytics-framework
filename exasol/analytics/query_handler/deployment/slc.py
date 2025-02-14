@@ -12,29 +12,35 @@ LANGUAGE_ALIAS = "PYTHON3_AAF"
 SLC_NAME = "exasol_advanced_analytics_framework_container"
 SLC_FILE_NAME = SLC_NAME + "_release.tar.gz"
 SLC_URL_FORMATTER = (
-        "https://github.com/exasol/advanced-analytics-framework/releases/download/{version}/"
-        + SLC_FILE_NAME
+    "https://github.com/exasol/advanced-analytics-framework/releases/download/{version}/"
+    + SLC_FILE_NAME
 )
 
 
 class AAFLanguageContainerBuilder(LanguageContainerBuilder):
-    def _add_requirements_to_flavor(self, project_directory: str | Path,
-                                    requirement_filter: Callable[[str], bool] | None):
+    def _add_requirements_to_flavor(
+        self,
+        project_directory: str | Path,
+        requirement_filter: Callable[[str], bool] | None,
+    ):
         """
         Adds project's requirements to the requirements.txt file. Creates this file
         if it doesn't exist.
         """
         assert self._root_path is not None
-        requirements_bytes = subprocess.check_output(["poetry", "export",
-                                                      "--without-hashes", "--without-urls"])
+        requirements_bytes = subprocess.check_output(
+            ["poetry", "export", "--without-hashes", "--without-urls"]
+        )
         requirements = requirements_bytes.decode("UTF-8")
         if requirement_filter is not None:
-            requirements = "\n".join(filter(requirement_filter, requirements.splitlines()))
+            requirements = "\n".join(
+                filter(requirement_filter, requirements.splitlines())
+            )
         # Make sure the content ends with a new line, so that other requirements can be
         # added at the end of it.
-        if not requirements.endswith('\n'):
-            requirements += '\n'
-        with self.requirements_file.open(mode='a') as f:
+        if not requirements.endswith("\n"):
+            requirements += "\n"
+        with self.requirements_file.open(mode="a") as f:
             return f.write(requirements)
 
 
