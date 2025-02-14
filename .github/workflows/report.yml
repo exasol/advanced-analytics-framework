@@ -32,7 +32,7 @@ jobs:
       - name: Copy Artifacts into Root Folder
         working-directory: ./artifacts
         run: |
-#          Coverage is currently disabled, see https://github.com/exasol/advanced-analytics-framework/issues/254
+          echo Coverage is currently disabled, see https://github.com/exasol/advanced-analytics-framework/issues/254
 #          poetry run coverage combine --keep coverage-python3.10*/.coverage
 #          cp .coverage ../
           cp lint-python3.10/.lint.txt ../
