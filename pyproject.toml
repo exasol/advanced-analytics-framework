@@ -20,7 +20,7 @@ homepage = "https://github.com/exasol/advanced-analytics-framework"
 keywords = ['exasol']
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = ">=3.10,<4"
 jinja2 = "^3.1.5"
 importlib-resources = "^6.5.2"
 exasol-bucketfs = "^1.0.1"
