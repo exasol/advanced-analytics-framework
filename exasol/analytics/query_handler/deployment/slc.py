@@ -12,8 +12,8 @@ LANGUAGE_ALIAS = "PYTHON3_AAF"
 SLC_NAME = "exasol_advanced_analytics_framework_container"
 SLC_FILE_NAME = SLC_NAME + "_release.tar.gz"
 SLC_URL_FORMATTER = (
-        "https://github.com/exasol/advanced-analytics-framework/releases/download/{version}/"
-        + SLC_FILE_NAME
+    "https://github.com/exasol/advanced-analytics-framework/releases/download/{version}/"
+    + SLC_FILE_NAME
 )
 
 
@@ -26,9 +26,9 @@ class AAFLanguageContainerBuilder(LanguageContainerBuilder):
     """
 
     def _add_requirements_to_flavor(
-            self,
-            project_directory: str | Path,
-            requirement_filter: Callable[[str], bool] | None,
+        self,
+        project_directory: str | Path,
+        requirement_filter: Callable[[str], bool] | None,
     ):
         """
         Adds project's requirements to the requirements.txt file. Creates this file
@@ -37,7 +37,7 @@ class AAFLanguageContainerBuilder(LanguageContainerBuilder):
         assert self._root_path is not None
         requirements_bytes = subprocess.check_output(
             ["poetry", "export", "--without-hashes", "--without-urls"],
-            # cwd=str(project_directory) we got the export by disabling this line
+            # cwd=str(project_directory) we got the export running by disabling this line
         )
         requirements = requirements_bytes.decode("UTF-8")
         if requirement_filter is not None:
