@@ -21,5 +21,4 @@ class Config:
     python_versions = ["3.10"]
 
 
-
 PROJECT_CONFIG = Config()
