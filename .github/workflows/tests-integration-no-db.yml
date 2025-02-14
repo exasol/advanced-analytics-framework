@@ -22,6 +22,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
         with:
           python-version: ${{ inputs.python-version }}
+          poetry-version: 2.0.1
 
       - id: generate_integration_tests_without_db
         name: "Generate list of integration tests without DB"
@@ -49,6 +50,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
         with:
           python-version: ${{ inputs.python-version }}
+          poetry-version: 2.0.1
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
