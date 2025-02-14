@@ -45,6 +45,9 @@ jobs:
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
 
+      - name: Poetry Export install
+        run: poetry run -- nox -s run_in_dev_env -- poetry self add poetry-plugin-export
+
       - name: Run Python integration tests with db
         run: poetry run -- nox -s run_python_integration_tests_with_db -- -- --setup-show --backend=onprem
         env:
