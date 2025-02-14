@@ -16,7 +16,8 @@ jobs:
       # See project settings on GitHub (Settings / Environments / manual-approval).
       environment: manual-approval
       steps:
-        run: "echo Slow Test Approval"
+        - name: Slow Test Approval
+          run: "echo Slow Test Approval"
 
   run-itests-no-db:
     name: iTests (no DB)
