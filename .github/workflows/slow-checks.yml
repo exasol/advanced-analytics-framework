@@ -7,16 +7,27 @@ on:
         required: false
 
 jobs:
+  jobs:
+    slow-check-approval:
+      name: Slow Check Approval
+      runs-on: ubuntu-latest
+      # Even though the environment "manual-approval" will be created automatically,
+      # it still needs to be configured to require interactive review.
+      # See project settings on GitHub (Settings / Environments / manual-approval).
+      environment: manual-approval
+
   run-itests-no-db:
     name: iTests (no DB)
+    needs: [slow-check-approval]
     uses: ./.github/workflows/tests-integration-no-db.yml
     secrets: inherit
     with:
       slow-tests: true
-      python-version: "3.10"
+      python-version: "3.10
 
   run-itests-with-db:
     name: iTests (with DB)
+    needs: [slow-check-approval]
     uses: ./.github/workflows/tests-integration-db.yml
     secrets: inherit
     with:
