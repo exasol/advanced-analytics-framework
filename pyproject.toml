@@ -33,6 +33,7 @@ sortedcontainers = "^2.4.0"
 structlog = "^25.1.0"
 typeguard = "^4.4.1"
 nox = "^2025.2.9"
+joblib = "^1.4.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7,<9"
@@ -90,3 +91,7 @@ force_grid_wrap = 2
 [tool.pylint.format]
 max-line-length = 88
 max-module-lines = 800
+
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
