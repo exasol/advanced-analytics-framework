@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 from typeguard import TypeCheckError
 
@@ -9,6 +9,8 @@ from exasol.analytics.schema.column_type import ColumnType
 
 class ColumnBuilder:
     def __init__(self, column: Union[Column, None] = None):
+        self._name: Optional[ColumnName] = None
+        self._type: Optional[ColumnType] = None
         self._name, self._type = (
             (None, None) if column is None else (column.name, column.type)
         )
