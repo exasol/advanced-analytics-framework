@@ -1,6 +1,9 @@
 import json
 from abc import ABC
-from typing import Type, Union
+from typing import (
+    Type,
+    Union,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.json_udf_query_handler import (
@@ -8,7 +11,10 @@ from exasol.analytics.query_handler.json_udf_query_handler import (
     JSONType,
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.query_handler.udf.interface import (
     UDFQueryHandler,
     UDFQueryHandlerFactory,
@@ -41,7 +47,7 @@ class JsonUDFQueryHandler(UDFQueryHandler):
 
     @staticmethod
     def _handle_result(
-        result: Union[Continue, Finish[JSONType]]
+        result: Union[Continue, Finish[JSONType]],
     ) -> Union[Continue, Finish[str]]:
         if isinstance(result, Continue):
             return result

@@ -1,6 +1,15 @@
 import threading
-from dataclasses import asdict, dataclass
-from typing import Iterator, List, Optional, Set, Tuple
+from dataclasses import (
+    asdict,
+    dataclass,
+)
+from typing import (
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 import structlog
 from structlog.types import FilteringBoundLogger

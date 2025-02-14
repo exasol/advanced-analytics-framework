@@ -2,7 +2,10 @@ from typing import Optional
 
 from typeguard import typechecked
 
-from exasol.analytics.schema.exasol_identifier import ExasolIdentifier, qualified_name
+from exasol.analytics.schema.exasol_identifier import (
+    ExasolIdentifier,
+    qualified_name,
+)
 from exasol.analytics.schema.exasol_identifier_impl import ExasolIdentifierImpl
 from exasol.analytics.schema.table_like_name import TableLikeName
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object

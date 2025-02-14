@@ -1,19 +1,31 @@
 import dataclasses
-from typing import Dict, List, Union
-from unittest.mock import MagicMock, Mock, call, create_autospec
+from typing import (
+    Dict,
+    List,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    call,
+    create_autospec,
+)
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import (
     ResultHandlerReturnValue,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
-from exasol.analytics.query_handler.result import Continue, Finish
-from tests.utils.mock_cast import mock_cast
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
     create_execution_query_handler_state_setup,
     create_mocks_for_stage,
 )
+from tests.utils.mock_cast import mock_cast
 
 
 def create_diamond_setup(

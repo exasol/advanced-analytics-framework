@@ -1,6 +1,12 @@
 import json
 import typing
-from typing import Generic, List, Set, Tuple, TypeVar
+from typing import (
+    Generic,
+    List,
+    Set,
+    Tuple,
+    TypeVar,
+)
 
 import networkx as nx
 

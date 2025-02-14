@@ -1,4 +1,7 @@
-from typing import List, Union
+from typing import (
+    List,
+    Union,
+)
 
 from typeguard import TypeCheckError
 

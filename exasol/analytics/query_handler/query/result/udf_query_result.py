@@ -1,7 +1,18 @@
 import collections
-from typing import Any, Iterator, List, Optional, OrderedDict, TYPE_CHECKING, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterator,
+    List,
+    Optional,
+    OrderedDict,
+    Union,
+)
 
-from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
+from exasol.analytics.query_handler.query.result.interface import (
+    QueryResult,
+    Row,
+)
 from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type import ColumnType

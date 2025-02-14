@@ -1,5 +1,11 @@
-from typing import Optional, Union
-from unittest.mock import MagicMock, create_autospec
+from typing import (
+    Optional,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    create_autospec,
+)
 
 import pytest
 import zmq

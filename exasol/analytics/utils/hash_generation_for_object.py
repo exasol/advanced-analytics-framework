@@ -1,4 +1,10 @@
-from typing import Any, Dict, Hashable, Iterable, Set
+from typing import (
+    Any,
+    Dict,
+    Hashable,
+    Iterable,
+    Set,
+)
 
 
 def generate_hash_for_object(obj: Any) -> int:

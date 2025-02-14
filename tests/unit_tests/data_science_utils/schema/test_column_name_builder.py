@@ -1,7 +1,11 @@
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.schema import ColumnName, ColumnNameBuilder, TableNameImpl
+from exasol.analytics.schema import (
+    ColumnName,
+    ColumnNameBuilder,
+    TableNameImpl,
+)
 
 
 def test_using_empty_constructor():

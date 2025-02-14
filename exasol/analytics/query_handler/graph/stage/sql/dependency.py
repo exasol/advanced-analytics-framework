@@ -1,6 +1,9 @@
 import dataclasses
 from enum import Enum
-from typing import Any, Dict
+from typing import (
+    Any,
+    Dict,
+)
 
 import typeguard
 from typeguard import TypeCheckError

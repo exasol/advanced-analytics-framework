@@ -1,6 +1,9 @@
 import json
 import re
-from typing import Any, Dict
+from typing import (
+    Any,
+    Dict,
+)
 
 import pytest
 from exasol_udf_mock_python.column import Column

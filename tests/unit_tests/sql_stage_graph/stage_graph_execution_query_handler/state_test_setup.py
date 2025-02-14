@@ -1,6 +1,13 @@
 import dataclasses
-from typing import List, Union
-from unittest.mock import MagicMock, Mock, create_autospec
+from typing import (
+    List,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    create_autospec,
+)
 
 import exasol.bucketfs as bfs
 
@@ -24,7 +31,10 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from tests.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]

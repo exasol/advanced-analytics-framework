@@ -1,5 +1,9 @@
 from dataclasses import dataclass
-from typing import Generic, List, TypeVar
+from typing import (
+    Generic,
+    List,
+    TypeVar,
+)
 
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition

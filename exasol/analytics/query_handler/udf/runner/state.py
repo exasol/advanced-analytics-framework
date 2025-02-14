@@ -1,5 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (

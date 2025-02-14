@@ -1,6 +1,9 @@
 from typeguard import typechecked
 
-from exasol.analytics.schema import DBObjectName, DBObjectNameImpl
+from exasol.analytics.schema import (
+    DBObjectName,
+    DBObjectNameImpl,
+)
 
 
 class ConnectionName(DBObjectName):

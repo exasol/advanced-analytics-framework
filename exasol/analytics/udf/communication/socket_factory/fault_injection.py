@@ -1,4 +1,11 @@
-from typing import Dict, List, Optional, Set, Union, cast
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Set,
+    Union,
+    cast,
+)
 from warnings import warn
 
 import structlog

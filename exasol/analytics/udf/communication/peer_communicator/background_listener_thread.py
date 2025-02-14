@@ -1,13 +1,20 @@
 import dataclasses
 import enum
-from typing import Dict, List, Optional
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
 import structlog
 from structlog.types import FilteringBoundLogger
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.messages import PrepareToStop
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.background_peer_state import (
@@ -257,7 +264,8 @@ class BackgroundListenerThread:
                 self.send_payload(payload=specific_message_obj, frames=frames)
             else:
                 self._logger.error(
-                    "Unknown message type", message_obj=specific_message_obj.model_dump()
+                    "Unknown message type",
+                    message_obj=specific_message_obj.model_dump(),
                 )
         except Exception as e:
             self._logger.exception("Exception during handling message", message=frames)
@@ -348,7 +356,8 @@ class BackgroundListenerThread:
                 self._handle_acknowledge_payload_message(specific_message_obj)
             else:
                 logger.error(
-                    "Unknown message type", message_obj=specific_message_obj.model_dump()
+                    "Unknown message type",
+                    message_obj=specific_message_obj.model_dump(),
                 )
         except Exception as e:
             logger.exception(
@@ -415,12 +424,16 @@ class BackgroundListenerThread:
         if not self._config.forward_register_peer_config.is_enabled:
             self._add_peer(message.peer)
         elif self._register_peer_connection is None:
-            self._register_peer_connection = self._create_register_peer_connection(message)
+            self._register_peer_connection = self._create_register_peer_connection(
+                message
+            )
             self._add_peer(message.peer, config(needs_register=False))
         else:
             self._add_peer(message.peer, config(needs_register=True))
 
-    def _create_register_peer_connection(self, message: messages.RegisterPeer) -> RegisterPeerConnection:
+    def _create_register_peer_connection(
+        self, message: messages.RegisterPeer
+    ) -> RegisterPeerConnection:
         successor_send_socket_factory = SendSocketFactory(
             my_connection_info=self._my_connection_info,
             peer=message.peer,

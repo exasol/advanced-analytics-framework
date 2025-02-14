@@ -1,4 +1,7 @@
-from typing import Optional, Union
+from typing import (
+    Optional,
+    Union,
+)
 
 from exasol.analytics.schema.connection_object_name import ConnectionObjectName
 from exasol.analytics.schema.connection_object_name_impl import ConnectionObjectNameImpl

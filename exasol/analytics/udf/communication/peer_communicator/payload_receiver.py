@@ -1,4 +1,7 @@
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger
@@ -7,7 +10,10 @@ from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Socket,
+)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
@@ -76,9 +82,7 @@ class PayloadReceiver:
             "_send_acknowledge_payload_message",
             message=acknowledge_payload_message.model_dump(),
         )
-        self._sender.send(
-            message=messages.Message(root=acknowledge_payload_message)
-        )
+        self._sender.send(message=messages.Message(root=acknowledge_payload_message))
 
     def _forward_received_payload(self, frames: List[Frame]):
         self._out_control_socket.send_multipart(frames)

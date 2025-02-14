@@ -2,11 +2,17 @@ import dataclasses
 import enum
 from contextlib import contextmanager
 from pathlib import PurePosixPath
-from typing import Callable, List, Optional, Tuple, Union
+from typing import (
+    Callable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from unittest.mock import Mock
 
-import pytest
 import exasol.bucketfs as bfs
+import pytest
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
@@ -20,8 +26,8 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler impo
     SQLStageGraphExecutionQueryHandler,
 )
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
-    SQLStageInputOutput,
     MultiDatasetSQLStageInputOutput,
+    SQLStageInputOutput,
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage import SQLStage
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
@@ -31,7 +37,10 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.schema import (
     ColumnBuilder,
     ColumnNameBuilder,
@@ -90,9 +99,7 @@ class StartOnlyCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
         raise NotImplementedError()
 
 
-class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(
-    SQLStageQueryHandler
-):
+class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
 
     def __init__(
         self,
@@ -199,11 +206,11 @@ def create_stage_input_output(table_name: TableName):
     ]
     table_like = TableBuilder().with_name(table_name).with_columns(columns).build()
     dataset = Dataset(
-        table_like = table_like,
+        table_like=table_like,
         columns=[target_column, sample_column],
         identifier_columns=[identifier_column],
     )
-    datasets = { TestDatasetName.TRAIN: dataset }
+    datasets = {TestDatasetName.TRAIN: dataset}
     stage_input_output = MultiDatasetSQLStageInputOutput(datasets=datasets)
     return stage_input_output
 
@@ -405,8 +412,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
             stage_1_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result.result.datasets
-        == stage_1_query_handler.stage_input_output.datasets
+        and result.result.datasets == stage_1_query_handler.stage_input_output.datasets
         and stage_1_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())
         == 0
@@ -414,9 +420,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
 
     if isinstance(result, Finish) and isinstance(result.result, SQLStageInputOutput):
         with not_raises(Exception):
-            name = result.result.datasets[
-                TestDatasetName.TRAIN
-            ].table_like.name
+            name = result.result.datasets[TestDatasetName.TRAIN].table_like.name
 
     test_setup.child_query_handler_context.release()
     assert (
@@ -482,8 +486,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
             stage_2_query_handler,
             StartOnlyCreateNewOutputTestSQLStageQueryHandler,
         )
-        and result.result.datasets
-        == stage_2_query_handler.stage_input_output.datasets
+        and result.result.datasets == stage_2_query_handler.stage_input_output.datasets
         and stage_1_query_handler.input_table_like_name is not None
         and stage_2_query_handler.input_table_like_name is not None
         and len(top_level_query_handler_context_mock.cleanup_released_object_proxies())

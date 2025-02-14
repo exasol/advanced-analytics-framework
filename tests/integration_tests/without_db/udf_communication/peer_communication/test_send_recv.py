@@ -3,7 +3,11 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import (
+    Dict,
+    List,
+    Set,
+)
 
 import pytest
 import structlog

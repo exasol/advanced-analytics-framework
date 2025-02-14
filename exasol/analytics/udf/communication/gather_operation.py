@@ -1,4 +1,8 @@
-from typing import Dict, List, Optional
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger
@@ -120,9 +124,7 @@ class GatherOperation:
         communicator = self._checked_multi_node_communicator
         leader = communicator.leader
         source = communicator.peer
-        base_position = (
-            communicator.rank * self._number_of_instances_per_node
-        )
+        base_position = communicator.rank * self._number_of_instances_per_node
         position = base_position + local_position
         frames = self._construct_gather_message(
             source=source, leader=leader, position=position, value_frame=value_frame
@@ -146,8 +148,7 @@ class GatherOperation:
     def _handle_messages_from_all_nodes(self) -> List[bytes]:
         communicator = self._checked_multi_node_communicator
         number_of_instances_in_cluster = (
-            communicator.number_of_peers
-            * self._number_of_instances_per_node
+            communicator.number_of_peers * self._number_of_instances_per_node
         )
         result: Dict[int, bytes] = {MULTI_NODE_LEADER_RANK: self._value}
         localhost_messages_are_done = False

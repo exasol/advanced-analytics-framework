@@ -1,6 +1,15 @@
 import dataclasses
-from typing import List, Tuple, Union
-from unittest.mock import MagicMock, Mock, call, create_autospec
+from typing import (
+    List,
+    Tuple,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    call,
+    create_autospec,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
@@ -22,7 +31,10 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from tests.utils.mock_cast import mock_cast
 
 MockSQLStageGraphExecutionQueryHandlerState = Union[
@@ -59,9 +71,7 @@ class SQLStageQueryHandlerSetupDefinition:
             create_autospec(result_prototype)
             for result_prototype in self.result_prototypes
         ]
-        query_handler: MockSQLStageQueryHandler = create_autospec(
-            QueryHandler
-        )
+        query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)
         query_handler.start.side_effect = [results[0]]
         query_handler.handle_query_result.side_effect = results[1:]
         return SQLStageQueryHandlerMockSetup(results, query_handler)
@@ -159,9 +169,7 @@ def create_test_setup(state_setup_definition: StateSetupDefinition) -> TestSetup
     )
 
 
-def create_test_setup_with_two_query_handler_returning_continue_finish() -> (
-    TestSetup
-):
+def create_test_setup_with_two_query_handler_returning_continue_finish() -> TestSetup:
     state_setup_definition = StateSetupDefinition(
         query_handler_setup_definitions=[
             SQLStageQueryHandlerSetupDefinition(
@@ -246,9 +254,7 @@ def test_start_single_query_handler_returning_finish():
     test_setup = arrange()
     result = act(test_setup)
 
-    query_handler_mock_setup = (
-        test_setup.state_mock_setup.query_handler_mock_setups[0]
-    )
+    query_handler_mock_setup = test_setup.state_mock_setup.query_handler_mock_setups[0]
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
@@ -294,18 +300,14 @@ def test_start_single_query_handler_returning_continue():
     test_setup = arrange()
     result = act(test_setup)
 
-    query_handler_mock_setup = (
-        test_setup.state_mock_setup.query_handler_mock_setups[0]
-    )
+    query_handler_mock_setup = test_setup.state_mock_setup.query_handler_mock_setups[0]
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
             call.handle_result(query_handler_mock_setup.results[0]),
         ]
     )
-    mock_cast(
-        query_handler_mock_setup.query_handler.start
-    ).assert_called_once()
+    mock_cast(query_handler_mock_setup.query_handler.start).assert_called_once()
     mock_cast(
         query_handler_mock_setup.query_handler.handle_query_result
     ).assert_not_called()
@@ -350,9 +352,7 @@ def test_handle_query_result_single_query_handler_returning_continue_finish():
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    query_handler_mock_setup = (
-        test_setup.state_mock_setup.query_handler_mock_setups[0]
-    )
+    query_handler_mock_setup = test_setup.state_mock_setup.query_handler_mock_setups[0]
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
@@ -362,9 +362,7 @@ def test_handle_query_result_single_query_handler_returning_continue_finish():
     mock_cast(
         query_handler_mock_setup.query_handler.handle_query_result
     ).assert_called_once_with(query_result)
-    mock_cast(
-        query_handler_mock_setup.query_handler.start
-    ).assert_not_called()
+    mock_cast(query_handler_mock_setup.query_handler.start).assert_not_called()
     assert result == query_handler_mock_setup.results[1]
 
 
@@ -404,9 +402,7 @@ def test_start_two_query_handler_returning_finish():
     test_setup = arrange()
     result = act(test_setup)
 
-    query_handler_mock_setups = (
-        test_setup.state_mock_setup.query_handler_mock_setups
-    )
+    query_handler_mock_setups = test_setup.state_mock_setup.query_handler_mock_setups
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
@@ -415,12 +411,8 @@ def test_start_two_query_handler_returning_finish():
             call.handle_result(query_handler_mock_setups[1].results[0]),
         ]
     )
-    mock_cast(
-        query_handler_mock_setups[0].query_handler.start
-    ).assert_called_once()
-    mock_cast(
-        query_handler_mock_setups[1].query_handler.start
-    ).assert_called_once()
+    mock_cast(query_handler_mock_setups[0].query_handler.start).assert_called_once()
+    mock_cast(query_handler_mock_setups[1].query_handler.start).assert_called_once()
     assert result == query_handler_mock_setups[1].results[0]
 
 
@@ -450,21 +442,15 @@ def test_start_two_query_handler_returning_continue_finish_part1():
     test_setup = arrange()
     result = act(test_setup)
 
-    query_handler_mock_setups = (
-        test_setup.state_mock_setup.query_handler_mock_setups
-    )
+    query_handler_mock_setups = test_setup.state_mock_setup.query_handler_mock_setups
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
             call.handle_result(query_handler_mock_setups[0].results[0]),
         ]
     )
-    mock_cast(
-        query_handler_mock_setups[0].query_handler.start
-    ).assert_called_once()
-    mock_cast(
-        query_handler_mock_setups[1].query_handler.start
-    ).assert_not_called()
+    mock_cast(query_handler_mock_setups[0].query_handler.start).assert_called_once()
+    mock_cast(query_handler_mock_setups[1].query_handler.start).assert_not_called()
     mock_cast(
         query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_not_called()
@@ -503,9 +489,7 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part2()
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    query_handler_mock_setups = (
-        test_setup.state_mock_setup.query_handler_mock_setups
-    )
+    query_handler_mock_setups = test_setup.state_mock_setup.query_handler_mock_setups
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
@@ -514,15 +498,11 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part2()
             call.handle_result(query_handler_mock_setups[1].results[0]),
         ]
     )
-    mock_cast(
-        query_handler_mock_setups[0].query_handler.start
-    ).assert_not_called()
+    mock_cast(query_handler_mock_setups[0].query_handler.start).assert_not_called()
     mock_cast(
         query_handler_mock_setups[0].query_handler.handle_query_result
     ).assert_called_once()
-    mock_cast(
-        query_handler_mock_setups[1].query_handler.start
-    ).assert_called_once()
+    mock_cast(query_handler_mock_setups[1].query_handler.start).assert_called_once()
     mock_cast(
         query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_not_called()
@@ -560,24 +540,18 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part3()
     test_setup, query_result = arrange()
     result = act(test_setup, query_result)
 
-    query_handler_mock_setups = (
-        test_setup.state_mock_setup.query_handler_mock_setups
-    )
+    query_handler_mock_setups = test_setup.state_mock_setup.query_handler_mock_setups
     test_setup.state_mock_setup.state.assert_has_calls(
         [
             call.get_current_query_handler(),
             call.handle_result(query_handler_mock_setups[1].results[1]),
         ]
     )
-    mock_cast(
-        query_handler_mock_setups[0].query_handler.start
-    ).assert_not_called()
+    mock_cast(query_handler_mock_setups[0].query_handler.start).assert_not_called()
     mock_cast(
         query_handler_mock_setups[0].query_handler.handle_query_result
     ).assert_not_called()
-    mock_cast(
-        query_handler_mock_setups[1].query_handler.start
-    ).assert_not_called()
+    mock_cast(query_handler_mock_setups[1].query_handler.start).assert_not_called()
     mock_cast(
         query_handler_mock_setups[1].query_handler.handle_query_result
     ).assert_called_once_with(query_result)

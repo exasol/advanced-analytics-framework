@@ -1,6 +1,9 @@
 import socket
 
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 
 
 class DiscoverySocket:

@@ -1,4 +1,7 @@
-from enum import Enum, auto
+from enum import (
+    Enum,
+    auto,
+)
 
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependency
 

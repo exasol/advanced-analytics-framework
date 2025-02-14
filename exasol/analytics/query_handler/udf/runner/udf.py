@@ -3,10 +3,21 @@ import json
 import logging
 import traceback
 from collections import OrderedDict
-from dataclasses import dataclass, field
-from enum import Enum, auto
+from dataclasses import (
+    dataclass,
+    field,
+)
+from enum import (
+    Enum,
+    auto,
+)
 from io import BytesIO
-from typing import Any, List, Optional, Tuple
+from typing import (
+    Any,
+    List,
+    Optional,
+    Tuple,
+)
 
 import exasol.bucketfs as bfs
 import joblib
@@ -18,7 +29,11 @@ from exasol.analytics.query_handler.context.top_level_query_handler_context impo
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.result.udf_query_result import UDFQueryResult
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.result import Continue, Finish, Result
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+    Result,
+)
 from exasol.analytics.query_handler.udf.connection_lookup import UDFConnectionLookup
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandlerFactory
 from exasol.analytics.query_handler.udf.runner.state import QueryHandlerRunnerState
@@ -232,7 +247,9 @@ class QueryHandlerRunnerUDF:
         )
 
     def _create_bucketfs_location(self) -> bfs.path.PathLike:
-        bfscon = self.exa.get_connection(self._checked_parameter.temporary_bfs_location_conn)
+        bfscon = self.exa.get_connection(
+            self._checked_parameter.temporary_bfs_location_conn
+        )
         bfs_location = create_bucketfs_location_from_conn_object(bfscon)
         return bfs_location.joinpath(
             self._checked_parameter.temporary_bfs_location_directory
@@ -301,9 +318,7 @@ class QueryHandlerRunnerUDF:
     ) -> UDFQueryResult:
         colum_start_ix = 8 if self._checked_parameter.iter_num == 0 else 4
         if query_columns is None:
-            raise UninitializedAttributeError(
-                "Query Columns is not initialized."
-            )
+            raise UninitializedAttributeError("Query Columns is not initialized.")
         column_mapping = OrderedDict(
             [
                 (str(colum_start_ix + index), column.name.name)

@@ -1,6 +1,11 @@
 import time
 from dataclasses import asdict
-from typing import Callable, Dict, List, Optional
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+)
 
 import structlog
 from structlog.types import FilteringBoundLogger

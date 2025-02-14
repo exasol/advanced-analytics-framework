@@ -1,5 +1,6 @@
-import structlog
 from typing import Optional
+
+import structlog
 from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo

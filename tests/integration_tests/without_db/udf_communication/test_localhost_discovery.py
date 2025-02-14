@@ -1,6 +1,9 @@
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
 
 import pytest
 import structlog
@@ -14,7 +17,10 @@ from exasol.analytics.udf.communication.discovery import localhost
 from exasol.analytics.udf.communication.discovery.localhost.communicator import (
     CommunicatorFactory,
 )
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.peer_communicator import (
     key_for_peer,

@@ -1,6 +1,10 @@
 from collections import OrderedDict
-from typing import Mapping, Optional, TYPE_CHECKING, Union
-
+from typing import (
+    TYPE_CHECKING,
+    Mapping,
+    Optional,
+    Union,
+)
 
 if TYPE_CHECKING:
     # Importing pandas might take several seconds.  At runtime pandas is

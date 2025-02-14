@@ -1,6 +1,14 @@
 import dataclasses
-from typing import List, Union
-from unittest.mock import MagicMock, Mock, call, create_autospec
+from typing import (
+    List,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    call,
+    create_autospec,
+)
 
 import pytest
 

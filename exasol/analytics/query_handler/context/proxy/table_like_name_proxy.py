@@ -1,4 +1,7 @@
-from typing import Generic, TypeVar
+from typing import (
+    Generic,
+    TypeVar,
+)
 
 from exasol.analytics.query_handler.context.proxy.db_object_name_with_schema_proxy import (
     DBObjectNameWithSchemaProxy,

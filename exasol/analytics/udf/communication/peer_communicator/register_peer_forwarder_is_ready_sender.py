@@ -1,5 +1,8 @@
 from dataclasses import asdict
-from enum import IntFlag, auto
+from enum import (
+    IntFlag,
+    auto,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger

@@ -13,9 +13,16 @@ from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query.result.python_query_result import (
     PythonQueryResult,
 )
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandler
-from exasol.analytics.schema import Column, ColumnName, ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnType,
+)
 
 
 class ConstructorTestJSONQueryHandler(JSONQueryHandler):

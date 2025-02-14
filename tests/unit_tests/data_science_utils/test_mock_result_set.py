@@ -1,6 +1,10 @@
 import pytest
 
-from exasol.analytics.schema import Column, ColumnNameBuilder, ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnNameBuilder,
+    ColumnType,
+)
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 
 

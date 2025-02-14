@@ -1,5 +1,9 @@
 import itertools
-from typing import List, Optional, Tuple
+from typing import (
+    List,
+    Optional,
+    Tuple,
+)
 
 from exasol.analytics.schema import Column
 from exasol.analytics.sql_executor.interface import ResultSet

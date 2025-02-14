@@ -1,7 +1,11 @@
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.schema import ColumnBuilder, ColumnNameBuilder, ColumnType
+from exasol.analytics.schema import (
+    ColumnBuilder,
+    ColumnNameBuilder,
+    ColumnType,
+)
 
 
 def test_create_column_with_name_only():

@@ -4,7 +4,13 @@ import time
 from abc import ABC
 from multiprocessing import Process
 from queue import Queue
-from typing import Any, Callable, Generic, List, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    List,
+    TypeVar,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger
@@ -31,6 +37,7 @@ class BidirectionalQueue:
 
 class TestProcessParameter(ABC):
     __test__ = False
+
     def __init__(self, seed: int):
         self.seed = seed
 
@@ -77,6 +84,7 @@ T = TypeVar("T")
 
 class TestProcess(Generic[T]):
     __test__ = False
+
     def __init__(self, parameter: T, run: Callable[[T, BidirectionalQueue], None]):
         self.parameter = parameter
         put_queue = multiprocessing.Queue()

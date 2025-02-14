@@ -1,7 +1,14 @@
 import logging
 import textwrap
 from inspect import cleandoc
-from typing import Callable, Generic, List, Tuple, TypeVar, Union
+from typing import (
+    Callable,
+    Generic,
+    List,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
@@ -14,7 +21,10 @@ from exasol.analytics.query_handler.query.result.python_query_result import (
 )
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.query_handler.udf.runner.state import QueryHandlerRunnerState
 from exasol.analytics.sql_executor.interface import SQLExecutor
 from exasol.analytics.utils.errors import UninitializedAttributeError

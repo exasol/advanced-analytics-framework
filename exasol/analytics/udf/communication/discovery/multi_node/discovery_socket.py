@@ -3,7 +3,10 @@ import socket
 import structlog
 from structlog.typing import FilteringBoundLogger
 
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 
 NANO_SECOND = 10**-9
 
@@ -15,7 +18,9 @@ class DiscoverySocket:
     def __init__(self, ip_address: IPAddress, port: Port):
         self._port = port
         self._ip_address = ip_address
-        self._logger = LOGGER.bind(ip_address=ip_address.model_dump(), port=port.model_dump())
+        self._logger = LOGGER.bind(
+            ip_address=ip_address.model_dump(), port=port.model_dump()
+        )
         self._logger.info("create")
         self._udp_socket = socket.socket(
             socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP

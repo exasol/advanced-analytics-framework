@@ -1,6 +1,10 @@
 import dataclasses
 from typing import Union
-from unittest.mock import MagicMock, call, create_autospec
+from unittest.mock import (
+    MagicMock,
+    call,
+    create_autospec,
+)
 
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory

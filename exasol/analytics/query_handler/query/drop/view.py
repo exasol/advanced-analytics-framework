@@ -1,5 +1,8 @@
 from exasol.analytics.query_handler.query.drop.interface import DropQuery
-from exasol.analytics.schema import TableName, ViewName
+from exasol.analytics.schema import (
+    TableName,
+    ViewName,
+)
 
 
 class DropViewQuery(DropQuery):

@@ -1,7 +1,12 @@
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.schema import SchemaName, UDFName, UDFNameBuilder, UDFNameImpl
+from exasol.analytics.schema import (
+    SchemaName,
+    UDFName,
+    UDFNameBuilder,
+    UDFNameImpl,
+)
 
 
 def test_using_empty_constructor():

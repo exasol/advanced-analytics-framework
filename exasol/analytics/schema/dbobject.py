@@ -1,5 +1,8 @@
 from abc import ABC
-from typing import Generic, TypeVar
+from typing import (
+    Generic,
+    TypeVar,
+)
 
 from typeguard import typechecked
 

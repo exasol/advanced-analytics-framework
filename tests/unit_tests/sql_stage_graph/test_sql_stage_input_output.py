@@ -1,4 +1,7 @@
-from enum import Enum, auto
+from enum import (
+    Enum,
+    auto,
+)
 from typing import List
 
 import pytest
@@ -10,8 +13,8 @@ from exasol.analytics.query_handler.graph.stage.sql.dependency import (
     Dependency,
 )
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
-    SQLStageInputOutput,
     MultiDatasetSQLStageInputOutput,
+    SQLStageInputOutput,
 )
 from exasol.analytics.schema import (
     Column,
@@ -67,7 +70,7 @@ def dataset(identifier, sample, target):
 
 @pytest.fixture()
 def datasets(dataset):
-    return { "TRAIN": dataset }
+    return {"TRAIN": dataset}
 
 
 def test_no_dataset():

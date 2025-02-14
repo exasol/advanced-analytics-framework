@@ -1,4 +1,9 @@
-from jinja2 import Environment, PackageLoader, Template, select_autoescape
+from jinja2 import (
+    Environment,
+    PackageLoader,
+    Template,
+    select_autoescape,
+)
 
 
 class JinjaTemplateLocation:

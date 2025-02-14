@@ -1,6 +1,15 @@
 import abc
-from enum import Enum, auto
-from typing import Dict, List, Optional, Set, Union
+from enum import (
+    Enum,
+    auto,
+)
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 
 class Frame(abc.ABC):

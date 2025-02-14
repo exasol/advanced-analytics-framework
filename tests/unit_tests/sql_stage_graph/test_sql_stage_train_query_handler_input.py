@@ -1,8 +1,11 @@
 from typing import Union
-from unittest.mock import MagicMock, create_autospec
+from unittest.mock import (
+    MagicMock,
+    create_autospec,
+)
 
-import pytest
 import exasol.bucketfs as bfs
+import pytest
 
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,
