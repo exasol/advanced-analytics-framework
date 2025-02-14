@@ -1,6 +1,9 @@
 import pytest
 
-from exasol.analytics.utils.dynamic_modules import ModuleExistsException, create_module
+from exasol.analytics.utils.dynamic_modules import (
+    ModuleExistsException,
+    create_module,
+)
 
 
 class ExampleClass:

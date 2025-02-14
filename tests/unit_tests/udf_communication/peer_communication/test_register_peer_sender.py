@@ -1,11 +1,23 @@
 import dataclasses
-from typing import Any, Union, cast
-from unittest.mock import MagicMock, Mock, call, create_autospec
+from typing import (
+    Any,
+    Union,
+    cast,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    call,
+    create_autospec,
+)
 
 import pytest
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.register_peer_connection import (
     RegisterPeerConnection,

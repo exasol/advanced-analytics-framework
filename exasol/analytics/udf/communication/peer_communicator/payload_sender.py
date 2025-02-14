@@ -1,5 +1,8 @@
 from collections import OrderedDict
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger
@@ -19,7 +22,10 @@ from exasol.analytics.udf.communication.peer_communicator.payload_message_sender
 )
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.serialization import serialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Socket,
+)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 

@@ -1,8 +1,14 @@
-from dataclasses import dataclass, field
+from dataclasses import (
+    dataclass,
+    field,
+)
 from typing import List
 
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies
-from exasol.analytics.schema import Column, TableLike
+from exasol.analytics.schema import (
+    Column,
+    TableLike,
+)
 
 
 @dataclass(frozen=True)
@@ -14,6 +20,7 @@ class Dataset:
     The TableLike refers to a database table containing the actual data that
     can be used for instance in training or testing.
     """
+
     table_like: TableLike
     identifier_columns: List[Column]
     columns: List[Column]

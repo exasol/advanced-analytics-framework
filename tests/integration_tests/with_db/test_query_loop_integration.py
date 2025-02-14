@@ -1,6 +1,9 @@
 import json
 import textwrap
-from typing import List, Tuple
+from typing import (
+    List,
+    Tuple,
+)
 
 import pyexasol
 import pytest

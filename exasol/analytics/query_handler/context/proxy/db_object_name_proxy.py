@@ -1,5 +1,8 @@
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import (
+    Generic,
+    TypeVar,
+)
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.query.interface import Query

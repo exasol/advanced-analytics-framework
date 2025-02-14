@@ -1,12 +1,22 @@
 import dataclasses
-from typing import List, Union
-from unittest.mock import MagicMock, call, create_autospec
+from typing import (
+    List,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    call,
+    create_autospec,
+)
 
 import pytest
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.payload_message_sender import (
     PayloadMessageSender,
@@ -14,7 +24,10 @@ from exasol.analytics.udf.communication.peer_communicator.payload_message_sender
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from exasol.analytics.udf.communication.serialization import serialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Socket,
+)
 from tests.utils.mock_cast import mock_cast
 
 

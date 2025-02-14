@@ -1,6 +1,10 @@
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import (
+    Dict,
+    List,
+    Tuple,
+)
 
 import structlog
 import zmq
@@ -9,7 +13,10 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.communicator import Communicator
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )

@@ -1,4 +1,7 @@
-from typing import List, Union
+from typing import (
+    List,
+    Union,
+)
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,7 +14,10 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 )
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import (
     assert_parent_query_handler_context_not_called,
     assert_reference_counting_bag_creation,
@@ -28,7 +34,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_
 
 
 def create_single_stage_setup(
-    result_prototypes: List[Union[Continue, Finish, MagicMock]]
+    result_prototypes: List[Union[Continue, Finish, MagicMock]],
 ) -> TestSetup:
     stage_setup = create_mocks_for_stage(result_prototypes, stage_index=0)
     sql_stage_graph = SQLStageGraph(

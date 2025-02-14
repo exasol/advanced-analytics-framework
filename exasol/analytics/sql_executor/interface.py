@@ -1,5 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import List, Tuple
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import (
+    List,
+    Tuple,
+)
 
 from exasol.analytics.schema import Column
 

@@ -7,7 +7,10 @@ from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 from exasol.analytics.udf.communication.serialization import serialize_message
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Socket,
+)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 

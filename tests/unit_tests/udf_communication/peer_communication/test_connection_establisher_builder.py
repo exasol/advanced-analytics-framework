@@ -1,9 +1,20 @@
 import dataclasses
-from typing import List, Union
-from unittest.mock import MagicMock, Mock, call, create_autospec
+from typing import (
+    List,
+    Union,
+)
+from unittest.mock import (
+    MagicMock,
+    Mock,
+    call,
+    create_autospec,
+)
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import (
     AbortTimeoutSenderFactory,

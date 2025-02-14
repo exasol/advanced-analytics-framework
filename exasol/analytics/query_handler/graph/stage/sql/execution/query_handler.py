@@ -1,4 +1,7 @@
-from typing import Callable, Union
+from typing import (
+    Callable,
+    Union,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
@@ -13,7 +16,10 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 )
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 
 SQLStageGraphExecutionQueryHandlerStateFactory = Callable[
     [SQLStageGraphExecutionInput, ScopeQueryHandlerContext],

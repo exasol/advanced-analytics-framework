@@ -6,10 +6,10 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler import (
     SQLStageQueryHandlerInput,
 )
-from tests.utils.mock_cast import mock_cast
 from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
 )
+from tests.utils.mock_cast import mock_cast
 
 
 def assert_reference_counting_bag_not_called(test_setup: TestSetup):

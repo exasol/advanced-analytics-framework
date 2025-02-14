@@ -1,7 +1,11 @@
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.schema import Column, ColumnNameBuilder, ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnNameBuilder,
+    ColumnType,
+)
 
 
 def test_set_new_type_fail():

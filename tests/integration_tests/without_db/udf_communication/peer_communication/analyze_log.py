@@ -1,8 +1,15 @@
 import json
 import sys
-from collections import Counter, defaultdict
+from collections import (
+    Counter,
+    defaultdict,
+)
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import (
+    Callable,
+    Dict,
+    List,
+)
 
 
 def is_log_sequence_ok(

@@ -1,4 +1,9 @@
-from typing import Any, Tuple, Type, TypeVar
+from typing import (
+    Any,
+    Tuple,
+    Type,
+    TypeVar,
+)
 
 
 def _init(self):

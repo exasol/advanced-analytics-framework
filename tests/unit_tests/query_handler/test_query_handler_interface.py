@@ -1,4 +1,8 @@
-from typing import Any, Dict, Union
+from typing import (
+    Any,
+    Dict,
+    Union,
+)
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,8 +14,15 @@ from exasol.analytics.query_handler.query.result.python_query_result import (
 )
 from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
-from exasol.analytics.schema import Column, ColumnName, ColumnType
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnType,
+)
 
 
 class TestQueryHandler(QueryHandler[Dict[str, Any], int]):

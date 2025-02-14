@@ -1,12 +1,18 @@
 import socket
 import time
-from typing import Optional, cast
+from typing import (
+    Optional,
+    cast,
+)
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.discovery.multi_node.discovery_socket import (
     DiscoverySocketFactory,
 )
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer_communicator.peer_communicator import (
     PeerCommunicator,
 )

@@ -1,7 +1,11 @@
 from exasol.analytics.query_handler.query.result.python_query_result import (
     PythonQueryResult,
 )
-from exasol.analytics.schema import Column, ColumnName, ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnType,
+)
 
 DATA_SIZE = 100
 FETCH_SIZE = 10

@@ -17,7 +17,7 @@ from exasol.analytics.udf.communication.peer_communicator.register_peer_forwarde
 )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class PeerCommunicatorConfig:
     connection_establisher_timeout_config: ConnectionEstablisherTimeoutConfig = (
         ConnectionEstablisherTimeoutConfig()

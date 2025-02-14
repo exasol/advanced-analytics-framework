@@ -1,4 +1,7 @@
-from typing import Any, Callable
+from typing import (
+    Any,
+    Callable,
+)
 
 import pandas as pd
 

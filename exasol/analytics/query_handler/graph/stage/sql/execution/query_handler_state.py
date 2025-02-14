@@ -1,5 +1,11 @@
 import enum
-from typing import Callable, DefaultDict, List, Optional, Union
+from typing import (
+    Callable,
+    DefaultDict,
+    List,
+    Optional,
+    Union,
+)
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
@@ -20,7 +26,10 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
     SQLStageQueryHandlerInput,
 )
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.utils.errors import UninitializedAttributeError
 
 

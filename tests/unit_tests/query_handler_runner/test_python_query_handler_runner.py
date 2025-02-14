@@ -1,7 +1,10 @@
 import re
 from inspect import cleandoc
 from pathlib import PurePosixPath
-from typing import List, Union
+from typing import (
+    List,
+    Union,
+)
 
 import pytest
 
@@ -18,8 +21,15 @@ from exasol.analytics.query_handler.query.select import (
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.query_handler.query_handler import QueryHandler
-from exasol.analytics.query_handler.result import Continue, Finish
-from exasol.analytics.schema import Column, ColumnName, ColumnType
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnType,
+)
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 from exasol.analytics.sql_executor.testing.mock_sql_executor import (
     ExpectedQuery,

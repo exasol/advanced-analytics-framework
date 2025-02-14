@@ -1,10 +1,22 @@
-from typing import Any, List, Tuple
+from typing import (
+    Any,
+    List,
+    Tuple,
+)
 
 import pyexasol
 from pyexasol import ExaStatement
 
-from exasol.analytics.schema import Column, ColumnName, ColumnNameBuilder, ColumnType
-from exasol.analytics.sql_executor.interface import ResultSet, SQLExecutor
+from exasol.analytics.schema import (
+    Column,
+    ColumnName,
+    ColumnNameBuilder,
+    ColumnType,
+)
+from exasol.analytics.sql_executor.interface import (
+    ResultSet,
+    SQLExecutor,
+)
 
 SRID = "srid"
 

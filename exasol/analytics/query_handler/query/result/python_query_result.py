@@ -1,9 +1,19 @@
-from typing import Any, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import pandas as pd
 from exasol_udf_mock_python.column import Column
 
-from exasol.analytics.query_handler.query.result.interface import QueryResult, Row
+from exasol.analytics.query_handler.query.result.interface import (
+    QueryResult,
+    Row,
+)
 
 
 class PythonQueryResult(QueryResult):

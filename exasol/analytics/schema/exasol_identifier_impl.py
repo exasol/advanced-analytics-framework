@@ -75,5 +75,5 @@ class ExasolIdentifierImpl(ExasolIdentifier):
             or unicode_category == UnicodeCategories.DECIMAL_DIGIT_NUMBER
             or unicode_category == UnicodeCategories.CONNECTOR_PUNCTUATION
             or unicode_category == UnicodeCategories.FORMAT
-            or character == "\u00B7"
+            or character == "\u00b7"
         )

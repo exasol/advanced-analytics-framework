@@ -4,7 +4,11 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import IO, List, Union
+from typing import (
+    IO,
+    List,
+    Union,
+)
 
 from importlib_resources.abc import Traversable
 

@@ -1,7 +1,7 @@
 import dataclasses
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class RegisterPeerForwarderTimeoutConfig:
     abort_timeout_in_ms: int = 100000
     register_peer_forwarder_is_ready_wait_time_in_ms: int = 10000

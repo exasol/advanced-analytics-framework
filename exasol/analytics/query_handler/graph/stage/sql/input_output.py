@@ -1,5 +1,11 @@
-from dataclasses import dataclass, field
-from typing import Dict, Protocol
+from dataclasses import (
+    dataclass,
+    field,
+)
+from typing import (
+    Dict,
+    Protocol,
+)
 
 from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies
@@ -14,6 +20,7 @@ class SQLStageInputOutput:
     For example, a dependency could be a table which the previous stage computed and
     the subsequent one uses.
     """
+
     pass
 
 

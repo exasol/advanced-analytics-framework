@@ -1,5 +1,8 @@
 from collections import deque
-from typing import Deque, List
+from typing import (
+    Deque,
+    List,
+)
 
 import structlog
 from structlog.typing import FilteringBoundLogger

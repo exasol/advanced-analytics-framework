@@ -1,6 +1,8 @@
 name: Publish Documentation
 
-on: workflow_call
+on:
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
 
@@ -10,18 +12,23 @@ jobs:
     steps:
       - name: SCM Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
-
-      - name: Build Documentation
-        run: |
-          poetry run python -m nox -s build-docs
-
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.6.0
+        uses: exasol/python-toolbox/.github/actions/python-environment@0.20.0
         with:
-          branch: gh-pages
-          folder: .html-documentation
-          git-config-name: Github Action
-          git-config-email: opensource@exasol.com
+          poetry-version: 2.0.1
+
+#      This step is disabled, because the project does not support sphinx yet
+#      - name: Build Documentation
+#        run: |
+#          poetry run nox -s docs:multiversion
+#
+#      - name: Deploy
+#        uses: JamesIves/github-pages-deploy-action@v4.6.0
+#        with:
+#          branch: gh-pages
+#          folder: .html-documentation
+#          git-config-name: Github Action
+#          git-config-email: opensource@exasol.com

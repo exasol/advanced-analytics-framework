@@ -21,31 +21,32 @@ keywords = ['exasol']
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
-jinja2 = "^3.0.3"
-importlib-resources = "^6.4.0"
-exasol-bucketfs = ">=0.6.0,<1.0.0"
-click = "^8.0.4"
+jinja2 = "^3.1.5"
+importlib-resources = "^6.5.2"
+exasol-bucketfs = "^1.0.1"
+click = "^8.1.8"
 pyexasol = ">=0.25.0,<1.0.0"
 pandas = "^2.2.3"
-pydantic = "^2.10.2"
-pyzmq = "^26.0.3"
+pydantic = "^2.10.6"
+pyzmq = "^26.2.1"
 sortedcontainers = "^2.4.0"
-structlog = "^24.2.0"
-typeguard = "^4.0.0"
-nox = "^2024.4.15"
+structlog = "^25.1.0"
+typeguard = "^4.4.1"
+nox = "^2025.2.9"
+joblib = "^1.4.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7,<9"
 pytest-assume = "^2.4.3"
 exasol-udf-mock-python = ">=0.2.0,<1.0.0"
 pytest-cov = "^5.0.0"
-exasol-integration-test-docker-environment = "^3.1.0"
-polyfactory = "^2.8.0"
-pytest-repeat = ">=0.9.1"
-elasticsearch = "^8.6.1"
-exasol-toolbox = ">=0.14.0"
+exasol-integration-test-docker-environment = "^3.4.0"
+polyfactory = "^2.19.0"
+pytest-repeat = ">=0.9.3"
+elasticsearch = "^8.17.1"
+exasol-toolbox = ">=0.20.0"
 exasol-python-extension-common = ">=0.6.0,<1.0.0"
-exasol-script-languages-container-tool = "^1.0.0"
+exasol-script-languages-container-tool = "^1.1.0"
 pytest-exasol-slc = ">=0.1.0,<1.0.0"
 pytest-exasol-backend = ">=0.3.0,<1.0.0"
 pytest-exasol-extension = ">=0.1.0,<1.0.0"
@@ -90,3 +91,7 @@ force_grid_wrap = 2
 [tool.pylint.format]
 max-line-length = 88
 max-module-lines = 800
+
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"

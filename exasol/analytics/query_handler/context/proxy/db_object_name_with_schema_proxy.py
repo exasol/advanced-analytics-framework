@@ -1,9 +1,16 @@
-from typing import Generic, Optional, TypeVar
+from typing import (
+    Generic,
+    Optional,
+    TypeVar,
+)
 
 from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
     DBObjectNameProxy,
 )
-from exasol.analytics.schema import DBObjectNameWithSchema, SchemaName
+from exasol.analytics.schema import (
+    DBObjectNameWithSchema,
+    SchemaName,
+)
 
 NameType = TypeVar("NameType", bound=DBObjectNameWithSchema)
 

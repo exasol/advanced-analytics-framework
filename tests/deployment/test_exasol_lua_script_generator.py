@@ -1,7 +1,11 @@
 from io import StringIO
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    select_autoescape,
+)
 
 from exasol.analytics.query_handler.deployment.exasol_lua_script_generator import (
     ExasolLuaScriptGenerator,

@@ -18,6 +18,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
         with:
           python-version: ${{ inputs.python-version }}
+          poetry-version: 2.0.1
 
       - name: Install Development Environment
         run: poetry run -- nox -s install_dev_env

@@ -1,7 +1,12 @@
 import pytest
 from typeguard import TypeCheckError
 
-from exasol.analytics.schema import SchemaName, ViewName, ViewNameBuilder, ViewNameImpl
+from exasol.analytics.schema import (
+    SchemaName,
+    ViewName,
+    ViewNameBuilder,
+    ViewNameImpl,
+)
 
 
 def test_using_empty_constructor():

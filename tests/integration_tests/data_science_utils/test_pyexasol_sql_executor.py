@@ -1,7 +1,11 @@
 import pyexasol
 import pytest
 
-from exasol.analytics.schema import Column, ColumnNameBuilder, ColumnType
+from exasol.analytics.schema import (
+    Column,
+    ColumnNameBuilder,
+    ColumnType,
+)
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 
 

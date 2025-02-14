@@ -2,7 +2,11 @@ import logging
 import os
 from getpass import getpass
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import (
+    Environment,
+    PackageLoader,
+    select_autoescape,
+)
 
 from exasol.analytics.query_handler.deployment import constants
 

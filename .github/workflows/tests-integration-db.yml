@@ -34,15 +34,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
+        uses: exasol/python-toolbox/.github/actions/python-environment@0.20.0
         with:
           python-version: ${{ inputs.python-version }}
+          poetry-version: 2.0.1
 
       - name: Install Development Environment
         run: poetry run -- nox -s install_dev_env
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Poetry Export install
+        run: poetry run -- nox -s run_in_dev_env -- poetry self add poetry-plugin-export
 
       - name: Run Python integration tests with db
         run: poetry run -- nox -s run_python_integration_tests_with_db -- -- --setup-show --backend=onprem

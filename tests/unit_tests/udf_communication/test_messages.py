@@ -1,4 +1,7 @@
-from typing import Type, get_args
+from typing import (
+    Type,
+    get_args,
+)
 
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory

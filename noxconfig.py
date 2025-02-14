@@ -10,7 +10,15 @@ class Config:
     root: Path = ROOT_DIR
     doc: Path = ROOT_DIR / "doc"
     version_file: Path = ROOT_DIR / "version.py"
-    path_filters: Iterable[str] = ("dist", ".eggs", "venv", ".conda_env")
+    path_filters: Iterable[str] = (
+        "dist",
+        ".eggs",
+        "venv",
+        ".conda_env",
+        ".poetry",
+        ".luarocks",
+    )
+    python_versions = ["3.10"]
 
 
 PROJECT_CONFIG = Config()

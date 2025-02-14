@@ -1,6 +1,10 @@
 import pytest
 
-from exasol.analytics.schema import ColumnName, SchemaName, TableNameBuilder
+from exasol.analytics.schema import (
+    ColumnName,
+    SchemaName,
+    TableNameBuilder,
+)
 
 
 def test_fully_qualified():

@@ -10,7 +10,10 @@ from exasol.analytics.udf.communication.peer_communicator.payload_message_sender
 )
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.peer_communicator.timer import TimerFactory
-from exasol.analytics.udf.communication.socket_factory.abstract import Frame, Socket
+from exasol.analytics.udf.communication.socket_factory.abstract import (
+    Frame,
+    Socket,
+)
 
 
 class PayloadMessageSenderFactory:

@@ -7,7 +7,10 @@ from exasol.analytics.query_handler.query.select import (
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.query_handler.query_handler import ResultType
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.query_handler.udf.interface import (
     UDFQueryHandler,
     UDFQueryHandlerFactory,

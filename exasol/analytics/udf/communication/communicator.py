@@ -1,9 +1,18 @@
-from typing import List, Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
-from exasol.analytics.udf.communication.discovery import localhost, multi_node
+from exasol.analytics.udf.communication.discovery import (
+    localhost,
+    multi_node,
+)
 from exasol.analytics.udf.communication.gather_operation import GatherOperation
-from exasol.analytics.udf.communication.ip_address import IPAddress, Port
+from exasol.analytics.udf.communication.ip_address import (
+    IPAddress,
+    Port,
+)
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
 from exasol.analytics.udf.communication.socket_factory.abstract import SocketFactory
 

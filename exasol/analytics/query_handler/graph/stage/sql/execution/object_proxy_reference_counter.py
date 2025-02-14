@@ -1,4 +1,7 @@
-from enum import Enum, auto
+from enum import (
+    Enum,
+    auto,
+)
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext

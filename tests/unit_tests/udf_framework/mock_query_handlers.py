@@ -1,4 +1,8 @@
-from typing import Any, Dict, Union
+from typing import (
+    Any,
+    Dict,
+    Union,
+)
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.result.interface import QueryResult
@@ -6,7 +10,10 @@ from exasol.analytics.query_handler.query.select import (
     SelectQuery,
     SelectQueryWithColumnDefinition,
 )
-from exasol.analytics.query_handler.result import Continue, Finish
+from exasol.analytics.query_handler.result import (
+    Continue,
+    Finish,
+)
 from exasol.analytics.query_handler.udf.interface import (
     UDFQueryHandler,
     UDFQueryHandlerFactory,
