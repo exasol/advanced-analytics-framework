@@ -34,8 +34,8 @@ jobs:
         run: |
           poetry run coverage combine --keep coverage-python3.9*/.coverage
           cp .coverage ../
-          cp lint-python3.9/.lint.txt ../
-          cp security-python3.9/.security.json ../
+          cp lint-python3.10/.lint.txt ../
+          cp security-python3.10/.security.json ../
 
       - name: Generate Report
         run: poetry run nox -s project:report -- -- --format json | tee metrics.json
