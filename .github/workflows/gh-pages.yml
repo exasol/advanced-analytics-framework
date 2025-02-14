@@ -20,14 +20,15 @@ jobs:
         with:
           poetry-version: 2.0.1
 
-      - name: Build Documentation
-        run: |
-          poetry run nox -s docs:multiversion
-
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.6.0
-        with:
-          branch: gh-pages
-          folder: .html-documentation
-          git-config-name: Github Action
-          git-config-email: opensource@exasol.com
+#      This step is disabled, because the project does not support sphinx yet
+#      - name: Build Documentation
+#        run: |
+#          poetry run nox -s docs:multiversion
+#
+#      - name: Deploy
+#        uses: JamesIves/github-pages-deploy-action@v4.6.0
+#        with:
+#          branch: gh-pages
+#          folder: .html-documentation
+#          git-config-name: Github Action
+#          git-config-email: opensource@exasol.com

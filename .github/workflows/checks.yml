@@ -40,9 +40,10 @@ jobs:
         with:
           poetry-version: 2.0.1
 
-      - name: Build Documentation
-        run: |
-          poetry run python -m nox -s docs:build
+#      This step is disabled, because the project does not support sphinx yet
+#      - name: Build Documentation
+#        run: |
+#          poetry run python -m nox -s docs:build
 
   build-matrix:
     name: Generate Build Matrix
