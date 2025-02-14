@@ -18,6 +18,8 @@ class Config:
         ".poetry",
         ".luarocks",
     )
+    python_versions = ["3.10"]
+
 
 
 PROJECT_CONFIG = Config()
