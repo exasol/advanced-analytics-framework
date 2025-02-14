@@ -1,0 +1,24 @@
+name: Slow-Checks
+
+on:
+  workflow_call:
+    secrets:
+      ALTERNATIVE_GITHUB_TOKEN:
+        required: false
+
+jobs:
+  run-itests-no-db:
+    name: iTests (no DB)
+    uses: ./.github/workflows/tests-integration-no-db.yml
+    secrets: inherit
+    with:
+      slow-tests: true
+      python-version: "3.10"
+
+  run-itests-with-db:
+    name: iTests (with DB)
+    uses: ./.github/workflows/tests-integration-db.yml
+    secrets: inherit
+    with:
+      slow-tests: true
+      python-version: "3.10"
