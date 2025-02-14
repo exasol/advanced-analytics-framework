@@ -1,7 +1,7 @@
 import dataclasses
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class ConnectionEstablisherTimeoutConfig:
     synchronize_retry_timeout_in_ms: int = 1000
     abort_timeout_in_ms: int = 100000
