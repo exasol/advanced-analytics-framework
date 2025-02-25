@@ -1,5 +1,9 @@
 # Unreleased
 
+## Features
+
+* #255: Added means for a Query Handler to control the audit pass explicit information for the audit.
+
 ## Refactorings
 
 * #224: Replaced references to old BucketFS API with new API
