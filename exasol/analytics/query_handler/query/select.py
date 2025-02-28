@@ -60,7 +60,7 @@ class AuditQuery(SelectQueryWithColumnDefinition, AuditData):
     def __init__(self, query_string: str = '',
                  output_columns: list[Column] | None = None,
                  audit_fields: dict[str, Any] | None = None):
-        SelectQueryWithColumnDefinition.__init__(query_string, output_columns or [])
+        SelectQueryWithColumnDefinition.__init__(self, query_string, output_columns or [])
         AuditData.__init__(self, audit_fields)
 
     def __post_init__(self):
