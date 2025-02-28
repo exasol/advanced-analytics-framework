@@ -6,9 +6,9 @@ from typing import (
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
+    DBObjectName,
     DBObjectType,
-    DBOperationType,
-    TableLikeName,
+    DBOperationType
 )
 
 DB_OBJECT_NAME_TAG = "db_object_name"
@@ -70,19 +70,21 @@ class AuditQuery(Query, AuditData):
 
     def __init__(
         self,
-        select_with_columns: SelectQueryWithColumnDefinition,
+        select_with_columns: SelectQueryWithColumnDefinition | None = None,
         audit_fields: dict[str, Any] | None = None,
     ):
         self._select_with_columns = select_with_columns
         AuditData.__init__(self, audit_fields)
 
     @property
-    def select_with_columns(self) -> SelectQueryWithColumnDefinition:
+    def select_with_columns(self) -> SelectQueryWithColumnDefinition | None:
         return self._select_with_columns
 
     @property
     def query_string(self) -> str:
-        return self.select_with_columns.query_string
+        return (self.select_with_columns.query_string
+                if self.select_with_columns is not None
+                else "SELECT 1")
 
 
 class ModifyQuery(CustomQuery, AuditData):
@@ -94,7 +96,7 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        db_object_name: TableLikeName,
+        db_object_name: DBObjectName | str,
         db_object_type: DBObjectType | str,
         db_operation_type: DBOperationType | str,
         audit_fields: dict[str, Any] | None = None,
@@ -102,29 +104,32 @@ class ModifyQuery(CustomQuery, AuditData):
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
+        self.audit_fields[DB_OBJECT_NAME_TAG] = (
+            db_object_name.name
+            if isinstance(db_object_name, DBObjectName)
+            else db_object_name)
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
-            db_object_type
+            db_object_type.name
             if isinstance(db_object_type, DBObjectType)
-            else DBObjectType[db_object_type]
+            else db_object_type
         )
         self.audit_fields[DB_OPERATION_TYPE_TAG] = (
-            db_operation_type
+            db_operation_type.name
             if isinstance(db_operation_type, DBOperationType)
-            else DBOperationType[db_operation_type]
+            else db_operation_type
         )
         self._audit = audit
 
     @property
-    def db_object_name(self) -> TableLikeName:
+    def db_object_name(self) -> str:
         return self.audit_fields[DB_OBJECT_NAME_TAG]
 
     @property
-    def db_object_type(self) -> DBObjectType:
+    def db_object_type(self) -> str:
         return self.audit_fields[DB_OBJECT_TYPE_TAG]
 
     @property
-    def db_operation_type(self) -> DBOperationType:
+    def db_operation_type(self) -> str:
         return self.audit_fields[DB_OPERATION_TYPE_TAG]
 
     @property
