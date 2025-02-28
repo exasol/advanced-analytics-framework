@@ -7,7 +7,7 @@ from typing import (
 
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.select import (
-    AuditData,
+    AuditQuery,
     SelectQueryWithColumnDefinition,
 )
 
@@ -29,4 +29,4 @@ T = TypeVar("T")
 @dataclass()
 class Finish(Generic[T], Result):
     result: T
-    audit_data: AuditData | None = None
+    audit_query: AuditQuery | None = None

@@ -2,7 +2,7 @@
 
 ## Features
 
-* #255: Added means for a Query Handler to control the audit pass explicit information for the audit.
+* #255: Added means for a Query Handler to pass information to the audit log.
 
 ## Refactorings
 
