@@ -8,7 +8,7 @@ from exasol.analytics.schema import (
     Column,
     DBObjectName,
     DBObjectType,
-    DBOperationType
+    DBOperationType,
 )
 
 DB_OBJECT_NAME_TAG = "db_object_name"
@@ -82,9 +82,11 @@ class AuditQuery(Query, AuditData):
 
     @property
     def query_string(self) -> str:
-        return (self.select_with_columns.query_string
-                if self.select_with_columns is not None
-                else "SELECT 1")
+        return (
+            self.select_with_columns.query_string
+            if self.select_with_columns is not None
+            else "SELECT 1"
+        )
 
 
 class ModifyQuery(CustomQuery, AuditData):
@@ -107,7 +109,8 @@ class ModifyQuery(CustomQuery, AuditData):
         self.audit_fields[DB_OBJECT_NAME_TAG] = (
             db_object_name.name
             if isinstance(db_object_name, DBObjectName)
-            else db_object_name)
+            else db_object_name
+        )
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
             db_object_type.name
             if isinstance(db_object_type, DBObjectType)
