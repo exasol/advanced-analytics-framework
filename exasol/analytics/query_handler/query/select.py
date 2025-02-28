@@ -1,9 +1,15 @@
-from typing import List, Any
+from typing import (
+    Any,
+    List,
+)
 
 from exasol.analytics.query_handler.query.interface import Query
-from exasol.analytics.schema import Column, TableLikeName
+from exasol.analytics.schema import (
+    Column,
+    TableLikeName,
+)
 
-TABLE_NAME_TAG = 'table_name'
+TABLE_NAME_TAG = "table_name"
 
 
 class CustomQuery(Query):
@@ -42,6 +48,7 @@ class AuditData:
     The items in the dictionary correspond to the columns in the audit table.
     Components at different levels in the call stack can add their own items here.
     """
+
     def __init__(self, audit_fields: dict[str, Any] | None = None):
         self._audit_fields = audit_fields or {}
 
@@ -57,15 +64,21 @@ class AuditQuery(SelectQueryWithColumnDefinition, AuditData):
     `AuditData` as well as `SelectQueryWithColumnDefinition`. The query is optional.
     If provided the output columns should also be defined.
     """
-    def __init__(self, query_string: str = '',
-                 output_columns: list[Column] | None = None,
-                 audit_fields: dict[str, Any] | None = None):
-        SelectQueryWithColumnDefinition.__init__(self, query_string, output_columns or [])
+
+    def __init__(
+        self,
+        query_string: str = "",
+        output_columns: list[Column] | None = None,
+        audit_fields: dict[str, Any] | None = None,
+    ):
+        SelectQueryWithColumnDefinition.__init__(
+            self, query_string, output_columns or []
+        )
         AuditData.__init__(self, audit_fields)
 
     def __post_init__(self):
         if self.query_string and not self.output_columns:
-            raise RuntimeError('No columns defined for an audit query')
+            raise RuntimeError("No columns defined for an audit query")
 
 
 class WriteQuery(CustomQuery, AuditData):
@@ -73,8 +86,14 @@ class WriteQuery(CustomQuery, AuditData):
     A wrapper for a query that changes data in a database table (e.g. INSERT or UPDATE)
     or creates the table (e.g. CREATE TABLE). This type of query is auditable.
     """
-    def __init__(self, query_string: str, affected_table: TableLikeName,
-                 audit_fields: dict[str, Any] | None = None, audit: bool = False):
+
+    def __init__(
+        self,
+        query_string: str,
+        affected_table: TableLikeName,
+        audit_fields: dict[str, Any] | None = None,
+        audit: bool = False,
+    ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
         self.audit_fields[TABLE_NAME_TAG] = affected_table

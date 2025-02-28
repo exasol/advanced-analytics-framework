@@ -7,7 +7,9 @@ from typing import (
 
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.select import (
-    SelectQueryWithColumnDefinition, AuditData)
+    AuditData,
+    SelectQueryWithColumnDefinition,
+)
 
 
 @dataclass()
