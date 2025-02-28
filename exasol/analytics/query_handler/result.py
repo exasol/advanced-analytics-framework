@@ -6,7 +6,10 @@ from typing import (
 )
 
 from exasol.analytics.query_handler.query.interface import Query
-from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
+from exasol.analytics.query_handler.query.select import (
+    AuditQuery,
+    SelectQueryWithColumnDefinition,
+)
 
 
 @dataclass()
@@ -26,3 +29,4 @@ T = TypeVar("T")
 @dataclass()
 class Finish(Generic[T], Result):
     result: T
+    audit_query: AuditQuery | None = None
