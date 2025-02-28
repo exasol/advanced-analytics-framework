@@ -6,9 +6,9 @@ from typing import (
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
-    TableLikeName,
     DBObjectType,
-    DBOperationType
+    DBOperationType,
+    TableLikeName,
 )
 
 DB_OBJECT_NAME_TAG = "db_object_name"
@@ -104,11 +104,13 @@ class ModifyQuery(CustomQuery, AuditData):
         AuditData.__init__(self, audit_fields)
         self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
-            db_object_type if isinstance(db_object_type, DBObjectType)
+            db_object_type
+            if isinstance(db_object_type, DBObjectType)
             else DBObjectType[db_object_type]
         )
         self.audit_fields[DB_OPERATION_TYPE_TAG] = (
-            db_operation_type if isinstance(db_operation_type, DBOperationType)
+            db_operation_type
+            if isinstance(db_operation_type, DBOperationType)
             else DBOperationType[db_operation_type]
         )
         self._audit = audit
