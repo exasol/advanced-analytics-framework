@@ -7,9 +7,13 @@ from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
     TableLikeName,
+    DBObjectType,
+    DBOperationType
 )
 
-TABLE_NAME_TAG = "table_name"
+DB_OBJECT_NAME_TAG = "db_object_name"
+DB_OBJECT_TYPE_TAG = "db_object_type"
+DB_OPERATION_TYPE_TAG = "db_operation_type"
 
 
 class CustomQuery(Query):
@@ -57,51 +61,69 @@ class AuditData:
         return self._audit_fields
 
 
-class AuditQuery(SelectQueryWithColumnDefinition, AuditData):
+class AuditQuery(Query, AuditData):
     """
     A wrapper for a special read-only query that selects data for auditing. An object
     of the class can also be used as an audit property bag, since it inherits from the
-    `AuditData` as well as `SelectQueryWithColumnDefinition`. The query is optional.
-    If provided the output columns should also be defined.
+    `AuditData`. The provided query with columns are optional.
     """
 
     def __init__(
         self,
-        query_string: str = "",
-        output_columns: list[Column] | None = None,
+        select_with_columns: SelectQueryWithColumnDefinition = None,
         audit_fields: dict[str, Any] | None = None,
     ):
-        SelectQueryWithColumnDefinition.__init__(
-            self, query_string, output_columns or []
-        )
+        self._select_with_columns = select_with_columns
         AuditData.__init__(self, audit_fields)
 
-    def __post_init__(self):
-        if self.query_string and not self.output_columns:
-            raise RuntimeError("No columns defined for an audit query")
+    @property
+    def select_with_columns(self) -> SelectQueryWithColumnDefinition:
+        return self._select_with_columns
+
+    @property
+    def query_string(self) -> str:
+        return self.select_with_columns.query_string
 
 
-class WriteQuery(CustomQuery, AuditData):
+class ModifyQuery(CustomQuery, AuditData):
     """
-    A wrapper for a query that changes data in a database table (e.g. INSERT or UPDATE)
+    A wrapper for a query that changes data in the database (e.g. INSERT or UPDATE)
     or creates the table (e.g. CREATE TABLE). This type of query is auditable.
     """
 
     def __init__(
         self,
         query_string: str,
-        affected_table: TableLikeName,
+        db_object_name: TableLikeName,
+        db_object_type: DBObjectType | str,
+        db_operation_type: DBOperationType | str,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[TABLE_NAME_TAG] = affected_table
+        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
+        self.audit_fields[DB_OBJECT_TYPE_TAG] = (
+            db_object_type if isinstance(db_object_type, DBObjectType)
+            else DBObjectType[db_object_type]
+        )
+        self.audit_fields[DB_OPERATION_TYPE_TAG] = (
+            db_operation_type if isinstance(db_operation_type, DBOperationType)
+            else DBOperationType[db_operation_type]
+        )
         self._audit = audit
 
     @property
-    def table_name(self) -> TableLikeName:
-        return self.audit_fields[TABLE_NAME_TAG]
+    def db_object_name(self) -> TableLikeName:
+        return self.audit_fields[DB_OBJECT_NAME_TAG]
+
+    @property
+    def db_object_type(self) -> DBObjectType:
+        return self.audit_fields[DB_OBJECT_TYPE_TAG]
+
+    @property
+    def db_operation_type(self) -> DBOperationType:
+        return self.audit_fields[DB_OPERATION_TYPE_TAG]
 
     @property
     def audit(self) -> bool:
