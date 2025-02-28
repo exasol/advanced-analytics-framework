@@ -70,7 +70,7 @@ class AuditQuery(Query, AuditData):
 
     def __init__(
         self,
-        select_with_columns: SelectQueryWithColumnDefinition = None,
+        select_with_columns: SelectQueryWithColumnDefinition,
         audit_fields: dict[str, Any] | None = None,
     ):
         self._select_with_columns = select_with_columns
