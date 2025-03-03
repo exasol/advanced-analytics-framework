@@ -1,8 +1,8 @@
 from exasol.analytics.schema.column import (
     Column,
     decimal_column,
-    varchar_column,
     timestamp_column,
+    varchar_column,
 )
 from exasol.analytics.schema.column_builder import ColumnBuilder
 from exasol.analytics.schema.column_name import ColumnName

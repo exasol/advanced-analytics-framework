@@ -1,5 +1,9 @@
 import dataclasses
-from typing import Any, Iterator, Optional
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+)
 
 import typeguard
 

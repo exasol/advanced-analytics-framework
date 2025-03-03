@@ -1,7 +1,7 @@
 import dataclasses
+from typing import Optional
 
 import typeguard
-from typing import Optional
 
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type import ColumnType
