@@ -5,9 +5,9 @@ from exasol.analytics.schema import (
     Column,
     ColumnNameBuilder,
     ColumnType,
-    varchar_column,
     decimal_column,
     timestamp_column,
+    varchar_column,
 )
 
 
