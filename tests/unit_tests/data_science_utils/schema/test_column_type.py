@@ -226,3 +226,17 @@ def test_hash_inequality_table():
     column1 = ColumnName("column", TableNameBuilder.create("table1"))
     column2 = ColumnName("column", TableNameBuilder.create("table2"))
     assert hash(column1) != hash(column2)
+
+
+@pytest.mark.parametrize( "column_type, expected", [
+    (ColumnType("VARCHAR"), "VARCHAR"),
+    (ColumnType("VARCHAR", size=2), "VARCHAR(2)"),
+    (ColumnType("DECIMAL"), "DECIMAL"),
+    (ColumnType("DECIMAL", precision=20), "DECIMAL(20)"),
+    (ColumnType("DECIMAL", precision=20, scale=2), "DECIMAL(20,2)"),
+    (ColumnType("DECIMAL", scale=2), "DECIMAL"),
+    (ColumnType("TIMESTAMP"), "TIMESTAMP"),
+])
+def test_rendered(column_type, expected):
+    assert column_type.rendered == expected
+

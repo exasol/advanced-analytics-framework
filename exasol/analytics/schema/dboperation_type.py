@@ -4,7 +4,7 @@ from enum import (
 )
 
 
-class DBOperationType(Enum):
+class DbOperationType(Enum):
     CREATE = auto()
     ALTER = auto()
     DROP = auto()

@@ -1,4 +1,9 @@
-from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.column import (
+    Column,
+    decimal_column,
+    varchar_column,
+    timestamp_column,
+)
 from exasol.analytics.schema.column_builder import ColumnBuilder
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_name_builder import ColumnNameBuilder
@@ -15,8 +20,8 @@ from exasol.analytics.schema.dbobject_name_with_schema import DBObjectNameWithSc
 from exasol.analytics.schema.dbobject_name_with_schema_impl import (
     DBObjectNameWithSchemaImpl,
 )
-from exasol.analytics.schema.dbobject_type import DBObjectType
-from exasol.analytics.schema.dboperation_type import DBOperationType
+from exasol.analytics.schema.dbobject_type import DbObjectType
+from exasol.analytics.schema.dboperation_type import DbOperationType
 from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 from exasol.analytics.schema.exasol_identifier_impl import (
     ExasolIdentifierImpl,
