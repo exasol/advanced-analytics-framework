@@ -1,4 +1,5 @@
 import pytest
+
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     ModifyQuery,
