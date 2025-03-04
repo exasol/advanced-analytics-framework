@@ -11,9 +11,9 @@ from exasol.analytics.schema import (
     DbOperationType,
 )
 
-DB_OBJECT_NAME_TAG = "OBJECT_NAME"
-DB_OBJECT_TYPE_TAG = "OBJECT_TYPE"
-DB_OPERATION_TYPE_TAG = "OPERATION_TYPE"
+DB_OBJECT_NAME_TAG = "DB_OBJECT_NAME"
+DB_OBJECT_TYPE_TAG = "DB_OBJECT_TYPE"
+DB_OPERATION_TYPE_TAG = "DB_OPERATION_TYPE"
 
 
 class CustomQuery(Query):
@@ -101,7 +101,7 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        # Removed support for type str, as counting rows of the modified table
+        # Using DBObjectName instead of str, because counting rows of the modified table
         # requires to use fully_qualified
         db_object_name: DBObjectName,
         db_object_type: DbObjectType | str,
