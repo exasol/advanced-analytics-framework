@@ -40,6 +40,7 @@ from exasol.analytics.schema.table_name_impl import TableNameImpl
 from exasol.analytics.schema.udf_name import UDFName
 from exasol.analytics.schema.udf_name_builder import UDFNameBuilder
 from exasol.analytics.schema.udf_name_impl import UDFNameImpl
+from exasol.analytics.schema.values import quote_value
 from exasol.analytics.schema.view import View
 from exasol.analytics.schema.view_name import ViewName
 from exasol.analytics.schema.view_name_builder import ViewNameBuilder
