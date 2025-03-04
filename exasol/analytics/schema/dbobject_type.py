@@ -4,7 +4,7 @@ from enum import (
 )
 
 
-class DBObjectType(Enum):
+class DbObjectType(Enum):
     SCHEMA = auto()
     TABLE = auto()
     VIEW = auto()

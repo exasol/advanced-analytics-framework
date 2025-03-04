@@ -7,13 +7,13 @@ from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
     DBObjectName,
-    DBObjectType,
-    DBOperationType,
+    DbObjectType,
+    DbOperationType,
 )
 
-DB_OBJECT_NAME_TAG = "db_object_name"
-DB_OBJECT_TYPE_TAG = "db_object_type"
-DB_OPERATION_TYPE_TAG = "db_operation_type"
+DB_OBJECT_NAME_TAG = "DB_OBJECT_NAME"
+DB_OBJECT_TYPE_TAG = "DB_OBJECT_TYPE"
+DB_OPERATION_TYPE_TAG = "DB_OPERATION_TYPE"
 
 
 class CustomQuery(Query):
@@ -27,14 +27,13 @@ class CustomQuery(Query):
 
 class SelectQuery(CustomQuery):
     """
-    A wrapper for a read-only query. Such query is not auditable.
+    Read-only query, not auditable.
     """
 
 
 class SelectQueryWithColumnDefinition(SelectQuery):
     """
-    A wrapper for a read-only query, which also provide a definition of the
-    output columns. The query is not auditable.
+    Read-only query incl. output columns. The query is not auditable.
     """
 
     def __init__(self, query_string: str, output_columns: List[Column]):
@@ -88,6 +87,10 @@ class AuditQuery(Query, AuditData):
             else "SELECT 1"
         )
 
+    @property
+    def audit(self) -> bool:
+        return True
+
 
 class ModifyQuery(CustomQuery, AuditData):
     """
@@ -98,33 +101,31 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        db_object_name: DBObjectName | str,
-        db_object_type: DBObjectType | str,
-        db_operation_type: DBOperationType | str,
+        # Using DBObjectName instead of str, because counting rows of the modified table
+        # requires to use fully_qualified
+        db_object_name: DBObjectName,
+        db_object_type: DbObjectType | str,
+        db_operation_type: DbOperationType | str,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[DB_OBJECT_NAME_TAG] = (
-            db_object_name.name
-            if isinstance(db_object_name, DBObjectName)
-            else db_object_name
-        )
+        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
             db_object_type.name
-            if isinstance(db_object_type, DBObjectType)
+            if isinstance(db_object_type, DbObjectType)
             else db_object_type
         )
         self.audit_fields[DB_OPERATION_TYPE_TAG] = (
             db_operation_type.name
-            if isinstance(db_operation_type, DBOperationType)
+            if isinstance(db_operation_type, DbOperationType)
             else db_operation_type
         )
         self._audit = audit
 
     @property
-    def db_object_name(self) -> str:
+    def db_object_name(self) -> DBObjectName:
         return self.audit_fields[DB_OBJECT_NAME_TAG]
 
     @property
@@ -134,6 +135,24 @@ class ModifyQuery(CustomQuery, AuditData):
     @property
     def db_operation_type(self) -> str:
         return self.audit_fields[DB_OPERATION_TYPE_TAG]
+
+    @property
+    def modifies_row_count(self) -> bool:
+        """
+        This property tells, whether the current ModifyQuery potentially
+        modifies the row count of a table. This is only relevant if the
+        ModifyQuery modifies a DbObjectType TABLE and uses a DbOperationType
+        from the list named below, e.g. INSERT.
+        """
+        return (self.db_object_type == "TABLE") and (
+            self.db_operation_type
+            in [
+                "INSERT",
+                "CREATE",
+                "CREATE_OR_REPLACE",
+                "CREATE_IF_NOT_EXISTS",
+            ]
+        )
 
     @property
     def audit(self) -> bool:

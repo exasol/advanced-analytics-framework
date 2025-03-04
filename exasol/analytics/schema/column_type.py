@@ -1,5 +1,9 @@
 import dataclasses
-from typing import Optional
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+)
 
 import typeguard
 
@@ -16,6 +20,21 @@ class ColumnType:
     withLocalTimeZone: Optional[bool] = None
     fraction: Optional[int] = None
     srid: Optional[int] = None
+
+    @property
+    def rendered(self) -> str:
+        name = self.name.upper()
+
+        def args() -> Iterator[Any]:
+            if name == "VARCHAR":
+                yield self.size
+            elif name == "DECIMAL":
+                yield self.precision
+                if self.precision is not None and self.scale is not None:
+                    yield self.scale
+
+        suffix = ",".join(str(a) for a in args() if a is not None)
+        return f"{name}({suffix})" if suffix else name
 
     def __post_init__(self):
         check_dataclass_types(self)
