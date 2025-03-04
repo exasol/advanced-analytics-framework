@@ -141,11 +141,16 @@ class ModifyQuery(CustomQuery, AuditData):
         """
         This property tells, whether the current ModifyQuery potentially
         modifies the row count of a table. This is only relevant if the
-        ModifyQuery modifies a DbObjectType TABLE and is of DbOperationType
-        either INSERT or CREATE (with data of a subquery).
+        ModifyQuery modifies a DbObjectType TABLE and uses a DbOperationType
+        from the list named below, e.g. INSERT.
         """
         return (self.db_object_type == "TABLE") and (
-            self.db_operation_type in ["INSERT", "CREATE"]
+            self.db_operation_type in [
+                "INSERT",
+                "CREATE",
+                "CREATE_OR_REPLACE",
+                "CREATE_IF_NOT_EXISTS",
+            ]
         )
 
     @property

@@ -14,7 +14,7 @@ class Column:
     type: ColumnType
 
     @property
-    def for_create(self):
+    def for_create(self) -> str:
         return f"{self.name.fully_qualified} {self.type.rendered}"
 
     def __post_init__(self):

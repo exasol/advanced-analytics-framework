@@ -6,7 +6,7 @@ def format_timestamp(timestamp: datetime) -> str:
     return timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def squote(value: Any) -> str:
+def _enclose_in_single_quotes(value: Any) -> str:
     return f"'{value}'"
 
 
@@ -14,7 +14,7 @@ def quote_value(value: Any) -> str:
     if value is None:
         return "NULL"
     if isinstance(value, str):
-        return squote(value)
+        return _enclose_in_single_quotes(value)
     if isinstance(value, bool):
         return str(value).upper()
     if isinstance(value, int):
@@ -22,5 +22,5 @@ def quote_value(value: Any) -> str:
     if isinstance(value, float):
         return str(value)
     if isinstance(value, datetime):
-        return squote(format_timestamp(value))
+        return _enclose_in_single_quotes(format_timestamp(value))
     raise ValueError(f"Unexpected data type {type(value)}: '{value}'")

@@ -38,6 +38,8 @@ def test_modify_query():
     [
         ("TABLE", "INSERT", True),
         ("TABLE", "CREATE", True),
+        ("TABLE", "CREATE_OR_REPLACE", True),
+        ("TABLE", "CREATE_IF_NOT_EXISTS", True),
         ("TABLE", "UPDATE", False),
         ("SCHEMA", "INSERT", False),
     ],
