@@ -30,10 +30,10 @@ class ColumnType:
                 yield self.size
             elif name == "DECIMAL":
                 yield self.precision
-                if self.precision and self.scale:
+                if self.precision is not None and self.scale is not None:
                     yield self.scale
 
-        suffix = ",".join(str(a) for a in args() if a)
+        suffix = ",".join(str(a) for a in args() if a is not None)
         return f"{name}({suffix})" if suffix else name
 
     def __post_init__(self):

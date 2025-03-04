@@ -236,6 +236,7 @@ def test_hash_inequality_table():
         (ColumnType("DECIMAL"), "DECIMAL"),
         (ColumnType("DECIMAL", precision=20), "DECIMAL(20)"),
         (ColumnType("DECIMAL", precision=20, scale=2), "DECIMAL(20,2)"),
+        (ColumnType("DECIMAL", precision=20, scale=0), "DECIMAL(20,0)"),
         (ColumnType("DECIMAL", scale=2), "DECIMAL"),
         (ColumnType("TIMESTAMP"), "TIMESTAMP"),
     ],
