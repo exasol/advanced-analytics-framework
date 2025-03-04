@@ -145,7 +145,8 @@ class ModifyQuery(CustomQuery, AuditData):
         from the list named below, e.g. INSERT.
         """
         return (self.db_object_type == "TABLE") and (
-            self.db_operation_type in [
+            self.db_operation_type
+            in [
                 "INSERT",
                 "CREATE",
                 "CREATE_OR_REPLACE",
