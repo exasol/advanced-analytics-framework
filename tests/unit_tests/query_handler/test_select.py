@@ -20,7 +20,7 @@ def test_audit_query():
 
 def test_modify_query():
     query = "my_query"
-    table_name = TableLikeNameImpl("table_name"),
+    table_name = (TableLikeNameImpl("table_name"),)
     mod_query = ModifyQuery(
         query,
         db_object_name=table_name,
