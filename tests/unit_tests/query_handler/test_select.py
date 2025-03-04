@@ -20,17 +20,17 @@ def test_audit_query():
 
 def test_modify_query():
     query = "my_query"
-    table_name = "my_table"
+    table_name = TableLikeNameImpl("table_name"),
     mod_query = ModifyQuery(
         query,
-        db_object_name=TableLikeNameImpl(table_name),
+        db_object_name=table_name,
         db_object_type=DbObjectType.TABLE,
         db_operation_type=DbOperationType.CREATE,
     )
     assert mod_query.query_string == query
     assert mod_query.db_object_name == table_name
-    assert mod_query.db_object_type == DbObjectType.TABLE.name
-    assert mod_query.db_operation_type == DbOperationType.CREATE.name
+    assert mod_query.db_object_type == "TABLE"
+    assert mod_query.db_operation_type == "CREATE"
 
 
 @pytest.mark.parametrize(

@@ -101,7 +101,9 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        db_object_name: DBObjectName | str,
+        # Removed support for type str, as counting rows of the modified table
+        # requires to use fully_qualified
+        db_object_name: DBObjectName,
         db_object_type: DbObjectType | str,
         db_operation_type: DbOperationType | str,
         audit_fields: dict[str, Any] | None = None,
@@ -109,11 +111,7 @@ class ModifyQuery(CustomQuery, AuditData):
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[DB_OBJECT_NAME_TAG] = (
-            db_object_name.name
-            if isinstance(db_object_name, DBObjectName)
-            else db_object_name
-        )
+        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
             db_object_type.name
             if isinstance(db_object_type, DbObjectType)
@@ -127,7 +125,7 @@ class ModifyQuery(CustomQuery, AuditData):
         self._audit = audit
 
     @property
-    def db_object_name(self) -> str:
+    def db_object_name(self) -> DBObjectName:
         return self.audit_fields[DB_OBJECT_NAME_TAG]
 
     @property
