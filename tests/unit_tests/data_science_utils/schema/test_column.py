@@ -64,14 +64,17 @@ def test_hash_inequality_type():
     assert hash(column1) != hash(column2)
 
 
-@pytest.mark.parametrize( "func, kwargs", [
-    (decimal_column, {}),
-    (decimal_column, {"precision": 20}),
-    (decimal_column, {"precision": 20, "scale": 5}),
-    (decimal_column, {"scale": 5}),
-    (varchar_column, {"size": 200}),
-    (timestamp_column, {}),
-])
+@pytest.mark.parametrize(
+    "func, kwargs",
+    [
+        (decimal_column, {}),
+        (decimal_column, {"precision": 20}),
+        (decimal_column, {"precision": 20, "scale": 5}),
+        (decimal_column, {"scale": 5}),
+        (varchar_column, {"size": 200}),
+        (timestamp_column, {}),
+    ],
+)
 def test_shortcut_functions(func, kwargs):
     """
     Test the shortcut functions varchar_column(), decimal_column(), and

@@ -33,13 +33,15 @@ def test_modify_query():
     assert mod_query.db_operation_type == DbOperationType.CREATE.name
 
 
-@pytest.mark.parametrize (
-    "db_object_type, db_operation_type, expected_modifies", [
-    ("TABLE", "INSERT", True),
-    ("TABLE", "CREATE", True),
-    ("TABLE", "UPDATE", False),
-    ("SCHEMA", "INSERT", False),
-])
+@pytest.mark.parametrize(
+    "db_object_type, db_operation_type, expected_modifies",
+    [
+        ("TABLE", "INSERT", True),
+        ("TABLE", "CREATE", True),
+        ("TABLE", "UPDATE", False),
+        ("SCHEMA", "INSERT", False),
+    ],
+)
 def test_query_modifies_row_count(
     db_object_type,
     db_operation_type,

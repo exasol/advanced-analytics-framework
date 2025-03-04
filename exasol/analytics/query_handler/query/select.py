@@ -91,6 +91,7 @@ class AuditQuery(Query, AuditData):
     def audit(self) -> bool:
         return True
 
+
 class ModifyQuery(CustomQuery, AuditData):
     """
     A wrapper for a query that changes data in the database (e.g. INSERT or UPDATE)
@@ -145,9 +146,8 @@ class ModifyQuery(CustomQuery, AuditData):
         ModifyQuery modifies a DbObjectType TABLE and is of DbOperationType
         either INSERT or CREATE (with data of a subquery).
         """
-        return (
-            (self.db_object_type == "TABLE") and
-            (self.db_operation_type in ["INSERT", "CREATE"])
+        return (self.db_object_type == "TABLE") and (
+            self.db_operation_type in ["INSERT", "CREATE"]
         )
 
     @property

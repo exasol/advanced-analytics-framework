@@ -24,6 +24,7 @@ class ColumnType:
     @property
     def rendered(self) -> str:
         name = self.name.upper()
+
         def args() -> Iterator[Any]:
             if name == "VARCHAR":
                 yield self.size
@@ -33,7 +34,7 @@ class ColumnType:
                     yield self.scale
 
         suffix = ",".join(str(a) for a in args() if a)
-        return f'{name}({suffix})' if suffix else name
+        return f"{name}({suffix})" if suffix else name
 
     def __post_init__(self):
         check_dataclass_types(self)

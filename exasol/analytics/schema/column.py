@@ -15,7 +15,7 @@ class Column:
 
     @property
     def for_create(self):
-        return f'{self.name.fully_qualified} {self.type.rendered}'
+        return f"{self.name.fully_qualified} {self.type.rendered}"
 
     def __post_init__(self):
         check_dataclass_types(self)
