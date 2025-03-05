@@ -1,6 +1,7 @@
 from typing import (
     Any,
     List,
+    Optional,
 )
 
 from exasol.analytics.query_handler.query.interface import Query
@@ -134,8 +135,9 @@ class ModifyQuery(CustomQuery, AuditData):
         return self.db_object_ref.name
 
     @property
-    def db_object_schema(self) -> str:
-        return self.db_object_ref.schema_name.name
+    def db_object_schema(self) -> Optional[str]:
+        schema = self.db_object_ref.schema_name
+        return schema.name if schema else None
 
     @property
     def db_object_type(self) -> str:

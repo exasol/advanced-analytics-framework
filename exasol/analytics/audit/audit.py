@@ -13,8 +13,8 @@ from exasol.analytics.query_handler.query.select import (
 from exasol.analytics.schema import (
     Column,
     SchemaName,
+    TableLikeName,
     TableLikeNameImpl,
-    TableName,
     decimal_column,
     timestamp_column,
     varchar_column,
@@ -22,7 +22,7 @@ from exasol.analytics.schema import (
 
 
 class TableDescription:
-    def __init__(self, table: TableName, columns: List[Column]):
+    def __init__(self, table: TableLikeName, columns: List[Column]):
         self.table = table
         self.columns = {c.name.name: c for c in columns}
 
