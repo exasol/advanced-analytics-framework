@@ -30,8 +30,8 @@ def decimal_column(
     return Column(ColumnName(name), type)
 
 
-def timestamp_column(name: str) -> Column:
-    return Column(ColumnName(name), ColumnType("TIMESTAMP"))
+def timestamp_column(name: str, precision: Optional[int] = None) -> Column:
+    return Column(ColumnName(name), ColumnType("TIMESTAMP", precision=precision))
 
 
 def varchar_column(name: str, size: int) -> Column:

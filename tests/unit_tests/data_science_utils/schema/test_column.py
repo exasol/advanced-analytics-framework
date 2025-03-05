@@ -73,6 +73,7 @@ def test_hash_inequality_type():
         (decimal_column, {"scale": 5}),
         (varchar_column, {"size": 200}),
         (timestamp_column, {}),
+        (timestamp_column, {"precision": 2}),
     ],
 )
 def test_shortcut_functions(func, kwargs):
