@@ -6,12 +6,15 @@ from typing import (
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
-    DBObjectName,
+    DBObjectNameWithSchema,
     DbObjectType,
     DbOperationType,
 )
 
+DB_OBJECT_SCHEMA_TAG = "DB_OBJECT_SCHEMA"
+""" Optional, can be NULL """
 DB_OBJECT_NAME_TAG = "DB_OBJECT_NAME"
+""" Contains the schema name for operations CREATE/DROP SCHEMA """
 DB_OBJECT_TYPE_TAG = "DB_OBJECT_TYPE"
 DB_OPERATION_TYPE_TAG = "DB_OPERATION_TYPE"
 
@@ -101,9 +104,7 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        # Using DBObjectName instead of str, because counting rows of the modified table
-        # requires to use fully_qualified
-        db_object_name: DBObjectName,
+        db_object_ref: DBObjectNameWithSchema,
         db_object_type: DbObjectType | str,
         db_operation_type: DbOperationType | str,
         audit_fields: dict[str, Any] | None = None,
@@ -111,7 +112,11 @@ class ModifyQuery(CustomQuery, AuditData):
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
+        self.db_object_ref = db_object_ref
+        self.audit_fields[DB_OBJECT_SCHEMA_TAG] = (
+            db_object_ref.schema_name.name if db_object_ref.schema_name else None
+        )
+        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_ref.name
         self.audit_fields[DB_OBJECT_TYPE_TAG] = (
             db_object_type.name
             if isinstance(db_object_type, DbObjectType)
@@ -125,8 +130,12 @@ class ModifyQuery(CustomQuery, AuditData):
         self._audit = audit
 
     @property
-    def db_object_name(self) -> DBObjectName:
-        return self.audit_fields[DB_OBJECT_NAME_TAG]
+    def db_object_name(self) -> str:
+        return self.db_object_ref.name
+
+    @property
+    def db_object_schema(self) -> str:
+        return self.db_object_ref.schema_name.name
 
     @property
     def db_object_type(self) -> str:

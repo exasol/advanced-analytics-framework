@@ -2,6 +2,7 @@ from typing import List
 
 from exasol.analytics.query_handler.query.select import (
     DB_OBJECT_NAME_TAG,
+    DB_OBJECT_SCHEMA_TAG,
     DB_OBJECT_TYPE_TAG,
     DB_OPERATION_TYPE_TAG,
     AuditQuery,
@@ -34,44 +35,43 @@ class TableDescription:
 
 
 class AuditColumn:
-    TIMESTAMP = timestamp_column("TIMESTAMP")
+    TIMESTAMP = timestamp_column("LOG_TIMESTAMP", precision=3)
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
-    JOB_ID = varchar_column("JOB_ID", size=200)
-    ROWS_COUNT = decimal_column("ROWS_COUNT", precision=36)
-    OBJECT_NAME = varchar_column(DB_OBJECT_NAME_TAG, size=200)
-    OBJECT_TYPE = varchar_column(DB_OBJECT_TYPE_TAG, size=200)
-    OPERATION_TYPE = varchar_column(DB_OPERATION_TYPE_TAG, size=200)
+    RUN_ID = decimal_column("RUN_ID", precision=20)
+    ROWS_COUNT = decimal_column(
+        "ROWS_COUNT", precision=36,
+        comment="use POSIX_TIME(SYSTIMESTAMP()) * 1000",
+    )
+    QUERY_HANDLER_ID = decimal_column("QUERY_HANDLER_ID", precision=32)
+    QUERY_HANDLER_NAME = varchar_column("QUERY_HANDLER_NAME", size=2000000)
+    # QUERY_HANDLER_PHASE: TBC
+    SPAN_TYPE = varchar_column("SPAN_TYPE", size=128)
+    SPAN_ID = decimal_column("SPAN_ID", precision=32)
+    SPAN_DESCRIPTION = varchar_column("SPAN_DESCRIPTION", size=2000000)
+    OBJECT_SCHEMA = varchar_column(
+        DB_OBJECT_SCHEMA_TAG,
+        size=128,
+        comment="Contains the schema name for operations CREATE/DROP SCHEMA",
+    )
+    OBJECT_NAME = varchar_column(DB_OBJECT_NAME_TAG, size=128)
+    OBJECT_TYPE = varchar_column(DB_OBJECT_TYPE_TAG, size=128)
+    OPERATION_NAME = varchar_column(DB_OPERATION_TYPE_TAG, size=128)
     OPERATION_ID = decimal_column("OPERATION_ID", precision=36)
-    ERROR = varchar_column("ERROR", size=200)
-    INFO = varchar_column("INFO", size=200)
-
-    _dict = {
-        "TIMESTAMP": TIMESTAMP,
-        "SESSION_ID": SESSION_ID,
-        "JOB_ID": JOB_ID,
-        "ROWS_COUNT": ROWS_COUNT,
-        "OBJECT_NAME": OBJECT_NAME,
-        "OBJECT_TYPE": OBJECT_TYPE,
-        "OPERATION_TYPE": OPERATION_TYPE,
-        "OPERATION_ID": OPERATION_ID,
-        "ERROR": ERROR,
-        "INFO": INFO,
-    }
-
-    @classmethod
-    def from_name(cls, name: str) -> Column:
-        return cls._dict[name]
+    ERROR_MESSAGE = varchar_column("ERROR_MESSAGE", size=200)
 
     @classmethod
     def all(cls) -> List[Column]:
-        return list(cls._dict.values())
+        atts = (getattr(cls, c) for c in dir(cls))
+        return [c for c in atts if isinstance(c, Column)]
 
 
 def status_query(query: ModifyQuery) -> AuditQuery:
     if query.modifies_row_count:
-        table_name = query.db_object_name.fully_qualified
-        count_query = f"SELECT COUNT(1) AS ROWS_COUNT FROM {table_name}"
-        output_columns = [AuditColumn.ROWS_COUNT]
+        column = AuditColumn.ROWS_COUNT
+        table_name = query.db_object_ref.fully_qualified
+        column_name = column.name.fully_qualified
+        count_query = f"SELECT COUNT(1) AS {column_name} FROM {table_name}"
+        output_columns = [ column ]
     else:
         count_query = "SELECT 1"
         output_columns = []
