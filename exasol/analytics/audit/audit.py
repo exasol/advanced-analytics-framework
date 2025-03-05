@@ -1,3 +1,4 @@
+from inspect import cleandoc
 from typing import List
 
 from exasol.analytics.query_handler.query.select import (
@@ -11,6 +12,8 @@ from exasol.analytics.query_handler.query.select import (
 )
 from exasol.analytics.schema import (
     Column,
+    SchemaName,
+    TableLikeNameImpl,
     TableName,
     decimal_column,
     timestamp_column,
@@ -30,16 +33,18 @@ class TableDescription:
             f"""
             CREATE TABLE IF NOT EXISTS {self.table.fully_qualified} (
               {columns}
+            )
             """
         )
 
 
-class AuditColumn:
+class AuditColumns:
     TIMESTAMP = timestamp_column("LOG_TIMESTAMP", precision=3)
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
     RUN_ID = decimal_column("RUN_ID", precision=20)
     ROWS_COUNT = decimal_column(
-        "ROWS_COUNT", precision=36,
+        "ROWS_COUNT",
+        precision=36,
         comment="use POSIX_TIME(SYSTIMESTAMP()) * 1000",
     )
     QUERY_HANDLER_ID = decimal_column("QUERY_HANDLER_ID", precision=32)
@@ -59,19 +64,40 @@ class AuditColumn:
     OPERATION_ID = decimal_column("OPERATION_ID", precision=36)
     ERROR_MESSAGE = varchar_column("ERROR_MESSAGE", size=200)
 
-    @classmethod
-    def all(cls) -> List[Column]:
-        atts = (getattr(cls, c) for c in dir(cls))
-        return [c for c in atts if isinstance(c, Column)]
+    all = [
+        TIMESTAMP,
+        SESSION_ID,
+        RUN_ID,
+        ROWS_COUNT,
+        QUERY_HANDLER_ID,
+        QUERY_HANDLER_NAME,
+        SPAN_TYPE,
+        SPAN_ID,
+        SPAN_DESCRIPTION,
+        OBJECT_SCHEMA,
+        OBJECT_NAME,
+        OBJECT_TYPE,
+        OPERATION_NAME,
+        OPERATION_ID,
+        ERROR_MESSAGE,
+    ]
+
+
+class AuditTable(TableDescription):
+    def __init__(self, db_schema: str):
+        super().__init__(
+            table=TableLikeNameImpl("AUDIT_LOG", SchemaName(db_schema)),
+            columns=AuditColumns.all,
+        )
 
 
 def status_query(query: ModifyQuery) -> AuditQuery:
     if query.modifies_row_count:
-        column = AuditColumn.ROWS_COUNT
+        column = AuditColumns.ROWS_COUNT
         table_name = query.db_object_ref.fully_qualified
         column_name = column.name.fully_qualified
         count_query = f"SELECT COUNT(1) AS {column_name} FROM {table_name}"
-        output_columns = [ column ]
+        output_columns = [column]
     else:
         count_query = "SELECT 1"
         output_columns = []

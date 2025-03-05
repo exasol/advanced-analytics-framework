@@ -1,5 +1,5 @@
 from exasol.analytics.audit.audit import (
-    AuditColumn,
+    AuditColumns,
     status_query,
 )
 from exasol.analytics.query_handler.query.select import (
@@ -36,8 +36,8 @@ def test_status_query():
     )
     actual = status_query(query)
     assert isinstance(actual, AuditQuery)
-    column = AuditColumn.ROWS_COUNT
-    assert actual.select_with_columns.output_columns == [ column ]
+    column = AuditColumns.ROWS_COUNT
+    assert actual.select_with_columns.output_columns == [column]
     column_name = column.name.fully_qualified
     expected = f"SELECT COUNT(1) AS {column_name} FROM {table_name.fully_qualified}"
     assert actual.query_string == expected
