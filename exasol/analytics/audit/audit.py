@@ -1,6 +1,5 @@
 from typing import List
 
-
 from exasol.analytics.query_handler.query.select import (
     DB_OBJECT_NAME_TAG,
     DB_OBJECT_TYPE_TAG,
