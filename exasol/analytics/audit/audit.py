@@ -19,6 +19,17 @@ from exasol.analytics.schema import (
 
 
 class TableDescription:
+    """
+    This class describes an SQL table by its attributes
+    * table (instance of (TableLikeName)) defining the name and optionally the
+      database schema of the SQL table
+    * columns the names and types of the columns of the SQL table
+
+    The class also offers a property `create` which renders the attributes
+    into an SQL CREATE TABLE statement. The class is tested together with
+    AuditTable in an integration test.
+    """
+
     def __init__(self, table: TableLikeName, columns: List[Column]):
         self.table = table
         self.columns = {c.name.name: c for c in columns}
