@@ -8,12 +8,12 @@ from exasol.analytics.schema import (
 class AuditColumns:
     TIMESTAMP = timestamp_column("LOG_TIMESTAMP", precision=3)
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
-    RUN_ID = decimal_column("RUN_ID", precision=20)
-    ROWS_COUNT = decimal_column(
-        "ROWS_COUNT",
-        precision=36,
+    RUN_ID = decimal_column(
+        "RUN_ID",
+        precision=20,
         comment="use POSIX_TIME(SYSTIMESTAMP()) * 1000",
     )
+    ROWS_COUNT = decimal_column("ROWS_COUNT", precision=36)
     QUERY_HANDLER_ID = decimal_column("QUERY_HANDLER_ID", precision=32)
     QUERY_HANDLER_NAME = varchar_column("QUERY_HANDLER_NAME", size=2000000)
     # QUERY_HANDLER_PHASE: TBC
@@ -52,3 +52,10 @@ class AuditColumns:
         OPERATION_ID,
         ERROR_MESSAGE,
     ]
+
+    # TODO: Add OPERATION_ID
+    basic = {
+        TIMESTAMP.name.name: "SYSTIMESTAMP()",
+        SESSION_ID.name.name: "CURRENT_SESSION",
+        RUN_ID.name.name: "POSIX_TIME(SYSTIMESTAMP(9)) * 1000",
+    }
