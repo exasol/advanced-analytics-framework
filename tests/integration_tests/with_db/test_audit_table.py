@@ -1,10 +1,8 @@
 import pytest
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
-from exasol.analytics.audit.audit import (
-    AuditColumns,
-    AuditTable,
-)
+from exasol.analytics.audit.audit import AuditTable
+from exasol.analytics.audit.columns import AuditColumns
 
 
 @pytest.fixture(scope="session")
