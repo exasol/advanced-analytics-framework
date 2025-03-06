@@ -4,6 +4,7 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 
+
 class AuditColumns:
     TIMESTAMP = timestamp_column("LOG_TIMESTAMP", precision=3)
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
@@ -51,5 +52,3 @@ class AuditColumns:
         OPERATION_ID,
         ERROR_MESSAGE,
     ]
-
-

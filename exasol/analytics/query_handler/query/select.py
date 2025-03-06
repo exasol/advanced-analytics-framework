@@ -18,6 +18,7 @@ DB_OBJECT_NAME_TAG = AuditColumns.OBJECT_NAME.name.name
 DB_OBJECT_TYPE_TAG = AuditColumns.OBJECT_TYPE.name.name
 DB_OPERATION_TYPE_TAG = AuditColumns.OPERATION_NAME.name.name
 
+
 class CustomQuery(Query):
     def __init__(self, query_string: str):
         self._query_string = query_string
