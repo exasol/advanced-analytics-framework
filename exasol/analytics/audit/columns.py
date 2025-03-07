@@ -5,7 +5,7 @@ from exasol.analytics.schema import (
 )
 
 
-class AuditColumns:
+class BaseAuditColumns:
     TIMESTAMP = timestamp_column("LOG_TIMESTAMP", precision=3)
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
     RUN_ID = decimal_column(
