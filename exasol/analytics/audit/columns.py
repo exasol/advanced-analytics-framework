@@ -49,11 +49,9 @@ class BaseAuditColumns:
         OBJECT_NAME,
         OBJECT_TYPE,
         OPERATION_NAME,
-        OPERATION_ID,
         ERROR_MESSAGE,
     ]
 
-    # TODO: Add OPERATION_ID
     basic = {
         TIMESTAMP.name.name: "SYSTIMESTAMP()",
         SESSION_ID.name.name: "CURRENT_SESSION",
