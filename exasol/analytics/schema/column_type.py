@@ -26,6 +26,8 @@ class ColumnType:
         name = self.name.upper()
 
         def args() -> Iterator[Any]:
+            if name == "TIMESTAMP":
+                yield self.precision
             if name == "VARCHAR":
                 yield self.size
             elif name == "DECIMAL":
