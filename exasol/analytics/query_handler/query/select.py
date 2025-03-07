@@ -131,11 +131,11 @@ class ModifyQuery(CustomQuery, AuditData):
 
     @property
     def db_object_name(self) -> str:
-        return self.db_object_ref.name
+        return self._db_object_ref.name
 
     @property
     def db_object_schema(self) -> Optional[str]:
-        schema = self.db_object_ref.schema_name
+        schema = self._db_object_ref.schema_name
         return schema.name if schema else None
 
     @property
