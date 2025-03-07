@@ -112,7 +112,7 @@ class ModifyQuery(CustomQuery, AuditData):
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.db_object_ref = db_object_ref
+        self._db_object_ref = db_object_ref
         self.audit_fields[DB_OBJECT_SCHEMA_TAG] = (
             db_object_ref.schema_name.name if db_object_ref.schema_name else None
         )
