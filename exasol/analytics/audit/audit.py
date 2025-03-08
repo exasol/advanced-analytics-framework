@@ -1,7 +1,7 @@
 from inspect import cleandoc
 from typing import List
 
-from exasol.analytics.audit.columns import AuditColumns
+from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     ModifyQuery,
@@ -50,13 +50,13 @@ class AuditTable(TableDescription):
     def __init__(self, db_schema: str):
         super().__init__(
             table=TableLikeNameImpl("AUDIT_LOG", SchemaName(db_schema)),
-            columns=AuditColumns.all,
+            columns=BaseAuditColumns.all,
         )
 
 
 def status_query(query: ModifyQuery) -> AuditQuery:
     if query.modifies_row_count:
-        column = AuditColumns.ROWS_COUNT
+        column = BaseAuditColumns.ROWS_COUNT
         table_name = query.db_object_ref.fully_qualified
         column_name = column.name.fully_qualified
         count_query = f"SELECT COUNT(1) AS {column_name} FROM {table_name}"

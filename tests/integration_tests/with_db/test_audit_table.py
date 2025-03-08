@@ -2,7 +2,7 @@ import pytest
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
 from exasol.analytics.audit.audit import AuditTable
-from exasol.analytics.audit.columns import AuditColumns
+from exasol.analytics.audit.columns import BaseAuditColumns
 
 
 @pytest.fixture(scope="session")
@@ -18,5 +18,5 @@ def test_create_audit_table(pyexasol_connection, db_schema):
         f"DESCRIBE {audit_table.table.fully_qualified}"
     ).fetchall()
     names = [c[0] for c in columns]
-    for c in AuditColumns.all:
+    for c in BaseAuditColumns.all:
         assert c.name.name in names

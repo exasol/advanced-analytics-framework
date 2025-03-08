@@ -4,7 +4,7 @@ from typing import (
     Optional,
 )
 
-from exasol.analytics.audit.columns import AuditColumns
+from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
@@ -13,10 +13,10 @@ from exasol.analytics.schema import (
     DbOperationType,
 )
 
-DB_OBJECT_SCHEMA_TAG = AuditColumns.OBJECT_SCHEMA.name.name
-DB_OBJECT_NAME_TAG = AuditColumns.OBJECT_NAME.name.name
-DB_OBJECT_TYPE_TAG = AuditColumns.OBJECT_TYPE.name.name
-DB_OPERATION_TYPE_TAG = AuditColumns.OPERATION_NAME.name.name
+DB_OBJECT_SCHEMA_TAG = BaseAuditColumns.OBJECT_SCHEMA.name.name
+DB_OBJECT_NAME_TAG = BaseAuditColumns.OBJECT_NAME.name.name
+DB_OBJECT_TYPE_TAG = BaseAuditColumns.OBJECT_TYPE.name.name
+DB_OPERATION_TYPE_TAG = BaseAuditColumns.OPERATION_NAME.name.name
 
 
 class CustomQuery(Query):
