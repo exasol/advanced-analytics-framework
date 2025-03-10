@@ -32,7 +32,6 @@ class BaseAuditColumns:
     )
     OBJECT_TYPE = varchar_column("DB_OBJECT_TYPE", size=128)
     OPERATION_NAME = varchar_column("DB_OPERATION_TYPE", size=128)
-    OPERATION_ID = decimal_column("OPERATION_ID", precision=36)
     ERROR_MESSAGE = varchar_column("ERROR_MESSAGE", size=200)
 
     all = [
@@ -52,7 +51,8 @@ class BaseAuditColumns:
         ERROR_MESSAGE,
     ]
 
-    basic = {
+    # TODO: Add SPAN_ID
+    values = {
         TIMESTAMP.name.name: "SYSTIMESTAMP()",
         SESSION_ID.name.name: "CURRENT_SESSION",
         RUN_ID.name.name: "POSIX_TIME(SYSTIMESTAMP(9)) * 1000",

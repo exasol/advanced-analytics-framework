@@ -1,9 +1,20 @@
 import pytest
+from typing import Iterator, List
+from dataclasses import dataclass
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
-from exasol.analytics.audit.audit import AuditTable
+from exasol.analytics.audit.audit import (
+    AuditTable,
+    TableDescription,
+)
 from exasol.analytics.audit.columns import BaseAuditColumns
 
+from exasol.analytics.schema import (
+    SchemaName,
+    TableLikeNameImpl,
+    varchar_column,
+    decimal_column,
+)
 
 @pytest.fixture(scope="session")
 def db_schema(pyexasol_connection):
@@ -11,12 +22,80 @@ def db_schema(pyexasol_connection):
         yield db_schema
 
 
-def test_create_audit_table(pyexasol_connection, db_schema):
-    audit_table = AuditTable(db_schema)
-    pyexasol_connection.execute(audit_table.create)
-    columns = pyexasol_connection.execute(
-        f"DESCRIBE {audit_table.table.fully_qualified}"
-    ).fetchall()
-    names = [c[0] for c in columns]
-    for c in BaseAuditColumns.all:
-        assert c.name.name in names
+import os
+import pyexasol
+from typing import Optional
+
+def exasol_db_connection(
+    host: Optional[str] = None,
+    port: Optional[int] = 8563,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+) -> pyexasol.ExaConnection:
+    """ See also ~/git/gha/github_issue_adapter/adapter/sql.py """
+    host = host or os.getenv("EXASOL_HOST")
+    user = user or os.getenv("EXASOL_USER")
+    password = password or os.getenv("EXASOL_PASS")
+    print(f'Connecting to {host}:{port} with user "{user}"')
+    connection = pyexasol.connect(
+        dsn=f"{host}:{port}",
+        user=user,
+        password=password,
+    )
+    # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
+    return connection
+
+
+import pytest
+@pytest.fixture(scope="session")
+def pyexasol_connection():
+    return exasol_db_connection()
+
+
+@dataclass
+class ExaAllColumns:
+    connection: pyexasol.ExaConnection
+    schema: str
+
+    def query(self, table_name: str) -> dict[str, str]:
+        raw = self.connection.execute(
+            "SELECT COLUMN_NAME, COLUMN_TYPE FROM EXA_ALL_COLUMNS"
+            f" WHERE COLUMN_SCHEMA='{self.schema}'"
+            f" AND COLUMN_TABLE='{table_name}'"
+        ).fetchall()
+        return {c[0]: c[1] for c in raw}
+
+
+@pytest.fixture
+def exa_all_columns(pyexasol_connection, db_schema):
+    return ExaAllColumns(pyexasol_connection, db_schema)
+
+
+def test_create_table(pyexasol_connection, db_schema, exa_all_columns):
+    columns = [
+        varchar_column("NAME", size=20),
+        decimal_column("AGE", precision=3),
+    ]
+    table = TableDescription(
+        table=TableLikeNameImpl("SAMPLE", SchemaName(db_schema)),
+        columns=columns,
+    )
+    pyexasol_connection.execute(table.render_create)
+    actual = exa_all_columns.query(table_name="SAMPLE")
+    expected = {c.name.name: c.type.rendered for c in columns}
+    assert actual == expected
+
+
+def test_create_audit_table(pyexasol_connection, db_schema, exa_all_columns):
+    additional_columns = [
+        varchar_column("NAME", size=20),
+        decimal_column("AGE", precision=3),
+    ]
+    audit_table = AuditTable(db_schema, "pfx", additional_columns)
+    pyexasol_connection.execute(audit_table.render_create)
+    actual = exa_all_columns.query(audit_table.table.name)
+    expected = {
+        c.name.name: c.type.rendered
+        for c in (BaseAuditColumns.all + additional_columns)
+    }
+    assert actual == expected
