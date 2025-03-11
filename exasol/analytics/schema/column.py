@@ -51,5 +51,5 @@ def varchar_column(
             "VARCHAR",
             size=size,
             characterSet=characterSet,
-        )
+        ),
     )

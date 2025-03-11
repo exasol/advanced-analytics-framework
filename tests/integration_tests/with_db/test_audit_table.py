@@ -1,6 +1,6 @@
-import pytest
-from typing import Iterator, List
 from dataclasses import dataclass
+
+import pytest
 from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
 from exasol.analytics.audit.audit import (
@@ -8,48 +8,18 @@ from exasol.analytics.audit.audit import (
     TableDescription,
 )
 from exasol.analytics.audit.columns import BaseAuditColumns
-
 from exasol.analytics.schema import (
     SchemaName,
     TableLikeNameImpl,
-    varchar_column,
     decimal_column,
+    varchar_column,
 )
+
 
 @pytest.fixture(scope="session")
 def db_schema(pyexasol_connection):
     with temp_schema(pyexasol_connection) as db_schema:
         yield db_schema
-
-
-import os
-import pyexasol
-from typing import Optional
-
-def exasol_db_connection(
-    host: Optional[str] = None,
-    port: Optional[int] = 8563,
-    user: Optional[str] = None,
-    password: Optional[str] = None,
-) -> pyexasol.ExaConnection:
-    """ See also ~/git/gha/github_issue_adapter/adapter/sql.py """
-    host = host or os.getenv("EXASOL_HOST")
-    user = user or os.getenv("EXASOL_USER")
-    password = password or os.getenv("EXASOL_PASS")
-    print(f'Connecting to {host}:{port} with user "{user}"')
-    connection = pyexasol.connect(
-        dsn=f"{host}:{port}",
-        user=user,
-        password=password,
-    )
-    # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
-    return connection
-
-
-import pytest
-@pytest.fixture(scope="session")
-def pyexasol_connection():
-    return exasol_db_connection()
 
 
 @dataclass
