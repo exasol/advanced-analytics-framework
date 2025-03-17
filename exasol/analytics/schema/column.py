@@ -25,7 +25,6 @@ def decimal_column(
     name: str,
     precision: Optional[int] = None,
     scale: Optional[int] = 0,
-    comment: Optional[str] = None,
 ) -> Column:
     type = ColumnType("DECIMAL", precision=precision, scale=scale)
     return Column(ColumnName(name), type)
@@ -34,7 +33,6 @@ def decimal_column(
 def timestamp_column(
     name: str,
     precision: Optional[int] = None,
-    comment: Optional[str] = None,
 ) -> Column:
     return Column(ColumnName(name), ColumnType("TIMESTAMP", precision=precision))
 
@@ -43,7 +41,6 @@ def varchar_column(
     name: str,
     size: int,
     characterSet: str = "UTF8",
-    comment: Optional[str] = None,
 ) -> Column:
     return Column(
         ColumnName(name),

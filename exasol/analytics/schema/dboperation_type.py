@@ -4,7 +4,8 @@ from enum import (
 )
 
 
-class DbOperationType(Enum):
+# class DbOperationType(Enum):
+class DbSpanType(Enum):
     CREATE = auto()
     CREATE_OR_REPLACE = auto()
     CREATE_IF_NOT_EXISTS = auto()

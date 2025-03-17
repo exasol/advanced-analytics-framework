@@ -21,7 +21,7 @@ from exasol.analytics.schema.dbobject_name_with_schema_impl import (
     DBObjectNameWithSchemaImpl,
 )
 from exasol.analytics.schema.dbobject_type import DbObjectType
-from exasol.analytics.schema.dboperation_type import DbOperationType
+from exasol.analytics.schema.dboperation_type import DbSpanType
 from exasol.analytics.schema.exasol_identifier import ExasolIdentifier
 from exasol.analytics.schema.exasol_identifier_impl import (
     ExasolIdentifierImpl,

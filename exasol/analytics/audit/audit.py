@@ -2,19 +2,11 @@ from inspect import cleandoc
 from typing import List
 
 from exasol.analytics.audit.columns import BaseAuditColumns
-from exasol.analytics.query_handler.query.select import (
-    AuditQuery,
-    ModifyQuery,
-    SelectQueryWithColumnDefinition,
-)
 from exasol.analytics.schema import (
     Column,
     SchemaName,
     TableLikeName,
     TableLikeNameImpl,
-    decimal_column,
-    timestamp_column,
-    varchar_column,
 )
 
 
@@ -57,23 +49,3 @@ class AuditTable(TableDescription):
             table=TableLikeNameImpl(table_name, SchemaName(db_schema)),
             columns=(BaseAuditColumns.all + additional_columns),
         )
-
-
-def status_query(query: ModifyQuery) -> AuditQuery:
-    if query.modifies_row_count:
-        column = BaseAuditColumns.ROWS_COUNT
-        table_name = query.db_object_ref.fully_qualified
-        column_name = column.name.fully_qualified
-        count_query = f"SELECT COUNT(1) AS {column_name} FROM {table_name}"
-        output_columns = [column]
-    else:
-        count_query = "SELECT 1"
-        output_columns = []
-    select_query = SelectQueryWithColumnDefinition(
-        query_string=count_query,
-        output_columns=output_columns,
-    )
-    return AuditQuery(
-        select_with_columns=select_query,
-        audit_fields=query.audit_fields,
-    )

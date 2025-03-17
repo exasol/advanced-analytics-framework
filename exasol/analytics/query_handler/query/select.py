@@ -8,15 +8,10 @@ from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
-    DBObjectNameWithSchema,
+    DBObjectName,
     DbObjectType,
-    DbOperationType,
+    DbSpanType,
 )
-
-DB_OBJECT_SCHEMA_TAG = BaseAuditColumns.OBJECT_SCHEMA.name.name
-DB_OBJECT_NAME_TAG = BaseAuditColumns.OBJECT_NAME.name.name
-DB_OBJECT_TYPE_TAG = BaseAuditColumns.OBJECT_TYPE.name.name
-DB_OPERATION_TYPE_TAG = BaseAuditColumns.OPERATION_NAME.name.name
 
 
 class CustomQuery(Query):
@@ -104,63 +99,47 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        db_object_ref: DBObjectNameWithSchema,
-        db_object_type: DbObjectType | str,
-        db_operation_type: DbOperationType | str,
+        db_object_type: DbObjectType,
+        db_object_name: DBObjectName,
+        db_span_type: DbSpanType,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self._db_object_ref = db_object_ref
-        self.audit_fields[DB_OBJECT_SCHEMA_TAG] = (
-            db_object_ref.schema_name.name if db_object_ref.schema_name else None
-        )
-        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_ref.name
-        self.audit_fields[DB_OBJECT_TYPE_TAG] = (
-            db_object_type.name
-            if isinstance(db_object_type, DbObjectType)
-            else db_object_type
-        )
-        self.audit_fields[DB_OPERATION_TYPE_TAG] = (
-            db_operation_type.name
-            if isinstance(db_operation_type, DbOperationType)
-            else db_operation_type
-        )
+        self._db_object_type = db_object_type
+        self._db_object_name = db_object_name
+        self._db_span_type = db_span_type
         self._audit = audit
 
     @property
-    def db_object_name(self) -> str:
-        return self._db_object_ref.name
+    def db_object_type(self) -> DbObjectType:
+        return self._db_object_type
 
     @property
-    def db_object_schema(self) -> Optional[str]:
-        schema = self._db_object_ref.schema_name
-        return schema.name if schema else None
+    def db_object_name(self) -> DBObjectName:
+        return self._db_object_name
 
     @property
-    def db_object_type(self) -> str:
-        return self.audit_fields[DB_OBJECT_TYPE_TAG]
-
-    @property
-    def db_operation_type(self) -> str:
-        return self.audit_fields[DB_OPERATION_TYPE_TAG]
+    def db_span_type(self) -> DbSpanType:
+        return self._db_span_type
 
     @property
     def modifies_row_count(self) -> bool:
         """
         This property tells, whether the current ModifyQuery potentially
         modifies the row count of a table. This is only relevant if the
-        ModifyQuery modifies a DbObjectType TABLE and uses a DbOperationType
+        ModifyQuery modifies a DbObjectType TABLE and uses a DbSpanType
         from the list named below, e.g. INSERT.
         """
-        return (self.db_object_type == "TABLE") and (
-            self.db_operation_type
+        return (self.db_object_type == DbObjectType.TABLE) and (
+            self.db_span_type
             in [
-                "INSERT",
-                "CREATE",
-                "CREATE_OR_REPLACE",
-                "CREATE_IF_NOT_EXISTS",
+                DbSpanType.CREATE,
+                DbSpanType.CREATE_OR_REPLACE,
+                DbSpanType.CREATE_IF_NOT_EXISTS,
+                DbSpanType.DROP,
+                DbSpanType.INSERT,
             ]
         )
 

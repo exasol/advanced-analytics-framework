@@ -16,7 +16,7 @@ class ColumnType:
     precision: Optional[int] = None
     scale: Optional[int] = None
     size: Optional[int] = None
-    characterSet: Optional[str] = None
+    characterSet: str = "UTF8"
     withLocalTimeZone: Optional[bool] = None
     fraction: Optional[int] = None
     srid: Optional[int] = None
