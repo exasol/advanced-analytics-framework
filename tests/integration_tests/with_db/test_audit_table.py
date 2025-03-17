@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import pyexasol
 
 import pytest
 from exasol.python_extension_common.deployment.temp_schema import temp_schema

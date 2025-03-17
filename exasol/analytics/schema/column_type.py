@@ -16,7 +16,7 @@ class ColumnType:
     precision: Optional[int] = None
     scale: Optional[int] = None
     size: Optional[int] = None
-    characterSet: str = "UTF8"
+    characterSet: Optional[str] = None
     withLocalTimeZone: Optional[bool] = None
     fraction: Optional[int] = None
     srid: Optional[int] = None
@@ -41,7 +41,7 @@ class ColumnType:
             if infix:
                 yield f"({infix})"
             if name == "VARCHAR":
-                yield f" {self.characterSet}"
+                yield f' {self.characterSet or "UTF8"}'
 
         return "".join(elements())
 
