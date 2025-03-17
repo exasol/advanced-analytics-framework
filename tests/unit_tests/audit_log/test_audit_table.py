@@ -11,8 +11,6 @@ def test_init():
         decimal_column("AGE", precision=3),
     ]
     audit_table = AuditTable("my_schema", "pfx", additional_columns)
-    assert audit_table.table.schema_name.name == "my_schema"
-    assert audit_table.table.name.startswith("pfx_")
-    assert additional_columns == [
-        audit_table.columns[c.name.name] for c in additional_columns
-    ]
+    assert audit_table.name.schema_name.name == "my_schema"
+    assert audit_table.name.name.startswith("pfx_")
+    assert set(additional_columns) <= set(audit_table.columns)
