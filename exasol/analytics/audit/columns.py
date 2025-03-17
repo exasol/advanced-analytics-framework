@@ -14,7 +14,7 @@ class BaseAuditColumns:
     # Proposed value: POSIX_TIME(SYSTIMESTAMP(9)) * 1000
     RUN_ID = decimal_column("RUN_ID", precision=20)
     ROWS_COUNT = decimal_column("ROWS_COUNT", precision=36)
-    # For ModifyQuery SPAN_TYPE is the Operation Name, e.g.
+    # For ModifyQuery SPAN_TYPE will be set to the Operation Type, e.g.
     # CREATE_TABLE, INSERT, ERROR, COMMIT, CUSTOM:
     SPAN_TYPE = varchar_column("SPAN_TYPE", size=128)
     # SPAN_ID needs to be generated and provided by the creator of the

@@ -10,7 +10,7 @@ from exasol.analytics.schema import (
     Column,
     DBObjectName,
     DbObjectType,
-    DbSpanType,
+    DbOperationType,
 )
 
 
@@ -101,7 +101,7 @@ class ModifyQuery(CustomQuery, AuditData):
         query_string: str,
         db_object_type: DbObjectType,
         db_object_name: DBObjectName,
-        db_span_type: DbSpanType,
+        db_operation_type: DbOperationType,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
     ):
@@ -109,7 +109,7 @@ class ModifyQuery(CustomQuery, AuditData):
         AuditData.__init__(self, audit_fields)
         self._db_object_type = db_object_type
         self._db_object_name = db_object_name
-        self._db_span_type = db_span_type
+        self._db_operation_type = db_operation_type
         self._audit = audit
 
     @property
@@ -121,25 +121,25 @@ class ModifyQuery(CustomQuery, AuditData):
         return self._db_object_name
 
     @property
-    def db_span_type(self) -> DbSpanType:
-        return self._db_span_type
+    def db_operation_type(self) -> DbOperationType:
+        return self._db_operation_type
 
     @property
     def modifies_row_count(self) -> bool:
         """
         This property tells, whether the current ModifyQuery potentially
         modifies the row count of a table. This is only relevant if the
-        ModifyQuery modifies a DbObjectType TABLE and uses a DbSpanType
+        ModifyQuery modifies a DbObjectType TABLE and uses a DbOperationType
         from the list named below, e.g. INSERT.
         """
         return (self.db_object_type == DbObjectType.TABLE) and (
-            self.db_span_type
+            self.db_operation_type
             in [
-                DbSpanType.CREATE,
-                DbSpanType.CREATE_OR_REPLACE,
-                DbSpanType.CREATE_IF_NOT_EXISTS,
-                DbSpanType.DROP,
-                DbSpanType.INSERT,
+                DbOperationType.CREATE,
+                DbOperationType.CREATE_OR_REPLACE,
+                DbOperationType.CREATE_IF_NOT_EXISTS,
+                DbOperationType.DROP,
+                DbOperationType.INSERT,
             ]
         )
 

@@ -7,7 +7,7 @@ from exasol.analytics.query_handler.query.select import (
 )
 from exasol.analytics.schema import (
     DbObjectType,
-    DbSpanType,
+    DbOperationType,
     SchemaName,
     TableLikeNameImpl,
 )
@@ -27,36 +27,36 @@ def test_modify_query():
         query,
         db_object_type=DbObjectType.TABLE,
         db_object_name=db_object_name,
-        db_span_type=DbSpanType.CREATE,
+        db_operation_type=DbOperationType.CREATE,
         audit_fields=audit_fields,
     )
     assert testee.query_string == query
     assert testee.db_object_name == db_object_name
     assert testee.db_object_type == DbObjectType.TABLE
-    assert testee.db_span_type == DbSpanType.CREATE
+    assert testee.db_operation_type == DbOperationType.CREATE
     assert testee.audit_fields == audit_fields
 
 
 @pytest.mark.parametrize(
-    "db_object_type, db_span_type, expected_modifies",
+    "db_object_type, db_operation_type, expected_modifies",
     [
-        (DbObjectType.TABLE, DbSpanType.INSERT, True),
-        (DbObjectType.TABLE, DbSpanType.CREATE, True),
-        (DbObjectType.TABLE, DbSpanType.CREATE_OR_REPLACE, True),
-        (DbObjectType.TABLE, DbSpanType.CREATE_IF_NOT_EXISTS, True),
-        (DbObjectType.TABLE, DbSpanType.UPDATE, False),
-        (DbObjectType.SCHEMA, DbSpanType.INSERT, False),
+        (DbObjectType.TABLE, DbOperationType.INSERT, True),
+        (DbObjectType.TABLE, DbOperationType.CREATE, True),
+        (DbObjectType.TABLE, DbOperationType.CREATE_OR_REPLACE, True),
+        (DbObjectType.TABLE, DbOperationType.CREATE_IF_NOT_EXISTS, True),
+        (DbObjectType.TABLE, DbOperationType.UPDATE, False),
+        (DbObjectType.SCHEMA, DbOperationType.INSERT, False),
     ],
 )
 def test_query_modifies_row_count(
     db_object_type: DbObjectType,
-    db_span_type: DbSpanType,
+    db_operation_type: DbOperationType,
     expected_modifies,
 ):
     query = ModifyQuery(
         "SELECT 1",
         db_object_name=TableLikeNameImpl("a_table"),
         db_object_type=db_object_type,
-        db_span_type=db_span_type,
+        db_operation_type=db_operation_type,
     )
     assert query.modifies_row_count == expected_modifies
