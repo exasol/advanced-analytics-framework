@@ -4,7 +4,7 @@ from exasol.analytics.schema import Column
 
 def test_docstring():
     attributes = dir(BaseAuditColumns)
-    assert "ROWS_COUNT" in attributes
+    assert "ROW_COUNT" in attributes
     assert "OBJECT_NAME" in attributes
 
 
