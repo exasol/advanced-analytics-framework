@@ -13,7 +13,6 @@ class BaseAuditColumns:
     # task is to get the RUN_ID.
     # Proposed value: POSIX_TIME(SYSTIMESTAMP(9)) * 1000
     RUN_ID = decimal_column("RUN_ID", precision=20)
-
     ROW_COUNT = decimal_column("ROW_COUNT", precision=36)
     # SPAN_NAME and SPAN_ID need to be generated and provided by the creator
     # of the AuditQuery, i.e. lower level query_handlers.
@@ -41,10 +40,10 @@ class BaseAuditColumns:
         SESSION_ID,
         RUN_ID,
         ROW_COUNT,
-        EVENT_NAME,
         SPAN_NAME,
         SPAN_ID,
         PARENT_SPAN_ID,
+        EVENT_NAME,
         EVENT_ATTRIBUTES,
         OBJECT_SCHEMA,
         OBJECT_NAME,
