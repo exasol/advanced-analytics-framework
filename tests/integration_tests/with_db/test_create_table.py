@@ -6,6 +6,7 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 
+
 def test_create_table(pyexasol_connection, db_schema, exa_all_columns):
     columns = [
         varchar_column("NAME", size=20),

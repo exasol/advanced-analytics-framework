@@ -1,11 +1,12 @@
-import pytest
 from dataclasses import dataclass
+
 import pyexasol
-from exasol.python_extension_common.deployment.temp_schema import temp_schema
+import pytest
 from exasol.python_extension_common.deployment.language_container_builder import (
     LanguageContainerBuilder,
     find_path_backwards,
 )
+from exasol.python_extension_common.deployment.temp_schema import temp_schema
 
 from exasol.analytics.query_handler.deployment.slc import (
     LANGUAGE_ALIAS,
