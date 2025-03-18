@@ -231,14 +231,16 @@ def test_hash_inequality_table():
 @pytest.mark.parametrize(
     "column_type, expected",
     [
-        (ColumnType("VARCHAR"), "VARCHAR"),
-        (ColumnType("VARCHAR", size=2), "VARCHAR(2)"),
+        (ColumnType("VARCHAR"), "VARCHAR UTF8"),
+        (ColumnType("VARCHAR", size=2), "VARCHAR(2) UTF8"),
+        (ColumnType("VARCHAR", size=2, characterSet="ASCII"), "VARCHAR(2) ASCII"),
         (ColumnType("DECIMAL"), "DECIMAL"),
         (ColumnType("DECIMAL", precision=20), "DECIMAL(20)"),
         (ColumnType("DECIMAL", precision=20, scale=2), "DECIMAL(20,2)"),
         (ColumnType("DECIMAL", precision=20, scale=0), "DECIMAL(20,0)"),
         (ColumnType("DECIMAL", scale=2), "DECIMAL"),
         (ColumnType("TIMESTAMP"), "TIMESTAMP"),
+        (ColumnType("TIMESTAMP", precision=2), "TIMESTAMP(2)"),
     ],
 )
 def test_rendered(column_type, expected):

@@ -1,3 +1,4 @@
+from inspect import cleandoc
 from typing import List
 
 from typeguard import typechecked
@@ -12,3 +13,14 @@ class Table(TableLike[TableName]):
     @typechecked
     def __init__(self, name: TableName, columns: List[Column]):
         super().__init__(name, columns)
+
+    @property
+    def create_statement(self):
+        columns = ",\n  ".join(c.for_create for c in self.columns)
+        return cleandoc(
+            f"""
+            CREATE TABLE IF NOT EXISTS {self.name.fully_qualified} (
+              {columns}
+            )
+            """
+        )

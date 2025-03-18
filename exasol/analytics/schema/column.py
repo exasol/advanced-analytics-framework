@@ -24,15 +24,29 @@ class Column:
 def decimal_column(
     name: str,
     precision: Optional[int] = None,
-    scale: Optional[int] = None,
+    scale: Optional[int] = 0,
 ) -> Column:
     type = ColumnType("DECIMAL", precision=precision, scale=scale)
     return Column(ColumnName(name), type)
 
 
-def timestamp_column(name: str) -> Column:
-    return Column(ColumnName(name), ColumnType("TIMESTAMP"))
+def timestamp_column(
+    name: str,
+    precision: Optional[int] = None,
+) -> Column:
+    return Column(ColumnName(name), ColumnType("TIMESTAMP", precision=precision))
 
 
-def varchar_column(name: str, size: int) -> Column:
-    return Column(ColumnName(name), ColumnType("VARCHAR", size=size))
+def varchar_column(
+    name: str,
+    size: int,
+    characterSet: str = "UTF8",
+) -> Column:
+    return Column(
+        ColumnName(name),
+        ColumnType(
+            "VARCHAR",
+            size=size,
+            characterSet=characterSet,
+        ),
+    )

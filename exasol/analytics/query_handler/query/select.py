@@ -1,8 +1,10 @@
 from typing import (
     Any,
     List,
+    Optional,
 )
 
+from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,
@@ -10,10 +12,6 @@ from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
 )
-
-DB_OBJECT_NAME_TAG = "DB_OBJECT_NAME"
-DB_OBJECT_TYPE_TAG = "DB_OBJECT_TYPE"
-DB_OPERATION_TYPE_TAG = "DB_OPERATION_TYPE"
 
 
 class CustomQuery(Query):
@@ -101,40 +99,30 @@ class ModifyQuery(CustomQuery, AuditData):
     def __init__(
         self,
         query_string: str,
-        # Using DBObjectName instead of str, because counting rows of the modified table
-        # requires to use fully_qualified
+        db_object_type: DbObjectType,
         db_object_name: DBObjectName,
-        db_object_type: DbObjectType | str,
-        db_operation_type: DbOperationType | str,
+        db_operation_type: DbOperationType,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
-        self.audit_fields[DB_OBJECT_NAME_TAG] = db_object_name
-        self.audit_fields[DB_OBJECT_TYPE_TAG] = (
-            db_object_type.name
-            if isinstance(db_object_type, DbObjectType)
-            else db_object_type
-        )
-        self.audit_fields[DB_OPERATION_TYPE_TAG] = (
-            db_operation_type.name
-            if isinstance(db_operation_type, DbOperationType)
-            else db_operation_type
-        )
+        self._db_object_type = db_object_type
+        self._db_object_name = db_object_name
+        self._db_operation_type = db_operation_type
         self._audit = audit
 
     @property
+    def db_object_type(self) -> DbObjectType:
+        return self._db_object_type
+
+    @property
     def db_object_name(self) -> DBObjectName:
-        return self.audit_fields[DB_OBJECT_NAME_TAG]
+        return self._db_object_name
 
     @property
-    def db_object_type(self) -> str:
-        return self.audit_fields[DB_OBJECT_TYPE_TAG]
-
-    @property
-    def db_operation_type(self) -> str:
-        return self.audit_fields[DB_OPERATION_TYPE_TAG]
+    def db_operation_type(self) -> DbOperationType:
+        return self._db_operation_type
 
     @property
     def modifies_row_count(self) -> bool:
@@ -144,13 +132,14 @@ class ModifyQuery(CustomQuery, AuditData):
         ModifyQuery modifies a DbObjectType TABLE and uses a DbOperationType
         from the list named below, e.g. INSERT.
         """
-        return (self.db_object_type == "TABLE") and (
+        return (self.db_object_type == DbObjectType.TABLE) and (
             self.db_operation_type
             in [
-                "INSERT",
-                "CREATE",
-                "CREATE_OR_REPLACE",
-                "CREATE_IF_NOT_EXISTS",
+                DbOperationType.CREATE,
+                DbOperationType.CREATE_OR_REPLACE,
+                DbOperationType.CREATE_IF_NOT_EXISTS,
+                DbOperationType.DROP,
+                DbOperationType.INSERT,
             ]
         )
 
