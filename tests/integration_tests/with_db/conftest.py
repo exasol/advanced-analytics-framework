@@ -1,4 +1,7 @@
 import pytest
+from dataclasses import dataclass
+import pyexasol
+from exasol.python_extension_common.deployment.temp_schema import temp_schema
 from exasol.python_extension_common.deployment.language_container_builder import (
     LanguageContainerBuilder,
     find_path_backwards,
@@ -34,3 +37,28 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
             yield builder
     else:
         yield None
+
+
+@pytest.fixture(scope="session")
+def db_schema(pyexasol_connection):
+    with temp_schema(pyexasol_connection) as db_schema:
+        yield db_schema
+
+
+@dataclass
+class ExaAllColumns:
+    connection: pyexasol.ExaConnection
+    schema: str
+
+    def query(self, table_name: str) -> dict[str, str]:
+        raw = self.connection.execute(
+            "SELECT COLUMN_NAME, COLUMN_TYPE FROM EXA_ALL_COLUMNS"
+            f" WHERE COLUMN_SCHEMA='{self.schema}'"
+            f" AND COLUMN_TABLE='{table_name}'"
+        ).fetchall()
+        return {c[0]: c[1] for c in raw}
+
+
+@pytest.fixture
+def exa_all_columns(pyexasol_connection, db_schema):
+    return ExaAllColumns(pyexasol_connection, db_schema)
