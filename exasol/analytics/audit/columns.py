@@ -14,13 +14,16 @@ class BaseAuditColumns:
     # Proposed value: POSIX_TIME(SYSTIMESTAMP(9)) * 1000
     RUN_ID = decimal_column("RUN_ID", precision=20)
     ROWS_COUNT = decimal_column("ROWS_COUNT", precision=36)
-    # For ModifyQuery EVENT_TYPE will be set to the Operation Type, e.g.
-    # CREATE_TABLE, INSERT, ERROR, COMMIT, CUSTOM:
+    # For ModifyQuery EVENT_TYPE will be set to the Operation Type, optionally
+    # prefixed by "Before " or "After ". Sample values
+    # "Before CREATE_TABLE", "After CREATE_TABLE",
+    # "Before INSERT", "After INSERT",
+    # ERROR, COMMIT, CUSTOM:
     EVENT_TYPE = varchar_column("EVENT_TYPE", size=128)
-    # EVENT_ID needs to be generated and provided by the creator of the
+    # SPAN_ID needs to be generated and provided by the creator of the
     # AuditQuery, i.e. lower level query_handlers.
-    EVENT_ID = decimal_column("EVENT_ID", precision=32)
-    PARENT_EVENT_ID = decimal_column("PARENT_EVENT_ID", precision=32)
+    SPAN_ID = decimal_column("SPAN_ID", precision=32)
+    PARENT_SPAN_ID = decimal_column("PARENT_SPAN_ID", precision=32)
     EVENT_DESCRIPTION = varchar_column("EVENT_DESCRIPTION", size=2000000)
     OBJECT_TYPE = varchar_column("DB_OBJECT_TYPE", size=128)
     # Optional, can be NULL:
@@ -35,8 +38,8 @@ class BaseAuditColumns:
         RUN_ID,
         ROWS_COUNT,
         EVENT_TYPE,
-        EVENT_ID,
-        PARENT_EVENT_ID,
+        SPAN_ID,
+        PARENT_SPAN_ID,
         EVENT_DESCRIPTION,
         OBJECT_SCHEMA,
         OBJECT_NAME,
