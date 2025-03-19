@@ -12,7 +12,7 @@ class InsertStatement:
     Columns and values for creating an SQL INSERT statement.
     """
 
-    def __init__(self, columns: list[Column], separator: str = ",\n  "):
+    def __init__(self, columns: list[Column], separator: str = ", "):
         self._lookup = {c.name.name: c.name for c in columns}
         self._separator = separator
         self._columns: list[ColumnName] = []
@@ -25,6 +25,9 @@ class InsertStatement:
         Columns are sorted by name and looked up in attribute `_lookup`.
         Values are quoted according to parameter `quote_values` and wrt. their
         data type.
+
+        Setting `quote_values` to `False` is required when using SQL scalar
+        functions, e.g. `CURRENT_SESSION` or `CURRENT_TIMESTAMP`.
         """
 
         def col_val(name: str) -> str:
