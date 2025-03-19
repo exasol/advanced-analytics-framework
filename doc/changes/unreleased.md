@@ -5,6 +5,7 @@
 * #255: Added means for a Query Handler to pass information to the audit log.
 * #259: Enhanced Schema classes
 * #262: Added initial definition for Audit Columns
+* #266: Created Insert Statement Formatter
 
 ## Refactorings
 

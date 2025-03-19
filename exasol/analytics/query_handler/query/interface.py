@@ -13,3 +13,7 @@ class Query(abc.ABC):
 
     def __repr__(self):
         return generate_repr_for_object(self)
+
+    @property
+    def audit(self) -> bool:
+        return False

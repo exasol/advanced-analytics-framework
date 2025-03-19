@@ -45,3 +45,4 @@ from exasol.analytics.schema.view import View
 from exasol.analytics.schema.view_name import ViewName
 from exasol.analytics.schema.view_name_builder import ViewNameBuilder
 from exasol.analytics.schema.view_name_impl import ViewNameImpl
+from exasol.analytics.schema.statements import InsertStatement
