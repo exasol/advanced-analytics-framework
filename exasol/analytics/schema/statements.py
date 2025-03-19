@@ -25,12 +25,9 @@ class InsertStatement:
         """
         Add a list of columns and values specified as dict to the
         statement.
-
         Columns are sorted by name and looked up in attribute `_lookup`.
-
         Values are quoted according to parameter `quote_values` and wrt. their
-        data type. If values are instances of ColumnName then double-quotes
-        are used, otherwise single-quotes.
+        data type.
         """
 
         def col_val(name: str) -> str:
@@ -47,6 +44,7 @@ class InsertStatement:
     def add_references(self, *references: ColumnName) -> InsertStatement:
         """
         Adds a list of references to columns in other database tables.
+        Use fully_qualified name of each column.
         """
         self._columns += [self._lookup[ref.name] for ref in references]
         self._values += [ref.fully_qualified for ref in references]
