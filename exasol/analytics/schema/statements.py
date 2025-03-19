@@ -43,8 +43,11 @@ class InsertStatement:
 
     def add_references(self, *references: ColumnName) -> InsertStatement:
         """
-        Adds a list of references to columns in other database tables.
-        Use fully_qualified name of each column.
+        Add columns and values both obtained from `references` parameters.
+
+        The values are then references into other database tables using the
+        fully_qualified name of each column, optionally including a table name
+        and a database schema.
         """
         self._columns += [self._lookup[ref.name] for ref in references]
         self._values += [ref.fully_qualified for ref in references]
