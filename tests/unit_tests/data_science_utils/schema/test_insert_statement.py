@@ -12,10 +12,13 @@ from exasol.analytics.schema import (
 )
 
 
-@pytest.mark.parametrize ( "column_name, expected", [
-    (ColumnName("C"), '"C"'),
-    (ColumnName("C", TableNameImpl("T")), '"T"."C"'),
-])
+@pytest.mark.parametrize(
+    "column_name, expected",
+    [
+        (ColumnName("C"), '"C"'),
+        (ColumnName("C", TableNameImpl("T")), '"T"."C"'),
+    ],
+)
 def test_formatter_for_column_names(column_name, expected):
     columns = [
         varchar_column("C", size=200),
@@ -24,14 +27,17 @@ def test_formatter_for_column_names(column_name, expected):
     assert testee.values == expected
 
 
-@pytest.mark.parametrize ("value, quote, expected", [
-    (1, True, "1"),
-    (1, False, "1"),
-    ("a", True, "'a'"),
-    ("a", False, "a"),
-    (None, False, "NULL"),
-    (None, True, "NULL"),
-])
+@pytest.mark.parametrize(
+    "value, quote, expected",
+    [
+        (1, True, "1"),
+        (1, False, "1"),
+        ("a", True, "'a'"),
+        ("a", False, "a"),
+        (None, False, "NULL"),
+        (None, True, "NULL"),
+    ],
+)
 def test_column_value_for_scalars(value, quote, expected):
     columns = [varchar_column("COL", size=200)]
     testee = InsertStatement(columns).add({"COL": value}, quote)

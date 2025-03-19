@@ -29,6 +29,7 @@ from exasol.analytics.schema.exasol_identifier_impl import (
 )
 from exasol.analytics.schema.experiment_name import ExperimentName
 from exasol.analytics.schema.schema_name import SchemaName
+from exasol.analytics.schema.statements import InsertStatement
 from exasol.analytics.schema.table import Table
 from exasol.analytics.schema.table_builder import TableBuilder
 from exasol.analytics.schema.table_like import TableLike
@@ -45,4 +46,3 @@ from exasol.analytics.schema.view import View
 from exasol.analytics.schema.view_name import ViewName
 from exasol.analytics.schema.view_name_builder import ViewNameBuilder
 from exasol.analytics.schema.view_name_impl import ViewNameImpl
-from exasol.analytics.schema.statements import InsertStatement

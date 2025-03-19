@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import (
     Any,
     List,
@@ -14,11 +15,11 @@ class InsertStatement:
     Columns and values for creating an SQL INSERT statement.
     """
 
-    def __init__(self, columns: List[Column], separator: str = ",\n  "):
+    def __init__(self, columns: list[Column], separator: str = ",\n  "):
         self._lookup = {c.name.name: c.name for c in columns}
         self._separator = separator
-        self._columns: List[ColumnName] = []
-        self._values: List[str] = []
+        self._columns: list[ColumnName] = []
+        self._values: list[str] = []
 
     def add(self, values: dict[str, Any], quote_values: bool = True) -> InsertStatement:
         """
@@ -31,6 +32,7 @@ class InsertStatement:
         data type. If values are instances of ColumnName then double-quotes
         are used, otherwise single-quotes.
         """
+
         def col_val(name: str) -> str:
             val = values[name]
             if val is None or quote_values:
@@ -51,7 +53,7 @@ class InsertStatement:
         return self
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         """
         List of fully_qualified column names, separated using the
         separator provided to the constructor.
@@ -59,7 +61,7 @@ class InsertStatement:
         return self._separator.join(c.fully_qualified for c in self._columns)
 
     @property
-    def values(self) -> List[str]:
+    def values(self) -> list[str]:
         """
         List of (quoted) values, separated using the separator provided to
         the constructor.
