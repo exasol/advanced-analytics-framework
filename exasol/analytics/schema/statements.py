@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import (
-    Any,
-    List,
-)
+from typing import Any
 
 from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.column_name import ColumnName
