@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.values import quote_value
 
@@ -55,8 +54,8 @@ class InsertStatement:
     fully-qualified and the values properly quoted.
     """
 
-    def __init__(self, columns: list[Column], separator: str = ", "):
-        self._lookup = {c.name.name: c.name for c in columns}
+    def __init__(self, columns: list[ColumnName], separator: str = ", "):
+        self._lookup = {c.name: c for c in columns}
         self._separator = separator
         self._columns: list[ColumnName] = []
         self._values: list[str] = []

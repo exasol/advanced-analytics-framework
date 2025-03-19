@@ -14,7 +14,7 @@ from exasol.analytics.schema import (
 
 
 def test_illegal_column():
-    columns = [varchar_column("A", size=200)]
+    columns = [ColumnName("A")]
     testee = InsertStatement(columns)
     with pytest.raises(UnknownColumnError):
         testee.add_constants({"B": 1})
@@ -28,7 +28,7 @@ def test_illegal_column():
     ],
 )
 def test_references(column_name, expected):
-    columns = [varchar_column("C", size=200)]
+    columns = [ColumnName("C")]
     testee = InsertStatement(columns).add_references(column_name)
     assert testee.values == expected
 
@@ -42,7 +42,7 @@ def test_references(column_name, expected):
     ],
 )
 def test_add_constants(value, expected):
-    columns = [varchar_column("COL", size=200)]
+    columns = [ColumnName("COL")]
     testee = InsertStatement(columns).add_constants({"COL": value})
     assert testee.values == expected
 
@@ -56,18 +56,13 @@ def test_add_constants(value, expected):
     ],
 )
 def test_add_scalar_functions(value, expected):
-    columns = [varchar_column("COL", size=200)]
+    columns = [ColumnName("COL")]
     testee = InsertStatement(columns).add_scalar_functions({"COL": value})
     assert testee.values == expected
 
 
 def test_insert_statement():
-    columns = [
-        timestamp_column("LOG_TIMESTAMP"),
-        varchar_column("NAME", size=20),
-        decimal_column("AGE", precision=3),
-        varchar_column("ERR", size=2000),
-    ]
+    columns = [ColumnName(s) for s in [ "LOG_TIMESTAMP", "NAME", "AGE", "ERR" ]]
     reference = ColumnName("ERR", TableNameImpl("TBL"))
     testee = (
         InsertStatement(columns, separator=", ")
