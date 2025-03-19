@@ -6,10 +6,18 @@ from exasol.analytics.schema import (
     ColumnName,
     InsertStatement,
     TableNameImpl,
+    UnknownColumnError,
     decimal_column,
     timestamp_column,
     varchar_column,
 )
+
+
+def test_illegal_column():
+    columns = [varchar_column("A", size=200)]
+    testee = InsertStatement(columns)
+    with pytest.raises(UnknownColumnError):
+        testee.add_constants({"B": 1})
 
 
 @pytest.mark.parametrize(
@@ -19,28 +27,37 @@ from exasol.analytics.schema import (
         (ColumnName("C", TableNameImpl("T")), '"T"."C"'),
     ],
 )
-def test_column_names(column_name, expected):
-    columns = [
-        varchar_column("C", size=200),
-    ]
+def test_references(column_name, expected):
+    columns = [varchar_column("C", size=200)]
     testee = InsertStatement(columns).add_references(column_name)
     assert testee.values == expected
 
 
 @pytest.mark.parametrize(
-    "value, quote, expected",
+    "value, expected",
     [
-        (1, True, "1"),
-        (1, False, "1"),
-        ("a", True, "'a'"),
-        ("a", False, "a"),
-        (None, False, "NULL"),
-        (None, True, "NULL"),
+        (1, "1"),
+        ("a", "'a'"),
+        (None, "NULL"),
     ],
 )
-def test_values_and_quoting(value, quote, expected):
+def test_add_constants(value, expected):
     columns = [varchar_column("COL", size=200)]
-    testee = InsertStatement(columns).add({"COL": value}, quote)
+    testee = InsertStatement(columns).add_constants({"COL": value})
+    assert testee.values == expected
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (1, "1"),
+        ("CURRENT_SESSION", "CURRENT_SESSION"),
+        (None, "NULL"),
+    ],
+)
+def test_add_scalar_functions(value, expected):
+    columns = [varchar_column("COL", size=200)]
+    testee = InsertStatement(columns).add_scalar_functions({"COL": value})
     assert testee.values == expected
 
 
@@ -54,8 +71,8 @@ def test_insert_statement():
     reference = ColumnName("ERR", TableNameImpl("TBL"))
     testee = (
         InsertStatement(columns, separator=", ")
-        .add({"LOG_TIMESTAMP": "SYSTIMESTAMP()"}, quote_values=False)
-        .add({"NAME": "Mary", "AGE": 21}, quote_values=True)
+        .add_scalar_functions({"LOG_TIMESTAMP": "SYSTIMESTAMP()"})
+        .add_constants({"NAME": "Mary", "AGE": 21})
         .add_references(reference)
     )
     assert testee.columns == '''"LOG_TIMESTAMP", "AGE", "NAME", "ERR"'''
