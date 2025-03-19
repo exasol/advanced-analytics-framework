@@ -26,12 +26,12 @@ class InsertStatement:
 
     Let's look at an example for an INSERT statement:
 
-        INSERT INTO "T" ("C1", "C2", "C3")
+        INSERT INTO "T" ("C1", "C2", "R")
         SELECT SYSTIMESTAMP(), 'Phase', SQ.R
         FROM VALUES (1)
         CROSS JOIN (SELECT count(1) as R FROM S.T) as SQ
 
-    Here we see 3 columns "C1", "C2", and "C3" being inserted into table "T"
+    Here we see 3 columns "C1", "C2", and "R" being inserted into table "T"
     while the values after `SELECT` have 3 different categories:
 
     * SYSTIMESTAMP() is an SQL scalar function that must not be quoted.
@@ -40,7 +40,8 @@ class InsertStatement:
 
     The alias "R" can be found again inside the subquery `(SELECT count(1) as
     R FROM S.T)` as an alias for the `count(1)`. Alias "SQ" is assigned to the
-    subquery at the very end of the INSERT statement.
+    subquery at the very end of the INSERT statement. Please note that the
+    alias also needs to match the name of the column in the target table "T".
 
     Use methods `add_constants()`, `add_scalar_functions()`, and
     `add_references()` to add constants, scalar functions, and reference to
