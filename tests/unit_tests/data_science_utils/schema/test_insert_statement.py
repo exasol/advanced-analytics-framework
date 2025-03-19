@@ -19,7 +19,7 @@ from exasol.analytics.schema import (
         (ColumnName("C", TableNameImpl("T")), '"T"."C"'),
     ],
 )
-def test_formatter_for_column_names(column_name, expected):
+def test_column_names(column_name, expected):
     columns = [
         varchar_column("C", size=200),
     ]
@@ -38,13 +38,13 @@ def test_formatter_for_column_names(column_name, expected):
         (None, True, "NULL"),
     ],
 )
-def test_column_value_for_scalars(value, quote, expected):
+def test_values_and_quoting(value, quote, expected):
     columns = [varchar_column("COL", size=200)]
     testee = InsertStatement(columns).add({"COL": value}, quote)
     assert testee.values == expected
 
 
-def test_column_values():
+def test_insert_statement():
     columns = [
         timestamp_column("LOG_TIMESTAMP"),
         varchar_column("NAME", size=20),
