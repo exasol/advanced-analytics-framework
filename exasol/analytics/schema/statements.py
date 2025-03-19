@@ -53,7 +53,7 @@ class InsertStatement:
         return self
 
     @property
-    def columns(self) -> list[str]:
+    def columns(self) -> str:
         """
         List of fully_qualified column names, separated using the
         separator provided to the constructor.
@@ -61,7 +61,7 @@ class InsertStatement:
         return self._separator.join(c.fully_qualified for c in self._columns)
 
     @property
-    def values(self) -> list[str]:
+    def values(self) -> str:
         """
         List of (quoted) values, separated using the separator provided to
         the constructor.
