@@ -42,12 +42,17 @@ class InsertStatement:
     subquery at the very end of the INSERT statement. Please note that the
     alias also needs to match the name of the column in the target table "T".
 
-    Use methods `add_constants()`, `add_scalar_functions()`, and
-    `add_references()` to add constants, scalar functions, and reference to
-    columns of the subquery, respectively.
-
-    Each of the methods will add columns as well as values to the current
-    instance of :class:`InsertStatement`.
+    columns = [
+        ColumnName("C1"),
+        ColumnName("C2"),
+        ColumnName("R"),
+    ]
+    insert_statement = (
+        InsertStatement(columns)
+        .add_scalar_functions({"C1": "SELECT SYSTIMESTAMP()"}
+        .add_constants({"C2": "Phase"})
+        .add_references(ColumnName("R", TableNameImpl("SQ")))
+    )
 
     Use properties `columns` and `values` to obtain comma-separated lists of
     all the columns and values, respectively with the columns being referred
