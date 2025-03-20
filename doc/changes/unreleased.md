@@ -6,6 +6,7 @@
 * #259: Enhanced Schema classes
 * #262: Added initial definition for Audit Columns
 * #266: Created Insert Statement Formatter
+* #268: Audit Log: Count rows for Modify Queries
 
 ## Refactorings
 
