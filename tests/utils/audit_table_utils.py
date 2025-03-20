@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import (
     Any,
     Iterator,
@@ -6,19 +5,12 @@ from typing import (
 
 import pyexasol
 
-from exasol.analytics.audit.audit import AuditTable
-from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import ModifyQuery
 from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
     TableName,
 )
-
-
-def log_entry(values: list[Any]) -> dict[str, Any]:
-    column_names = [c.name.name for c in BaseAuditColumns.all]
-    return dict(zip(column_names, values))
 
 
 def all_rows_as_dicts(
@@ -60,20 +52,3 @@ def create_insert_query(table: TableName, audit: bool):
         audit_fields={"EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}'},
         audit=audit,
     )
-
-
-@dataclass(frozen=True)
-class AuditScenario:
-    audit_table: AuditTable
-    other_table: TableName
-
-    def log_entries(
-        self,
-        pyexasol_connection: pyexasol.ExaConnection,
-    ) -> list[dict[str, Any]]:
-        return [
-            log_entry(r)
-            for r in pyexasol_connection.execute(
-                f"select * from {self.audit_table.name.fully_qualified}"
-            )
-        ]

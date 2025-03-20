@@ -15,20 +15,19 @@ from exasol.analytics.schema import (
     decimal_column,
     varchar_column,
 )
-from tests.utils.audit_table_utils import (
-    AuditScenario,
-    create_insert_query,
-)
+from tests.utils.audit_table_utils import create_insert_query
 
 LOG = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def audit_scenario():
-    db_schema = "S"
-    audit_table = AuditTable(db_schema, "A")
-    other_table = TableNameImpl("T", SchemaName(db_schema))
-    return AuditScenario(audit_table, other_table)
+def audit_table():
+    return AuditTable("S1", "A")
+
+
+@pytest.fixture
+def other_table():
+    return TableNameImpl("T", SchemaName("S2"))
 
 
 def test_init():
@@ -47,8 +46,8 @@ def test_empty_prefix():
         AuditTable("my_schema", "")
 
 
-def test_x1_audit_query(audit_scenario):
-    other = audit_scenario.other_table.fully_qualified
+def test_audit_query(audit_table, other_table):
+    other = other_table.fully_qualified
     select = SelectQueryWithColumnDefinition(
         query_string=f"SELECT ERROR AS ERROR_MESSAGE FROM {other}",
         output_columns=[BaseAuditColumns.ERROR_MESSAGE],
@@ -57,7 +56,6 @@ def test_x1_audit_query(audit_scenario):
         select_with_columns=select,
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
     )
-    audit_table = audit_scenario.audit_table
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
     assert statement == cleandoc(
@@ -78,20 +76,18 @@ def test_x1_audit_query(audit_scenario):
     )
 
 
-def test_modify_query_with_audit_false():
-    table = TableNameImpl("T", SchemaName("S2"))
-    query = create_insert_query(table, audit=False)
-    statements = list(AuditTable("S1", "A").augment([query]))
+def test_modify_query_with_audit_false(audit_table, other_table):
+    query = create_insert_query(other_table, audit=False)
+    statements = list(audit_table.augment([query]))
     assert len(statements) == 1
-    assert statements[0].startswith(f"INSERT INTO {table.fully_qualified}")
+    assert statements[0].startswith(f"INSERT INTO {other_table.fully_qualified}")
 
 
-def test_count_rows(audit_scenario):
-    query = create_insert_query(audit_scenario.other_table, audit=True)
-    audit_table = audit_scenario.audit_table
+def test_count_rows(audit_table, other_table):
+    query = create_insert_query(other_table, audit=True)
     statement = audit_table._count_rows(query, "Phase")
     LOG.debug(f"{statement}")
-    other_table = audit_scenario.other_table.fully_qualified
+    otname = other_table.fully_qualified
     assert statement == cleandoc(
         f"""
         INSERT INTO {audit_table.name.fully_qualified} (
@@ -107,8 +103,8 @@ def test_count_rows(audit_scenario):
         ) SELECT
           SYSTIMESTAMP(),
           CURRENT_SESSION,
-          'T',
-          'S',
+          '{other_table.name}',
+          '{other_table.schema_name.name}',
           'TABLE',
           'Phase',
           'INSERT',
@@ -116,19 +112,18 @@ def test_count_rows(audit_scenario):
           "SUB_QUERY"."ROW_COUNT"
         FROM VALUES (1)
         CROSS JOIN
-          (SELECT count(1) as "ROW_COUNT" FROM {other_table}) as "SUB_QUERY"
+          (SELECT count(1) as "ROW_COUNT" FROM {otname}) as "SUB_QUERY"
         """
     )
 
 
-def test_modify_query(audit_scenario):
-    query = create_insert_query(audit_scenario.other_table, audit=True)
-    audit_table = audit_scenario.audit_table
+def test_modify_query(audit_table, other_table):
+    query = create_insert_query(other_table, audit=True)
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt};")
 
-    other_table = audit_scenario.other_table.fully_qualified
+    other_table = other_table.fully_qualified
     for expected, actual in zip(
         [
             f"INSERT INTO {audit_table.name.fully_qualified}",

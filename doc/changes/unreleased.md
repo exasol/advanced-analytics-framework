@@ -7,6 +7,7 @@
 * #262: Added initial definition for Audit Columns
 * #266: Created Insert Statement Formatter
 * #268: Audit Log: Count rows for Modify Queries
+* #270: Enhanced InsertStatement to raise an error on duplicate columns being added
 
 ## Refactorings
 
