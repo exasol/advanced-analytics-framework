@@ -28,9 +28,10 @@ def test_illegal_column():
     ],
 )
 def test_references(column_name, expected):
-    columns = [ColumnName("C")]
-    testee = InsertStatement(columns).add_references(column_name)
+    columns = [ColumnName("A")]
+    testee = InsertStatement(columns).add_references({"A": column_name})
     assert testee.values == expected
+    assert testee.columns == '"A"'
 
 
 @pytest.mark.parametrize(
@@ -63,12 +64,12 @@ def test_add_scalar_functions(value, expected):
 
 def test_insert_statement():
     columns = [ColumnName(s) for s in [ "LOG_TIMESTAMP", "NAME", "AGE", "ERR" ]]
-    reference = ColumnName("ERR", TableNameImpl("TBL"))
+    references = {"ERR": ColumnName("ERR", TableNameImpl("TBL")) }
     testee = (
         InsertStatement(columns, separator=", ")
         .add_scalar_functions({"LOG_TIMESTAMP": "SYSTIMESTAMP()"})
         .add_constants({"NAME": "Mary", "AGE": 21})
-        .add_references(reference)
+        .add_references(references)
     )
     assert testee.columns == '''"LOG_TIMESTAMP", "AGE", "NAME", "ERR"'''
     assert testee.values == '''SYSTIMESTAMP(), 21, 'Mary', "TBL"."ERR"'''

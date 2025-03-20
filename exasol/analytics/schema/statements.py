@@ -25,34 +25,36 @@ class InsertStatement:
 
     Let's look at an example for an INSERT statement:
 
-        INSERT INTO "T" ("C1", "C2", "R")
-        SELECT SYSTIMESTAMP(), 'Phase', SQ.R
+        INSERT INTO "T" ("C1", "C2", "C3", "C4")
+        SELECT SYSTIMESTAMP(), 'Phase', SQ.B, SQ.A
         FROM VALUES (1)
-        CROSS JOIN (SELECT count(1) as R FROM S.T) as SQ
+        CROSS JOIN (SELECT "A", "B" FROM S.T2) as SQ
 
     Here we see 3 columns "C1", "C2", and "R" being inserted into table "T"
     while the values after `SELECT` have 3 different categories:
 
     * SYSTIMESTAMP() is an SQL scalar function that must not be quoted.
     * "Phase" is a string constant, that must be enclosed in single-quotes.
-    * SQ.R is a reference to column "R" in a subquery with the alias "SQ".
+    * SQ.B and SQ.A are references to columns "B" and "A" in a subquery with the alias "SQ".
 
-    The alias "R" can be found again inside the subquery `(SELECT count(1) as
-    R FROM S.T)` as an alias for the `count(1)`. Alias "SQ" is assigned to the
-    subquery at the very end of the INSERT statement. Please note that the
-    alias also needs to match the name of the column in the target table "T".
+    Alias "SQ" is assigned to the subquery at the very end of the INSERT
+    statement. Please note that the alias also needs to match the name of the
+    column in the target table "T".
 
     columns = [
         ColumnName("C1"),
         ColumnName("C2"),
-        ColumnName("R"),
+        ColumnName("C3"),
+        ColumnName("C4"),
     ]
     insert_statement = (
         InsertStatement(columns)
         .add_scalar_functions({"C1": "SELECT SYSTIMESTAMP()"}
         .add_constants({"C2": "Phase"})
-        .add_references(ColumnName("R", TableNameImpl("SQ")))
-    )
+        .add_references({
+          "C3": ColumnName("B", TableNameImpl("SQ")),
+          "C4": ColumnName("A", TableNameImpl("SQ")),
+        })
 
     Use properties `columns` and `values` to obtain comma-separated lists of
     all the columns and values, respectively with the columns being referred
@@ -71,17 +73,12 @@ class InsertStatement:
     def add_scalar_functions(self, values: dict[str, str]) -> InsertStatement:
         return self._add(values, False)
 
-    def add_references(self, *references: ColumnName) -> InsertStatement:
-        """
-        Add columns and values both obtained from `references` parameters.
-
-        The values are then references into other database tables using the
-        fully_qualified name of each column, optionally including a table name
-        and a database schema.
-        """
-        self._columns += [self._lookup_column(ref.name) for ref in references]
-        self._values += [ref.fully_qualified for ref in references]
-        return self
+    def add_references(self, values: dict[str, ColumnName]) -> InsertStatement:
+        fully_qualified = {
+            k: v.fully_qualified
+            for k, v in values.items()
+        }
+        return self._add(fully_qualified, False)
 
     def _lookup_column(self, column_name: str) -> ColumnName:
         try:
