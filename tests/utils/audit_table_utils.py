@@ -31,7 +31,8 @@ def all_rows_as_dicts(
     the column names as keys.
     """
     column_names = [
-        r[0] for r in pyexasol_connection.execute(
+        r[0]
+        for r in pyexasol_connection.execute(
             "SELECT COLUMN_NAME FROM EXA_ALL_COLUMNS"
             f" WHERE COLUMN_SCHEMA='{table_name.schema_name.name}'"
             f" AND COLUMN_TABLE='{table_name.name}'"
@@ -71,8 +72,8 @@ class AuditScenario:
         pyexasol_connection: pyexasol.ExaConnection,
     ) -> list[dict[str, Any]]:
         return [
-            log_entry(r) for r in
-            pyexasol_connection.execute(
+            log_entry(r)
+            for r in pyexasol_connection.execute(
                 f"select * from {self.audit_table.name.fully_qualified}"
             )
         ]

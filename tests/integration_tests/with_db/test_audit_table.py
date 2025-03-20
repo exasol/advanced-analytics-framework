@@ -42,13 +42,13 @@ from tests.utils.audit_table_utils import (
 #     )
 #     # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
 #     return connection
-# 
-# 
+#
+#
 # @pytest.fixture(scope="session")
 # def pyexasol_connection():
 #     return exasol_db_connection()
-# 
-# 
+#
+#
 # @pytest.fixture(scope="session")
 # def db_schema(pyexasol_connection):
 #     schema = "S"
@@ -57,6 +57,7 @@ from tests.utils.audit_table_utils import (
 #     return schema
 
 LOG = logging.getLogger(__name__)
+
 
 @pytest.fixture
 def audit_table(pyexasol_connection, db_schema):
@@ -75,8 +76,8 @@ def subquery_table(pyexasol_connection, db_schema) -> TableName:
     tname = table.fully_qualified
     for stmt in [
         f"DROP TABLE IF EXISTS {tname}",
-        f'CREATE TABLE {table.fully_qualified}'
-        ' ("RESULT" DECIMAL, "ERROR" VARCHAR(200))'
+        f"CREATE TABLE {table.fully_qualified}"
+        ' ("RESULT" DECIMAL, "ERROR" VARCHAR(200))',
     ]:
         pyexasol_connection.execute(stmt)
     return table
@@ -140,10 +141,9 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
         "DB_OBJECT_TYPE": "TABLE",
         "LOG_SPAN_NAME": "INSERT",
         "EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}',
-
     }
     for e in log_entries:
-        actual = { k: e[k] for k in expected }
+        actual = {k: e[k] for k in expected}
         assert actual == expected
     other_table_rows = all_rows(subquery_table)
     assert len(other_table_rows) == 2

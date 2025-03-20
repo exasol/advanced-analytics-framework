@@ -116,7 +116,7 @@ class InsertStatement:
             n = len(duplicates)
             message = f"{n} duplicate columns:" if n > 1 else "duplicate column"
             cols = ", ".join(c.fully_qualified for c in duplicates)
-            raise DuplicateColumnError(f'Can\'t add {message} {cols}.')
+            raise DuplicateColumnError(f"Can't add {message} {cols}.")
         self._columns += additional
         self._values += [col_val(n) for n in names]
         return self

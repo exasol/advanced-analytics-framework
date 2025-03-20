@@ -21,10 +21,13 @@ def test_illegal_column():
         testee.add_constants({"B": 1})
 
 
-@pytest.mark.parametrize ("additional_columns, expected_error", [
-    ({"A": 3}, 'Can\'t add duplicate column "A".'),
-    ({"A": 3, "B": 4}, 'Can\'t add 2 duplicate columns: "A", "B".'),
-])
+@pytest.mark.parametrize(
+    "additional_columns, expected_error",
+    [
+        ({"A": 3}, 'Can\'t add duplicate column "A".'),
+        ({"A": 3, "B": 4}, 'Can\'t add 2 duplicate columns: "A", "B".'),
+    ],
+)
 def test_duplicate_columns(additional_columns, expected_error):
     columns = [ColumnName("A"), ColumnName("B")]
     testee = InsertStatement(columns).add_constants({"A": 1, "B": 2})

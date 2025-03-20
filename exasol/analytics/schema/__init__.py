@@ -30,8 +30,8 @@ from exasol.analytics.schema.exasol_identifier_impl import (
 from exasol.analytics.schema.experiment_name import ExperimentName
 from exasol.analytics.schema.schema_name import SchemaName
 from exasol.analytics.schema.statements import (
-    InsertStatement,
     DuplicateColumnError,
+    InsertStatement,
     UnknownColumnError,
 )
 from exasol.analytics.schema.table import Table
