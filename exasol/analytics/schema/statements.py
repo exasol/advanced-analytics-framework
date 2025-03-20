@@ -30,16 +30,14 @@ class InsertStatement:
         FROM VALUES (1)
         CROSS JOIN (SELECT "A", "B" FROM S.T2) as SQ
 
-    Here we see 3 columns "C1", "C2", and "R" being inserted into table "T"
-    while the values after `SELECT` have 3 different categories:
+    Here we see 4 columns "C1" until "C4" being inserted into table "T" while
+    the values after `SELECT` have 3 different categories:
 
     * SYSTIMESTAMP() is an SQL scalar function that must not be quoted.
     * "Phase" is a string constant, that must be enclosed in single-quotes.
     * SQ.B and SQ.A are references to columns "B" and "A" in a subquery with the alias "SQ".
 
-    Alias "SQ" is assigned to the subquery at the very end of the INSERT
-    statement. Please note that the alias also needs to match the name of the
-    column in the target table "T".
+    Here is how to setup InsertStatement:
 
     columns = [
         ColumnName("C1"),
@@ -56,9 +54,9 @@ class InsertStatement:
           "C4": ColumnName("A", TableNameImpl("SQ")),
         })
 
-    Use properties `columns` and `values` to obtain comma-separated lists of
-    all the columns and values, respectively with the columns being referred
-    fully-qualified and the values properly quoted.
+    After this you can use properties `columns` and `values` to obtain
+    comma-separated lists of all the columns and values, respectively with the
+    columns being referred fully-qualified and the values properly quoted.
     """
 
     def __init__(self, columns: list[ColumnName], separator: str = ", "):
