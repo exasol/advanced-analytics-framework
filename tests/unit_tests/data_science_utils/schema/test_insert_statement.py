@@ -25,7 +25,7 @@ def test_illegal_column():
     "additional_columns, expected_error",
     [
         ({"A": 3}, 'Can\'t add duplicate column "A".'),
-        ({"A": 3, "B": 4}, 'Can\'t add 2 duplicate columns: "A", "B".'),
+        ({"A": 3, "B": 4}, 'Can\'t add 2 duplicate columns "A", "B".'),
     ],
 )
 def test_duplicate_columns(additional_columns, expected_error):

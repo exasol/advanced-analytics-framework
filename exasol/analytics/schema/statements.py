@@ -114,7 +114,7 @@ class InsertStatement:
         additional = [self._lookup_column(n) for n in names]
         if duplicates := set(additional) & set(self._columns):
             n = len(duplicates)
-            message = f"{n} duplicate columns:" if n > 1 else "duplicate column"
+            message = f"{n} duplicate columns" if n > 1 else "duplicate column"
             cols = ", ".join(c.fully_qualified for c in duplicates)
             raise DuplicateColumnError(f"Can't add {message} {cols}.")
         self._columns += additional
