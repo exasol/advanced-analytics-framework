@@ -21,41 +21,6 @@ from tests.utils.audit_table_utils import (
     create_insert_query,
 )
 
-# import pyexasol
-# import os
-# from typing import Optional
-# def exasol_db_connection(
-#     host: Optional[str] = None,
-#     port: Optional[int] = 8563,
-#     user: Optional[str] = None,
-#     password: Optional[str] = None,
-# ) -> pyexasol.ExaConnection:
-#     """See also ~/git/gha/github_issue_adapter/adapter/sql.py"""
-#     host = host or os.getenv("EXASOL_HOST")
-#     user = user or os.getenv("EXASOL_USER")
-#     password = password or os.getenv("EXASOL_PASS")
-#     # print(f'Connecting to {host}:{port} with user "{user}"')
-#     connection = pyexasol.connect(
-#         dsn=f"{host}:{port}",
-#         user=user,
-#         password=password,
-#     )
-#     # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
-#     return connection
-#
-#
-# @pytest.fixture(scope="session")
-# def pyexasol_connection():
-#     return exasol_db_connection()
-#
-#
-# @pytest.fixture(scope="session")
-# def db_schema(pyexasol_connection):
-#     schema = "S"
-#     fq = SchemaName(schema).fully_qualified
-#     pyexasol_connection.execute(f"CREATE SCHEMA IF NOT EXISTS {fq}")
-#     return schema
-
 LOG = logging.getLogger(__name__)
 
 

@@ -41,6 +41,23 @@ class AuditTable(Table):
         self._column_names = [c.name for c in self.columns]
 
     def augment(self, queries: Iterator[Query]) -> Iterator[str]:
+        """
+        Process the specified queries and intermerge insert statements
+        into the Audit Log if requested:
+
+        * Queries not requesting any entry into the Audit Log are simply executed.
+
+        * Instances of :class:`AuditQuery` are inserted into the Audit Log,
+          optionally including custom audit_fields and a subquery
+          (SelectQueryWithColumnDefinition)
+
+        * Instances of :class:`ModifyQuery` requesting an entry into the Audit
+          Log are wrapped into one insert statement before and one after. The
+          actual modifying query in between remains unchanged.  The insert
+          statements before and after record the timestamp and, if the
+          ModifyQuery represents an INSERT operation, the number of rows in
+          the modified table.
+        """
         for query in queries:
             if not query.audit:
                 yield query.query_string
@@ -50,7 +67,7 @@ class AuditTable(Table):
                 yield from self._wrap(query)
             else:
                 raise TypeError(
-                    f"Unexpected type {type(query)}" f" of query {query.query_string}"
+                    f"Unexpected type {type(query)} of query {query.query_string}"
                 )
 
     def _insert(self, query: AuditQuery) -> str:
