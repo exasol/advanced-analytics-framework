@@ -21,6 +21,7 @@ from tests.utils.audit_table_utils import (
     create_insert_query,
 )
 
+
 @pytest.fixture(scope="session")
 def pyexasol_connection():
     return exasol_db_connection()
