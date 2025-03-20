@@ -63,8 +63,8 @@ def test_add_scalar_functions(value, expected):
 
 
 def test_insert_statement():
-    columns = [ColumnName(s) for s in [ "LOG_TIMESTAMP", "NAME", "AGE", "ERR" ]]
-    references = {"ERR": ColumnName("ERR", TableNameImpl("TBL")) }
+    columns = [ColumnName(s) for s in ["LOG_TIMESTAMP", "NAME", "AGE", "ERR"]]
+    references = {"ERR": ColumnName("ERR", TableNameImpl("TBL"))}
     testee = (
         InsertStatement(columns, separator=", ")
         .add_scalar_functions({"LOG_TIMESTAMP": "SYSTIMESTAMP()"})

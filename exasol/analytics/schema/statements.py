@@ -74,10 +74,7 @@ class InsertStatement:
         return self._add(values, False)
 
     def add_references(self, values: dict[str, ColumnName]) -> InsertStatement:
-        fully_qualified = {
-            k: v.fully_qualified
-            for k, v in values.items()
-        }
+        fully_qualified = {k: v.fully_qualified for k, v in values.items()}
         return self._add(fully_qualified, False)
 
     def _lookup_column(self, column_name: str) -> ColumnName:
