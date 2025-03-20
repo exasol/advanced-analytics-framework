@@ -1,8 +1,23 @@
-from typing import List
+from typing import (
+    Iterator,
+    cast,
+)
 
 from exasol.analytics.audit.columns import BaseAuditColumns
+from exasol.analytics.query_handler.query.select import (
+    AuditQuery,
+    ModifyQuery,
+    Query,
+    SelectQueryWithColumnDefinition,
+    output_columns,
+)
 from exasol.analytics.schema import (
     Column,
+    ColumnName,
+    DBObjectName,
+    DBObjectNameWithSchema,
+    DbOperationType,
+    InsertStatement,
     SchemaName,
     Table,
     TableNameImpl,
@@ -14,7 +29,7 @@ class AuditTable(Table):
         self,
         db_schema: str,
         table_name_prefix: str,
-        additional_columns: List[Column] = [],
+        additional_columns: list[Column] = [],
     ):
         if not table_name_prefix:
             raise ValueError("table_name_prefix must not be empty")
@@ -22,4 +37,114 @@ class AuditTable(Table):
         super().__init__(
             name=TableNameImpl(table_name, SchemaName(db_schema)),
             columns=(BaseAuditColumns.all + additional_columns),
+        )
+        self._column_names = [c.name for c in self.columns]
+
+    def augment(self, queries: Iterator[Query]) -> Iterator[str]:
+        for query in queries:
+            if not query.audit:
+                yield query.query_string
+            elif isinstance(query, AuditQuery):
+                yield self._insert(query)
+            elif isinstance(query, ModifyQuery):
+                yield from self._wrap(query)
+            else:
+                raise TypeError(
+                    f"Unexpected type {type(query)}" f" of query {query.query_string}"
+                )
+
+    def _insert(self, query: AuditQuery) -> str:
+        sub_query_alias = TableNameImpl("SUB_QUERY")
+        subquery_columns = {
+            c.name.name: ColumnName(c.name.name, sub_query_alias)
+            for c in output_columns(query.select_with_columns)
+        }
+        insert_statement = (
+            InsertStatement(self._column_names, separator=",\n  ")
+            .add_constants(query.audit_fields)
+            .add_scalar_functions(BaseAuditColumns.values)
+            .add_references(subquery_columns)
+        )
+
+        return (
+            f"INSERT INTO {self.name.fully_qualified} (\n"
+            f"  {insert_statement.columns}\n"
+            ") SELECT\n"
+            f"  {insert_statement.values}\n"
+            "FROM VALUES (1) CROSS JOIN\n"
+            f"  ({query.query_string}) as {sub_query_alias.fully_qualified}"
+        )
+
+    def _wrap(self, query: ModifyQuery) -> Iterator[str]:
+        """
+        Wrap the specified ModifyQuery it into 2 queries recording the
+        state before and after the actual ModifyQuery.
+
+        The state includes timestamps and optionally the number of rows of the
+        modified table, in case the ModifyQuery indicates potential changes to the
+        number of rows.
+        """
+        if query.db_operation_type != DbOperationType.INSERT:
+            yield query.query_string
+        else:
+            yield from [
+                self._count_rows(query, "Begin"),
+                query.query_string,
+                self._count_rows(query, "End"),
+            ]
+
+    def _count_rows(self, query: ModifyQuery, event_name: str) -> str:
+        """
+        Create an SQL INSERT statement counting the rows of the table
+        modified by ModifyQuery `query` and populate columns in the Audit
+        Table marked with "+":
+
+        + TIMESTAMP: BaseAuditColumns.values
+        + SESSION_ID: BaseAuditColumns.values
+        - RUN_ID
+        + ROW_COUNT: subquery
+        + SPAN_NAME: query.db_operation_type: DbOperationType
+        - SPAN_ID
+        - PARENT_SPAN_ID
+        + EVENT_NAME: parameter event_name
+        - EVENT_ATTRIBUTES
+        + OBJECT_TYPE: query.db_object_type: DbObjectType
+        + OBJECT_SCHEMA: query.db_object_name: DBObjectName
+        + OBJECT_NAME: query.db_object_name: DBObjectName
+        - ERROR_MESSAGE
+        """
+
+        def schema(db_obj: DBObjectName) -> str | None:
+            if not isinstance(db_obj, DBObjectNameWithSchema):
+                return None
+            schema = cast(DBObjectNameWithSchema, db_obj).schema_name
+            return schema.name if schema else None
+
+        row_count = ColumnName("ROW_COUNT", TableNameImpl("SUB_QUERY"))
+        db_obj = query.db_object_name
+        query_attributes = {
+            "LOG_SPAN_NAME": query.db_operation_type.name,
+            "EVENT_NAME": event_name,
+            "DB_OBJECT_TYPE": query.db_object_type.name,
+            "DB_OBJECT_SCHEMA": schema(db_obj),
+            "DB_OBJECT_NAME": db_obj.name,
+        }
+        insert_statement = (
+            InsertStatement(self._column_names, separator=",\n  ")
+            .add_scalar_functions(BaseAuditColumns.values)
+            .add_constants(query_attributes)
+            .add_constants(query.audit_fields)
+            .add_references({BaseAuditColumns.ROW_COUNT.name.name: row_count})
+        )
+        other_table = query.db_object_name.fully_qualified
+        sub_query_alias = row_count.table_like_name.fully_qualified
+        return (
+            f"INSERT INTO {self.name.fully_qualified} (\n"
+            f"  {insert_statement.columns}\n"
+            ") SELECT\n"
+            f"  {insert_statement.values}\n"
+            "FROM VALUES (1)\n"
+            "CROSS JOIN\n"
+            f"  (SELECT count(1) as {row_count.quoted_name}"
+            f" FROM {other_table}) as {sub_query_alias}"
         )

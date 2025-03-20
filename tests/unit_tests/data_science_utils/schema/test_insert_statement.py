@@ -4,6 +4,7 @@ import pytest
 
 from exasol.analytics.schema import (
     ColumnName,
+    DuplicateColumnError,
     InsertStatement,
     TableNameImpl,
     UnknownColumnError,
@@ -18,6 +19,17 @@ def test_illegal_column():
     testee = InsertStatement(columns)
     with pytest.raises(UnknownColumnError):
         testee.add_constants({"B": 1})
+
+
+@pytest.mark.parametrize ("additional_columns, expected_error", [
+    ({"A": 3}, 'Can\'t add duplicate column "A".'),
+    ({"A": 3, "B": 4}, 'Can\'t add 2 duplicate columns: "A", "B".'),
+])
+def test_duplicate_columns(additional_columns, expected_error):
+    columns = [ColumnName("A"), ColumnName("B")]
+    testee = InsertStatement(columns).add_constants({"A": 1, "B": 2})
+    with pytest.raises(DuplicateColumnError, match=expected_error):
+        testee.add_constants(additional_columns)
 
 
 @pytest.mark.parametrize(

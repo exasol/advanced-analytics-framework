@@ -13,6 +13,12 @@ class UnknownColumnError(Exception):
     """
 
 
+class DuplicateColumnError(Exception):
+    """
+    In case of adding a value for a column that already has been added before.
+    """
+
+
 class InsertStatement:
     """
     Enables adding columns and values for creating an SQL INSERT statement.
@@ -105,7 +111,13 @@ class InsertStatement:
             return str(val)
 
         names = sorted(values)
-        self._columns += [self._lookup_column(n) for n in names]
+        additional = [self._lookup_column(n) for n in names]
+        if duplicates := set(additional) & set(self._columns):
+            n = len(duplicates)
+            message = f"{n} duplicate columns:" if n > 1 else "duplicate column"
+            cols = ", ".join(c.fully_qualified for c in duplicates)
+            raise DuplicateColumnError(f'Can\'t add {message} {cols}.')
+        self._columns += additional
         self._values += [col_val(n) for n in names]
         return self
 

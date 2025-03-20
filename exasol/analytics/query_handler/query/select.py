@@ -58,6 +58,10 @@ class AuditData:
         return self._audit_fields
 
 
+def output_columns(
+    select: SelectQueryWithColumnDefinition | None,
+) -> list[Column]:
+    return select.output_columns if select else []
 class AuditQuery(Query, AuditData):
     """
     A wrapper for a special read-only query that selects data for auditing. An object
