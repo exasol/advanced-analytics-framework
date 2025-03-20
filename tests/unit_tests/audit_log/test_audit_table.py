@@ -46,7 +46,7 @@ def test_empty_prefix():
         AuditTable("my_schema", "")
 
 
-def test_audit_query_no_subquery(audit_table, other_table):
+def test_x1_audit_query_no_subquery(audit_table, other_table):
     other = other_table.fully_qualified
     audit_query = AuditQuery(
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
@@ -63,8 +63,6 @@ def test_audit_query_no_subquery(audit_table, other_table):
           'my event',
           SYSTIMESTAMP(),
           CURRENT_SESSION
-        FROM VALUES (1) CROSS JOIN
-          (SELECT 1) as "SUB_QUERY"
         """
     )
 
@@ -132,10 +130,7 @@ def test_count_rows(audit_table, other_table):
           'Phase',
           'INSERT',
           '{{"a": 123, "b": "value"}}',
-          "SUB_QUERY"."ROW_COUNT"
-        FROM VALUES (1)
-        CROSS JOIN
-          (SELECT count(1) as "ROW_COUNT" FROM {otname}) as "SUB_QUERY"
+          (SELECT count(1) FROM {otname})
         """
     )
 

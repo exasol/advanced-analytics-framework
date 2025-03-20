@@ -21,6 +21,11 @@ from tests.utils.audit_table_utils import (
     create_insert_query,
 )
 
+@pytest.fixture(scope="session")
+def pyexasol_connection():
+    return exasol_db_connection()
+
+
 LOG = logging.getLogger(__name__)
 
 
@@ -98,8 +103,10 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
 
     log_entries = all_rows(audit_table.name)
     assert len(log_entries) == 2
-    event_names = [e["EVENT_NAME"] for e in log_entries]
-    assert event_names == ["Begin", "End"]
+
+    properties = [(e["EVENT_NAME"], e["ROW_COUNT"]) for e in log_entries]
+    assert properties == [("Begin", "0"), ("End", "2")]
+
     expected = {
         "DB_OBJECT_SCHEMA": subquery_table.schema_name.name,
         "DB_OBJECT_NAME": subquery_table.name,

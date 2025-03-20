@@ -9,7 +9,6 @@ from exasol.analytics.query_handler.query.select import (
     ModifyQuery,
     Query,
     SelectQueryWithColumnDefinition,
-    output_columns,
 )
 from exasol.analytics.schema import (
     Column,
@@ -71,25 +70,30 @@ class AuditTable(Table):
                 )
 
     def _insert(self, query: AuditQuery) -> str:
-        sub_query_alias = TableNameImpl("SUB_QUERY")
-        subquery_columns = {
-            c.name.name: ColumnName(c.name.name, sub_query_alias)
-            for c in output_columns(query.select_with_columns)
-        }
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_constants(query.audit_fields)
             .add_scalar_functions(BaseAuditColumns.values)
-            .add_references(subquery_columns)
         )
+
+        suffix = ""
+        if query.select_with_columns:
+            alias = TableNameImpl("SUB_QUERY")
+            subquery_columns = {
+                c.name.name: ColumnName(c.name.name, alias)
+                for c in query.select_with_columns.output_columns
+            }
+            insert_statement.add_references(subquery_columns)
+            suffix = (
+                "\nFROM VALUES (1) CROSS JOIN\n"
+                f"  ({query.query_string}) as {alias.fully_qualified}"
+            )
 
         return (
             f"INSERT INTO {self.name.fully_qualified} (\n"
             f"  {insert_statement.columns}\n"
             ") SELECT\n"
-            f"  {insert_statement.values}\n"
-            "FROM VALUES (1) CROSS JOIN\n"
-            f"  ({query.query_string}) as {sub_query_alias.fully_qualified}"
+            f"  {insert_statement.values}{suffix}"
         )
 
     def _wrap(self, query: ModifyQuery) -> Iterator[str]:
@@ -137,7 +141,6 @@ class AuditTable(Table):
             schema = cast(DBObjectNameWithSchema, db_obj).schema_name
             return schema.name if schema else None
 
-        row_count = ColumnName("ROW_COUNT", TableNameImpl("SUB_QUERY"))
         db_obj = query.db_object_name
         query_attributes = {
             "LOG_SPAN_NAME": query.db_operation_type.name,
@@ -146,22 +149,18 @@ class AuditTable(Table):
             "DB_OBJECT_SCHEMA": schema(db_obj),
             "DB_OBJECT_NAME": db_obj.name,
         }
+        other_table = query.db_object_name.fully_qualified
+        row_count = BaseAuditColumns.ROW_COUNT.name.name
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_scalar_functions(BaseAuditColumns.values)
             .add_constants(query_attributes)
             .add_constants(query.audit_fields)
-            .add_references({BaseAuditColumns.ROW_COUNT.name.name: row_count})
+            .add_scalar_functions({row_count: f"(SELECT count(1) FROM {other_table})"})
         )
-        other_table = query.db_object_name.fully_qualified
-        sub_query_alias = row_count.table_like_name.fully_qualified
         return (
             f"INSERT INTO {self.name.fully_qualified} (\n"
             f"  {insert_statement.columns}\n"
             ") SELECT\n"
-            f"  {insert_statement.values}\n"
-            "FROM VALUES (1)\n"
-            "CROSS JOIN\n"
-            f"  (SELECT count(1) as {row_count.quoted_name}"
-            f" FROM {other_table}) as {sub_query_alias}"
+            f"  {insert_statement.values}"
         )
