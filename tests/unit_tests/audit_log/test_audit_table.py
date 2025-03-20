@@ -46,7 +46,30 @@ def test_empty_prefix():
         AuditTable("my_schema", "")
 
 
-def test_audit_query(audit_table, other_table):
+def test_audit_query_no_subquery(audit_table, other_table):
+    other = other_table.fully_qualified
+    audit_query = AuditQuery(
+        audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
+    )
+    statement = next(audit_table.augment([audit_query]))
+    LOG.debug(f"insert statement: \n{statement}")
+    assert statement == cleandoc(
+        f"""
+        INSERT INTO {audit_table.name.fully_qualified} (
+          "EVENT_NAME",
+          "LOG_TIMESTAMP",
+          "SESSION_ID"
+        ) SELECT
+          'my event',
+          SYSTIMESTAMP(),
+          CURRENT_SESSION
+        FROM VALUES (1) CROSS JOIN
+          (SELECT 1) as "SUB_QUERY"
+        """
+    )
+
+
+def test_audit_query_with_subquery(audit_table, other_table):
     other = other_table.fully_qualified
     select = SelectQueryWithColumnDefinition(
         query_string=f"SELECT ERROR AS ERROR_MESSAGE FROM {other}",
