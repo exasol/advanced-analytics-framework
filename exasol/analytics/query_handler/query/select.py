@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass
 from typing import (
     Any,
     List,
@@ -12,6 +16,16 @@ from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
 )
+
+
+@dataclass(eq=True)
+class LogSpan:
+    name: str
+    id: uuid.UUID = uuid.uuid4()
+    parent: LogSpan | None = None
+
+    def child(self, name: str, id: uuid.UUID = uuid.uuid4()) -> LogSpan:
+        return LogSpan(name, id, parent=self)
 
 
 class CustomQuery(Query):
@@ -69,9 +83,11 @@ class AuditQuery(Query, AuditData):
         self,
         select_with_columns: SelectQueryWithColumnDefinition | None = None,
         audit_fields: dict[str, Any] | None = None,
+        log_span: LogSpan | None = None,
     ):
-        self._select_with_columns = select_with_columns
         AuditData.__init__(self, audit_fields)
+        self._select_with_columns = select_with_columns
+        self._log_span = log_span
 
     @property
     def select_with_columns(self) -> SelectQueryWithColumnDefinition | None:
@@ -89,6 +105,10 @@ class AuditQuery(Query, AuditData):
     def audit(self) -> bool:
         return True
 
+    @property
+    def log_span(self) -> LogSpan | None:
+        return self._log_span
+
 
 class ModifyQuery(CustomQuery, AuditData):
     """
@@ -104,6 +124,7 @@ class ModifyQuery(CustomQuery, AuditData):
         db_operation_type: DbOperationType,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
+        parent_log_span: LogSpan | None = None,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
@@ -111,6 +132,7 @@ class ModifyQuery(CustomQuery, AuditData):
         self._db_object_name = db_object_name
         self._db_operation_type = db_operation_type
         self._audit = audit
+        self._parent_log_span = parent_log_span
 
     @property
     def db_object_type(self) -> DbObjectType:
@@ -123,6 +145,10 @@ class ModifyQuery(CustomQuery, AuditData):
     @property
     def db_operation_type(self) -> DbOperationType:
         return self._db_operation_type
+
+    @property
+    def parent_log_span(self) -> LogSpan | None:
+        return self._parent_log_span
 
     @property
     def modifies_row_count(self) -> bool:

@@ -1,4 +1,5 @@
 from typing import (
+    Any,
     Iterator,
     cast,
 )
@@ -6,6 +7,7 @@ from typing import (
 from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
+    LogSpan,
     ModifyQuery,
     Query,
     SelectQueryWithColumnDefinition,
@@ -21,6 +23,21 @@ from exasol.analytics.schema import (
     Table,
     TableNameImpl,
 )
+
+
+def base_column_values(
+    parent: LogSpan | None, attributes: dict[str, Any]
+) -> dict[str, Any]:
+    """
+    Given the optional parent LogSpan and a dict of columns and values
+    this function returns a dict with keys being only the names of the
+    columns, optionally incuding the PARENT_LOG_SPAN_ID.
+    """
+    parent_log_span_id = (
+        {BaseAuditColumns.PARENT_LOG_SPAN_ID: parent.id.int} if parent else {}
+    )
+    columns = parent_log_span_id | attributes
+    return {c.name.name: v for c, v in columns.items()}
 
 
 class AuditTable(Table):
@@ -46,9 +63,9 @@ class AuditTable(Table):
 
         * Queries not requesting any entry into the Audit Log are simply returned.
 
-        * Instances of :class:`AuditQuery` are inserted into the Audit Log,
-          optionally including custom audit_fields and a subquery
-          (SelectQueryWithColumnDefinition)
+        * Instances of :class:`AuditQuery` are converted into insert
+          statements into the Audit Log, optionally including custom
+          audit_fields and a subquery (SelectQueryWithColumnDefinition)
 
         * Instances of :class:`ModifyQuery` requesting an entry into the Audit
           Log are wrapped into one insert statement before and one after. The
@@ -71,22 +88,35 @@ class AuditTable(Table):
                 )
 
     def _insert(self, query: AuditQuery) -> str:
-        insert_statement = (
-            InsertStatement(self._column_names, separator=",\n  ")
-            .add_constants(query.audit_fields)
-            .add_scalar_functions(BaseAuditColumns.values)
+        log_span_fields = (
+            base_column_values(
+                query.log_span.parent,
+                {
+                    BaseAuditColumns.LOG_SPAN_NAME: query.log_span.name,
+                    BaseAuditColumns.LOG_SPAN_ID: query.log_span.id.int,
+                },
+            )
+            if query.log_span
+            else {}
         )
-
-        suffix = ""
         if query.select_with_columns:
             alias = TableNameImpl("SUB_QUERY")
             subquery_columns = {
                 c.name.name: ColumnName(c.name.name, alias)
                 for c in query.select_with_columns.output_columns
             }
-            insert_statement.add_references(subquery_columns)
             suffix = f"\nFROM ({query.query_string}) as {alias.fully_qualified}"
+        else:
+            subquery_columns = {}
+            suffix = ""
 
+        insert_statement = (
+            InsertStatement(self._column_names, separator=",\n  ")
+            .add_scalar_functions(BaseAuditColumns.values)
+            .add_constants(log_span_fields)
+            .add_constants(query.audit_fields)
+            .add_references(subquery_columns)
+        )
         return (
             f"INSERT INTO {self.name.fully_qualified} (\n"
             f"  {insert_statement.columns}\n"
@@ -112,6 +142,27 @@ class AuditTable(Table):
                 self._count_rows(query, "End"),
             ]
 
+    def _modify_query_fields(
+        self, query: ModifyQuery, event_name: str
+    ) -> dict[str, Any]:
+        def schema(db_obj: DBObjectName) -> str | None:
+            if not isinstance(db_obj, DBObjectNameWithSchema):
+                return None
+            schema = cast(DBObjectNameWithSchema, db_obj).schema_name
+            return schema.name if schema else None
+
+        db_obj = query.db_object_name
+        return base_column_values(
+            query.parent_log_span,
+            {
+                BaseAuditColumns.LOG_SPAN_NAME: query.db_operation_type.name,
+                BaseAuditColumns.EVENT_NAME: event_name,
+                BaseAuditColumns.DB_OBJECT_TYPE: query.db_object_type.name,
+                BaseAuditColumns.DB_OBJECT_SCHEMA: schema(db_obj),
+                BaseAuditColumns.DB_OBJECT_NAME: db_obj.name,
+            },
+        )
+
     def _count_rows(self, query: ModifyQuery, event_name: str) -> str:
         """
         Create an SQL INSERT statement counting the rows of the table
@@ -133,28 +184,18 @@ class AuditTable(Table):
         - ERROR_MESSAGE
         """
 
-        def schema(db_obj: DBObjectName) -> str | None:
-            if not isinstance(db_obj, DBObjectNameWithSchema):
-                return None
-            schema = cast(DBObjectNameWithSchema, db_obj).schema_name
-            return schema.name if schema else None
-
         db_obj = query.db_object_name
-        query_attributes = {
-            "LOG_SPAN_NAME": query.db_operation_type.name,
-            "EVENT_NAME": event_name,
-            "DB_OBJECT_TYPE": query.db_object_type.name,
-            "DB_OBJECT_SCHEMA": schema(db_obj),
-            "DB_OBJECT_NAME": db_obj.name,
-        }
+        modify_query_fields = self._modify_query_fields(query, event_name)
         other_table = query.db_object_name.fully_qualified
-        row_count = BaseAuditColumns.ROW_COUNT.name.name
+        row_count_fields = base_column_values(
+            None, {BaseAuditColumns.ROW_COUNT: f"(SELECT count(1) FROM {other_table})"}
+        )
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_scalar_functions(BaseAuditColumns.values)
-            .add_constants(query_attributes)
+            .add_constants(modify_query_fields)
             .add_constants(query.audit_fields)
-            .add_scalar_functions({row_count: f"(SELECT count(1) FROM {other_table})"})
+            .add_scalar_functions(row_count_fields)
         )
         return (
             f"INSERT INTO {self.name.fully_qualified} (\n"

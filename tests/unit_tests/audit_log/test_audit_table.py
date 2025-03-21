@@ -61,13 +61,13 @@ def test_audit_query_no_subquery(audit_table, other_table):
     assert statement == cleandoc(
         f"""
         INSERT INTO {audit_table.name.fully_qualified} (
-          "EVENT_NAME",
           "LOG_TIMESTAMP",
-          "SESSION_ID"
+          "SESSION_ID",
+          "EVENT_NAME"
         ) SELECT
-          'my event',
           SYSTIMESTAMP(),
-          CURRENT_SESSION
+          CURRENT_SESSION,
+          'my event'
         """
     )
 
@@ -87,14 +87,14 @@ def test_audit_query_with_subquery(audit_table, other_table):
     assert statement == cleandoc(
         f"""
         INSERT INTO {audit_table.name.fully_qualified} (
-          "EVENT_NAME",
           "LOG_TIMESTAMP",
           "SESSION_ID",
+          "EVENT_NAME",
           "ERROR_MESSAGE"
         ) SELECT
-          'my event',
           SYSTIMESTAMP(),
           CURRENT_SESSION,
+          'my event',
           "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
         """
@@ -171,7 +171,11 @@ def test_query_types(audit_table):
     """
 
     def insert_query(query_string: str, audit: bool):
-        return create_insert_query(TableNameImpl("table"), audit, query_string)
+        return create_insert_query(
+            TableNameImpl("table"),
+            audit=audit,
+            query_string=query_string,
+        )
 
     subquery = SelectQueryWithColumnDefinition("select sub query", [])
     samples = [
