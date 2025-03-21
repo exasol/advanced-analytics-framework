@@ -110,7 +110,7 @@ class InsertStatement:
                 return quote_value(val)
             return str(val)
 
-        def find_duplicates(columns: list(ColumnName)) -> list[str]:
+        def find_duplicates(columns: list[ColumnName]) -> list[str]:
             return [c.fully_qualified for c in columns if c in self._columns]
 
         names = sorted(values)
