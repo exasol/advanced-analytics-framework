@@ -196,5 +196,5 @@ def test_query_types(audit_table):
         expected_matches += s[1:]
     for i, (actual, expected) in enumerate(zip(statements, expected_matches)):
         matches = re.match(expected, actual, re.DOTALL)
-        LOG.debug(f'{i+1}. {matches and True}')
+        LOG.debug(f"{i+1}. {matches and True}")
         assert matches
