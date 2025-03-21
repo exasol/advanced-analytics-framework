@@ -39,9 +39,9 @@ def all_rows_as_dicts(
     )
 
 
-def create_insert_query(table: TableName, audit: bool):
+def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
     return ModifyQuery(
-        query_string=(
+        query_string=query_string or (
             f"INSERT INTO {table.fully_qualified}"
             ' ("RESULT", "ERROR")'
             " VALUES (3, 'E3'), (4, 'E4')"

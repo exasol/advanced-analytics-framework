@@ -110,12 +110,15 @@ class InsertStatement:
                 return quote_value(val)
             return str(val)
 
+        def find_duplicates(columns: list(ColumnName)) -> list[str]:
+            return [ c.fully_qualified for c in columns if c in self._columns ]
+
         names = sorted(values)
         additional = [self._lookup_column(n) for n in names]
-        if duplicates := set(additional) & set(self._columns):
+        if duplicates := find_duplicates(additional):
             n = len(duplicates)
             message = f"{n} duplicate columns" if n > 1 else "duplicate column"
-            cols = ", ".join(c.fully_qualified for c in duplicates)
+            cols = ", ".join(duplicates)
             raise DuplicateColumnError(f"Can't add {message} {cols}.")
         self._columns += additional
         self._values += [col_val(n) for n in names]
