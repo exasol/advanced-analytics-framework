@@ -44,7 +44,7 @@ class AuditTable(Table):
         Process the specified queries and intermerge insert statements
         into the Audit Log if requested:
 
-        * Queries not requesting any entry into the Audit Log are simply executed.
+        * Queries not requesting any entry into the Audit Log are simply returned.
 
         * Instances of :class:`AuditQuery` are inserted into the Audit Log,
           optionally including custom audit_fields and a subquery
