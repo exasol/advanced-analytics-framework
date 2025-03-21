@@ -1,16 +1,39 @@
+from unittest.mock import Mock
+
 import pytest
 
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
+    CustomQuery,
     ModifyQuery,
+    SelectQuery,
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
     SchemaName,
-    TableLikeNameImpl,
+    TableNameImpl,
 )
+from tests.utils.audit_table_utils import create_insert_query
+
+
+def modify_query(audit: bool):
+    return create_insert_query(TableNameImpl("hello"), audit)
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (CustomQuery(""), False),
+        (SelectQuery(""), False),
+        (AuditQuery(), True),
+        (modify_query(audit=True), True),
+        (modify_query(audit=False), False),
+    ],
+)
+def test_audit_property(query, expected):
+    assert query.audit == expected
 
 
 def test_audit_query():
@@ -21,7 +44,7 @@ def test_audit_query():
 
 def test_modify_query():
     query = "my_query"
-    db_object_name = TableLikeNameImpl("a_table", SchemaName("a_schema"))
+    db_object_name = TableNameImpl("a_table", SchemaName("a_schema"))
     audit_fields = {"col_1": "value", "col_2": 123}
     testee = ModifyQuery(
         query,
@@ -55,7 +78,7 @@ def test_query_modifies_row_count(
 ):
     query = ModifyQuery(
         "SELECT 1",
-        db_object_name=TableLikeNameImpl("a_table"),
+        db_object_name=TableNameImpl("a_table"),
         db_object_type=db_object_type,
         db_operation_type=db_operation_type,
     )
