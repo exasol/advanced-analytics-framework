@@ -120,13 +120,13 @@ class AuditTable(Table):
         modified by ModifyQuery `query` and populate columns in the Audit
         Table marked with "+":
 
-        + TIMESTAMP: BaseAuditColumns.values
+        + LOG_TIMESTAMP: BaseAuditColumns.values
         + SESSION_ID: BaseAuditColumns.values
         - RUN_ID
         + ROW_COUNT: subquery
-        + SPAN_NAME: query.db_operation_type: DbOperationType
-        - SPAN_ID
-        - PARENT_SPAN_ID
+        + LOG_SPAN_NAME: query.db_operation_type: DbOperationType
+        - LOG_SPAN_ID
+        - PARENT_LOG_SPAN_ID
         + EVENT_NAME: parameter event_name
         - EVENT_ATTRIBUTES
         + OBJECT_TYPE: query.db_object_type: DbObjectType
