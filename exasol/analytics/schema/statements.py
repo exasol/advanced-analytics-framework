@@ -111,7 +111,7 @@ class InsertStatement:
             return str(val)
 
         def find_duplicates(columns: list(ColumnName)) -> list[str]:
-            return [ c.fully_qualified for c in columns if c in self._columns ]
+            return [c.fully_qualified for c in columns if c in self._columns]
 
         names = sorted(values)
         additional = [self._lookup_column(n) for n in names]
