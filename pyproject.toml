@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "exasol-advanced-analytics-framework"
-version = "0.2.0"
+version = "0.3.0"
 description = "Framework for building complex data analysis algorithms with Exasol"
 
 packages = [
@@ -21,7 +21,7 @@ keywords = ['exasol']
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
-jinja2 = "^3.1.5"
+jinja2 = "^3.1.6"
 importlib-resources = "^6.5.2"
 exasol-bucketfs = "^1.0.1"
 click = "^8.1.8"
