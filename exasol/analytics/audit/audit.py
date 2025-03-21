@@ -85,10 +85,7 @@ class AuditTable(Table):
                 for c in query.select_with_columns.output_columns
             }
             insert_statement.add_references(subquery_columns)
-            suffix = (
-                "\nFROM VALUES (1) CROSS JOIN\n"
-                f"  ({query.query_string}) as {alias.fully_qualified}"
-            )
+            suffix = f"\nFROM ({query.query_string}) as {alias.fully_qualified}"
 
         return (
             f"INSERT INTO {self.name.fully_qualified} (\n"

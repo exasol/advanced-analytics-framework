@@ -96,8 +96,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
           SYSTIMESTAMP(),
           CURRENT_SESSION,
           "SUB_QUERY"."ERROR_MESSAGE"
-        FROM VALUES (1) CROSS JOIN
-          (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
+        FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
         """
     )
 
@@ -195,5 +194,7 @@ def test_query_types(audit_table):
     expected_matches = []
     for s in samples:
         expected_matches += s[1:]
-    for actual, expected in zip(statements, expected_matches):
-        assert re.match(expected, actual, re.DOTALL)
+    for i, (actual, expected) in enumerate(zip(statements, expected_matches)):
+        matches = re.match(expected, actual, re.DOTALL)
+        LOG.debug(f'{i+1}. {matches and True}')
+        assert matches
