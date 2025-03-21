@@ -66,7 +66,8 @@ class AuditTable(Table):
                 yield from self._wrap(query)
             else:
                 raise TypeError(
-                    f"Unexpected type {type(query)} of query {query.query_string}"
+                    f"Unexpected type {type(query).__name__}"
+                    f' of query "{query.query_string}"'
                 )
 
     def _insert(self, query: AuditQuery) -> str:
