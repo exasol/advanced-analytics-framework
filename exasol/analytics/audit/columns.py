@@ -1,5 +1,6 @@
 from exasol.analytics.schema import (
     decimal_column,
+    hashtype_column,
     timestamp_column,
     varchar_column,
 )
@@ -10,7 +11,7 @@ class BaseAuditColumns:
     SESSION_ID = decimal_column("SESSION_ID", precision=20)
     # RUN_ID must be obtained initially and remain unchanged during lifetime
     # of AuditLogger. AuditLogger sets it from uuid.uuid4().
-    RUN_ID = varchar_column("RUN_ID", size=32)
+    RUN_ID = hashtype_column("RUN_ID", bytes=16)
     ROW_COUNT = decimal_column("ROW_COUNT", precision=36)
     # LOG_SPAN_NAME and LOG_SPAN_ID need to be generated and provided by the
     # creator of the AuditQuery, i.e. lower level query_handlers.
@@ -20,8 +21,8 @@ class BaseAuditColumns:
     # string indicating a specific execution phase.
     LOG_SPAN_NAME = varchar_column("LOG_SPAN_NAME", size=2000000)
     # SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits
-    LOG_SPAN_ID = varchar_column("LOG_SPAN_ID", size=32)
-    PARENT_LOG_SPAN_ID = varchar_column("PARENT_LOG_SPAN_ID", size=32)
+    LOG_SPAN_ID = hashtype_column("LOG_SPAN_ID", bytes=16)
+    PARENT_LOG_SPAN_ID = hashtype_column("PARENT_LOG_SPAN_ID", bytes=16)
     # For ModifyQuery EVENT_NAME will be either "Begin" or "End".  For other
     # queries this can be a custom string, e.g.  "ERROR", "COMMIT", ...
     EVENT_NAME = varchar_column("EVENT_NAME", size=128)

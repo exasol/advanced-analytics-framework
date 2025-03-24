@@ -21,7 +21,11 @@ from exasol.analytics.schema import (
 @dataclass(eq=True)
 class LogSpan:
     """
-    SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits
+    A LogSpan represents a span of time in the Audit Log. Each LogSpan has
+    a name and an ID.  LogSpans can be nested and each child LogSpan can refer
+    to its parent by specifying the ID of the parent LogSpan.
+
+    LOG_SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits.
     """
 
     name: str
