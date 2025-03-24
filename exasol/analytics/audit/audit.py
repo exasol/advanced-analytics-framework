@@ -27,7 +27,7 @@ from exasol.analytics.schema import (
 
 
 def base_column_values(
-    attributes: dict[str, Any],
+    attributes: dict[Column, Any],
     parent: LogSpan | None = None,
 ) -> dict[str, Any]:
     """
@@ -91,7 +91,7 @@ class AuditTable(Table):
                 )
 
     def _insert(self, query: AuditQuery) -> str:
-        def log_span_fields(log_span: LogSpan):
+        def log_span_fields(log_span: LogSpan | None):
             return (
                 base_column_values(
                     {

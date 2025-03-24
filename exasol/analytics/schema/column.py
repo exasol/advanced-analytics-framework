@@ -60,7 +60,7 @@ def hashtype_column(
     bytes: Optional[int] = None,
     bits: Optional[int] = None,
 ) -> Column:
-    def size_and_unit() -> str:
+    def size_and_unit() -> tuple[int, SizeUnit]:
         if bytes is not None and bits is not None:
             raise ValueError(
                 "bytes and bits are specified at the same time:"
