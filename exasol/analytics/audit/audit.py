@@ -200,8 +200,8 @@ class AuditTable(Table):
         suffix: str = "",
     ) -> str:
         """
-        Please ensure argument suffix starts with a space, to ensure
-        separation from insert_statement.values.
+        Please ensure argument `suffix`, if specified, starts with a space
+        to ensure separation from `insert_statement.values`.
         """
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
