@@ -5,6 +5,7 @@ import pytest
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     CustomQuery,
+    LogSpan,
     ModifyQuery,
     SelectQuery,
     SelectQueryWithColumnDefinition,
@@ -15,7 +16,10 @@ from exasol.analytics.schema import (
     SchemaName,
     TableNameImpl,
 )
-from tests.utils.audit_table_utils import create_insert_query
+from tests.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    create_insert_query,
+)
 
 
 def modify_query(audit: bool):
@@ -83,3 +87,16 @@ def test_query_modifies_row_count(
         db_operation_type=db_operation_type,
     )
     assert query.modifies_row_count == expected_modifies
+
+
+def test_log_span_modify_query():
+    query = create_insert_query(
+        TableNameImpl("hello"),
+        audit=True,
+        parent_log_span=SAMPLE_LOG_SPAN,
+    )
+    assert query.parent_log_span == SAMPLE_LOG_SPAN
+
+
+def test_log_span_audit_query():
+    assert AuditQuery(log_span=SAMPLE_LOG_SPAN).log_span == SAMPLE_LOG_SPAN

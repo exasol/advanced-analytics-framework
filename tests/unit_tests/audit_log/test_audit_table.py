@@ -22,7 +22,7 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 from tests.utils.audit_table_utils import (
-    SAMPLE_UUID,
+    SAMPLE_LOG_SPAN,
     LogSpan,
     create_insert_query,
 )
@@ -30,7 +30,7 @@ from tests.utils.audit_table_utils import (
 LOG = logging.getLogger(__name__)
 
 
-SAMPLE_RUN_ID = uuid.uuid4().hex
+SAMPLE_RUN_ID = uuid.uuid4()
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
     other = other_table.fully_qualified
     audit_query = AuditQuery(
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
-        log_span=LogSpan("log span", SAMPLE_UUID),
+        log_span=SAMPLE_LOG_SPAN,
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
@@ -80,8 +80,8 @@ def test_audit_query_no_subquery(audit_table, other_table):
           SYSTIMESTAMP(),
           CURRENT_SESSION,
           'my event',
-          '{SAMPLE_UUID.hex}',
-          'log span',
+          '{SAMPLE_LOG_SPAN.id}',
+          'sample log span',
           '{SAMPLE_RUN_ID}'
         """
     )
@@ -96,7 +96,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
     audit_query = AuditQuery(
         select_with_columns=select,
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
-        log_span=LogSpan("log span", SAMPLE_UUID),
+        log_span=SAMPLE_LOG_SPAN,
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
@@ -114,8 +114,8 @@ def test_audit_query_with_subquery(audit_table, other_table):
           SYSTIMESTAMP(),
           CURRENT_SESSION,
           'my event',
-          '{SAMPLE_UUID.hex}',
-          'log span',
+          '{SAMPLE_LOG_SPAN.id}',
+          'sample log span',
           '{SAMPLE_RUN_ID}',
           "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
@@ -131,7 +131,11 @@ def test_modify_query_with_audit_false(audit_table, other_table):
 
 
 def test_count_rows(audit_table, other_table):
-    query = create_insert_query(other_table, audit=True)
+    query = create_insert_query(
+        other_table,
+        audit=True,
+        parent_log_span=SAMPLE_LOG_SPAN,
+    )
     statement = audit_table._count_rows(query, "Phase")
     LOG.debug(f"{statement}")
     otname = other_table.fully_qualified
@@ -159,7 +163,7 @@ def test_count_rows(audit_table, other_table):
           '{{"a": 123, "b": "value"}}',
           'Phase',
           'INSERT',
-          '{SAMPLE_UUID.hex}',
+          '{SAMPLE_LOG_SPAN.id}',
           '{SAMPLE_RUN_ID}'
         """
     )

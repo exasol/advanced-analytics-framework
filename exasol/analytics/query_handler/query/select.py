@@ -72,7 +72,10 @@ class AuditData:
     Components at different levels in the call stack can add their own items here.
     """
 
-    def __init__(self, audit_fields: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        audit_fields: dict[str, Any] | None = None,
+    ):
         self._audit_fields = audit_fields or {}
 
     @property

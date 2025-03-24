@@ -37,7 +37,7 @@ def base_column_values(
     """
     columns = dict(attributes)
     if parent:
-        columns[BaseAuditColumns.PARENT_LOG_SPAN_ID] = parent.id.hex
+        columns[BaseAuditColumns.PARENT_LOG_SPAN_ID] = str(parent.id)
     return {c.name.name: v for c, v in columns.items()}
 
 
@@ -47,7 +47,7 @@ class AuditTable(Table):
         db_schema: str,
         table_name_prefix: str,
         additional_columns: list[Column] = [],
-        run_id: str = uuid.uuid4().hex,
+        run_id: uuid.UUID = uuid.uuid4(),
     ):
         if not table_name_prefix:
             raise ValueError("table_name_prefix must not be empty")
@@ -95,9 +95,9 @@ class AuditTable(Table):
             return (
                 base_column_values(
                     {
-                        BaseAuditColumns.RUN_ID: self._run_id,
+                        BaseAuditColumns.RUN_ID: str(self._run_id),
                         BaseAuditColumns.LOG_SPAN_NAME: log_span.name,
-                        BaseAuditColumns.LOG_SPAN_ID: log_span.id.hex,
+                        BaseAuditColumns.LOG_SPAN_ID: str(log_span.id),
                     },
                     log_span.parent,
                 )
@@ -182,7 +182,7 @@ class AuditTable(Table):
         db_obj = query.db_object_name
         return base_column_values(
             {
-                BaseAuditColumns.RUN_ID: self._run_id,
+                BaseAuditColumns.RUN_ID: str(self._run_id),
                 BaseAuditColumns.LOG_SPAN_NAME: query.db_operation_type.name,
                 BaseAuditColumns.EVENT_NAME: event_name,
                 BaseAuditColumns.DB_OBJECT_TYPE: query.db_object_type.name,
