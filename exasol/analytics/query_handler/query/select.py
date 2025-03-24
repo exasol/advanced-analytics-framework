@@ -23,6 +23,7 @@ class LogSpan:
     """
     SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits
     """
+
     name: str
     id: uuid.UUID = uuid.uuid4()
     parent: LogSpan | None = None
@@ -51,12 +52,12 @@ class SelectQueryWithColumnDefinition(SelectQuery):
     Read-only query incl. output columns. The query is not auditable.
     """
 
-    def __init__(self, query_string: str, output_columns: List[Column]):
+    def __init__(self, query_string: str, output_columns: list[Column]):
         super().__init__(query_string)
         self._output_columns = output_columns
 
     @property
-    def output_columns(self) -> List[Column]:
+    def output_columns(self) -> list[Column]:
         return self._output_columns
 
 

@@ -22,8 +22,8 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 from tests.utils.audit_table_utils import (
-    LogSpan,
     SAMPLE_UUID,
+    LogSpan,
     create_insert_query,
 )
 
@@ -31,7 +31,6 @@ LOG = logging.getLogger(__name__)
 
 
 SAMPLE_RUN_ID = uuid.uuid4().hex
-
 
 
 @pytest.fixture

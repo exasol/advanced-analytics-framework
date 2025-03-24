@@ -1,10 +1,9 @@
+import uuid
 from typing import (
     Any,
     Iterator,
     cast,
 )
-
-import uuid
 
 from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (

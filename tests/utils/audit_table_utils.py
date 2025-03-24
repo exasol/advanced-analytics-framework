@@ -1,10 +1,10 @@
+import uuid
 from typing import (
     Any,
     Iterator,
 )
 
 import pyexasol
-import uuid
 
 from exasol.analytics.query_handler.query.select import (
     LogSpan,
@@ -43,8 +43,8 @@ def all_rows_as_dicts(
     )
 
 
-SAMPLE_UUID = uuid.uuid4()    
-    
+SAMPLE_UUID = uuid.uuid4()
+
 
 def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
     return ModifyQuery(
