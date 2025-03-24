@@ -4,6 +4,7 @@ from typeguard import TypeCheckError
 from exasol.analytics.schema import (
     ColumnName,
     ColumnType,
+    SizeUnit,
     SchemaName,
     TableNameBuilder,
     TableNameImpl,
@@ -241,6 +242,10 @@ def test_hash_inequality_table():
         (ColumnType("DECIMAL", scale=2), "DECIMAL"),
         (ColumnType("TIMESTAMP"), "TIMESTAMP"),
         (ColumnType("TIMESTAMP", precision=2), "TIMESTAMP(2)"),
+        (ColumnType("HASHTYPE"), "HASHTYPE(16 BYTE)"),
+        (ColumnType("HASHTYPE", size=10), "HASHTYPE(16 BYTE)"),
+        (ColumnType("HASHTYPE", unit=SizeUnit.BIT), "HASHTYPE(16 BYTE)"),
+        (ColumnType("HASHTYPE", size=16, unit=SizeUnit.BIT), "HASHTYPE(16 BIT)"),
     ],
 )
 def test_rendered(column_type, expected):
