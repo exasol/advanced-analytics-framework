@@ -93,20 +93,26 @@ def test_shortcut_functions(func, kwargs):
         assert getattr(column.type, attr) == value
 
 
-@pytest.mark.parametrize ("bytes, bits, expected_error", [
-    (2, 16, "bytes and bits are specified at the same time"),
-    (None, 11, "bits is not a multiple of 8"),
-])
+@pytest.mark.parametrize(
+    "bytes, bits, expected_error",
+    [
+        (2, 16, "bytes and bits are specified at the same time"),
+        (None, 11, "bits is not a multiple of 8"),
+    ],
+)
 def test_hashtype_column_invalid_args(bytes, bits, expected_error):
     with pytest.raises(ValueError, match=expected_error):
         hashtype_column("cname", bytes=bytes, bits=bits)
 
 
-@pytest.mark.parametrize ("bytes, bits, expected_size, expected_unit", [
-    (2, None, 2, SizeUnit.BYTE),
-    (None, 8, 8, SizeUnit.BIT),
-    (None, None, 16, SizeUnit.BYTE),
-])
+@pytest.mark.parametrize(
+    "bytes, bits, expected_size, expected_unit",
+    [
+        (2, None, 2, SizeUnit.BYTE),
+        (None, 8, 8, SizeUnit.BIT),
+        (None, None, 16, SizeUnit.BYTE),
+    ],
+)
 def test_hashtype_column_valid_args(bytes, bits, expected_size, expected_unit):
     testee = hashtype_column("cname", bytes=bytes, bits=bits)
     assert testee.type.size == expected_size

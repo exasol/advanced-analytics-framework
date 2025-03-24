@@ -4,8 +4,8 @@ from typeguard import TypeCheckError
 from exasol.analytics.schema import (
     ColumnName,
     ColumnType,
-    SizeUnit,
     SchemaName,
+    SizeUnit,
     TableNameBuilder,
     TableNameImpl,
 )
