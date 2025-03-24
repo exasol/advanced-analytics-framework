@@ -199,6 +199,10 @@ class AuditTable(Table):
         references: dict[str, ColumnName] = {},
         suffix: str = "",
     ) -> str:
+        """
+        Please ensure argument suffix starts with a space, to ensure
+        separation from insert_statement.values.
+        """
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_scalar_functions(BaseAuditColumns.values | scalar_functions)
