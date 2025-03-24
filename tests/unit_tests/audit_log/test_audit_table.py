@@ -1,5 +1,6 @@
 import logging
 import re
+import uuid
 from inspect import cleandoc
 from unittest.mock import Mock
 
@@ -20,14 +21,22 @@ from exasol.analytics.schema import (
     decimal_column,
     varchar_column,
 )
-from tests.utils.audit_table_utils import create_insert_query
+from tests.utils.audit_table_utils import (
+    LogSpan,
+    SAMPLE_UUID,
+    create_insert_query,
+)
 
 LOG = logging.getLogger(__name__)
 
 
+SAMPLE_RUN_ID = uuid.uuid4().hex
+
+
+
 @pytest.fixture
 def audit_table():
-    return AuditTable("S1", "A")
+    return AuditTable("S1", "A", run_id=SAMPLE_RUN_ID)
 
 
 @pytest.fixture
@@ -55,6 +64,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
     other = other_table.fully_qualified
     audit_query = AuditQuery(
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
+        log_span=LogSpan("log span", SAMPLE_UUID),
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
@@ -63,11 +73,17 @@ def test_audit_query_no_subquery(audit_table, other_table):
         INSERT INTO {audit_table.name.fully_qualified} (
           "LOG_TIMESTAMP",
           "SESSION_ID",
-          "EVENT_NAME"
+          "EVENT_NAME",
+          "LOG_SPAN_ID",
+          "LOG_SPAN_NAME",
+          "RUN_ID"
         ) SELECT
           SYSTIMESTAMP(),
           CURRENT_SESSION,
-          'my event'
+          'my event',
+          '{SAMPLE_UUID.hex}',
+          'log span',
+          '{SAMPLE_RUN_ID}'
         """
     )
 
@@ -81,6 +97,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
     audit_query = AuditQuery(
         select_with_columns=select,
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
+        log_span=LogSpan("log span", SAMPLE_UUID),
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
@@ -90,11 +107,17 @@ def test_audit_query_with_subquery(audit_table, other_table):
           "LOG_TIMESTAMP",
           "SESSION_ID",
           "EVENT_NAME",
+          "LOG_SPAN_ID",
+          "LOG_SPAN_NAME",
+          "RUN_ID",
           "ERROR_MESSAGE"
         ) SELECT
           SYSTIMESTAMP(),
           CURRENT_SESSION,
           'my event',
+          '{SAMPLE_UUID.hex}',
+          'log span',
+          '{SAMPLE_RUN_ID}',
           "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
         """
@@ -117,24 +140,28 @@ def test_count_rows(audit_table, other_table):
         f"""
         INSERT INTO {audit_table.name.fully_qualified} (
           "LOG_TIMESTAMP",
+          "ROW_COUNT",
           "SESSION_ID",
           "DB_OBJECT_NAME",
           "DB_OBJECT_SCHEMA",
           "DB_OBJECT_TYPE",
+          "EVENT_ATTRIBUTES",
           "EVENT_NAME",
           "LOG_SPAN_NAME",
-          "EVENT_ATTRIBUTES",
-          "ROW_COUNT"
+          "PARENT_LOG_SPAN_ID",
+          "RUN_ID"
         ) SELECT
           SYSTIMESTAMP(),
+          (SELECT count(1) FROM {otname}),
           CURRENT_SESSION,
           '{other_table.name}',
           '{other_table.schema_name.name}',
           'TABLE',
+          '{{"a": 123, "b": "value"}}',
           'Phase',
           'INSERT',
-          '{{"a": 123, "b": "value"}}',
-          (SELECT count(1) FROM {otname})
+          '{SAMPLE_UUID.hex}',
+          '{SAMPLE_RUN_ID}'
         """
     )
 

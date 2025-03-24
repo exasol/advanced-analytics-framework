@@ -21,37 +21,6 @@ from tests.utils.audit_table_utils import (
     create_insert_query,
 )
 
-# isort: off
-import os
-import pyexasol
-from typing import Optional
-
-
-# isort: on
-def exasol_db_connection(
-    host: Optional[str] = None,
-    port: Optional[int] = 8563,
-    user: Optional[str] = None,
-    password: Optional[str] = None,
-) -> pyexasol.ExaConnection:
-    """ See also ~/git/gha/github_issue_adapter/adapter/sql.py """
-    host = host or os.getenv("EXASOL_HOST")
-    user = user or os.getenv("EXASOL_USER")
-    password = password or os.getenv("EXASOL_PASS")
-    print(f'Connecting to {host}:{port} with user "{user}"')
-    connection = pyexasol.connect(
-        dsn=f"{host}:{port}",
-        user=user,
-        password=password,
-    )
-    # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
-    return connection
-
-@pytest.fixture(scope="session")
-def pyexasol_connection():
-    return exasol_db_connection()
-
-
 LOG = logging.getLogger(__name__)
 
 

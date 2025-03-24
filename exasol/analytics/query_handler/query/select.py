@@ -20,6 +20,9 @@ from exasol.analytics.schema import (
 
 @dataclass(eq=True)
 class LogSpan:
+    """
+    SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits
+    """
     name: str
     id: uuid.UUID = uuid.uuid4()
     parent: LogSpan | None = None

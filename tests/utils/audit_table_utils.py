@@ -4,8 +4,12 @@ from typing import (
 )
 
 import pyexasol
+import uuid
 
-from exasol.analytics.query_handler.query.select import ModifyQuery
+from exasol.analytics.query_handler.query.select import (
+    LogSpan,
+    ModifyQuery,
+)
 from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
@@ -39,6 +43,9 @@ def all_rows_as_dicts(
     )
 
 
+SAMPLE_UUID = uuid.uuid4()    
+    
+
 def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
     return ModifyQuery(
         query_string=query_string
@@ -52,4 +59,5 @@ def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
         db_operation_type=DbOperationType.INSERT,
         audit_fields={"EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}'},
         audit=audit,
+        parent_log_span=LogSpan("parent span", SAMPLE_UUID),
     )
