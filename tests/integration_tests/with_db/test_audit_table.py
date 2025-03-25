@@ -6,6 +6,7 @@ from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
+    LogSpan,
     ModifyQuery,
     SelectQueryWithColumnDefinition,
 )
@@ -17,9 +18,41 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 from tests.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
     all_rows_as_dicts,
     create_insert_query,
 )
+
+# isort: off
+import os
+import pyexasol
+from typing import Optional
+
+
+# isort: on
+def exasol_db_connection(
+    host: Optional[str] = None,
+    port: Optional[int] = 8563,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+) -> pyexasol.ExaConnection:
+    """ See also ~/git/gha/github_issue_adapter/adapter/sql.py """
+    host = host or os.getenv("EXASOL_HOST")
+    user = user or os.getenv("EXASOL_USER")
+    password = password or os.getenv("EXASOL_PASS")
+    print(f'Connecting to {host}:{port} with user "{user}"')
+    connection = pyexasol.connect(
+        dsn=f"{host}:{port}",
+        user=user,
+        password=password,
+    )
+    # connection.execute("ALTER SESSION SET TIME_ZONE = 'UTC'")
+    return connection
+
+@pytest.fixture(scope="session")
+def pyexasol_connection():
+    return exasol_db_connection()
+
 
 LOG = logging.getLogger(__name__)
 
@@ -70,9 +103,11 @@ def test_audit_query(pyexasol_connection, audit_table, subquery_table):
         query_string=f"SELECT ERROR AS ERROR_MESSAGE FROM {tname}",
         output_columns=[BaseAuditColumns.ERROR_MESSAGE],
     )
+    log_span = LogSpan("LS-1", parent=SAMPLE_LOG_SPAN)
     audit_query = AuditQuery(
         select_with_columns=select,
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
+        log_span=log_span,
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
@@ -83,6 +118,9 @@ def test_audit_query(pyexasol_connection, audit_table, subquery_table):
     assert error_messages == ["E1", "E2"]
     for e in log_entries:
         assert e["EVENT_NAME"] == "my event"
+        assert e["LOG_SPAN_NAME"] == log_span.name
+        assert e["LOG_SPAN_ID"] == log_span.id.hex
+        assert e["PARENT_LOG_SPAN_ID"] == log_span.parent.id.hex
 
 
 def test_modify_query(pyexasol_connection, audit_table, subquery_table):
@@ -90,7 +128,11 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
         return list(all_rows_as_dicts(pyexasol_connection, table))
 
     tname = subquery_table.fully_qualified
-    query = create_insert_query(subquery_table, audit=True)
+    query = create_insert_query(
+        subquery_table,
+        audit=True,
+        parent_log_span=SAMPLE_LOG_SPAN,
+    )
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt};")
@@ -107,6 +149,7 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
         "DB_OBJECT_NAME": subquery_table.name,
         "DB_OBJECT_TYPE": "TABLE",
         "LOG_SPAN_NAME": "INSERT",
+        "PARENT_LOG_SPAN_ID": SAMPLE_LOG_SPAN.id.hex,
         "EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}',
     }
     for e in log_entries:
