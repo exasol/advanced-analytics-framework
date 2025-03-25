@@ -60,26 +60,17 @@ def hashtype_column(
     bytes: Optional[int] = None,
     bits: Optional[int] = None,
 ) -> Column:
-    def size_and_unit() -> tuple[int, SizeUnit]:
-        if bytes is not None and bits is not None:
-            raise ValueError(
-                "bytes and bits are specified at the same time:"
-                f" bytes={bytes}, bits={bits}."
-            )
-        if bytes:
-            return (bytes, SizeUnit.BYTE)
-        if bits:
-            if bits % 8:
-                raise ValueError(f"bits is not a multiple of 8: bits={bits}.")
-            return (bits, SizeUnit.BIT)
-        return (16, SizeUnit.BYTE)
 
-    size = size_and_unit()
-    return Column(
-        ColumnName(name),
-        ColumnType(
-            "HASHTYPE",
-            size=size[0],
-            unit=size[1],
-        ),
-    )
+    if bytes is not None and bits is not None:
+        raise ValueError(
+            "bytes and bits are specified at the same time:"
+            f" bytes={bytes}, bits={bits}."
+        )
+    if bits:
+        if bits % 8:
+            raise ValueError(f"bits is not a multiple of 8: bits={bits}.")
+        size, unit = bits, SizeUnit.BIT
+    else:
+        size, unit = bytes or 16, SizeUnit.BYTE
+
+    return Column(ColumnName(name), ColumnType("HASHTYPE", size=size, unit=unit))
