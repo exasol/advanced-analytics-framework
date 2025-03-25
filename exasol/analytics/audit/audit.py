@@ -199,10 +199,6 @@ class AuditTable(Table):
         references: dict[str, ColumnName] = {},
         suffix: str = "",
     ) -> str:
-        """
-        Please ensure argument `suffix`, if specified, starts with a space
-        to ensure separation from `insert_statement.values`.
-        """
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_scalar_functions(BaseAuditColumns.values | scalar_functions)
@@ -213,5 +209,5 @@ class AuditTable(Table):
             f"INSERT INTO {self.name.fully_qualified} (\n"
             f"  {insert_statement.columns}\n"
             ") SELECT\n"
-            f"  {insert_statement.values}{suffix}"
+            f"  {insert_statement.values} {suffix}"
         )
