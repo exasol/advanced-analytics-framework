@@ -149,9 +149,9 @@ class AuditTable(Table):
         + SESSION_ID: BaseAuditColumns.values
         - RUN_ID
         + ROW_COUNT: subquery
-        + LOG_SPAN_NAME: query.db_operation_type: DbOperationType
-        - LOG_SPAN_ID
-        + PARENT_LOG_SPAN_ID: query.parent_log_span.id
+        + LOG_SPAN_NAME: query.log_span
+        + LOG_SPAN_ID: query.log_span
+        + PARENT_LOG_SPAN_ID: query.log_span
         + EVENT_NAME: parameter event_name
         - EVENT_ATTRIBUTES
         + DB_OBJECT_TYPE: query.db_object_type: DbObjectType
@@ -184,13 +184,14 @@ class AuditTable(Table):
         return base_column_values(
             {
                 BaseAuditColumns.RUN_ID: str(self._run_id),
-                BaseAuditColumns.LOG_SPAN_NAME: query.db_operation_type.name,
+                BaseAuditColumns.LOG_SPAN_NAME: query.log_span.name,
+                BaseAuditColumns.LOG_SPAN_ID: str(query.log_span.id),
                 BaseAuditColumns.EVENT_NAME: event_name,
                 BaseAuditColumns.DB_OBJECT_TYPE: query.db_object_type.name,
                 BaseAuditColumns.DB_OBJECT_SCHEMA: schema(db_obj),
                 BaseAuditColumns.DB_OBJECT_NAME: db_obj.name,
             },
-            query.parent_log_span,
+            query.log_span.parent,
         )
 
     def _insert_statement(

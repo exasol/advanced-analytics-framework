@@ -160,6 +160,7 @@ def test_count_rows(audit_table, other_table):
           "DB_OBJECT_TYPE",
           "EVENT_ATTRIBUTES",
           "EVENT_NAME",
+          "LOG_SPAN_ID",
           "LOG_SPAN_NAME",
           "PARENT_LOG_SPAN_ID",
           "RUN_ID"
@@ -172,6 +173,7 @@ def test_count_rows(audit_table, other_table):
           'TABLE',
           '{{"a": 123, "b": "value"}}',
           'Phase',
+          '{query.log_span.id}',
           'INSERT',
           '{SAMPLE_LOG_SPAN.id}',
           '{SAMPLE_RUN_ID}'\u0020

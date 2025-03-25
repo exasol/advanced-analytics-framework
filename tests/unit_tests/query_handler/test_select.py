@@ -89,13 +89,17 @@ def test_query_modifies_row_count(
     assert query.modifies_row_count == expected_modifies
 
 
-def test_log_span_modify_query():
-    query = create_insert_query(
-        TableNameImpl("hello"),
-        audit=True,
+@pytest.mark.parametrize("db_operation_type", DbOperationType)
+def test_log_span_modify_query(db_operation_type: DbOperationType):
+    actual = ModifyQuery(
+        query_string="query_string",
+        db_object_name=TableNameImpl("tbl"),
+        db_object_type=DbObjectType.TABLE,
+        db_operation_type=db_operation_type,
         parent_log_span=SAMPLE_LOG_SPAN,
-    )
-    assert query.parent_log_span == SAMPLE_LOG_SPAN
+    ).log_span
+    assert actual.name == db_operation_type.name
+    assert actual.parent == SAMPLE_LOG_SPAN
 
 
 def test_log_span_audit_query():

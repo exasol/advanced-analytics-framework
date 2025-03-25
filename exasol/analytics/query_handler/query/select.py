@@ -143,7 +143,7 @@ class ModifyQuery(CustomQuery, AuditData):
         self._db_object_name = db_object_name
         self._db_operation_type = db_operation_type
         self._audit = audit
-        self._parent_log_span = parent_log_span
+        self._log_span = LogSpan(db_operation_type.name, parent=parent_log_span)
 
     @property
     def db_object_type(self) -> DbObjectType:
@@ -158,8 +158,8 @@ class ModifyQuery(CustomQuery, AuditData):
         return self._db_operation_type
 
     @property
-    def parent_log_span(self) -> LogSpan | None:
-        return self._parent_log_span
+    def log_span(self) -> LogSpan:
+        return self._log_span
 
     @property
     def modifies_row_count(self) -> bool:
