@@ -18,6 +18,7 @@ from exasol.analytics.schema import (
     ColumnName,
     DBObjectName,
     DBObjectNameWithSchema,
+    DbObjectType,
     DbOperationType,
     InsertStatement,
     SchemaName,
@@ -59,7 +60,7 @@ class AuditTable(Table):
         self._column_names = [c.name for c in self.columns]
         self._run_id = run_id
 
-    def augment(self, queries: Iterator[Query]) -> Iterator[str]:
+    def augment(self, queries: Iterator[Query]) -> Iterator[Query]:
         """
         Process the specified queries and intermerge insert statements
         into the Audit Log if requested:
@@ -79,7 +80,7 @@ class AuditTable(Table):
         """
         for query in queries:
             if not query.audit:
-                yield query.query_string
+                yield query
             elif isinstance(query, AuditQuery):
                 yield self._insert(query)
             elif isinstance(query, ModifyQuery):
@@ -90,7 +91,7 @@ class AuditTable(Table):
                     f' of query "{query.query_string}"'
                 )
 
-    def _insert(self, query: AuditQuery) -> str:
+    def _insert(self, query: AuditQuery) -> Query:
         def log_span_fields(log_span: LogSpan | None):
             return (
                 base_column_values(
@@ -120,7 +121,7 @@ class AuditTable(Table):
             suffix=f"\nFROM ({query.query_string}) as {alias.fully_qualified}",
         )
 
-    def _wrap(self, query: ModifyQuery) -> Iterator[str]:
+    def _wrap(self, query: ModifyQuery) -> Iterator[Query]:
         """
         Wrap the specified ModifyQuery it into 2 queries recording the
         state before and after the actual ModifyQuery.
@@ -130,15 +131,15 @@ class AuditTable(Table):
         number of rows.
         """
         if query.db_operation_type != DbOperationType.INSERT:
-            yield query.query_string
+            yield query
         else:
             yield from [
                 self._count_rows(query, "Begin"),
-                query.query_string,
+                query,
                 self._count_rows(query, "End"),
             ]
 
-    def _count_rows(self, query: ModifyQuery, event_name: str) -> str:
+    def _count_rows(self, query: ModifyQuery, event_name: str) -> Query:
         """
         Create an SQL INSERT statement counting the rows of the table
         modified by ModifyQuery `query` and populate columns in the Audit
@@ -198,16 +199,21 @@ class AuditTable(Table):
         scalar_functions: dict[str, Any] = {},
         references: dict[str, ColumnName] = {},
         suffix: str = "",
-    ) -> str:
+    ) -> Query:
         insert_statement = (
             InsertStatement(self._column_names, separator=",\n  ")
             .add_scalar_functions(BaseAuditColumns.values | scalar_functions)
             .add_constants(constants)
             .add_references(references)
         )
-        return (
-            f"INSERT INTO {self.name.fully_qualified} (\n"
-            f"  {insert_statement.columns}\n"
-            ") SELECT\n"
-            f"  {insert_statement.values} {suffix}"
+        return ModifyQuery(
+            query_string=(
+                f"INSERT INTO {self.name.fully_qualified} (\n"
+                f"  {insert_statement.columns}\n"
+                ") SELECT\n"
+                f"  {insert_statement.values} {suffix}"
+            ),
+            db_object_type=DbObjectType.TABLE,
+            db_object_name=self.name,
+            db_operation_type=DbOperationType.INSERT,
         )

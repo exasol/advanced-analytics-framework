@@ -80,7 +80,7 @@ def test_audit_query(pyexasol_connection, audit_table, subquery_table):
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
-    pyexasol_connection.execute(statement)
+    pyexasol_connection.execute(statement.query_string)
     log_entries = list(all_rows_as_dicts(pyexasol_connection, audit_table.name))
     assert len(log_entries) == 2
     error_messages = [e["ERROR_MESSAGE"] for e in log_entries]
@@ -105,7 +105,7 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt};")
-        pyexasol_connection.execute(stmt)
+        pyexasol_connection.execute(stmt.query_string)
 
     log_entries = all_rows(audit_table.name)
     assert len(log_entries) == 2
