@@ -143,6 +143,9 @@ class ModifyQuery(CustomQuery, AuditData):
         self._db_object_name = db_object_name
         self._db_operation_type = db_operation_type
         self._audit = audit
+        # parent_log_span.child() can only be used if parent_log_span is not
+        # None, but ModifyQuery needs to create an individual instance of
+        # LogSpan in any case.
         self._log_span = LogSpan(db_operation_type.name, parent=parent_log_span)
 
     @property
