@@ -4,7 +4,10 @@ from typing import Optional
 import typeguard
 
 from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.schema.column_type import ColumnType
+from exasol.analytics.schema.column_type import (
+    ColumnType,
+    SizeUnit,
+)
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
@@ -50,3 +53,24 @@ def varchar_column(
             characterSet=characterSet,
         ),
     )
+
+
+def hashtype_column(
+    name: str,
+    bytes: Optional[int] = None,
+    bits: Optional[int] = None,
+) -> Column:
+
+    if bytes is not None and bits is not None:
+        raise ValueError(
+            "bytes and bits are specified at the same time:"
+            f" bytes={bytes}, bits={bits}."
+        )
+    if bits:
+        if bits % 8:
+            raise ValueError(f"bits is not a multiple of 8: bits={bits}.")
+        size, unit = bits, SizeUnit.BIT
+    else:
+        size, unit = bytes or 16, SizeUnit.BYTE
+
+    return Column(ColumnName(name), ColumnType("HASHTYPE", size=size, unit=unit))

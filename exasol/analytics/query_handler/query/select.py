@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass
 from typing import (
     Any,
     List,
@@ -12,6 +16,24 @@ from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
 )
+
+
+@dataclass(eq=True)
+class LogSpan:
+    """
+    A LogSpan represents a span of time in the Audit Log. Each LogSpan has
+    a name and an ID.  LogSpans can be nested and each child LogSpan can refer
+    to its parent by specifying the ID of the parent LogSpan.
+
+    LOG_SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits.
+    """
+
+    name: str
+    id: uuid.UUID = uuid.uuid4()
+    parent: LogSpan | None = None
+
+    def child(self, name: str, id: uuid.UUID = uuid.uuid4()) -> LogSpan:
+        return LogSpan(name, id, parent=self)
 
 
 class CustomQuery(Query):
@@ -34,12 +56,12 @@ class SelectQueryWithColumnDefinition(SelectQuery):
     Read-only query incl. output columns. The query is not auditable.
     """
 
-    def __init__(self, query_string: str, output_columns: List[Column]):
+    def __init__(self, query_string: str, output_columns: list[Column]):
         super().__init__(query_string)
         self._output_columns = output_columns
 
     @property
-    def output_columns(self) -> List[Column]:
+    def output_columns(self) -> list[Column]:
         return self._output_columns
 
 
@@ -50,7 +72,10 @@ class AuditData:
     Components at different levels in the call stack can add their own items here.
     """
 
-    def __init__(self, audit_fields: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        audit_fields: dict[str, Any] | None = None,
+    ):
         self._audit_fields = audit_fields or {}
 
     @property
@@ -69,9 +94,11 @@ class AuditQuery(Query, AuditData):
         self,
         select_with_columns: SelectQueryWithColumnDefinition | None = None,
         audit_fields: dict[str, Any] | None = None,
+        log_span: LogSpan | None = None,
     ):
-        self._select_with_columns = select_with_columns
         AuditData.__init__(self, audit_fields)
+        self._select_with_columns = select_with_columns
+        self._log_span = log_span
 
     @property
     def select_with_columns(self) -> SelectQueryWithColumnDefinition | None:
@@ -89,6 +116,10 @@ class AuditQuery(Query, AuditData):
     def audit(self) -> bool:
         return True
 
+    @property
+    def log_span(self) -> LogSpan | None:
+        return self._log_span
+
 
 class ModifyQuery(CustomQuery, AuditData):
     """
@@ -104,6 +135,7 @@ class ModifyQuery(CustomQuery, AuditData):
         db_operation_type: DbOperationType,
         audit_fields: dict[str, Any] | None = None,
         audit: bool = False,
+        parent_log_span: LogSpan | None = None,
     ):
         CustomQuery.__init__(self, query_string)
         AuditData.__init__(self, audit_fields)
@@ -111,6 +143,10 @@ class ModifyQuery(CustomQuery, AuditData):
         self._db_object_name = db_object_name
         self._db_operation_type = db_operation_type
         self._audit = audit
+        # parent_log_span.child() can only be used if parent_log_span is not
+        # None, but ModifyQuery needs to create an individual instance of
+        # LogSpan in any case.
+        self._log_span = LogSpan(db_operation_type.name, parent=parent_log_span)
 
     @property
     def db_object_type(self) -> DbObjectType:
@@ -123,6 +159,10 @@ class ModifyQuery(CustomQuery, AuditData):
     @property
     def db_operation_type(self) -> DbOperationType:
         return self._db_operation_type
+
+    @property
+    def log_span(self) -> LogSpan:
+        return self._log_span
 
     @property
     def modifies_row_count(self) -> bool:

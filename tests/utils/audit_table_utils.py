@@ -1,3 +1,4 @@
+import uuid
 from typing import (
     Any,
     Iterator,
@@ -5,7 +6,10 @@ from typing import (
 
 import pyexasol
 
-from exasol.analytics.query_handler.query.select import ModifyQuery
+from exasol.analytics.query_handler.query.select import (
+    LogSpan,
+    ModifyQuery,
+)
 from exasol.analytics.schema import (
     DbObjectType,
     DbOperationType,
@@ -39,7 +43,16 @@ def all_rows_as_dicts(
     )
 
 
-def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
+SAMPLE_UUID = uuid.uuid4()
+SAMPLE_LOG_SPAN = LogSpan("sample log span")
+
+
+def create_insert_query(
+    table: TableName,
+    audit: bool,
+    query_string: str = "",
+    parent_log_span: LogSpan | None = None,
+) -> ModifyQuery:
     return ModifyQuery(
         query_string=query_string
         or (
@@ -52,4 +65,5 @@ def create_insert_query(table: TableName, audit: bool, query_string: str = ""):
         db_operation_type=DbOperationType.INSERT,
         audit_fields={"EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}'},
         audit=audit,
+        parent_log_span=parent_log_span,
     )

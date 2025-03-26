@@ -6,6 +6,7 @@ from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
+    LogSpan,
     ModifyQuery,
     SelectQueryWithColumnDefinition,
 )
@@ -17,6 +18,7 @@ from exasol.analytics.schema import (
     varchar_column,
 )
 from tests.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
     all_rows_as_dicts,
     create_insert_query,
 )
@@ -70,19 +72,24 @@ def test_audit_query(pyexasol_connection, audit_table, subquery_table):
         query_string=f"SELECT ERROR AS ERROR_MESSAGE FROM {tname}",
         output_columns=[BaseAuditColumns.ERROR_MESSAGE],
     )
+    log_span = LogSpan("LS-1", parent=SAMPLE_LOG_SPAN)
     audit_query = AuditQuery(
         select_with_columns=select,
         audit_fields={BaseAuditColumns.EVENT_NAME.name.name: "my event"},
+        log_span=log_span,
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
-    pyexasol_connection.execute(statement)
+    pyexasol_connection.execute(statement.query_string)
     log_entries = list(all_rows_as_dicts(pyexasol_connection, audit_table.name))
     assert len(log_entries) == 2
     error_messages = [e["ERROR_MESSAGE"] for e in log_entries]
     assert error_messages == ["E1", "E2"]
     for e in log_entries:
         assert e["EVENT_NAME"] == "my event"
+        assert e["LOG_SPAN_NAME"] == log_span.name
+        assert e["LOG_SPAN_ID"] == log_span.id.hex
+        assert e["PARENT_LOG_SPAN_ID"] == log_span.parent.id.hex
 
 
 def test_modify_query(pyexasol_connection, audit_table, subquery_table):
@@ -90,11 +97,15 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
         return list(all_rows_as_dicts(pyexasol_connection, table))
 
     tname = subquery_table.fully_qualified
-    query = create_insert_query(subquery_table, audit=True)
+    query = create_insert_query(
+        subquery_table,
+        audit=True,
+        parent_log_span=SAMPLE_LOG_SPAN,
+    )
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt};")
-        pyexasol_connection.execute(stmt)
+        pyexasol_connection.execute(stmt.query_string)
 
     log_entries = all_rows(audit_table.name)
     assert len(log_entries) == 2
@@ -107,6 +118,7 @@ def test_modify_query(pyexasol_connection, audit_table, subquery_table):
         "DB_OBJECT_NAME": subquery_table.name,
         "DB_OBJECT_TYPE": "TABLE",
         "LOG_SPAN_NAME": "INSERT",
+        "PARENT_LOG_SPAN_ID": SAMPLE_LOG_SPAN.id.hex,
         "EVENT_ATTRIBUTES": '{"a": 123, "b": "value"}',
     }
     for e in log_entries:
