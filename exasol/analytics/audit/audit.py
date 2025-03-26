@@ -218,3 +218,12 @@ class AuditTable(Table):
             db_object_name=self.name,
             db_operation_type=DbOperationType.INSERT,
         )
+
+    @property
+    def create_query(self) -> ModifyQuery:
+        return ModifyQuery(
+            query_string=self.create_statement,
+            db_object_type=DbObjectType.TABLE,
+            db_object_name=self.name,
+            db_operation_type=DbOperationType.INSERT,
+        )
