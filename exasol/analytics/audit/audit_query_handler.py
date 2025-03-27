@@ -29,7 +29,10 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from exasol.analytics.schema import decimal_column
+from exasol.analytics.schema import (
+    Column,
+    decimal_column,
+)
 
 
 class Phase(Enum):
@@ -56,6 +59,10 @@ class Child(Generic[ResultType]):
     result: ResultType | None
 
 
+def default_columns_provider(parameter: ParameterType) -> list[Column]:
+    return []
+
+
 class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
     """
     Use the specified factory (e.g. :class:`OrchestratorQueryHandler`) to
@@ -77,13 +84,16 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         ],
         schema_getter: Callable[[ParameterType], str],
         table_name_prefix_getter: Callable[[ParameterType], str],
+        additional_columns_provider: Callable[
+            [ParameterType], list[Column]
+        ] = default_columns_provider,
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN
         self._audit_table = AuditTable(
-            db_schema = schema_getter(parameter),
-            table_name_prefix = table_name_prefix_getter(parameter),
-            additional_columns=[],
+            db_schema=schema_getter(parameter),
+            table_name_prefix=table_name_prefix_getter(parameter),
+            additional_columns=additional_columns_provider(parameter),
         )
         self._audit_table_created = False
         child_context = context.get_child_query_handler_context()
