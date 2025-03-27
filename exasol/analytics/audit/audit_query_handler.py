@@ -36,9 +36,9 @@ from exasol.analytics.schema import (
 
 
 class Phase(Enum):
-    MAIN = 2
-    RUN_FINAL_AUDIT_QUERY = 3
-    FINISHED = 4
+    MAIN = 1
+    RUN_FINAL_AUDIT_QUERY = 2
+    FINISHED = 3
 
 
 ResultType = TypeVar("ResultType")
