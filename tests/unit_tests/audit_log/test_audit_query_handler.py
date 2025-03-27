@@ -27,11 +27,12 @@ from exasol.analytics.schema.table_name import TableName
 from exasol.analytics.schema.table_name_impl import TableNameImpl
 from tests.utils.audit_table_utils import (
     QueryStringCriterion,
-    assert_queries_match,
+    query_matcher,
     create_insert_query,
     expected_query,
 )
 
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
 @dataclass
 class MyParameterType(Generic[ParameterType]):
@@ -55,17 +56,18 @@ def create_audit_query_handler(
     def table_name_prefix_getter(parameter: MyParameterType) -> str:
         return parameter.table_name_prefix
 
-    def additional_columns_provider(parameter: MyParameterType) -> list[Column]:
+    def additional_columns_provider() -> list[Column]:
         return [decimal_column("DDD", precision=9)]
 
     parameter = MyParameterType(
         db_schema="SSS",
         table_name_prefix=AUDIT_TABLE_NAME_PREFIX,
     )
+
     return AuditQueryHandler(
         parameter=parameter,
         context=Mock(),
-        query_handler_factory=Mock(return_value=child),
+        query_handler_factory=lambda parameter, context: child,
         schema_getter=schema_getter,
         table_name_prefix_getter=table_name_prefix_getter,
         additional_columns_provider=additional_columns_provider,
@@ -81,7 +83,7 @@ def test_constructor() -> None:
     assert child == testee._child.query_handler
 
 
-def test_start_finish():
+def test_start_finish_no_audit_query():
     start_method = Mock(return_value=Finish(result="some result"))
     child = Mock(start=start_method)
     actual = create_audit_query_handler(child).start()
@@ -96,7 +98,7 @@ def continue_action(query_list: list[Query]) -> Continue:
     return Continue(query_list=query_list, input_query=input_query)
 
 
-def test_start_continue_finish():
+def test_start_continue_finish_no_audit_query():
     """
     Simulate a child query handler with start() returning Continue and
     handle_query_result returning Finish.
@@ -122,6 +124,6 @@ def test_start_continue_finish():
     testee = create_audit_query_handler(child)
     action_1 = testee.start()
     for expected, actual in zip(expected_queries, action_1.query_list):
-        assert_queries_match(expected, actual, QueryStringCriterion.STARTS_WITH)
+        actual == query_matcher(expected, QueryStringCriterion.STARTS_WITH)
     action_2 = testee.handle_query_result(Mock())
     assert action_2.result == "some result"

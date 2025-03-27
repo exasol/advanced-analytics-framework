@@ -84,29 +84,50 @@ def expected_query(
     table_name: TableName,
     db_operation_type: DbOperationType = DbOperationType.INSERT,
 ) -> Query:
+    fqn = table_name.fully_qualified
     query_strings = {
-        DbOperationType.INSERT: f"INSERT INTO {table_name.fully_qualified}",
-        DbOperationType.CREATE_IF_NOT_EXISTS: f"CREATE TABLE IF NOT EXISTS {table_name.fully_qualified}",
+        "INSERT": f"INSERT INTO {fqn}",
+        "CREATE_IF_NOT_EXISTS": f"CREATE TABLE IF NOT EXISTS {fqn}",
     }
     return ModifyQuery(
-        query_string=query_strings[db_operation_type],
+        query_string=query_strings[db_operation_type.name],
         db_object_type=DbObjectType.TABLE,
         db_object_name=table_name,
         db_operation_type=db_operation_type,
     )
 
 
-def assert_queries_match(
-    expected: Query,
-    actual: Query,
-    query_string_criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
-):
-    assert isinstance(expected, actual.__class__)
-    if query_string_criterion == QueryStringCriterion.STARTS_WITH:
-        assert actual.query_string.startswith(expected.query_string)
-    else:
-        assert re.match(expected.query_string, actual.query_string, re.DOTALL)
-    if isinstance(actual, ModifyQuery):
-        assert actual.db_object_type == expected.db_object_type
-        assert actual.db_object_name == expected.db_object_name
-        assert actual.db_operation_type == expected.db_operation_type
+class query_matcher:
+    """
+    Given an expected query template and a match criterion this matcher
+    serves in test cases to compare actual queries with the template.
+    """
+    def __init__(
+        self,
+        query: Query,
+        criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
+    ):
+        self.query = query
+        self.criterion = criterion
+
+    def __ne__(self, other: Any):
+        return not self.__eq__(other)
+
+    def __eq__(self, other: Any):
+        if not isinstance(other, self.query.__class__):
+            return False
+
+        if not (
+            other.query_string.startswith(self.query.query_string)
+            if self.criterion == QueryStringCriterion.STARTS_WITH
+            else re.match(self.query.query_string, other.query_string, re.DOTALL)
+        ):
+            return False
+
+        if isinstance(other, ModifyQuery):
+            return (
+                other.db_object_type == self.query.db_object_type
+                and other.db_object_name == self.query.db_object_name
+                and other.db_operation_type == self.query.db_operation_type
+            )
+        return True

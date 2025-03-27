@@ -29,7 +29,7 @@ from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
     QueryStringCriterion,
-    assert_queries_match,
+    query_matcher,
     create_insert_query,
 )
 
@@ -258,4 +258,4 @@ def test_query_types(audit_table):
         expected_matches += s[1:]
     for i, (actual, expected) in enumerate(zip(statements, expected_matches)):
         LOG.debug(f"{i+1}. {actual.query_string}")
-        assert_queries_match(expected, actual, QueryStringCriterion.REGEXP)
+        assert actual == query_matcher(expected, QueryStringCriterion.REGEXP)

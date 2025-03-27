@@ -59,7 +59,7 @@ class Child(Generic[ResultType]):
     result: ResultType | None
 
 
-def default_columns_provider(parameter: ParameterType) -> list[Column]:
+def default_columns_provider() -> list[Column]:
     return []
 
 
@@ -84,16 +84,14 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         ],
         schema_getter: Callable[[ParameterType], str],
         table_name_prefix_getter: Callable[[ParameterType], str],
-        additional_columns_provider: Callable[
-            [ParameterType], list[Column]
-        ] = default_columns_provider,
+        additional_columns_provider: Callable[[], list[Column]] = default_columns_provider,
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN
         self._audit_table = AuditTable(
             db_schema=schema_getter(parameter),
             table_name_prefix=table_name_prefix_getter(parameter),
-            additional_columns=additional_columns_provider(parameter),
+            additional_columns=additional_columns_provider(),
         )
         self._audit_table_created = False
         child_context = context.get_child_query_handler_context()
@@ -141,8 +139,8 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         Create Continue for excecuting the final AuditQuery.
         """
         input_query = SelectQueryWithColumnDefinition(
-            query_string="SELECT 1 as DUMMY_COLUMN",
-            output_columns=[decimal_column("DUMMY_COLUMN", precision=10)],
+            query_string="SELECT (CAST 1 as DECIMAL(1,0)) as DUMMY_COLUMN",
+            output_columns=[decimal_column("DUMMY_COLUMN", precision=1, scale=0)],
         )
         return Continue(
             query_list=self._augmented([audit_query]),

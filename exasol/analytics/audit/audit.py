@@ -226,4 +226,5 @@ class AuditTable(Table):
             db_object_type=DbObjectType.TABLE,
             db_object_name=self.name,
             db_operation_type=DbOperationType.CREATE_IF_NOT_EXISTS,
+            audit=False,
         )
