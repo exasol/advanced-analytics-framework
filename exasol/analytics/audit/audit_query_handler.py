@@ -1,30 +1,35 @@
 from __future__ import annotations
+
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Callable,
     Generic,
     Iterator,
     Optional,
-    TypeVar,
     TypeAlias,
+    TypeVar,
     Union,
     cast,
 )
-from dataclasses import dataclass
+
 from pydantic import BaseModel
 
+from exasol.analytics.audit.audit import AuditTable
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
+from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.result.interface import QueryResult
+from exasol.analytics.query_handler.query.select import (
+    AuditQuery,
+    SelectQueryWithColumnDefinition,
+)
 from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from exasol.analytics.query_handler.query.interface import Query
-from exasol.analytics.query_handler.query.select import AuditQuery
-from exasol.analytics.audit.audit import AuditTable
-from exasol.analytics.query_handler.query.select import SelectQueryWithColumnDefinition
-from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
+
 
 class Phase(Enum):
     MAIN = 2
@@ -57,6 +62,7 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
     instantiate a query handler and augment the queries returned by it for
     creating Audit Log entries.
     """
+
     def __init__(
         self,
         parameter: ParameterType,
@@ -65,11 +71,10 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
             [ParameterType, ScopeQueryHandlerContext],
             QueryHandler[ParameterType, ResultType],
         ],
-
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN
-        self._audit_table: Optional[AuditTable] = None
+        self._audit_table: AuditTable | None = None
 
         child_context = context.get_child_query_handler_context()
         query_handler = query_handler_factory(parameter, child_context)
@@ -130,8 +135,9 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
                 self._audit_table = AuditTable(
                     db_schema="<TBD>",
                     table_name_prefix="<TBD>",
-                    additional_columns=[], # TBD
+                    additional_columns=[],  # TBD
                 )
                 yield self._audit_table.create_query
             yield from self._audit_table.augment(iter(queries))
+
         return list(generate())
