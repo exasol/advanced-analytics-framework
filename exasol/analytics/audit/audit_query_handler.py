@@ -29,6 +29,7 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
+from exasol.analytics.schema import decimal_column
 
 
 class Phase(Enum):
@@ -39,7 +40,6 @@ class Phase(Enum):
 
 ResultType = TypeVar("ResultType")
 ParameterType = TypeVar("ParameterType")
-ContinueOrFinish: TypeAlias = Union[Continue, Finish[ResultType]]
 
 
 class IllegalMethodCallError(RuntimeError):
@@ -61,6 +61,10 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
     Use the specified factory (e.g. :class:`OrchestratorQueryHandler`) to
     instantiate a query handler and augment the queries returned by it for
     creating Audit Log entries.
+
+    `schema_getter` and `table_name_prefix_getter` are functions to retrieve
+    the database schema and the prefix for the Audit Log Database Table from
+    the specified `parameter`.
     """
 
     def __init__(
@@ -71,20 +75,26 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
             [ParameterType, ScopeQueryHandlerContext],
             QueryHandler[ParameterType, ResultType],
         ],
+        schema_getter: Callable[[ParameterType], str],
+        table_name_prefix_getter: Callable[[ParameterType], str],
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN
-        self._audit_table: AuditTable | None = None
-
+        self._audit_table = AuditTable(
+            db_schema = schema_getter(parameter),
+            table_name_prefix = table_name_prefix_getter(parameter),
+            additional_columns=[],
+        )
+        self._audit_table_created = False
         child_context = context.get_child_query_handler_context()
         query_handler = query_handler_factory(parameter, child_context)
         self._child = Child[ResultType](child_context, query_handler, None)
 
-    def start(self) -> ContinueOrFinish:
+    def start(self) -> Continue | Finish:
         action = self._child.query_handler.start()
         return self._handle_action(action)
 
-    def handle_query_result(self, query_result: QueryResult) -> ContinueOrFinish:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish:
         if self._phase == Phase.MAIN:
             action = self._child.query_handler.handle_query_result(query_result)
             return self._handle_action(action)
@@ -97,12 +107,12 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
                 f" has been called in phase {self._phase.name}."
             )
 
-    def _handle_action(self, action: ContinueOrFinish) -> ContinueOrFinish:
+    def _handle_action(self, action: Continue | Finish) -> Continue | Finish:
         if isinstance(action, Continue):
-            caction = cast(Continue, action)
+            action = cast(Continue, action)
             return Continue(
-                query_list=self._augmented(caction.query_list),
-                input_query=caction.input_query,
+                query_list=self._augmented(action.query_list),
+                input_query=action.input_query,
             )
         elif isinstance(action, Finish):
             self._child.context.release()
@@ -121,8 +131,8 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         Create Continue for excecuting the final AuditQuery.
         """
         input_query = SelectQueryWithColumnDefinition(
-            query_string="SELECT 1",
-            output_columns=[],
+            query_string="SELECT 1 as DUMMY_COLUMN",
+            output_columns=[decimal_column("DUMMY_COLUMN", precision=10)],
         )
         return Continue(
             query_list=self._augmented([audit_query]),
@@ -131,12 +141,8 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
 
     def _augmented(self, queries: list[Query]) -> list[Query]:
         def generate() -> Iterator[Query]:
-            if self._audit_table is None:
-                self._audit_table = AuditTable(
-                    db_schema="<TBD>",
-                    table_name_prefix="<TBD>",
-                    additional_columns=[],  # TBD
-                )
+            if not self._audit_table_created:
+                self._audit_table_created = True
                 yield self._audit_table.create_query
             yield from self._audit_table.augment(iter(queries))
 
