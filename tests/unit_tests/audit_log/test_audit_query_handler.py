@@ -61,9 +61,6 @@ def create_audit_query_handler(
     def table_name_prefix_getter(parameter: MyParameterType) -> str:
         return parameter.table_name_prefix
 
-    def additional_columns_provider() -> list[Column]:
-        return [decimal_column("DDD", precision=9)]
-
     parameter = MyParameterType(
         db_schema="SSS",
         table_name_prefix=AUDIT_TABLE_NAME_PREFIX,
@@ -75,7 +72,7 @@ def create_audit_query_handler(
         query_handler_factory=lambda parameter, context: child,
         schema_getter=schema_getter,
         table_name_prefix_getter=table_name_prefix_getter,
-        additional_columns_provider=additional_columns_provider,
+        additional_columns=[decimal_column("DDD", precision=9)],
     )
 
 

@@ -59,10 +59,6 @@ class Child(Generic[ResultType]):
     result: ResultType | None
 
 
-def default_columns_provider() -> list[Column]:
-    return []
-
-
 class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
     """
     Use the specified factory (e.g. :class:`OrchestratorQueryHandler`) to
@@ -84,16 +80,14 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         ],
         schema_getter: Callable[[ParameterType], str],
         table_name_prefix_getter: Callable[[ParameterType], str],
-        additional_columns_provider: Callable[
-            [], list[Column]
-        ] = default_columns_provider,
+        additional_columns: list[Column] | None,
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN
         self._audit_table = AuditTable(
             db_schema=schema_getter(parameter),
             table_name_prefix=table_name_prefix_getter(parameter),
-            additional_columns=additional_columns_provider(),
+            additional_columns=additional_columns or [],
         )
         self._audit_table_created = False
         child_context = context.get_child_query_handler_context()
