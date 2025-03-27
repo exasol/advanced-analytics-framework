@@ -2,14 +2,18 @@ from dataclasses import dataclass
 from typing import Generic
 from unittest.mock import Mock
 
+import pytest
+
 from exasol.analytics.audit.audit_query_handler import (
     AuditQueryHandler,
+    IllegalMethodCallError,
     ParameterType,
     ResultType,
 )
 from exasol.analytics.query_handler.query.select import (
     DbOperationType,
     ModifyQuery,
+    AuditQuery,
     Query,
     SelectQueryWithColumnDefinition,
 )
@@ -20,11 +24,11 @@ from exasol.analytics.query_handler.result import (
 )
 from exasol.analytics.schema import (
     Column,
+    SchemaName,
+    TableName,
+    TableNameImpl,
     decimal_column,
 )
-from exasol.analytics.schema.schema_name import SchemaName
-from exasol.analytics.schema.table_name import TableName
-from exasol.analytics.schema.table_name_impl import TableNameImpl
 from tests.utils.audit_table_utils import (
     QueryStringCriterion,
     query_matcher,
@@ -46,6 +50,7 @@ AUDIT_TABLE_NAME = TableNameImpl(
     f"{AUDIT_TABLE_NAME_PREFIX}_AUDIT_LOG", SchemaName("SSS")
 )
 
+EMPTY_FINISH = Finish(result="finish result", audit_query=None)
 
 def create_audit_query_handler(
     child: QueryHandler[ParameterType, ResultType],
@@ -84,10 +89,51 @@ def test_constructor() -> None:
 
 
 def test_start_finish_no_audit_query():
-    start_method = Mock(return_value=Finish(result="some result"))
+    """
+    Simulate a child query handler immediately returning Finish with no
+    audit query.
+    Verify result of returned action
+    """
+    start_method = Mock(return_value=EMPTY_FINISH)
     child = Mock(start=start_method)
-    actual = create_audit_query_handler(child).start()
-    assert actual.result == "some result"
+    testee = create_audit_query_handler(child)
+    action = testee.start()
+    assert action == EMPTY_FINISH
+    with pytest.raises(IllegalMethodCallError):
+        testee.handle_query_result(Mock())
+
+
+def test_start_finish_with_audit_query():
+    """
+    Simulate a child query handler immediately returning Finish with an
+    audit query. Verify audit query has been rewritten to an insert query.
+    """
+    event_attributes = '{"a1": 123}'
+    audit_query = AuditQuery(audit_fields={"EVENT_ATTRIBUTES": event_attributes })
+    start_method = Mock(return_value=Finish(result="finish result", audit_query=audit_query))
+    child = Mock(start=start_method)
+    testee = create_audit_query_handler(child)
+    action_1 = testee.start()
+    assert isinstance(action_1, Continue)
+    matchers = [
+        query_matcher(
+            expected_query(AUDIT_TABLE_NAME, DbOperationType.CREATE_IF_NOT_EXISTS),
+            QueryStringCriterion.STARTS_WITH,
+        ),
+        query_matcher(
+            expected_query(
+                AUDIT_TABLE_NAME,
+                query_string_suffix=f" .*'{event_attributes}'",
+            ),
+            QueryStringCriterion.REGEXP,
+        ),
+    ]
+    for matcher, actual in zip(matchers, action_1.query_list):
+        assert actual == matcher
+    action_2 = testee.handle_query_result(Mock())
+    assert action_2 == EMPTY_FINISH
+    with pytest.raises(IllegalMethodCallError):
+        testee.handle_query_result(Mock())
 
 
 def continue_action(query_list: list[Query]) -> Continue:
@@ -109,7 +155,7 @@ def test_start_continue_finish_no_audit_query():
 
     def create_child(query: Query):
         start_method = Mock(return_value=continue_action([query]))
-        hqr_method = Mock(return_value=Finish(result="some result"))
+        hqr_method = Mock(return_value=EMPTY_FINISH)
         return Mock(start=start_method, handle_query_result=hqr_method)
 
     query = create_insert_query(TableNameImpl("T", SchemaName("S2")), audit=True)
@@ -126,4 +172,4 @@ def test_start_continue_finish_no_audit_query():
     for expected, actual in zip(expected_queries, action_1.query_list):
         actual == query_matcher(expected, QueryStringCriterion.STARTS_WITH)
     action_2 = testee.handle_query_result(Mock())
-    assert action_2.result == "some result"
+    assert action_2 == EMPTY_FINISH

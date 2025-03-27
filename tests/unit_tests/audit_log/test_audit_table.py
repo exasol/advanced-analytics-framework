@@ -29,6 +29,7 @@ from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
     QueryStringCriterion,
+    expected_query,
     query_matcher,
     create_insert_query,
 )
@@ -184,14 +185,6 @@ def test_modify_query(audit_table, other_table):
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt.query_string};")
-
-    def expected_query(table_name: TableName) -> Query:
-        return ModifyQuery(
-            query_string=f"INSERT INTO {table_name.fully_qualified}",
-            db_object_type=DbObjectType.TABLE,
-            db_object_name=table_name,
-            db_operation_type=DbOperationType.INSERT,
-        )
 
     for expected, actual in zip(
         [

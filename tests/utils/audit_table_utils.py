@@ -83,6 +83,7 @@ class QueryStringCriterion(Enum):
 def expected_query(
     table_name: TableName,
     db_operation_type: DbOperationType = DbOperationType.INSERT,
+    query_string_suffix: str = "",
 ) -> Query:
     fqn = table_name.fully_qualified
     query_strings = {
@@ -90,7 +91,7 @@ def expected_query(
         "CREATE_IF_NOT_EXISTS": f"CREATE TABLE IF NOT EXISTS {fqn}",
     }
     return ModifyQuery(
-        query_string=query_strings[db_operation_type.name],
+        query_string=query_strings[db_operation_type.name] + query_string_suffix,
         db_object_type=DbObjectType.TABLE,
         db_object_name=table_name,
         db_operation_type=db_operation_type,
