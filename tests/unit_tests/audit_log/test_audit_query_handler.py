@@ -30,7 +30,6 @@ from exasol.analytics.schema import (
     decimal_column,
 )
 from tests.utils.audit_table_utils import (
-    QueryStringCriterion,
     regex_matcher,
     prefix_matcher,
     create_insert_query,
@@ -164,3 +163,5 @@ def test_start_continue_finish_no_audit_query():
         actual == expected
     action_2 = testee.handle_query_result(Mock())
     assert action_2 == EMPTY_FINISH
+    with pytest.raises(IllegalMethodCallError):
+        testee.handle_query_result(Mock())

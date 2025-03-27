@@ -28,7 +28,6 @@ from exasol.analytics.schema import (
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
-    QueryStringCriterion,
     prefix_matcher,
     regex_matcher,
     query_matcher,
