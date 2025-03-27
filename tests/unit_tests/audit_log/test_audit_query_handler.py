@@ -10,10 +10,11 @@ from exasol.analytics.audit.audit_query_handler import (
     ParameterType,
     ResultType,
 )
+from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.select import (
+    AuditQuery,
     DbOperationType,
     ModifyQuery,
-    AuditQuery,
     Query,
     SelectQueryWithColumnDefinition,
 )
@@ -30,12 +31,11 @@ from exasol.analytics.schema import (
     decimal_column,
 )
 from tests.utils.audit_table_utils import (
-    regex_matcher,
-    prefix_matcher,
     create_insert_query,
+    prefix_matcher,
+    regex_matcher,
 )
 
-from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 
 @dataclass
 class MyParameterType(Generic[ParameterType]):
@@ -50,6 +50,7 @@ AUDIT_TABLE_NAME = TableNameImpl(
 )
 
 EMPTY_FINISH = Finish(result="finish result", audit_query=None)
+
 
 def create_audit_query_handler(
     child: QueryHandler[ParameterType, ResultType],
@@ -108,8 +109,10 @@ def test_start_finish_with_audit_query():
     audit query. Verify audit query has been rewritten to an insert query.
     """
     event_attributes = '{"a1": 123}'
-    audit_query = AuditQuery(audit_fields={"EVENT_ATTRIBUTES": event_attributes })
-    start_method = Mock(return_value=Finish(result="finish result", audit_query=audit_query))
+    audit_query = AuditQuery(audit_fields={"EVENT_ATTRIBUTES": event_attributes})
+    start_method = Mock(
+        return_value=Finish(result="finish result", audit_query=audit_query)
+    )
     child = Mock(start=start_method)
     testee = create_audit_query_handler(child)
     action_1 = testee.start()

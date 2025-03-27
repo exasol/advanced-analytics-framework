@@ -28,10 +28,10 @@ from exasol.analytics.schema import (
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
-    prefix_matcher,
-    regex_matcher,
-    query_matcher,
     create_insert_query,
+    prefix_matcher,
+    query_matcher,
+    regex_matcher,
 )
 
 LOG = logging.getLogger(__name__)
@@ -211,9 +211,7 @@ def test_query_types(audit_table):
         return create_insert_query(
             table_name,
             audit=audit,
-            query_string=(
-                f"INSERT INTO {table_name.fully_qualified}"
-            ),
+            query_string=(f"INSERT INTO {table_name.fully_qualified}"),
         )
 
     other_table = TableNameImpl("Other", SchemaName("S2"))
@@ -233,7 +231,7 @@ def test_query_types(audit_table):
         [
             SelectQuery("select query"),
             query_matcher(SelectQuery("select query")),
-         ],
+        ],
         [
             CustomQuery("custom query"),
             query_matcher(CustomQuery("custom query")),

@@ -84,7 +84,9 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         ],
         schema_getter: Callable[[ParameterType], str],
         table_name_prefix_getter: Callable[[ParameterType], str],
-        additional_columns_provider: Callable[[], list[Column]] = default_columns_provider,
+        additional_columns_provider: Callable[
+            [], list[Column]
+        ] = default_columns_provider,
     ):
         super().__init__(parameter, context)
         self._phase = Phase.MAIN

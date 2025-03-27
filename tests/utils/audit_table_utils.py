@@ -106,6 +106,7 @@ class QueryMatcher:
     An assert statement can use this matcher then to compare an actual query
     to the template using the specified match criterion.
     """
+
     def __init__(
         self,
         table_name: TableName,
