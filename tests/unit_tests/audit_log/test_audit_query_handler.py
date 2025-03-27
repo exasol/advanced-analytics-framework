@@ -31,9 +31,9 @@ from exasol.analytics.schema import (
 )
 from tests.utils.audit_table_utils import (
     QueryStringCriterion,
-    query_matcher,
+    regex_matcher,
+    prefix_matcher,
     create_insert_query,
-    expected_query,
 )
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
@@ -116,17 +116,8 @@ def test_start_finish_with_audit_query():
     action_1 = testee.start()
     assert isinstance(action_1, Continue)
     matchers = [
-        query_matcher(
-            expected_query(AUDIT_TABLE_NAME, DbOperationType.CREATE_IF_NOT_EXISTS),
-            QueryStringCriterion.STARTS_WITH,
-        ),
-        query_matcher(
-            expected_query(
-                AUDIT_TABLE_NAME,
-                query_string_suffix=f" .*'{event_attributes}'",
-            ),
-            QueryStringCriterion.REGEXP,
-        ),
+        prefix_matcher(AUDIT_TABLE_NAME, DbOperationType.CREATE_IF_NOT_EXISTS),
+        regex_matcher(AUDIT_TABLE_NAME, suffix=f" .*'{event_attributes}'"),
     ]
     for matcher, actual in zip(matchers, action_1.query_list):
         assert actual == matcher
@@ -160,16 +151,16 @@ def test_start_continue_finish_no_audit_query():
 
     query = create_insert_query(TableNameImpl("T", SchemaName("S2")), audit=True)
     child = create_child(query)
-    expected_queries = [
-        expected_query(AUDIT_TABLE_NAME, DbOperationType.CREATE_IF_NOT_EXISTS),
-        expected_query(AUDIT_TABLE_NAME),
-        expected_query(query.db_object_name, query.db_operation_type),
-        expected_query(AUDIT_TABLE_NAME),
+    matchers = [
+        prefix_matcher(AUDIT_TABLE_NAME, DbOperationType.CREATE_IF_NOT_EXISTS),
+        prefix_matcher(AUDIT_TABLE_NAME),
+        prefix_matcher(query.db_object_name, query.db_operation_type),
+        prefix_matcher(AUDIT_TABLE_NAME),
     ]
 
     testee = create_audit_query_handler(child)
     action_1 = testee.start()
-    for expected, actual in zip(expected_queries, action_1.query_list):
-        actual == query_matcher(expected, QueryStringCriterion.STARTS_WITH)
+    for expected, actual in zip(matchers, action_1.query_list):
+        actual == expected
     action_2 = testee.handle_query_result(Mock())
     assert action_2 == EMPTY_FINISH
