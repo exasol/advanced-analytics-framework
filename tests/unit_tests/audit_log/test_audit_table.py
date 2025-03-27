@@ -213,6 +213,7 @@ def test_unsupported_query_type(audit_table):
     with pytest.raises(TypeError):
         next(audit_table.augment([query]))
 
+
 def test_query_types(audit_table):
     """
     Construct a list of sample queries together with 1 or multiple regular

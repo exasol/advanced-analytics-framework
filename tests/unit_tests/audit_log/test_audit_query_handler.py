@@ -42,8 +42,7 @@ class MyParameterType(Generic[ParameterType]):
 AUDIT_TABLE_NAME_PREFIX = "PPP"
 
 AUDIT_TABLE_NAME = TableNameImpl(
-    f"{AUDIT_TABLE_NAME_PREFIX}_AUDIT_LOG",
-    SchemaName("SSS")
+    f"{AUDIT_TABLE_NAME_PREFIX}_AUDIT_LOG", SchemaName("SSS")
 )
 
 
@@ -78,7 +77,7 @@ def test_constructor() -> None:
     testee = create_audit_query_handler(child)
     audit_table = testee._audit_table
     assert audit_table.name == AUDIT_TABLE_NAME
-    assert '"DDD" DECIMAL(9,0)' in [ c.for_create for c in audit_table.columns ]
+    assert '"DDD" DECIMAL(9,0)' in [c.for_create for c in audit_table.columns]
     assert child == testee._child.query_handler
 
 

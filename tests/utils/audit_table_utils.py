@@ -86,8 +86,7 @@ def expected_query(
 ) -> Query:
     query_strings = {
         DbOperationType.INSERT: f"INSERT INTO {table_name.fully_qualified}",
-        DbOperationType.CREATE_IF_NOT_EXISTS:
-        f'CREATE TABLE IF NOT EXISTS {table_name.fully_qualified}',
+        DbOperationType.CREATE_IF_NOT_EXISTS: f"CREATE TABLE IF NOT EXISTS {table_name.fully_qualified}",
     }
     return ModifyQuery(
         query_string=query_strings[db_operation_type],
