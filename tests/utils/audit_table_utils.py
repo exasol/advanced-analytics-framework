@@ -1,4 +1,9 @@
+import re
 import uuid
+from enum import (
+    Enum,
+    auto,
+)
 from typing import (
     Any,
     Iterator,
@@ -6,6 +11,7 @@ from typing import (
 
 import pyexasol
 
+from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.select import (
     LogSpan,
     ModifyQuery,
@@ -67,3 +73,41 @@ def create_insert_query(
         audit=audit,
         parent_log_span=parent_log_span,
     )
+
+
+class QueryStringCriterion(Enum):
+    REGEXP = auto()
+    STARTS_WITH = auto()
+
+
+def expected_query(
+    table_name: TableName,
+    db_operation_type: DbOperationType = DbOperationType.INSERT,
+) -> Query:
+    query_strings = {
+        DbOperationType.INSERT: f"INSERT INTO {table_name.fully_qualified}",
+        DbOperationType.CREATE_IF_NOT_EXISTS:
+        f'CREATE TABLE IF NOT EXISTS {table_name.fully_qualified}',
+    }
+    return ModifyQuery(
+        query_string=query_strings[db_operation_type],
+        db_object_type=DbObjectType.TABLE,
+        db_object_name=table_name,
+        db_operation_type=db_operation_type,
+    )
+
+
+def assert_queries_match(
+    expected: Query,
+    actual: Query,
+    query_string_criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
+):
+    assert isinstance(expected, actual.__class__)
+    if query_string_criterion == QueryStringCriterion.STARTS_WITH:
+        assert actual.query_string.startswith(expected.query_string)
+    else:
+        assert re.match(expected.query_string, actual.query_string, re.DOTALL)
+    if isinstance(actual, ModifyQuery):
+        assert actual.db_object_type == expected.db_object_type
+        assert actual.db_object_name == expected.db_object_name
+        assert actual.db_operation_type == expected.db_operation_type

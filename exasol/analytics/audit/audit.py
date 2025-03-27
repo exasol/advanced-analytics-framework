@@ -225,5 +225,5 @@ class AuditTable(Table):
             query_string=self.create_statement,
             db_object_type=DbObjectType.TABLE,
             db_object_name=self.name,
-            db_operation_type=DbOperationType.INSERT,
+            db_operation_type=DbOperationType.CREATE_IF_NOT_EXISTS,
         )

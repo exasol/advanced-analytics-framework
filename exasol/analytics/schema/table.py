@@ -17,10 +17,8 @@ class Table(TableLike[TableName]):
     @property
     def create_statement(self):
         columns = ",\n  ".join(c.for_create for c in self.columns)
-        return cleandoc(
-            f"""
-            CREATE TABLE IF NOT EXISTS {self.name.fully_qualified} (
-              {columns}
-            )
-            """
+        return (
+            f'CREATE TABLE IF NOT EXISTS {self.name.fully_qualified} (\n'
+            f'  {columns}\n'
+            ')'
         )

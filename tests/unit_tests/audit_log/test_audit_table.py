@@ -1,10 +1,6 @@
 import logging
 import re
 import uuid
-from enum import (
-    Enum,
-    auto,
-)
 from inspect import cleandoc
 from unittest.mock import Mock
 
@@ -32,6 +28,8 @@ from exasol.analytics.schema import (
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
+    QueryStringCriterion,
+    assert_queries_match,
     create_insert_query,
 )
 
@@ -214,28 +212,6 @@ def test_unsupported_query_type(audit_table):
     query = Mock(Query, audit=True, query_string="my query string")
     with pytest.raises(TypeError):
         next(audit_table.augment([query]))
-
-
-class QueryStringCriterion(Enum):
-    REGEXP = auto()
-    STARTS_WITH = auto()
-
-
-def assert_queries_match(
-    expected: Query,
-    actual: Query,
-    query_string_criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
-):
-    assert isinstance(expected, actual.__class__)
-    if query_string_criterion == QueryStringCriterion.STARTS_WITH:
-        assert actual.query_string.startswith(expected.query_string)
-    else:
-        assert re.match(expected.query_string, actual.query_string, re.DOTALL)
-    if isinstance(actual, ModifyQuery):
-        assert actual.db_object_type == expected.db_object_type
-        assert actual.db_object_name == expected.db_object_name
-        assert actual.db_operation_type == expected.db_operation_type
-
 
 def test_query_types(audit_table):
     """
