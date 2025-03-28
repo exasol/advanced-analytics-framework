@@ -1,12 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
-from typing import (
-    Any,
-    List,
-    Optional,
-)
+from typing import Any
 
 from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.interface import Query
@@ -18,7 +13,6 @@ from exasol.analytics.schema import (
 )
 
 
-@dataclass(eq=True)
 class LogSpan:
     """
     A LogSpan represents a span of time in the Audit Log. Each LogSpan has
@@ -28,11 +22,26 @@ class LogSpan:
     LOG_SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits.
     """
 
-    name: str
-    id: uuid.UUID = uuid.uuid4()
-    parent: LogSpan | None = None
+    def __init__(
+        self,
+        name: str,
+        id: uuid.UUID | None = None,
+        parent: LogSpan | None = None,
+    ):
+        self.name = name
+        self.id = id or uuid.uuid4()
+        self.parent = parent
 
-    def child(self, name: str, id: uuid.UUID = uuid.uuid4()) -> LogSpan:
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, LogSpan):
+            return False
+        return (
+            self.name == other.name
+            and self.id == other.id
+            and self.parent == other.parent
+        )
+
+    def child(self, name: str, id: uuid.UUID | None = None) -> LogSpan:
         return LogSpan(name, id, parent=self)
 
 

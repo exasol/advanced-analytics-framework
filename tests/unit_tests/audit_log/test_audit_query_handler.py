@@ -30,6 +30,7 @@ from exasol.analytics.schema import (
     TableNameImpl,
     decimal_column,
 )
+from tests.unit_tests.audit_log.qh_utils import continue_action
 from tests.utils.audit_table_utils import (
     create_insert_query,
     prefix_matcher,
@@ -124,14 +125,6 @@ def test_start_finish_with_audit_query():
     assert action_2 == EMPTY_FINISH
     with pytest.raises(IllegalMethodCallError):
         testee.handle_query_result(Mock())
-
-
-def continue_action(query_list: list[Query]) -> Continue:
-    input_query = SelectQueryWithColumnDefinition(
-        query_string="SELECT 1 as DUMMY_COLUMN",
-        output_columns=[decimal_column("DUMMY_COLUMN", precision=10)],
-    )
-    return Continue(query_list=query_list, input_query=input_query)
 
 
 def test_start_continue_finish_no_audit_query():

@@ -42,14 +42,20 @@ def base_column_values(
     return {c.name.name: v for c, v in columns.items()}
 
 
+def uid_tester():
+    print(f"{uuid.uuid4()}")
+
+
 class AuditTable(Table):
     def __init__(
         self,
         db_schema: str,
         table_name_prefix: str,
         additional_columns: list[Column] = [],
-        run_id: uuid.UUID = uuid.uuid4(),
+        run_id: uuid.UUID | None = None,
     ):
+        run_id = run_id or uuid.uuid4()
+        print(f"AuditTable: run_id = {run_id}")
         if not table_name_prefix:
             raise ValueError("table_name_prefix must not be empty")
         table_name = f"{table_name_prefix}_AUDIT_LOG"
