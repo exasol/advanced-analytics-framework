@@ -1,14 +1,8 @@
-import contextlib
-from typing import (
-    Callable,
-    Union,
-)
+from typing import Callable
 from unittest.mock import (
     Mock,
     patch,
 )
-
-import pytest
 
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.audit_query_handler import (
@@ -74,7 +68,6 @@ class SamplePayloadQueryHandler(QueryHandler[str, str]):
         return Finish(self._parameter, audit_query=audit_query)
 
 
-@contextlib.contextmanager
 def audit_query_handler_factory(
     db_schema: str,
     payload_qh_factory: Callable[
@@ -103,7 +96,7 @@ def audit_query_handler_factory(
             additional_columns=additional_columns,
         )
 
-    yield factory
+    return factory
 
 
 def uuid_generator(id: str):
@@ -234,16 +227,16 @@ def test_audit(uuid_mock_1, uuid_mock_2, aaf_pytest_db_schema, prefix, context_m
     )
     sample = "hello world"
     payload_qh_factory = SamplePayloadQueryHandler
-    with audit_query_handler_factory(
+    factory = audit_query_handler_factory(
         aaf_pytest_db_schema,
         payload_qh_factory=payload_qh_factory,
         table_name_prefix=prefix,
-    ) as factory:
-        runner = PythonQueryHandlerRunner[str, str](
-            sql_executor=sql_executor,
-            top_level_query_handler_context=context_mock,
-            parameter=sample,
-            query_handler_factory=factory,
-        )
-        output = runner.run()
+    )
+    runner = PythonQueryHandlerRunner[str, str](
+        sql_executor=sql_executor,
+        top_level_query_handler_context=context_mock,
+        parameter=sample,
+        query_handler_factory=factory,
+    )
+    output = runner.run()
     assert output == sample
