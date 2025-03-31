@@ -89,7 +89,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
           'my event',
           '{SAMPLE_LOG_SPAN.id}',
           'sample log span',
-          '{SAMPLE_RUN_ID}'\u0020
+          '{SAMPLE_RUN_ID}'
         """
     )
 
@@ -124,7 +124,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
           '{SAMPLE_LOG_SPAN.id}',
           'sample log span',
           '{SAMPLE_RUN_ID}',
-          "SUB_QUERY"."ERROR_MESSAGE"\u0020
+          "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
         """
     )
@@ -175,7 +175,7 @@ def test_count_rows(audit_table, other_table):
           '{query.log_span.id}',
           'INSERT',
           '{SAMPLE_LOG_SPAN.id}',
-          '{SAMPLE_RUN_ID}'\u0020
+          '{SAMPLE_RUN_ID}'
         """
     )
 

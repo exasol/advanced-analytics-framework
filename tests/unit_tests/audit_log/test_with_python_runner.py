@@ -143,7 +143,7 @@ def expect_count_rows(
               '{event_name}',
               '{log_span_id}',
               'INSERT',
-              'RUN_ID_2'\u0020
+              'RUN_ID_2'
             """
         )
 
@@ -250,7 +250,7 @@ def test_audit(
             ) SELECT
               SYSTIMESTAMP(),
               CURRENT_SESSION,
-              '{{{{"c": 456}}}}'\u0020
+              '{{{{"c": 456}}}}'
             """
         ),
         # sub query of final audit log query

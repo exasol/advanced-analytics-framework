@@ -127,7 +127,7 @@ class AuditTable(Table):
         return self._insert_statement(
             constants=constants,
             references=subquery_columns,
-            suffix=f"\nFROM ({query.query_string}) as {alias.fully_qualified}",
+            suffix=f"FROM ({query.query_string}) as {alias.fully_qualified}",
         )
 
     def _wrap(self, query: ModifyQuery) -> Iterator[Query]:
@@ -216,12 +216,13 @@ class AuditTable(Table):
             .add_constants(constants)
             .add_references(references)
         )
+        space_suffix = f"\n{suffix}" if suffix else ""
         return ModifyQuery(
             query_string=(
                 f"INSERT INTO {self.name.fully_qualified} (\n"
                 f"  {insert_statement.columns}\n"
                 ") SELECT\n"
-                f"  {insert_statement.values} {suffix}"
+                f"  {insert_statement.values}{space_suffix}"
             ),
             db_object_type=DbObjectType.TABLE,
             db_object_name=self.name,
