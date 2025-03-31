@@ -1,4 +1,9 @@
+import re
 import uuid
+from enum import (
+    Enum,
+    auto,
+)
 from typing import (
     Any,
     Iterator,
@@ -6,6 +11,7 @@ from typing import (
 
 import pyexasol
 
+from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.select import (
     LogSpan,
     ModifyQuery,
@@ -67,3 +73,85 @@ def create_insert_query(
         audit=audit,
         parent_log_span=parent_log_span,
     )
+
+
+class QueryStringCriterion(Enum):
+    REGEXP = auto()
+    STARTS_WITH = auto()
+
+
+def expected_modify_query(
+    table_name: TableName,
+    db_operation_type: DbOperationType = DbOperationType.INSERT,
+    query_string_suffix: str = "",
+) -> Query:
+    fqn = table_name.fully_qualified
+    query_strings = {
+        "INSERT": f"INSERT INTO {fqn}",
+        "CREATE_IF_NOT_EXISTS": f"CREATE TABLE IF NOT EXISTS {fqn}",
+    }
+    return ModifyQuery(
+        query_string=query_strings[db_operation_type.name] + query_string_suffix,
+        db_object_type=DbObjectType.TABLE,
+        db_object_name=table_name,
+        db_operation_type=db_operation_type,
+    )
+
+
+class QueryMatcher:
+    """
+    Creates a query template using the specified `table_name`,
+    `db_operation_type`, and optionally a query string suffix.
+
+    An assert statement can use this matcher then to compare an actual query
+    to the template using the specified match criterion.
+    """
+
+    def __init__(
+        self,
+        table_name: TableName,
+        db_operation_type: DbOperationType = DbOperationType.INSERT,
+        criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
+        suffix: str = "",
+        expected_query: Query | None = None,
+    ):
+        self.query = expected_query or expected_modify_query(
+            table_name,
+            db_operation_type,
+            suffix,
+        )
+        self.criterion = criterion
+
+    def __ne__(self, other: Any):
+        return not self.__eq__(other)
+
+    def __eq__(self, other: Any):
+        if not isinstance(other, self.query.__class__):
+            return False
+
+        if not (
+            other.query_string.startswith(self.query.query_string)
+            if self.criterion == QueryStringCriterion.STARTS_WITH
+            else re.match(self.query.query_string, other.query_string, re.DOTALL)
+        ):
+            return False
+
+        if isinstance(other, ModifyQuery):
+            return (
+                other.db_object_type == self.query.db_object_type
+                and other.db_object_name == self.query.db_object_name
+                and other.db_operation_type == self.query.db_operation_type
+            )
+        return True
+
+
+def prefix_matcher(*args) -> QueryMatcher:
+    return QueryMatcher(*args, criterion=QueryStringCriterion.STARTS_WITH)
+
+
+def regex_matcher(*args, **kwargs) -> QueryMatcher:
+    return QueryMatcher(*args, **kwargs, criterion=QueryStringCriterion.REGEXP)
+
+
+def query_matcher(query: Query, **kwargs) -> QueryMatcher:
+    return QueryMatcher(None, expected_query=query, **kwargs)

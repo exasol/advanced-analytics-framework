@@ -1,10 +1,6 @@
 import logging
 import re
 import uuid
-from enum import (
-    Enum,
-    auto,
-)
 from inspect import cleandoc
 from unittest.mock import Mock
 
@@ -33,6 +29,9 @@ from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
     create_insert_query,
+    prefix_matcher,
+    query_matcher,
+    regex_matcher,
 )
 
 LOG = logging.getLogger(__name__)
@@ -90,7 +89,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
           'my event',
           '{SAMPLE_LOG_SPAN.id}',
           'sample log span',
-          '{SAMPLE_RUN_ID}'\u0020
+          '{SAMPLE_RUN_ID}'
         """
     )
 
@@ -125,7 +124,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
           '{SAMPLE_LOG_SPAN.id}',
           'sample log span',
           '{SAMPLE_RUN_ID}',
-          "SUB_QUERY"."ERROR_MESSAGE"\u0020
+          "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
         """
     )
@@ -176,7 +175,7 @@ def test_count_rows(audit_table, other_table):
           '{query.log_span.id}',
           'INSERT',
           '{SAMPLE_LOG_SPAN.id}',
-          '{SAMPLE_RUN_ID}'\u0020
+          '{SAMPLE_RUN_ID}'
         """
     )
 
@@ -186,55 +185,19 @@ def test_modify_query(audit_table, other_table):
     statements = list(audit_table.augment([query]))
     for i, stmt in enumerate(statements):
         LOG.debug(f"{i+1}. {stmt.query_string};")
-
-    def expected_query(table_name: TableName) -> Query:
-        return ModifyQuery(
-            query_string=f"INSERT INTO {table_name.fully_qualified}",
-            db_object_type=DbObjectType.TABLE,
-            db_object_name=table_name,
-            db_operation_type=DbOperationType.INSERT,
-        )
-
-    for expected, actual in zip(
-        [
-            expected_query(audit_table.name),
-            expected_query(other_table),
-            expected_query(audit_table.name),
-        ],
-        statements,
-    ):
-        assert isinstance(actual, ModifyQuery)
-        assert actual.query_string.startswith(expected.query_string)
-        assert actual.db_object_type == expected.db_object_type
-        assert actual.db_object_name == expected.db_object_name
-        assert actual.db_operation_type == expected.db_operation_type
+    matchers = [
+        prefix_matcher(audit_table.name),
+        prefix_matcher(other_table),
+        prefix_matcher(audit_table.name),
+    ]
+    for matcher, actual in zip(matchers, statements):
+        assert actual == matcher
 
 
 def test_unsupported_query_type(audit_table):
     query = Mock(Query, audit=True, query_string="my query string")
     with pytest.raises(TypeError):
         next(audit_table.augment([query]))
-
-
-class QueryStringCriterion(Enum):
-    REGEXP = auto()
-    STARTS_WITH = auto()
-
-
-def assert_queries_match(
-    expected: Query,
-    actual: Query,
-    query_string_criterion: QueryStringCriterion = QueryStringCriterion.REGEXP,
-):
-    assert isinstance(expected, actual.__class__)
-    if query_string_criterion == QueryStringCriterion.STARTS_WITH:
-        assert actual.query_string.startswith(expected.query_string)
-    else:
-        assert re.match(expected.query_string, actual.query_string, re.DOTALL)
-    if isinstance(actual, ModifyQuery):
-        assert actual.db_object_type == expected.db_object_type
-        assert actual.db_object_name == expected.db_object_name
-        assert actual.db_operation_type == expected.db_operation_type
 
 
 def test_query_types(audit_table):
@@ -244,41 +207,41 @@ def test_query_types(audit_table):
     AuditTable.augmented().
     """
 
-    def insert_query(
-        table_name: TableName,
-        query_string_suffix: str = "",
-        audit: bool = False,
-    ):
+    def insert_query(table_name: TableName, audit: bool = False):
         return create_insert_query(
             table_name,
             audit=audit,
-            query_string=(
-                f"INSERT INTO {table_name.fully_qualified}{query_string_suffix}"
-            ),
+            query_string=(f"INSERT INTO {table_name.fully_qualified}"),
         )
 
     other_table = TableNameImpl("Other", SchemaName("S2"))
     subquery = SelectQueryWithColumnDefinition("select sub query", [])
     samples = [
-        [insert_query(other_table, audit=False), insert_query(other_table)],
+        [insert_query(other_table, audit=False), regex_matcher(other_table)],
         [
             insert_query(other_table, audit=True),
-            insert_query(audit_table.name, r".* count\(1\)"),
-            insert_query(other_table),
-            insert_query(audit_table.name, r".* count\(1\)"),
+            regex_matcher(audit_table.name, suffix=r".* count\(1\)"),
+            regex_matcher(other_table),
+            regex_matcher(audit_table.name, suffix=r".* count\(1\)"),
         ],
         [
             AuditQuery(subquery),
-            insert_query(audit_table.name, ".* sub query"),
+            regex_matcher(audit_table.name, suffix=".* sub query"),
         ],
-        [SelectQuery("select query"), SelectQuery("select query")],
-        [CustomQuery("custom query"), CustomQuery("custom query")],
+        [
+            SelectQuery("select query"),
+            query_matcher(SelectQuery("select query")),
+        ],
+        [
+            CustomQuery("custom query"),
+            query_matcher(CustomQuery("custom query")),
+        ],
     ]
     queries = [s[0] for s in samples]
     statements = list(audit_table.augment(queries))
-    expected_matches = []
+    matchers = []
     for s in samples:
-        expected_matches += s[1:]
-    for i, (actual, expected) in enumerate(zip(statements, expected_matches)):
+        matchers += s[1:]
+    for i, (actual, matcher) in enumerate(zip(statements, matchers)):
         LOG.debug(f"{i+1}. {actual.query_string}")
-        assert_queries_match(expected, actual, QueryStringCriterion.REGEXP)
+        assert actual == matcher

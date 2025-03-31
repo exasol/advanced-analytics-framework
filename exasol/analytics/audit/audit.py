@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import (
     Any,
@@ -26,6 +27,8 @@ from exasol.analytics.schema import (
     TableNameImpl,
 )
 
+LOG = logging.getLogger(__name__)
+
 
 def base_column_values(
     attributes: dict[Column, Any],
@@ -42,14 +45,20 @@ def base_column_values(
     return {c.name.name: v for c, v in columns.items()}
 
 
+def _generate_run_id():
+    return uuid.uuid4()
+
+
 class AuditTable(Table):
     def __init__(
         self,
         db_schema: str,
         table_name_prefix: str,
         additional_columns: list[Column] = [],
-        run_id: uuid.UUID = uuid.uuid4(),
+        run_id: uuid.UUID | None = None,
     ):
+        run_id = run_id or _generate_run_id()
+        LOG.debug(f"AuditTable: run_id = {run_id}")
         if not table_name_prefix:
             raise ValueError("table_name_prefix must not be empty")
         table_name = f"{table_name_prefix}_AUDIT_LOG"
@@ -118,7 +127,7 @@ class AuditTable(Table):
         return self._insert_statement(
             constants=constants,
             references=subquery_columns,
-            suffix=f"\nFROM ({query.query_string}) as {alias.fully_qualified}",
+            suffix=f"FROM ({query.query_string}) as {alias.fully_qualified}",
         )
 
     def _wrap(self, query: ModifyQuery) -> Iterator[Query]:
@@ -207,14 +216,25 @@ class AuditTable(Table):
             .add_constants(constants)
             .add_references(references)
         )
+        space_suffix = f"\n{suffix}" if suffix else ""
         return ModifyQuery(
             query_string=(
                 f"INSERT INTO {self.name.fully_qualified} (\n"
                 f"  {insert_statement.columns}\n"
                 ") SELECT\n"
-                f"  {insert_statement.values} {suffix}"
+                f"  {insert_statement.values}{space_suffix}"
             ),
             db_object_type=DbObjectType.TABLE,
             db_object_name=self.name,
             db_operation_type=DbOperationType.INSERT,
+        )
+
+    @property
+    def create_query(self) -> ModifyQuery:
+        return ModifyQuery(
+            query_string=self.create_statement,
+            db_object_type=DbObjectType.TABLE,
+            db_object_name=self.name,
+            db_operation_type=DbOperationType.CREATE_IF_NOT_EXISTS,
+            audit=False,
         )

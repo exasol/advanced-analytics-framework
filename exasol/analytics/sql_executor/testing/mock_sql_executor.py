@@ -62,3 +62,19 @@ Diff:
                 return next_expected_query.mock_result_set
             except StopIteration as e:
                 raise RuntimeError(f"No result set found for query {actual_query}")
+
+
+def expect_query(template: str, result_set=MockResultSet()):
+    return [template, result_set]
+
+
+def create_sql_executor(schema: str, prefix: str, *args):
+    return MockSQLExecutor(
+        [
+            ExpectedQuery(
+                cleandoc(template.format(schema=schema, prefix=prefix)),
+                result_set or MockResultSet(),
+            )
+            for template, result_set in args
+        ]
+    )
