@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -33,6 +34,8 @@ from exasol.analytics.schema import (
     Column,
     decimal_column,
 )
+
+LOG = logging.getLogger(__name__)
 
 
 class Phase(Enum):
@@ -96,9 +99,11 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
 
     def start(self) -> Continue | Finish:
         action = self._child.query_handler.start()
+        LOG.debug(f"AQH start()")
         return self._handle_action(action)
 
     def handle_query_result(self, query_result: QueryResult) -> Continue | Finish:
+        LOG.debug(f"AQH handle_query_result(), phase {self._phase}")
         if self._phase == Phase.MAIN:
             action = self._child.query_handler.handle_query_result(query_result)
             return self._handle_action(action)
@@ -112,6 +117,7 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
             )
 
     def _handle_action(self, action: Continue | Finish) -> Continue | Finish:
+        LOG.debug(f"AQH _handle_action(), action {type(action).__name__}")
         if isinstance(action, Continue):
             action = cast(Continue, action)
             return Continue(

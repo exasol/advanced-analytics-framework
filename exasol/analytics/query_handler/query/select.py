@@ -13,6 +13,10 @@ from exasol.analytics.schema import (
 )
 
 
+def _generate_log_span_id():
+    return uuid.uuid4()
+
+
 class LogSpan:
     """
     A LogSpan represents a span of time in the Audit Log. Each LogSpan has
@@ -29,7 +33,7 @@ class LogSpan:
         parent: LogSpan | None = None,
     ):
         self.name = name
-        self.id = id or uuid.uuid4()
+        self.id = id or _generate_log_span_id()
         self.parent = parent
 
     def __eq__(self, other: Any) -> bool:

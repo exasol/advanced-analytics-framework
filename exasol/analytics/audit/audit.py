@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import (
     Any,
@@ -26,6 +27,8 @@ from exasol.analytics.schema import (
     TableNameImpl,
 )
 
+LOG = logging.getLogger(__name__)
+
 
 def base_column_values(
     attributes: dict[Column, Any],
@@ -42,8 +45,8 @@ def base_column_values(
     return {c.name.name: v for c, v in columns.items()}
 
 
-def uid_tester():
-    print(f"{uuid.uuid4()}")
+def _generate_run_id():
+    return uuid.uuid4()
 
 
 class AuditTable(Table):
@@ -54,8 +57,8 @@ class AuditTable(Table):
         additional_columns: list[Column] = [],
         run_id: uuid.UUID | None = None,
     ):
-        run_id = run_id or uuid.uuid4()
-        print(f"AuditTable: run_id = {run_id}")
+        run_id = run_id or _generate_run_id()
+        LOG.debug(f"AuditTable: run_id = {run_id}")
         if not table_name_prefix:
             raise ValueError("table_name_prefix must not be empty")
         table_name = f"{table_name_prefix}_AUDIT_LOG"

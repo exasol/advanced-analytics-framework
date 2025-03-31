@@ -4,6 +4,8 @@ from unittest.mock import (
     patch,
 )
 
+import pytest
+
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.audit_query_handler import (
     AuditQueryHandler,
@@ -57,15 +59,25 @@ class SamplePayloadQueryHandler(QueryHandler[str, str]):
     def __init__(self, parameter: str, context: ScopeQueryHandlerContext):
         super().__init__(parameter, context)
         self._parameter = parameter
+        self._counter = 0
 
     def start(self) -> Continue | Finish:
-        query = create_insert_query(TableNameImpl("T", SchemaName("S2")), audit=True)
+        query = create_insert_query(TableNameImpl("T1", SchemaName("S1")), audit=True)
         return continue_action([query])
 
     def handle_query_result(self, result: QueryResult) -> Continue | Finish:
-        event_attributes = '{"c": 456}'
-        audit_query = AuditQuery(audit_fields={"EVENT_ATTRIBUTES": event_attributes})
-        return Finish(self._parameter, audit_query=audit_query)
+        if self._counter < 1:
+            self._counter += 1
+            query = create_insert_query(
+                TableNameImpl("T2", SchemaName("S2")), audit=True
+            )
+            return continue_action([query])
+        else:
+            event_attributes = '{"c": 456}'
+            audit_query = AuditQuery(
+                audit_fields={"EVENT_ATTRIBUTES": event_attributes}
+            )
+            return Finish(self._parameter, audit_query=audit_query)
 
 
 def audit_query_handler_factory(
@@ -99,21 +111,16 @@ def audit_query_handler_factory(
     return factory
 
 
-def uuid_generator(id: str):
-    i = 0
-    while True:
-        i += 1
-        yield f"UUID-{id}-{i}"
-
-
 def expect_count_rows(
-    table_name: TableName,
+    audit_table: TableName,
+    other_table: TableName,
+    log_span_id: str,
     query: str,
 ) -> list[list[str, MockResultSet]]:
     def count_rows(event_name: str) -> list[str, MockResultSet]:
         return expect_query(
             f"""
-            INSERT INTO {table_name.fully_qualified} (
+            INSERT INTO {audit_table.fully_qualified} (
               "LOG_TIMESTAMP",
               "ROW_COUNT",
               "SESSION_ID",
@@ -127,16 +134,16 @@ def expect_count_rows(
               "RUN_ID"
             ) SELECT
               SYSTIMESTAMP(),
-              (SELECT count(1) FROM "S2"."T"),
+              (SELECT count(1) FROM {other_table.fully_qualified}),
               CURRENT_SESSION,
-              'T',
-              'S2',
+              '{other_table.name}',
+              '{other_table.schema_name.name}',
               'TABLE',
               '{{{{"a": 123, "b": "value"}}}}',
               '{event_name}',
-              'UUID-2-2',
+              '{log_span_id}',
               'INSERT',
-              'UUID-2-1'\u0020
+              'RUN_ID_2'\u0020
             """
         )
 
@@ -173,34 +180,63 @@ def expect_query_with_temp_view(
     ]
 
 
-@patch("exasol.analytics.audit.audit.uuid.uuid4")
-@patch("exasol.analytics.query_handler.query.select.uuid.uuid4")
-def test_audit(uuid_mock_1, uuid_mock_2, aaf_pytest_db_schema, prefix, context_mock):
-    uuid_mock_1.side_effect = uuid_generator("1")
-    uuid_mock_2.side_effect = uuid_generator("2")
-    sql_executor = create_sql_executor(
+def id_generator(prefix: str):
+    i = 0
+    while True:
+        i += 1
+        yield f"{prefix}_{i}"
+
+
+@patch("exasol.analytics.audit.audit._generate_run_id")
+@patch("exasol.analytics.query_handler.query.select._generate_log_span_id")
+def test_audit(
+    log_span_id_mock, run_id_mock, aaf_pytest_db_schema, prefix, context_mock
+):
+    log_span_id_mock.side_effect = id_generator("LOG_SPAN")
+    run_id_mock.side_effect = id_generator("RUN_ID")
+    audit_table_name_prefix = "AP"
+    audit_table = AuditTable(
         aaf_pytest_db_schema,
-        prefix,
-        expect_query(""),
-        expect_query(""),
+        audit_table_name_prefix,
     )
-    audit_table = AuditTable(aaf_pytest_db_schema, prefix, run_id=Mock())
+    other_table_1 = TableNameImpl("T1", SchemaName("S1"))
+    other_table_2 = TableNameImpl("T2", SchemaName("S2"))
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
         # create audit table
         expect_query(audit_table.create_statement),
-        # modify query incl. counting rows before and after
+        # modify query #1 incl. counting rows before and after
         *expect_count_rows(
             audit_table.name,
-            """
-            INSERT INTO "S2"."T" ("RESULT", "ERROR") VALUES (3, 'E3'), (4, 'E4')
-            """,
+            other_table_1,
+            "LOG_SPAN_1",
+            (
+                f"INSERT INTO {other_table_1.fully_qualified}"
+                """ ("RESULT", "ERROR") VALUES (3, 'E3'), (4, 'E4')"""
+            ),
         ),
         # continue input query
         *expect_query_with_temp_view(
             aaf_pytest_db_schema,
             f"{prefix}_4_1",
+            "SELECT 1",
+            decimal_column("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
+        ),
+        # modify query #2
+        *expect_count_rows(
+            audit_table.name,
+            other_table_2,
+            "LOG_SPAN_5",
+            (
+                f"INSERT INTO {other_table_2.fully_qualified}"
+                """ ("RESULT", "ERROR") VALUES (3, 'E3'), (4, 'E4')"""
+            ),
+        ),
+        # continue input query
+        *expect_query_with_temp_view(
+            aaf_pytest_db_schema,
+            f"{prefix}_6_1",
             "SELECT 1",
             decimal_column("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
         ),
@@ -220,7 +256,7 @@ def test_audit(uuid_mock_1, uuid_mock_2, aaf_pytest_db_schema, prefix, context_m
         # sub query of final audit log query
         *expect_query_with_temp_view(
             aaf_pytest_db_schema,
-            f"{prefix}_6_1",
+            f"{prefix}_8_1",
             "SELECT (CAST 1 as DECIMAL(1,0))",
             decimal_column("DUMMY_COLUMN", precision=1, scale=0),
         ),
@@ -230,7 +266,7 @@ def test_audit(uuid_mock_1, uuid_mock_2, aaf_pytest_db_schema, prefix, context_m
     factory = audit_query_handler_factory(
         aaf_pytest_db_schema,
         payload_qh_factory=payload_qh_factory,
-        table_name_prefix=prefix,
+        table_name_prefix=audit_table_name_prefix,
     )
     runner = PythonQueryHandlerRunner[str, str](
         sql_executor=sql_executor,
