@@ -8,12 +8,12 @@ from typing import (
 )
 
 import pandas as pd
-from exasol.analytics.schema import Column
 
 from exasol.analytics.query_handler.query.result.interface import (
     QueryResult,
     Row,
 )
+from exasol.analytics.schema import Column
 
 
 class PythonQueryResult(QueryResult):
