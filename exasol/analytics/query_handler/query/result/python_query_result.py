@@ -8,7 +8,7 @@ from typing import (
 )
 
 import pandas as pd
-from exasol_udf_mock_python.column import Column
+from exasol.analytics.schema import Column
 
 from exasol.analytics.query_handler.query.result.interface import (
     QueryResult,
