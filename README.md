@@ -1,9 +1,8 @@
 # Exasol Advanced Analytics Framework
 
-**This project is at an early development stage.**
-
 Framework for building complex data analysis algorithms with Exasol.
 
+This framework allows you to implement advanced analytics algorithms — like PageRank or K-Means — that run iteratively inside the Exasol database. It bridges the gap between Python (for data science logic) and Lua (for database-side execution control), enabling complex workflows to be run within a single transaction context.
 
 ## Information for Users
 

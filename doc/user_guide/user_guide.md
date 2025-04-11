@@ -1,6 +1,6 @@
 # Advanced Analytics Framework User Guide
 
-The Advanced Analytics Framework (AAF) enables implementing complex data analysis algorithms with Exasol. Users can use the features of AAF in their custom implementations.
+The Advanced Analytics Framework (AAF) allows you to implement advanced analytics algorithms — like PageRank or K-Means — that run iteratively inside the Exasol database. It bridges the gap between Python (for data science logic) and Lua (for database-side execution control), enabling complex workflows to be run within a single transaction context.
 
 AAF employs Lua scripts and User Defined Functions (UDFs). The Lua scripts are orchestrating the UDFs while the UDFs are performing the actual analytic functions.
 
