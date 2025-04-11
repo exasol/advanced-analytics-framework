@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches:
-      main
+    branches-ignore:
+      - "github-pages/*"
+      - "gh-pages/*"
+      - "main"
+      - "master"
   schedule:
     # “At 00:00 on every 7th day-of-month from 1 through 31.” (https://crontab.guru)
     - cron: "0 0 1/7 * *"
