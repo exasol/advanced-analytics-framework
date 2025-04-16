@@ -242,6 +242,8 @@ def test_hash_inequality_table():
         (ColumnType("DECIMAL", scale=2), "DECIMAL"),
         (ColumnType("TIMESTAMP"), "TIMESTAMP"),
         (ColumnType("TIMESTAMP", precision=2), "TIMESTAMP(2)"),
+        (ColumnType("TIMESTAMP", precision=2, withLocalTimeZone=True),
+         "TIMESTAMP(2) WITH LOCAL TIME ZONE"),
         (ColumnType("HASHTYPE"), "HASHTYPE(16 BYTE)"),
         (ColumnType("HASHTYPE", size=10), "HASHTYPE(16 BYTE)"),
         (ColumnType("HASHTYPE", unit=SizeUnit.BIT), "HASHTYPE(16 BYTE)"),

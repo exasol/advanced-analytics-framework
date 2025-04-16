@@ -23,16 +23,29 @@ class SizeUnit(Enum):
 class ColumnType:
     name: str
     precision: Optional[int] = None
+    """For column types DECIMAL and INTEGER."""
     scale: Optional[int] = None
+    """For column types DECIMAL and INTEGER."""
     size: Optional[int] = None
+    """For column types CHAR and VARCHAR."""
     characterSet: Optional[str] = None
+    """For column types CHAR and VARCHAR. Supported values: "ASCII" and "UTF8"."""
     withLocalTimeZone: Optional[bool] = None
+    """Only for column type TIMESTAMP."""
     fraction: Optional[int] = None
+    """Number of fractional seconds for column type TIMESTAMP."""
     srid: Optional[int] = None
+    """Spatial reference system identifier, only for column type GEOMETRY."""
     unit: Optional[SizeUnit] = None
+    """Only for column type HASHTYPE. Supported values: "BYTE" and "BIT"."""
 
     @property
     def rendered(self) -> str:
+        """
+        Return a string representing the type including all parameters
+        such as scale or precision appropriate for creating an SQL statement
+        CREATE TABLE.
+        """
         name = self.name.upper()
 
         def args() -> Iterator[Any]:
@@ -57,6 +70,8 @@ class ColumnType:
                 yield f"({infix})"
             if name == "VARCHAR":
                 yield f' {self.characterSet or "UTF8"}'
+            if (name == "TIMESTAMP") and self.withLocalTimeZone:
+                yield " WITH LOCAL TIME ZONE"
 
         return "".join(elements())
 
