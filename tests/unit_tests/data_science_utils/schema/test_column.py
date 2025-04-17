@@ -103,7 +103,7 @@ def test_from_pyexasol(column_class, args, sql_type, sql_suffix):
         return value
 
     sql_type_args = {mapping.get(k, k): sql_value(k, v) for k, v in args.items()}
-    actual = Column.from_pyexasol(name, sql_type, sql_type_args)
+    actual = Column.from_pyexasol_type(name, sql_type, sql_type_args)
     expected = column_class.simple(name, **args)
     assert actual == expected
 

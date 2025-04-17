@@ -7,10 +7,10 @@ from enum import (
     Enum,
     auto,
 )
+from abc import abstractmethod
 from typing import (
     Any,
     Optional,
-    abstractmethod,
 )
 
 import typeguard
@@ -46,7 +46,7 @@ class SqlType:
             return SqlType(raw, [], "")
 
         tokens = raw.split(maxsplit=1)
-        return SqlType(tokens[0], [], tokens[1:] or "")
+        return SqlType(tokens[0], [], tokens[1] if len(tokens) > 1 else "")
 
 
 class PyexasolTypes:
@@ -80,8 +80,8 @@ class Column:
     @classproperty
     def _sql_to_classname(cls) -> dict[str, Any]:
         classes = {
-            cls.sql_name: cls
-            for cls in [
+            getattr(c, "sql_name"): c
+            for c in [
                 BooleanColumn,
                 CharColumn,
                 DateColumn,
@@ -99,7 +99,7 @@ class Column:
         return classes
 
     @classmethod
-    def from_pyexasol(
+    def from_pyexasol_type(
         cls,
         column_name: str,
         sql_type: str,
@@ -124,7 +124,7 @@ class Column:
 
 def pyexasol_type_args(
     sql_values: dict[str, Any],
-    keys: list[str] | dict[str, any] = {},
+    keys: list[str] | dict[str, Any] = {},
 ) -> dict[str, Any]:
     """
     Return a dict { ca: v } with each key `ca` being the name of an
@@ -228,7 +228,7 @@ class CharColumn(Column):
 
     @classmethod
     def from_sql(cls, column_name: str, args: list[int], options: str) -> "CharColumn":
-        pyexasol_args = {PyexasolTypes.SIZE: args[0]} if args else {}
+        pyexasol_args: dict[str, Any] = {PyexasolTypes.SIZE: args[0]} if args else {}
         if options:
             pyexasol_args[PyexasolTypes.CHARACTER_SET] = options
         return cls.from_pyexasol(column_name, pyexasol_args)
@@ -538,7 +538,7 @@ class VarCharColumn(Column):
     def from_sql(
         cls, column_name: str, args: list[int], options: str
     ) -> "VarCharColumn":
-        pyexasol_args = {PyexasolTypes.SIZE: args[0] if args else 2000000}
+        pyexasol_args: dict[str, Any] = {PyexasolTypes.SIZE: args[0] if args else 2000000}
         if options:
             pyexasol_args[PyexasolTypes.CHARACTER_SET] = options
         return cls.from_pyexasol(column_name, pyexasol_args)

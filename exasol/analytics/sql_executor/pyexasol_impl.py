@@ -40,7 +40,7 @@ class PyExasolResultSet(ResultSet):
 
     def columns(self) -> List[Column]:
         columns = [
-            Column.from_name_and_sql_type(column_name, column_type["type"], column_type)
+            Column.from_pyexasol_type(column_name, column_type["type"], column_type)
             for column_name, column_type in self.statement.columns().items()
         ]
         return columns
