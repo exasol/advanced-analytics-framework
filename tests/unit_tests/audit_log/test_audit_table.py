@@ -19,10 +19,10 @@ from exasol.analytics.query_handler.query.select import (
 )
 from exasol.analytics.schema import (
     DbObjectType,
+    DecimalColumn,
     SchemaName,
     TableName,
     TableNameImpl,
-    DecimalColumn,
     VarCharColumn,
 )
 from tests.utils.audit_table_utils import (

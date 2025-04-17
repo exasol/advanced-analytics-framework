@@ -1,9 +1,9 @@
 from exasol.analytics.schema import (
     DecimalColumn,
-    HashTypeColumn,
     HashSizeUnit,
+    HashTypeColumn,
     TimeStampColumn,
-    VarCharColumn
+    VarCharColumn,
 )
 
 
@@ -23,7 +23,9 @@ class BaseAuditColumns:
     LOG_SPAN_NAME = VarCharColumn.simple("LOG_SPAN_NAME", size=2000000)
     # SPAN IDs are UUIDs with 128 bit = 32 hex digits > 38 decimal digits
     LOG_SPAN_ID = HashTypeColumn.simple("LOG_SPAN_ID", size=16, unit=HashSizeUnit.BYTE)
-    PARENT_LOG_SPAN_ID = HashTypeColumn.simple("PARENT_LOG_SPAN_ID", size=16, unit=HashSizeUnit.BYTE)
+    PARENT_LOG_SPAN_ID = HashTypeColumn.simple(
+        "PARENT_LOG_SPAN_ID", size=16, unit=HashSizeUnit.BYTE
+    )
     # For ModifyQuery EVENT_NAME will be either "Begin" or "End".  For other
     # queries this can be a custom string, e.g.  "ERROR", "COMMIT", ...
     EVENT_NAME = VarCharColumn.simple("EVENT_NAME", size=128)

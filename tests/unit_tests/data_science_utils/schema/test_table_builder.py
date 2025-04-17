@@ -15,11 +15,7 @@ def test_create_table_with_name_only_fail():
 
 def test_create_table_with_columns_only_fail():
     with pytest.raises(TypeCheckError):
-        column = (
-            TableBuilder()
-            .with_columns([DecimalColumn.simple("abc")])
-            .build()
-        )
+        column = TableBuilder().with_columns([DecimalColumn.simple("abc")]).build()
 
 
 def test_create_table_with_name_and_columns():

@@ -1,10 +1,17 @@
 # do not from __future__ import annotations
 # as this breaks typeguard checks
 
-from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Any, Optional, abstractmethod
 import re
+from dataclasses import dataclass
+from enum import (
+    Enum,
+    auto,
+)
+from typing import (
+    Any,
+    Optional,
+    abstractmethod,
+)
 
 import typeguard
 
@@ -21,10 +28,10 @@ class SqlType:
     @classmethod
     def from_string(cls, sql_type: str) -> "SqlType":
         raw = sql_type.strip().upper()
-        if m := re.search("\((.*)\)", raw):
-            type_name = raw[:m.start()].strip()
+        if m := re.search(r"\((.*)\)", raw):
+            type_name = raw[: m.start()].strip()
             paren = m.group(1)
-            options = raw[m.end():].strip()
+            options = raw[m.end() :].strip()
 
             if type_name == "HASHTYPE":
                 words = paren.split()
@@ -68,13 +75,13 @@ class Column:
 
     @property
     @abstractmethod
-    def rendered(self) -> str:
-        ...
+    def rendered(self) -> str: ...
 
     @classproperty
     def _sql_to_classname(cls) -> dict[str, Any]:
         classes = {
-            cls.sql_name: cls for cls in [
+            cls.sql_name: cls
+            for cls in [
                 BooleanColumn,
                 CharColumn,
                 DateColumn,
@@ -129,8 +136,8 @@ def pyexasol_type_args(
     :keys: is either a list of str or a mapping of sql_type argument names to
            the names of attributes of one of the subclasses of Column.
     """
-    keys = keys if isinstance(keys, dict) else { k: k for k in keys }
-    return { ca: sql_values[s] for s, ca in keys.items() if s in sql_values }
+    keys = keys if isinstance(keys, dict) else {k: k for k in keys}
+    return {ca: sql_values[s] for s, ca in keys.items() if s in sql_values}
 
 
 CHAR_TYPE_ARGS = {
@@ -165,7 +172,9 @@ class BooleanColumn(Column):
         return cls.simple(column_name)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "BooleanColumn":
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "BooleanColumn":
         return cls.from_pyexasol(column_name, {})
 
 
@@ -288,7 +297,9 @@ class DecimalColumn(Column):
         return cls.simple(column_name, **args)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "DecimalColumn":
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "DecimalColumn":
         pyexasol_args = {}
         if len(args) > 0:
             pyexasol_args[PyexasolTypes.PRECISION] = args[0]
@@ -323,9 +334,10 @@ class DoublePrecisionColumn(Column):
         return cls.simple(column_name)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "DoublePrecisionColumn":
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "DoublePrecisionColumn":
         return cls.from_pyexasol(column_name, {})
-
 
 
 @dataclass(frozen=True, repr=True, eq=True)
@@ -358,7 +370,9 @@ class GeometryColumn(Column):
         return cls.simple(column_name, **args)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "GeometryColumn":
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "GeometryColumn":
         pyexasol_args = {PyexasolTypes.SRID: args[0]} if args else {}
         return cls.from_pyexasol(column_name, pyexasol_args)
 
@@ -419,11 +433,17 @@ class HashTypeColumn(Column):
         return cls.simple(column_name, **args)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "HashTypeColumn":
-        pyexasol_args = {
-            PyexasolTypes.SIZE: args[0] + 1,
-            PyexasolTypes.UNIT: options,
-        } if args else {}
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "HashTypeColumn":
+        pyexasol_args = (
+            {
+                PyexasolTypes.SIZE: args[0] + 1,
+                PyexasolTypes.UNIT: options,
+            }
+            if args
+            else {}
+        )
         return cls.from_pyexasol(column_name, pyexasol_args)
 
 
@@ -464,15 +484,15 @@ class TimeStampColumn(Column):
             {
                 PyexasolTypes.PRECISION: "precision",
                 PyexasolTypes.WITH_LOCAL_TIME_ZONE: "local_time_zone",
-            }
+            },
         )
         return cls.simple(column_name, **args)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "TimeStampColumn":
-        pyexasol_args = {
-            PyexasolTypes.PRECISION : args[0]
-        } if args else {}
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "TimeStampColumn":
+        pyexasol_args = {PyexasolTypes.PRECISION: args[0]} if args else {}
         if options:
             pyexasol_args[PyexasolTypes.WITH_LOCAL_TIME_ZONE] = True
         return cls.from_pyexasol(column_name, pyexasol_args)
@@ -515,7 +535,9 @@ class VarCharColumn(Column):
         return cls.simple(column_name, **args)
 
     @classmethod
-    def from_sql(cls, column_name: str, args: list[int], options: str) -> "VarCharColumn":
+    def from_sql(
+        cls, column_name: str, args: list[int], options: str
+    ) -> "VarCharColumn":
         pyexasol_args = {PyexasolTypes.SIZE: args[0] if args else 2000000}
         if options:
             pyexasol_args[PyexasolTypes.CHARACTER_SET] = options

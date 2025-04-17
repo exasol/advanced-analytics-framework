@@ -73,10 +73,13 @@ def test_inequality_name():
 
 def test_inequality_columns():
     view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
-    view2 = View(ViewNameImpl("view"), [
-        DecimalColumn.simple("column"),
-        DecimalColumn.simple("column2"),
-    ])
+    view2 = View(
+        ViewNameImpl("view"),
+        [
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
+        ],
+    )
     assert view1 != view2
 
 
@@ -94,8 +97,11 @@ def test_hash_inequality_name():
 
 def test_hash_inequality_columns():
     view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
-    view2 = View(ViewNameImpl("view"), [
-        DecimalColumn.simple("column"),
-        DecimalColumn.simple("column2"),
-    ])
+    view2 = View(
+        ViewNameImpl("view"),
+        [
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
+        ],
+    )
     assert hash(view1) != hash(view2)

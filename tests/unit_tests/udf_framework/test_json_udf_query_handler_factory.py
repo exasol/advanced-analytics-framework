@@ -52,9 +52,7 @@ def test(top_level_query_handler_context_mock):
     )
     start_result = query_handler.start()
     handle_query_result = query_handler.handle_query_result(
-        PythonQueryResult(
-            data=[(1,)], columns=[DecimalColumn.simple("a")]
-        )
+        PythonQueryResult(data=[(1,)], columns=[DecimalColumn.simple("a")])
     )
     assert (
         isinstance(query_handler, UDFQueryHandler)

@@ -323,7 +323,11 @@ def test_columns():
 
     exa = MockExaEnvironment(meta)
     result = executor.run([Group(INPUT_DATA)], exa)
-    assert result[0].rows == [("a", "DECIMAL"), ("b", "VARCHAR"), ("c", "DOUBLE PRECISION")]
+    assert result[0].rows == [
+        ("a", "DECIMAL"),
+        ("b", "VARCHAR"),
+        ("c", "DOUBLE PRECISION"),
+    ]
     # assert result[0].rows == [("a", "INTEGER"), ("b", "VARCHAR(2000)"), ("c", "FLOAT")]
 
 

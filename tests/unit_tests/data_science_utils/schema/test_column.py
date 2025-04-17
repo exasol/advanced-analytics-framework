@@ -1,5 +1,11 @@
+import random
+import string
+
 import pytest
-from typeguard import Any, TypeCheckError
+from typeguard import (
+    Any,
+    TypeCheckError,
+)
 
 from exasol.analytics.schema.column import (
     BooleanColumn,
@@ -18,15 +24,16 @@ from exasol.analytics.schema.column import (
     VarCharColumn,
 )
 from exasol.analytics.schema.column_name import ColumnName
-import random
-import string
-
 
 TEST_CASES = [
     (BooleanColumn, {}, "BOOLEAN", ""),
     (CharColumn, {}, "CHAR", "(1) CHARACTER SET UTF8"),
-    (CharColumn, {"size": 2, "charset": CharSet.ASCII},
-     "CHAR", "(2) CHARACTER SET ASCII"),
+    (
+        CharColumn,
+        {"size": 2, "charset": CharSet.ASCII},
+        "CHAR",
+        "(2) CHARACTER SET ASCII",
+    ),
     (DateColumn, {}, "DATE", ""),
     (DecimalColumn, {}, "DECIMAL", "(18,0)"),
     (DecimalColumn, {"precision": 2}, "DECIMAL", "(2,0)"),
@@ -39,11 +46,19 @@ TEST_CASES = [
     (HashTypeColumn, {"size": 10}, "HASHTYPE", "(10 BYTE)"),
     (HashTypeColumn, {"unit": HashSizeUnit.BIT}, "HASHTYPE", "(16 BIT)"),
     (TimeStampColumn, {}, "TIMESTAMP", "(3)"),
-    (TimeStampColumn, {"precision": 6, "local_time_zone": True},
-     "TIMESTAMP", "(6) WITH LOCAL TIME ZOME"),
-    (VarCharColumn,  {"size": 2}, "VARCHAR", "(2) CHARACTER SET UTF8"),
-    (VarCharColumn,  {"size": 2, "charset": CharSet.ASCII},
-     "VARCHAR", "(2) CHARACTER SET ASCII"),
+    (
+        TimeStampColumn,
+        {"precision": 6, "local_time_zone": True},
+        "TIMESTAMP",
+        "(6) WITH LOCAL TIME ZOME",
+    ),
+    (VarCharColumn, {"size": 2}, "VARCHAR", "(2) CHARACTER SET UTF8"),
+    (
+        VarCharColumn,
+        {"size": 2, "charset": CharSet.ASCII},
+        "VARCHAR",
+        "(2) CHARACTER SET ASCII",
+    ),
 ]
 
 
@@ -75,6 +90,7 @@ def test_from_pyexasol(column_class, args, sql_type, sql_suffix):
         "local_time_zone": PyexasolTypes.WITH_LOCAL_TIME_ZONE,
         "charset": PyexasolTypes.CHARACTER_SET,
     }
+
     def sql_value(key: str, value: Any) -> Any:
         if sql_type == "HASHTYPE":
             if key == "size":
@@ -92,9 +108,12 @@ def test_from_pyexasol(column_class, args, sql_type, sql_suffix):
     assert actual == expected
 
 
-@pytest.mark.parametrize ("column_class, args, expected_error", [
-    (VarCharColumn, {}, "missing 1 .* 'size'"),
-])
+@pytest.mark.parametrize(
+    "column_class, args, expected_error",
+    [
+        (VarCharColumn, {}, "missing 1 .* 'size'"),
+    ],
+)
 def test_insufficient_parameters(column_class, args, expected_error):
     with pytest.raises(TypeError, match=expected_error):
         column_class(ColumnName("C"), **args)
@@ -142,43 +161,57 @@ def test_hash_inequality_precision():
     assert hash(column1) != hash(column2)
 
 
-@pytest.mark.parametrize ("column_class, args", [
-    (DecimalColumn, {"precision": "string"}),
-    (DecimalColumn, {"scale": "string"}),
-    (VarCharColumn, {"size": "string"}),
-    (CharColumn, {"size": "string"}),
-    (CharColumn, {"charset": 1}),
-    (TimeStampColumn, {"local_time_zone": 1}),
-    (GeometryColumn, {"srid": "string"}),
-])
+@pytest.mark.parametrize(
+    "column_class, args",
+    [
+        (DecimalColumn, {"precision": "string"}),
+        (DecimalColumn, {"scale": "string"}),
+        (VarCharColumn, {"size": "string"}),
+        (CharColumn, {"size": "string"}),
+        (CharColumn, {"charset": 1}),
+        (TimeStampColumn, {"local_time_zone": 1}),
+        (GeometryColumn, {"srid": "string"}),
+    ],
+)
 def test_wrong_type(column_class, args):
     with pytest.raises(TypeCheckError):
         column_class(ColumnName("C"), **args)
 
 
-@pytest.mark.parametrize ("sql_type, expected", [
-    ("BOOLEAN", BooleanColumn.simple("B")),
-    ("CHAR", CharColumn.simple("V", size=1)),
-    ("CHAR(10) ASCII", CharColumn.simple("V", size=10, charset=CharSet.ASCII)),
-    ("CHAR(10)", CharColumn.simple("V", size=10)),
-    ("DATE", DateColumn.simple("A")),
-    ("DECIMAL", DecimalColumn.simple("D")),
-    ("INTEGER", DecimalColumn.simple("D")),
-    ("FLOAT", DoublePrecisionColumn.simple("D")),
-    ("DECIMAL(10)", DecimalColumn.simple("D", precision=10)),
-    ("DECIMAL(2,1)", DecimalColumn.simple("D", precision=2, scale=1)),
-    ("DOUBLE PRECISION", DoublePrecisionColumn.simple("P")),
-    ("DOUBLE", DoublePrecisionColumn.simple("P")),
-    ("GEOMETRY", GeometryColumn.simple("G")),
-    ("GEOMETRY(2)", GeometryColumn.simple("G", srid=2)),
-    ("HASHTYPE(1 BYTE)", HashTypeColumn.simple("H", size=1, unit=HashSizeUnit.BYTE)),
-    ("TIMESTAMP", TimeStampColumn.simple("T")),
-    ("TIMESTAMP(3) WITH LOCAL TIME ZOME",
-     TimeStampColumn.simple("T", precision=3, local_time_zone=True)),
-    ("VARCHAR", VarCharColumn.simple("V", size=2000000)),
-    ("VARCHAR(10) ASCII", VarCharColumn.simple("V", size=10, charset=CharSet.ASCII)),
-    ("VARCHAR(10)", VarCharColumn.simple("V", size=10)),
-])
+@pytest.mark.parametrize(
+    "sql_type, expected",
+    [
+        ("BOOLEAN", BooleanColumn.simple("B")),
+        ("CHAR", CharColumn.simple("V", size=1)),
+        ("CHAR(10) ASCII", CharColumn.simple("V", size=10, charset=CharSet.ASCII)),
+        ("CHAR(10)", CharColumn.simple("V", size=10)),
+        ("DATE", DateColumn.simple("A")),
+        ("DECIMAL", DecimalColumn.simple("D")),
+        ("INTEGER", DecimalColumn.simple("D")),
+        ("FLOAT", DoublePrecisionColumn.simple("D")),
+        ("DECIMAL(10)", DecimalColumn.simple("D", precision=10)),
+        ("DECIMAL(2,1)", DecimalColumn.simple("D", precision=2, scale=1)),
+        ("DOUBLE PRECISION", DoublePrecisionColumn.simple("P")),
+        ("DOUBLE", DoublePrecisionColumn.simple("P")),
+        ("GEOMETRY", GeometryColumn.simple("G")),
+        ("GEOMETRY(2)", GeometryColumn.simple("G", srid=2)),
+        (
+            "HASHTYPE(1 BYTE)",
+            HashTypeColumn.simple("H", size=1, unit=HashSizeUnit.BYTE),
+        ),
+        ("TIMESTAMP", TimeStampColumn.simple("T")),
+        (
+            "TIMESTAMP(3) WITH LOCAL TIME ZOME",
+            TimeStampColumn.simple("T", precision=3, local_time_zone=True),
+        ),
+        ("VARCHAR", VarCharColumn.simple("V", size=2000000)),
+        (
+            "VARCHAR(10) ASCII",
+            VarCharColumn.simple("V", size=10, charset=CharSet.ASCII),
+        ),
+        ("VARCHAR(10)", VarCharColumn.simple("V", size=10)),
+    ],
+)
 def test_from_sql_type(sql_type: str, expected: Column):
     actual = Column.from_sql_type(expected.name.name, sql_type)
     assert actual == expected

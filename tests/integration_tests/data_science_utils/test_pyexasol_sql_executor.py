@@ -7,8 +7,8 @@ from exasol.analytics.schema import (
     Column,
     ColumnNameBuilder,
     DecimalColumn,
-    HashTypeColumn,
     HashSizeUnit,
+    HashTypeColumn,
 )
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 

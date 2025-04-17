@@ -39,7 +39,7 @@ class TestQueryHandler(QueryHandler[Dict[str, Any], int]):
             [],
             SelectQueryWithColumnDefinition(
                 f'SELECT {self._parameter["a"]} as "A"', [column]
-            )
+            ),
         )
 
     def handle_query_result(

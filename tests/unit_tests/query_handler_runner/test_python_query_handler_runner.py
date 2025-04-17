@@ -250,7 +250,8 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         column = DecimalColumn.simple("a")
         wrong_name = ColumnName("b")
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {wrong_name.quoted_name}""", [column],
+            f"""SELECT 1 as {wrong_name.quoted_name}""",
+            [column],
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -311,7 +312,8 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column.name.quoted_name}""", [column],
+            f"""SELECT 1 as {column.name.quoted_name}""",
+            [column],
         )
         query_list = [SelectQuery(query_string="SELECT 1")]
         return Continue(query_list=query_list, input_query=input_query)
@@ -377,7 +379,8 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
     def start(self) -> Union[Continue, Finish[TestOutput]]:
         column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column.name.quoted_name}""", [column],
+            f"""SELECT 1 as {column.name.quoted_name}""",
+            [column],
         )
         return Continue(query_list=[], input_query=input_query)
 

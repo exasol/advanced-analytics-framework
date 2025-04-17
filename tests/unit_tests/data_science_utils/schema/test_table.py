@@ -3,9 +3,9 @@ from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
     DecimalColumn,
-    VarCharColumn,
     Table,
     TableNameImpl,
+    VarCharColumn,
 )
 
 
@@ -73,10 +73,13 @@ def test_inequality_name():
 
 def test_inequality_columns():
     table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
-    table2 = Table(TableNameImpl("table"), [
-        DecimalColumn.simple("column"),
-        DecimalColumn.simple("column2"),
-    ])
+    table2 = Table(
+        TableNameImpl("table"),
+        [
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
+        ],
+    )
     assert table1 != table2
 
 
@@ -94,8 +97,11 @@ def test_hash_inequality_name():
 
 def test_hash_inequality_columns():
     table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
-    table2 = Table(TableNameImpl("table"), [
-        DecimalColumn.simple("column"),
-        DecimalColumn.simple("column2"),
-    ])
+    table2 = Table(
+        TableNameImpl("table"),
+        [
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
+        ],
+    )
     assert hash(table1) != hash(table2)
