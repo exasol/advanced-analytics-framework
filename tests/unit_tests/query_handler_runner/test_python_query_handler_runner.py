@@ -28,8 +28,7 @@ from exasol.analytics.query_handler.result import (
 from exasol.analytics.schema import (
     Column,
     ColumnName,
-    ColumnType,
-    decimal_column,
+    DecimalColumn,
 )
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 from exasol.analytics.sql_executor.testing.mock_sql_executor import (
@@ -185,10 +184,9 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        column = decimal_column("a", precision=1, scale=0)
+        column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"SELECT 1 as {column.name.quoted_name}",
-            [column],
+            f"SELECT 1 as {column.name.quoted_name}", [column]
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -224,7 +222,7 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[decimal_column("a", precision=1, scale=0)],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
@@ -249,9 +247,10 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
+        column = DecimalColumn.simple("a")
+        wrong_name = ColumnName("b")
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {ColumnName("b").quoted_name}""",
-            [Column(ColumnName("a"), ColumnType("INTEGER"))],
+            f"""SELECT 1 as {wrong_name.quoted_name}""", [column],
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -285,7 +284,7 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[decimal_column("b", precision=1, scale=0)],
+                columns=[DecimalColumn.simple("b", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
@@ -310,10 +309,9 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        column = decimal_column("a", precision=1, scale=0)
+        column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column.name.quoted_name}""",
-            [column],
+            f"""SELECT 1 as {column.name.quoted_name}""", [column],
         )
         query_list = [SelectQuery(query_string="SELECT 1")]
         return Continue(query_list=query_list, input_query=input_query)
@@ -342,7 +340,7 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[decimal_column("a", precision=1, scale=0)],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query(
@@ -353,7 +351,7 @@ def test_continue_query_list(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[decimal_column("a", precision=1, scale=0)],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
@@ -377,10 +375,9 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        column = decimal_column("a", precision=1, scale=0)
+        column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column.name.quoted_name}""",
-            [column],
+            f"""SELECT 1 as {column.name.quoted_name}""", [column],
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -415,7 +412,7 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[decimal_column("a", precision=1, scale=0)],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_3";'),
@@ -442,10 +439,10 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
         self._iter = 0
 
     def start(self) -> Union[Continue, Finish[TestOutput]]:
-        column_name = ColumnName("a")
+        column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column_name.quoted_name}""",
-            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+            f"""SELECT 1 as {column.name.quoted_name}""",
+            [column],
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -454,15 +451,10 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
     ) -> Union[Continue, Finish[TestOutput]]:
         if self._iter == 0:
             self._iter += 1
-            column_name = ColumnName("b")
+            column = DecimalColumn.simple("b", precision=1, scale=0)
             input_query = SelectQueryWithColumnDefinition(
-                f"""SELECT 1 as {column_name.quoted_name}""",
-                [
-                    Column(
-                        ColumnName("b"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                f"""SELECT 1 as {column.name.quoted_name}""",
+                [column],
             )
             return Continue(query_list=[], input_query=input_query)
         else:
@@ -493,12 +485,7 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[
-                    Column(
-                        ColumnName("a"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
@@ -516,12 +503,7 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[
-                    Column(
-                        ColumnName("b"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                columns=[DecimalColumn.simple("b", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
@@ -552,10 +534,9 @@ class ContinueContinueCleanupFinishTestQueryHandler(
             self._query_handler_context.get_child_query_handler_context()
         )
         self._table = self._child_query_handler_conntext.get_temporary_table_name()
-        column_name = ColumnName("a")
+        column = DecimalColumn.simple("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
-            f"""SELECT 1 as {column_name.quoted_name}""",
-            [Column(ColumnName("a"), ColumnType(name="DECIMAL", precision=1, scale=0))],
+            f"""SELECT 1 as {column.name.quoted_name}""", [column]
         )
         return Continue(query_list=[], input_query=input_query)
 
@@ -565,15 +546,9 @@ class ContinueContinueCleanupFinishTestQueryHandler(
         if self._iter == 0:
             self._child_query_handler_conntext.release()
             self._iter += 1
-            column_name = ColumnName("b")
+            column = DecimalColumn.simple("b", precision=1, scale=0)
             input_query = SelectQueryWithColumnDefinition(
-                f"""SELECT 1 as {column_name.quoted_name}""",
-                [
-                    Column(
-                        ColumnName("b"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                f"""SELECT 1 as {column.name.quoted_name}""", [column]
             )
             return Continue(query_list=[], input_query=input_query)
         else:
@@ -606,12 +581,7 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[
-                    Column(
-                        ColumnName("a"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                columns=[DecimalColumn.simple("a", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
@@ -630,12 +600,7 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
             """,
             MockResultSet(
                 rows=[(1,)],
-                columns=[
-                    Column(
-                        ColumnName("b"),
-                        ColumnType(name="DECIMAL", precision=1, scale=0),
-                    )
-                ],
+                columns=[DecimalColumn.simple("b", precision=1, scale=0)],
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_6_1";'),

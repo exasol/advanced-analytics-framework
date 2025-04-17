@@ -2,9 +2,13 @@ import pyexasol
 import pytest
 
 from exasol.analytics.schema import (
+    CharColumn,
+    CharSet,
     Column,
     ColumnNameBuilder,
-    ColumnType,
+    DecimalColumn,
+    HashTypeColumn,
+    HashSizeUnit,
 )
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 
@@ -12,6 +16,7 @@ from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 @pytest.fixture()
 def pyexasol_sql_executor():
     con = pyexasol.connect(dsn="localhost:8888", user="sys", password="exasol")
+    # con = pyexasol.connect(dsn="192.168.124.221:8563", user="sys", password="exasol")
     yield PyexasolSQLExecutor(con)
     con.close()
 
@@ -24,23 +29,18 @@ EXPECTED_COLUMNS_INDEX = 2
 @pytest.fixture()
 def pyexasol_result_set(pyexasol_sql_executor):
     row_count = 100000
-    expected_result = [(1, "a", "1.1")] * row_count
+    expected_result = [(1, "a", "1.1", "bb")] * row_count
     expected_columns = [
-        Column(
-            ColumnNameBuilder.create("c1"),
-            ColumnType(name="DECIMAL", precision=1, scale=0),
-        ),
-        Column(
-            ColumnNameBuilder.create("c2"),
-            ColumnType(name="CHAR", size=1, characterSet="ASCII"),
-        ),
-        Column(
-            ColumnNameBuilder.create("c3"),
-            ColumnType(name="DECIMAL", precision=2, scale=1),
-        ),
+        DecimalColumn.simple("c1", precision=1, scale=0),
+        CharColumn.simple("c2", size=1, charset=CharSet.ASCII),
+        DecimalColumn.simple("c3", precision=2, scale=1),
+        # Data type HASHTYPE(n BYTE) -> Raw size in bytes = n + 1
+        # see https://docs.exasol.com/db/latest/sql_references/data_types/data_type_size.htm#Otherdatatypes
+        HashTypeColumn.simple("c4", size=1, unit=HashSizeUnit.BYTE),
     ]
     result_set = pyexasol_sql_executor.execute(
-        f"""SELECT 1 as "c1", 'a' as "c2", 1.1 as "c3" FROM VALUES BETWEEN 1 and {row_count} as t(i);"""
+        f"""SELECT 1 as "c1", 'a' as "c2", 1.1 as "c3", cast('bb' as HASHTYPE(1 BYTE)) as "c4"
+        FROM VALUES BETWEEN 1 and {row_count} as t(i);"""
     )
     return result_set, expected_result, expected_columns
 

@@ -16,11 +16,7 @@ from exasol.analytics.query_handler.result import (
 )
 from exasol.analytics.query_handler.udf.interface import UDFQueryHandler
 from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandlerFactory
-from exasol.analytics.schema import (
-    Column,
-    ColumnName,
-    ColumnType,
-)
+from exasol.analytics.schema import DecimalColumn
 
 
 class TestJSONQueryHandler(JSONQueryHandler):
@@ -57,7 +53,7 @@ def test(top_level_query_handler_context_mock):
     start_result = query_handler.start()
     handle_query_result = query_handler.handle_query_result(
         PythonQueryResult(
-            data=[(1,)], columns=[Column(ColumnName("a"), ColumnType("INTEGER"))]
+            data=[(1,)], columns=[DecimalColumn.simple("a")]
         )
     )
     assert (

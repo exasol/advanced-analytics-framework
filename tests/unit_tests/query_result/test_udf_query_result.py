@@ -306,7 +306,8 @@ def test_columns():
                 ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
             )
             for column in wrapper.columns():
-                ctx.emit(column.name.name, column.type.name)
+                ctx.emit(column.name.name, column.sql_name)
+                # ctx.emit(column.name.name, column.type.name)
 
     executor = UDFMockExecutor()
     meta = MockMetaData(
@@ -322,7 +323,8 @@ def test_columns():
 
     exa = MockExaEnvironment(meta)
     result = executor.run([Group(INPUT_DATA)], exa)
-    assert result[0].rows == [("a", "INTEGER"), ("b", "VARCHAR(2000)"), ("c", "FLOAT")]
+    assert result[0].rows == [("a", "DECIMAL"), ("b", "VARCHAR"), ("c", "DOUBLE PRECISION")]
+    # assert result[0].rows == [("a", "INTEGER"), ("b", "VARCHAR(2000)"), ("c", "FLOAT")]
 
 
 def test_column_get_attr():

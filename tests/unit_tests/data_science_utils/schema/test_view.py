@@ -2,9 +2,8 @@ import pytest
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
-    Column,
-    ColumnNameBuilder,
-    ColumnType,
+    DecimalColumn,
+    VarCharColumn,
     View,
     ViewNameImpl,
 )
@@ -14,8 +13,8 @@ def test_valid():
     table = View(
         ViewNameImpl("view_name"),
         [
-            Column(ColumnNameBuilder.create("column1"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("VACHAR")),
+            DecimalColumn.simple("column1"),
+            VarCharColumn.simple("column2", size=20),
         ],
     )
 
@@ -30,30 +29,22 @@ def test_duplicate_column_names_fail():
         table = View(
             ViewNameImpl("view_name"),
             [
-                Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-                Column(ColumnNameBuilder.create("column"), ColumnType("VACHAR")),
+                DecimalColumn.simple("column"),
+                VarCharColumn.simple("column", size=20),
             ],
         )
 
 
 def test_set_new_name_fail():
-    view = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
     with pytest.raises(AttributeError) as c:
         view.name = "edf"
 
 
 def test_set_new_columns_fail():
-    view = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
     with pytest.raises(AttributeError) as c:
-        view.columns = [
-            Column(ColumnNameBuilder.create("column1"), ColumnType("INTEGER"))
-        ]
+        view.columns = [DecimalColumn.simple("column1")]
 
 
 def test_wrong_types_in_constructor():
@@ -62,88 +53,49 @@ def test_wrong_types_in_constructor():
 
 
 def test_columns_list_is_immutable():
-    view = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
     columns = view.columns
-    columns.append(Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")))
+    columns.append(DecimalColumn.simple("column"))
     assert len(columns) == 2 and len(view.columns) == 1
 
 
 def test_equality():
-    view1 = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
     assert view1 == view2
 
 
 def test_inequality_name():
-    view1 = View(
-        ViewNameImpl("view1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view2"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view1 = View(ViewNameImpl("view1"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view2"), [DecimalColumn.simple("column")])
     assert view1 != view2
 
 
 def test_inequality_columns():
-    view1 = View(
-        ViewNameImpl("view1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view1"),
-        [
-            Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("INTEGER")),
-        ],
-    )
+    view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view"), [
+        DecimalColumn.simple("column"),
+        DecimalColumn.simple("column2"),
+    ])
     assert view1 != view2
 
 
 def test_hash_equality():
-    view1 = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
     assert hash(view1) == hash(view2)
 
 
 def test_hash_inequality_name():
-    view1 = View(
-        ViewNameImpl("view1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view2"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    view1 = View(ViewNameImpl("view1"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view2"), [DecimalColumn.simple("column")])
     assert hash(view1) != hash(view2)
 
 
 def test_hash_inequality_columns():
-    view1 = View(
-        ViewNameImpl("view1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    view2 = View(
-        ViewNameImpl("view1"),
-        [
-            Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("INTEGER")),
-        ],
-    )
+    view1 = View(ViewNameImpl("view"), [DecimalColumn.simple("column")])
+    view2 = View(ViewNameImpl("view"), [
+        DecimalColumn.simple("column"),
+        DecimalColumn.simple("column2"),
+    ])
     assert hash(view1) != hash(view2)
