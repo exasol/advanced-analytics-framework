@@ -2,12 +2,12 @@
 # as this breaks typeguard checks
 
 import re
+from abc import abstractmethod
 from dataclasses import dataclass
 from enum import (
     Enum,
     auto,
 )
-from abc import abstractmethod
 from typing import (
     Any,
     Optional,
@@ -538,7 +538,9 @@ class VarCharColumn(Column):
     def from_sql(
         cls, column_name: str, args: list[int], options: str
     ) -> "VarCharColumn":
-        pyexasol_args: dict[str, Any] = {PyexasolTypes.SIZE: args[0] if args else 2000000}
+        pyexasol_args: dict[str, Any] = {
+            PyexasolTypes.SIZE: args[0] if args else 2000000
+        }
         if options:
             pyexasol_args[PyexasolTypes.CHARACTER_SET] = options
         return cls.from_pyexasol(column_name, pyexasol_args)
