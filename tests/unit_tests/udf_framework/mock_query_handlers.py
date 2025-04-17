@@ -18,9 +18,7 @@ from exasol.analytics.query_handler.udf.interface import (
     UDFQueryHandler,
     UDFQueryHandlerFactory,
 )
-from exasol.analytics.schema.column import Column
-from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.schema.column_type import ColumnType
+from exasol.analytics.schema import DecimalColumn
 
 TEST_CONNECTION = "TEST_CONNECTION"
 
@@ -67,8 +65,8 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
             "SELECT a, table1.b, c FROM table1, table2 " "WHERE table1.b=table2.b"
         )
         return_query_columns = [
-            Column(ColumnName("a"), ColumnType("INTEGER")),
-            Column(ColumnName("b"), ColumnType("INTEGER")),
+            DecimalColumn.simple("a"),
+            DecimalColumn.simple("b"),
         ]
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=return_query, output_columns=return_query_columns
