@@ -56,10 +56,8 @@ class ExampleQueryHandler(UDFQueryHandler):
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=table_query_string('SELECT "c1", "c2" from {table_name}'),
             output_columns=[
-  	        VarCharColumn.simple("c1", size=100),	
-  	        DecimalColumn.simple("c2"),    
-                # Column(ColumnName("c1"), ColumnType("VARCHAR(100)")),
-                # Column(ColumnName("c2"), ColumnType("INTEGER")),
+                VarCharColumn.simple("c1", size=100),
+                DecimalColumn.simple("c2"),
             ])
         return Continue(
             query_list=query_list,

@@ -293,8 +293,11 @@ def test_str_constructor_set_name_fails():
         col.name = ColumnName("new_name")
 
 
+# isort: off
 import pyexasol
 
+
+# isort: on
 @pytest.mark.skip("local experiment to be removed before merge")
 def test_i1():
     connection = pyexasol.connect(
