@@ -2,7 +2,11 @@
 # as this breaks typeguard checks
 
 import re
-from abc import ABC, ABCMeta, abstractmethod
+from abc import (
+    ABC,
+    ABCMeta,
+    abstractmethod,
+)
 from dataclasses import dataclass
 from enum import (
     Enum,
@@ -94,9 +98,7 @@ class Column(ABC):
     @classmethod
     def check_arg(cls, name: str, value: int, allowed: range):
         if value not in allowed:
-            raise ValueError(
-                f"{cls.__name__} {name}={value} not in {allowed}."
-            )
+            raise ValueError(f"{cls.__name__} {name}={value} not in {allowed}.")
 
     @classmethod
     def from_pyexasol(
@@ -176,8 +178,7 @@ class CharColumn(Column, metaclass=ColumnClass):
     @classmethod
     def pyexasol_mapping(cls):
         return PyexasolMapping(
-            int_keys=[PyexasolOption.SIZE],
-            modifier_key=PyexasolOption.CHARACTER_SET
+            int_keys=[PyexasolOption.SIZE], modifier_key=PyexasolOption.CHARACTER_SET
         )
 
     @classmethod
@@ -239,7 +240,9 @@ class DecimalColumn(Column, metaclass=ColumnClass):
 
     @classmethod
     def pyexasol_mapping(cls) -> PyexasolMapping:
-        return PyexasolMapping(int_keys=[PyexasolOption.PRECISION, PyexasolOption.SCALE])
+        return PyexasolMapping(
+            int_keys=[PyexasolOption.PRECISION, PyexasolOption.SCALE]
+        )
 
     @classmethod
     def from_sql(cls, column_name: str, sql_type: SqlType) -> "DecimalColumn":
@@ -442,8 +445,7 @@ class VarCharColumn(Column, metaclass=ColumnClass):
     @classmethod
     def pyexasol_mapping(cls):
         return PyexasolMapping(
-            int_keys=[PyexasolOption.SIZE],
-            modifier_key=PyexasolOption.CHARACTER_SET
+            int_keys=[PyexasolOption.SIZE], modifier_key=PyexasolOption.CHARACTER_SET
         )
 
     @classmethod
