@@ -34,8 +34,6 @@ def pyexasol_result_set(pyexasol_sql_executor):
         DecimalColumn.simple("c1", precision=1, scale=0),
         CharColumn.simple("c2", size=1, charset=CharSet.ASCII),
         DecimalColumn.simple("c3", precision=2, scale=1),
-        # Data type HASHTYPE(n BYTE) -> Raw size in bytes = n + 1
-        # see https://docs.exasol.com/db/latest/sql_references/data_types/data_type_size.htm#Otherdatatypes
         HashTypeColumn.simple("c4", size=1, unit=HashSizeUnit.BYTE),
     ]
     result_set = pyexasol_sql_executor.execute(

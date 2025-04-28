@@ -15,7 +15,7 @@ from exasol.analytics.schema import (
     SchemaName,
     TableName,
     TableNameImpl,
-    VarcharColumn,
+    VarCharColumn,
 )
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
