@@ -72,15 +72,6 @@ class Column(ABC):
     name: ColumnName
 
     def __post_init__(self):
-        """
-        As convenience Column supports specifying name as a simple str,
-        and __post_init__() instantiates ColumnName.
-        """
-        # If this approach is accepted, then we can remove classmethod
-        # simple() from the subclasses of Column which simplifies
-        # implementation and reduces overhead.
-        if isinstance(self.name, str):
-            super().__setattr__("name", ColumnName(self.name))
         check_dataclass_types(self)
 
     @property
