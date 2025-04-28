@@ -85,11 +85,14 @@ class Column(ABC):
 
     @property
     def for_create(self) -> str:
-        return f"{self.name.fully_qualified} {self.rendered}"
+        return f"{self.name.fully_qualified} {self.sql_spec(for_create=True)}"
 
     @property
+    def rendered(self) -> str:
+        return self.sql_spec(for_create=False)
+
     @abstractmethod
-    def rendered(self) -> str: ...
+    def sql_spec(self, for_create: bool) -> str: ...
 
     @classproperty
     def sql_name(self):
@@ -131,8 +134,7 @@ class BooleanColumn(Column, metaclass=ColumnClass):
         super().__post_init__()
         check_dataclass_types(self)
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return self.sql_name
 
     @classmethod
@@ -158,8 +160,7 @@ class CharColumn(Column, metaclass=ColumnClass):
         check_dataclass_types(self)
         self.check_arg("size", self.size, range(1, 2001))
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return f"{self.sql_name}({self.size}) CHARACTER SET {self.charset.name}"
 
     @classmethod
@@ -193,8 +194,7 @@ class DateColumn(Column, metaclass=ColumnClass):
         super().__post_init__()
         check_dataclass_types(self)
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return self.sql_name
 
     @classmethod
@@ -215,8 +215,7 @@ class DecimalColumn(Column, metaclass=ColumnClass):
     precision: int = 18
     scale: int = 0
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return f"{self.sql_name}({self.precision},{self.scale})"
 
     @classmethod
@@ -256,8 +255,7 @@ class DoublePrecisionColumn(Column, metaclass=ColumnClass):
         super().__post_init__()
         check_dataclass_types(self)
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return self.sql_name
 
     @classmethod
@@ -282,8 +280,7 @@ class GeometryColumn(Column, metaclass=ColumnClass):
         super().__post_init__()
         check_dataclass_types(self)
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return f"{self.sql_name}({self.srid})"
 
     @classmethod
@@ -330,8 +327,7 @@ class HashTypeColumn(Column, metaclass=ColumnClass):
                 f" size not a multiple of 8: size={self.size}."
             )
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         return f"{self.sql_name}({self.size} {self.unit.name})"
 
     @classmethod
@@ -384,8 +380,7 @@ class TimeStampColumn(Column, metaclass=ColumnClass):
         check_dataclass_types(self)
         self.check_arg("precision", self.precision, range(0, 10))
 
-    @property
-    def rendered(self) -> str:
+    def sql_spec(self, for_create: bool = False) -> str:
         suffix = " WITH LOCAL TIME ZOME" if self.local_time_zone else ""
         return f"{self.sql_name}({self.precision}){suffix}"
 
@@ -432,9 +427,9 @@ class VarCharColumn(Column, metaclass=ColumnClass):
         check_dataclass_types(self)
         self.check_arg("size", self.size, range(1, 2000001))
 
-    @property
-    def rendered(self) -> str:
-        return f"{self.sql_name}({self.size}) CHARACTER SET {self.charset.name}"
+    def sql_spec(self, for_create: bool = False) -> str:
+        charset_spec = " CHARACTER SET" if for_create else ""
+        return f"{self.sql_name}({self.size}){charset_spec} {self.charset.name}"
 
     @classmethod
     def sql_names(cls) -> list[str]:

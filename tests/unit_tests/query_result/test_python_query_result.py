@@ -13,9 +13,6 @@ INPUT_COLUMNS = [
     DecimalColumn.simple("t1"),
     DecimalColumn.simple("t2", precision=2),
     VarCharColumn.simple("t3", size=200),
-    # Column(ColumnName("t1"), ColumnType("INTEGER")),
-    # Column(ColumnName("t2"), ColumnType("FLOAT")),
-    # Column(ColumnName("t3"), ColumnType("VARCHAR(2000)")),
 ]
 
 
