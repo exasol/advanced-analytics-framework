@@ -295,7 +295,7 @@ def test_str_constructor_set_name_fails():
 
 import pyexasol
 
-
+@pytest.mark.skip("local experiment to be removed before merge")
 def test_i1():
     connection = pyexasol.connect(
         dsn="192.168.124.221:8563", user="SYS", password="exasol"
