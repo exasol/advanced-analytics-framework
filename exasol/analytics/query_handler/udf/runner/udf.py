@@ -353,12 +353,10 @@ class QueryHandlerRunnerUDF:
         return query_create_view, query_query_handler
 
     def _get_query_columns(self) -> List[Column]:
-        query_columns = []
-        for i in range(len(self.exa.meta.input_columns)):
-            col_name = self.exa.meta.input_columns[i].name
-            col_type = self.exa.meta.input_columns[i].sql_type
-            query_columns.append(Column.from_sql_type(col_name, col_type))
-        return query_columns
+        return [
+            Column.from_sql_spec(c.name, c.sql_type)
+            for c in self.exa.meta.input_columns
+        ]
 
     def _state_file_bucketfs_location(self, iter_offset: int = 0) -> bfs.path.PathLike:
         num_iter = self._checked_parameter.iter_num + iter_offset

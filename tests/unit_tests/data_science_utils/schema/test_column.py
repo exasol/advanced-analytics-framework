@@ -1,33 +1,44 @@
 import random
 import string
+from dataclasses import FrozenInstanceError
 
 import pytest
-from typeguard import (
-    Any,
-    TypeCheckError,
-)
+from typing import Any, Iterator
+from typeguard import TypeCheckError
 
-from exasol.analytics.schema.column import (
+from exasol.analytics.schema import (
     BooleanColumn,
     CharColumn,
     CharSet,
     Column,
+    ColumnName,
     DateColumn,
     DecimalColumn,
     DoublePrecisionColumn,
     GeometryColumn,
     HashSizeUnit,
     HashTypeColumn,
-    PyexasolTypes,
-    SqlType,
     TimeStampColumn,
     VarCharColumn,
 )
-from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.column_types import (
+    PyexasolOption,
+    SqlType,
+)
 
 TEST_CASES = [
+    # argument names
+    ("column_class", "args", "sql_type", "sql_suffix"),
+    # actual test cases
+    # pyexasol output never contains unit and always assumes BYTE
+    # size seems to be 2 times the size specified during creation.
     (BooleanColumn, {}, "BOOLEAN", ""),
-    (CharColumn, {}, "CHAR", "(1) CHARACTER SET UTF8"),
+    (
+        CharColumn,
+        {},
+        "CHAR",
+        "(1) CHARACTER SET UTF8",
+    ),
     (
         CharColumn,
         {"size": 2, "charset": CharSet.ASCII},
@@ -37,7 +48,6 @@ TEST_CASES = [
     (DateColumn, {}, "DATE", ""),
     (DecimalColumn, {}, "DECIMAL", "(18,0)"),
     (DecimalColumn, {"precision": 2}, "DECIMAL", "(2,0)"),
-    (DecimalColumn, {"scale": 1}, "DECIMAL", "(18,1)"),
     (DecimalColumn, {"precision": 2, "scale": 1}, "DECIMAL", "(2,1)"),
     (DoublePrecisionColumn, {}, "DOUBLE PRECISION", ""),
     (GeometryColumn, {}, "GEOMETRY", "(0)"),
@@ -62,61 +72,15 @@ TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("column_class, args, sql_type, sql_suffix", TEST_CASES)
-def test_for_create(column_class, args, sql_type, sql_suffix):
-    # select a random column name
-    name = random.choice(string.ascii_letters.upper())
-    # instantiate the specified column class, once plain and once using class
-    # method simple()
-    columns = [
-        column_class(ColumnName(name), **args),
-        column_class.simple(name, **args),
-    ]
-    # assert both are equal
-    assert columns[0] == columns[1]
-    # and property for_create yields the expected result
-    for col in columns:
-        assert col.for_create == f'"{name}" {sql_type}{sql_suffix}'
+def all_column_test_cases():
+    argument_names = ",".join(TEST_CASES[0])
+    actual_test_cases = TEST_CASES[1:]
+    return pytest.mark.parametrize(argument_names, actual_test_cases)
 
 
-@pytest.mark.parametrize("column_class, args, sql_type, sql_suffix", TEST_CASES)
-def test_from_pyexasol(column_class, args, sql_type, sql_suffix):
-    """
-    Verify Column.from_pyexasol() returns the same as <c>.simple() of the
-    resp. subclass <c> of Column.
-    """
-    name = random.choice(string.ascii_letters.upper())
-    mapping = {
-        "local_time_zone": PyexasolTypes.WITH_LOCAL_TIME_ZONE,
-        "charset": PyexasolTypes.CHARACTER_SET,
-    }
-
-    def sql_value(key: str, value: Any) -> Any:
-        if sql_type == "HASHTYPE":
-            if key == "size":
-                return value + 1
-            if key == "unit":
-                return value.name
-            return value
-        if key == "charset":
-            return value.name
-        return value
-
-    sql_type_args = {mapping.get(k, k): sql_value(k, v) for k, v in args.items()}
-    actual = Column.from_pyexasol_type(name, sql_type, sql_type_args)
-    expected = column_class.simple(name, **args)
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
-    "column_class, args, expected_error",
-    [
-        (VarCharColumn, {}, "missing 1 .* 'size'"),
-    ],
-)
-def test_insufficient_parameters(column_class, args, expected_error):
-    with pytest.raises(TypeError, match=expected_error):
-        column_class(ColumnName("C"), **args)
+@pytest.fixture
+def random_name() -> str:
+    return random.choice(string.ascii_letters.upper())
 
 
 def test_set_new_name_fail():
@@ -173,45 +137,165 @@ def test_hash_inequality_precision():
         (GeometryColumn, {"srid": "string"}),
     ],
 )
-def test_wrong_type(column_class, args):
+def test_arg_value_wrong_type(column_class, args):
     with pytest.raises(TypeCheckError):
         column_class(ColumnName("C"), **args)
 
+def test_varchar_without_size():
+    with pytest.raises(TypeError, match= "missing .* 'size'"):
+        VarCharColumn.simple()
 
 @pytest.mark.parametrize(
-    "sql_type, expected",
+    "column_class, args, message",
     [
-        ("BOOLEAN", BooleanColumn.simple("B")),
-        ("CHAR", CharColumn.simple("V", size=1)),
-        ("CHAR(10) ASCII", CharColumn.simple("V", size=10, charset=CharSet.ASCII)),
-        ("CHAR(10)", CharColumn.simple("V", size=10)),
-        ("DATE", DateColumn.simple("A")),
-        ("DECIMAL", DecimalColumn.simple("D")),
-        ("INTEGER", DecimalColumn.simple("D")),
-        ("FLOAT", DoublePrecisionColumn.simple("D")),
-        ("DECIMAL(10)", DecimalColumn.simple("D", precision=10)),
-        ("DECIMAL(2,1)", DecimalColumn.simple("D", precision=2, scale=1)),
-        ("DOUBLE PRECISION", DoublePrecisionColumn.simple("P")),
-        ("DOUBLE", DoublePrecisionColumn.simple("P")),
-        ("GEOMETRY", GeometryColumn.simple("G")),
-        ("GEOMETRY(2)", GeometryColumn.simple("G", srid=2)),
+        (CharColumn, {"size": 0}, "size.* not in range\(1, 2001\)"),
+        (CharColumn, {"size": 2001}, "size.* not in range\(1, 2001\)"),
         (
-            "HASHTYPE(1 BYTE)",
-            HashTypeColumn.simple("H", size=1, unit=HashSizeUnit.BYTE),
+            DecimalColumn,
+            {"precision": 0},
+            "precision.* not in range\(1, 37\)",
         ),
-        ("TIMESTAMP", TimeStampColumn.simple("T")),
         (
-            "TIMESTAMP(3) WITH LOCAL TIME ZOME",
-            TimeStampColumn.simple("T", precision=3, local_time_zone=True),
+            DecimalColumn,
+            {"scale": 40},
+            "scale.* not in range\(0, 37\)",
         ),
-        ("VARCHAR", VarCharColumn.simple("V", size=2000000)),
         (
-            "VARCHAR(10) ASCII",
-            VarCharColumn.simple("V", size=10, charset=CharSet.ASCII),
+            DecimalColumn,
+            {"precision": 1, "scale": 2},
+            "scale.* > precision",
         ),
-        ("VARCHAR(10)", VarCharColumn.simple("V", size=10)),
+        (
+            HashTypeColumn,
+            {"unit": HashSizeUnit.BIT, "size": 2},
+            "multiple of 8",
+        ),
+        (
+            TimeStampColumn,
+            {"precision": 10},
+            "precision.* not in range\(0, 10\)"
+        ),
+        (
+            TimeStampColumn,
+            {"precision": -1},
+            "precision.* not in range\(0, 10\)"
+         ),
+        (VarCharColumn, {"size": 0}, "size.* not in range\(1, 2000001\)"),
+        (VarCharColumn, {"size": 2000001}, "size.* not in range\(1, 2000001\)"),
     ],
 )
-def test_from_sql_type(sql_type: str, expected: Column):
-    actual = Column.from_sql_type(expected.name.name, sql_type)
+def test_invalid_arguments(column_class, args, message):
+    with pytest.raises(ValueError, match=message):
+        column_class.simple("C", **args)
+
+
+@all_column_test_cases()
+def test_from_sql_spec(random_name, column_class, args, sql_type, sql_suffix):
+    spec = f"{sql_type}{sql_suffix}".replace(" CHARACTER SET", "")
+    actual = Column.from_sql_spec(random_name, spec)
+    expected = column_class.simple(random_name, **args)
     assert actual == expected
+
+
+def simulate_pyexasol_args(args: dict[str, Any]) -> dict[str, Any]:
+    size = args.get("size", 16)
+    unit = args.get("unit", HashSizeUnit.BYTE)
+    return {
+        "size": (size // 8) if unit == HashSizeUnit.BIT else size,
+        "unit": HashSizeUnit.BYTE,
+    }
+
+
+@all_column_test_cases()
+def test_for_create(random_name, column_class, args, sql_type, sql_suffix):
+    # instantiate the specified column class in two ways
+    columns = [
+        column_class(ColumnName(random_name), **args),  # plain
+        column_class.simple(random_name, **args),  # using class method simple()
+    ]
+    # assert both results are equal
+    assert columns[0] == columns[1]
+    # and property for_create yields the expected result
+    for col in columns:
+        expected = f'"{random_name}" {sql_type}{sql_suffix}'
+        assert col.for_create == expected
+
+
+@pytest.mark.parametrize ("column_name, args, expected", [
+    ("B", {"type": "BOOLEAN"}, BooleanColumn.simple("B")),
+    ("C", {"type": "CHAR"}, CharColumn.simple("C")),
+    ("C", {"type": "CHAR", "size": 2}, CharColumn.simple("C", size=2)),
+    ("A", {"type": "DATE"}, DateColumn.simple("A")),
+    ("P", {"type": "DOUBLE"}, DoublePrecisionColumn.simple("P")),
+    ("D", {"type": "DECIMAL"}, DecimalColumn.simple("D")),
+    (
+        "D",
+        {"type": "DECIMAL", "precision": 10, "scale": 2},
+        DecimalColumn.simple("D", precision=10, scale=2)
+     ),
+    ("G", {"type": "GEOMETRY"}, GeometryColumn.simple("G")),
+    ("G", {"type": "GEOMETRY", "srid": 2}, GeometryColumn.simple("G", srid=2)),
+    ("H", {"type": "HASHTYPE"}, HashTypeColumn.simple("H")),
+    (
+        "H",
+        {"type": "HASHTYPE", "size": 16, "unit": "BIT"},
+        HashTypeColumn.simple("H", size=8, unit=HashSizeUnit.BIT),
+    ),
+    (
+        "H",
+        {"type": "HASHTYPE", "size": 4},
+        HashTypeColumn.simple("H", size=2, unit=HashSizeUnit.BYTE),
+    ),
+    (
+        "T",
+        {"type": "TIMESTAMP", "precision": 4, "withLocalTimeZone": True},
+        TimeStampColumn.simple("T", precision=4, local_time_zone=True)
+    ),
+    ("V", {"type": "VARCHAR", "size": 2}, VarCharColumn.simple("V", size=2)),
+])
+def test_from_pyexasol(column_name, args, expected):
+    actual = Column.from_pyexasol(column_name, args)
+    assert actual == expected
+
+
+# ------------------------------------------------------------
+
+@pytest.mark.parametrize ("column_class, column_name, args", [
+    (DecimalColumn, "D1", ()),
+    (DecimalColumn, "D1", (10, 2)),
+])
+def test_str_constructor(column_class, column_name, args):
+    plain = column_class(column_name, *args)
+    with_column_name = column_class(ColumnName(column_name), *args)
+    assert plain == with_column_name
+
+
+@pytest.mark.parametrize(
+    "column_class, arg",
+    [
+        (DecimalColumn, 123),
+        (DecimalColumn, list("a")),
+        (DecimalColumn, ValueError("")),
+    ],
+)
+def test_constructor_invalid_type(column_class, arg):
+    with pytest.raises(TypeCheckError):
+        column_class(arg)
+
+
+def test_str_constructor_set_name_fails():
+    col = DecimalColumn("name")
+    with pytest.raises(FrozenInstanceError):
+        col.name = ColumnName("new_name")
+
+
+import pyexasol
+def test_i1():
+    connection = pyexasol.connect(dsn="192.168.124.221:8563", user="SYS", password="exasol")
+    connection.execute("DROP TABLE IF EXISTS S.A");
+    connection.execute("CREATE TABLE S.A (H HASHTYPE(3 byte), T TIMESTAMP(3), V VARCHAR(10), C CHAR)")
+    stmt = connection.execute("SELECT * from S.A")
+    print(f'{stmt.columns()}')
+    for r in connection.execute("describe S.A"):
+        print(f'{r}')
+

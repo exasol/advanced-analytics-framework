@@ -90,8 +90,7 @@ class UDFQueryResult(QueryResult):
             column.name: column.sql_type for column in exa.meta.input_columns
         }
         columns = [
-            Column.from_sql_type(key, column_dict[value])
-            # Column(ColumnName(key), ColumnType(column_dict[value]))
+            Column.from_sql_spec(key, column_dict[value])
             for key, value in self._reverse_column_mapping.items()
         ]
         return columns
