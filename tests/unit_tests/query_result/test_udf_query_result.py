@@ -303,7 +303,7 @@ def test_columns():
 
         def run(ctx: UDFContext):
             # Map the INPUT_COLUMNS defined above onto a, b, c in different order
-            column_mapping=OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            column_mapping = OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
             wrapper = UDFQueryResult(ctx, exa, column_mapping)
             for column in wrapper.columns():
                 ctx.emit(column.name.name, column.rendered)
