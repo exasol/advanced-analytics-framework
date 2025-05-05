@@ -1,9 +1,6 @@
 import re
 from dataclasses import dataclass
-from enum import (
-    Enum,
-    auto,
-)
+from enum import Enum
 from typing import (
     Any,
     Callable,
@@ -12,15 +9,8 @@ from typing import (
 
 
 class CharSet(Enum):
-    UTF8 = auto()
-    ASCII = auto()
-
-    @classmethod
-    def from_string(cls, name: str) -> "CharSet":
-        for c in cls:
-            if c.name == name:
-                return c
-        raise ValueError(f"Couldn't find CharSet with name '{name}'")
+    UTF8 = "UTF8"
+    ASCII = "ASCII"
 
 
 class PyexasolOption(Enum):
@@ -48,8 +38,8 @@ class PyexasolMapping:
 
 
 class ColumnTypeSource(Enum):
-    SQL = auto()
-    PYEXASOL = auto()
+    SQL = "SQL"
+    PYEXASOL = "PYEXASOL"
 
 
 @dataclass(frozen=True)
@@ -75,7 +65,7 @@ class SqlType:
     def char_type_args(self) -> dict[str, Any]:
         args: dict[str, Any] = dict(zip(["size"], self.int_args))
         if self.modifier:
-            args["charset"] = CharSet.from_string(self.modifier)
+            args["charset"] = CharSet(self.modifier)
         return args
 
     @classmethod

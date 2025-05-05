@@ -8,10 +8,7 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-from enum import (
-    Enum,
-    auto,
-)
+from enum import Enum
 from typing import (
     Any,
     Callable,
@@ -293,8 +290,8 @@ class GeometryColumn(Column, metaclass=ColumnClass):
 
 
 class HashSizeUnit(Enum):
-    BYTE = auto()
-    BIT = auto()
+    BYTE = "BYTE"
+    BIT = "BIT"
 
     @classmethod
     def from_string(cls, name: str) -> "HashSizeUnit":
@@ -357,7 +354,7 @@ class HashTypeColumn(Column, metaclass=ColumnClass):
 
         args = sql_type.int_dict(keys=["size"])
         if sql_type.modifier:
-            args["unit"] = HashSizeUnit.from_string(sql_type.modifier)
+            args["unit"] = HashSizeUnit(sql_type.modifier)
         return cls.simple(column_name, **args)
 
 
