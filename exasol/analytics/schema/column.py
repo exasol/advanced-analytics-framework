@@ -124,7 +124,7 @@ class Column(ABC):
         column_name: str,
         pyexasol_args: dict[str, Any] = {},
     ) -> "Column":
-        sql_type_name = pyexasol_args["type"]
+        sql_type_name = pyexasol_args[PyexasolOption.TYPE.value]
         column_class = ColumnClass.from_sql_name(sql_type_name)
         sql_type = SqlType.from_pyexasol(
             pyexasol_args,

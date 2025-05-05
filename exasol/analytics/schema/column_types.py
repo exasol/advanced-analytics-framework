@@ -21,10 +21,23 @@ class PyexasolOption(Enum):
     SRID = "srid"
     UNIT = "unit"
     WITH_LOCAL_TIME_ZONE = "withLocalTimeZone"
+    TYPE = "type"
 
 
 @dataclass(frozen=True)
 class PyexasolMapping:
+    """
+    This class helps mapping the metadata provided by pyexasol for columns
+    of SQL tables to native SQL specs. This is particularly required for
+    option "WITH LOCAL TIME ZONE" for chec character set of CHAR and VARCHAR
+    columns.
+
+    A PyexasolMapping can contain a list of keys of integer properties, such
+    as precision and scale, a modifier_key for getting a string such as
+    CHARACTER_SET or UNIT (for HASHTYPE columns), and also by a
+    modifier_getter able to transform key and/or value of a property as this
+    is required for option "WITH LOCAL TIME ZONE" for timestamp columns.
+    """
     int_keys: list[PyexasolOption]
     modifier_key: Optional[PyexasolOption] = None
     modifier_getter: Callable[[dict[str, Any]], str] = lambda x: ""
@@ -63,7 +76,7 @@ class SqlType:
 
     @property
     def char_type_args(self) -> dict[str, Any]:
-        args: dict[str, Any] = dict(zip(["size"], self.int_args))
+        args = self.int_dict(["size"])
         if self.modifier:
             args["charset"] = CharSet(self.modifier)
         return args
