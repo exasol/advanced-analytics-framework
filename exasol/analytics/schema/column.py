@@ -29,6 +29,13 @@ from exasol.analytics.schema.column_types import (
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
+class UnsupportedSqlType(RuntimeError):
+    """
+    When calling ColumnClass.from_sql_name() with an name of an SQL column
+    type not supported by any subclass of Column.
+    """
+
+
 class classproperty(property):
     def __get__(self, owner_self, owner_cls):
         return self.fget(owner_cls)
@@ -36,10 +43,12 @@ class classproperty(property):
 
 class ColumnClass(ABCMeta):
     @abstractmethod
-    def sql_names(self) -> list[str]: ...
+    def sql_names(self) -> list[str]:
+        ...
 
     @abstractmethod
-    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column": ...
+    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column":
+        ...
 
     def pyexasol_mapping(self) -> PyexasolMapping:
         """
@@ -50,7 +59,7 @@ class ColumnClass(ABCMeta):
 
     @classmethod
     def from_sql_name(cls, sql_name: str) -> "ColumnClass":
-        all: list[ColumnClass] = [
+        classes: list[ColumnClass] = [
             BooleanColumn,
             CharColumn,
             DateColumn,
@@ -61,11 +70,28 @@ class ColumnClass(ABCMeta):
             TimeStampColumn,
             VarCharColumn,
         ]
-        return next(c for c in all if sql_name in c.sql_names())
+        try:
+            return next(c for c in classes if sql_name in c.sql_names())
+        except StopIteration:
+            raise UnsupportedSqlType(
+                f'Couldn\'t find a subclass of Column for SQL type name "{sql_name}" '
+            )
 
 
 @dataclass(frozen=True, repr=True, eq=True)
 class Column(ABC):
+    """
+    Abstract class for representing a column of an SQL table.  The
+    abstract class only holds the name of the column, additional attributes
+    such as size, precision, scale, etc. are defined in subclasses, such as
+    DecimalColumn, VarCharColumn, etc.
+
+    The instances of the subclasses can be rendered for creating a CREATE
+    TABLE statement.
+
+    Additionally each column can be parsed from its SQL specification (as
+    returned by SQL statement DESCRIBE) or from pyexasol metadata.
+    """
     name: ColumnName
 
     def __post_init__(self):
@@ -80,7 +106,8 @@ class Column(ABC):
         return self.sql_spec(for_create=False)
 
     @abstractmethod
-    def sql_spec(self, for_create: bool) -> str: ...
+    def sql_spec(self, for_create: bool) -> str:
+        ...
 
     @classproperty
     def sql_name(self):

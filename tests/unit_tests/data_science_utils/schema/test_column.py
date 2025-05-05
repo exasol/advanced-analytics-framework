@@ -23,6 +23,7 @@ from exasol.analytics.schema import (
     HashTypeColumn,
     TimeStampColumn,
     VarCharColumn,
+    UnsupportedSqlType,
 )
 from exasol.analytics.schema.column_types import (
     PyexasolOption,
@@ -256,3 +257,8 @@ def test_for_create(random_name, column_class, args, sql_type, sql_suffix):
 def test_from_pyexasol(column_name, args, expected):
     actual = Column.from_pyexasol(column_name, args)
     assert actual == expected
+
+
+def test_unknown_sql_type():
+    with pytest.raises(UnsupportedSqlType):
+        Column.from_sql_spec("name", "UNKNOWN")

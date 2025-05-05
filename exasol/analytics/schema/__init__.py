@@ -10,6 +10,7 @@ from exasol.analytics.schema.column import (
     HashSizeUnit,
     HashTypeColumn,
     TimeStampColumn,
+    UnsupportedSqlType,
     VarCharColumn,
 )
 from exasol.analytics.schema.column_name import ColumnName
