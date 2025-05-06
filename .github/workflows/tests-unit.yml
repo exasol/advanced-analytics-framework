@@ -9,13 +9,13 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@0.14.0
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: 2.0.1
