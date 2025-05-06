@@ -22,8 +22,8 @@ from exasol.analytics.schema import (
     HashSizeUnit,
     HashTypeColumn,
     TimeStampColumn,
-    VarCharColumn,
     UnsupportedSqlType,
+    VarCharColumn,
 )
 from exasol.analytics.schema.column_types import (
     PyexasolOption,

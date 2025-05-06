@@ -38,6 +38,7 @@ class PyexasolMapping:
     modifier_getter able to transform key and/or value of a property as this
     is required for option "WITH LOCAL TIME ZONE" for timestamp columns.
     """
+
     int_keys: list[PyexasolOption]
     modifier_key: Optional[PyexasolOption] = None
     modifier_getter: Callable[[dict[str, Any]], str] = lambda x: ""

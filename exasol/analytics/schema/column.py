@@ -43,12 +43,10 @@ class classproperty(property):
 
 class ColumnClass(ABCMeta):
     @abstractmethod
-    def sql_names(self) -> list[str]:
-        ...
+    def sql_names(self) -> list[str]: ...
 
     @abstractmethod
-    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column":
-        ...
+    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column": ...
 
     def pyexasol_mapping(self) -> PyexasolMapping:
         """
@@ -92,6 +90,7 @@ class Column(ABC):
     Additionally each column can be parsed from its SQL specification (as
     returned by SQL statement DESCRIBE) or from pyexasol metadata.
     """
+
     name: ColumnName
 
     def __post_init__(self):
@@ -106,8 +105,7 @@ class Column(ABC):
         return self.sql_spec(for_create=False)
 
     @abstractmethod
-    def sql_spec(self, for_create: bool) -> str:
-        ...
+    def sql_spec(self, for_create: bool) -> str: ...
 
     @classproperty
     def sql_name(self):
