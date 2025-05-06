@@ -9,7 +9,7 @@ The developer guide explains how to maintain and develop the Advanced Analytics 
 The following command builds the SLC for the AAF
 
 ```shell
-poetry run nox -s build_language_container
+poetry run -- nox -s build_language_container
 ```
 
 Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guide.md#script-language-container-slc).
@@ -21,7 +21,7 @@ AAF contains the amalgated Lua script [create_query_loop.sql](https://github.com
 The following command updates the amalgated script:
 
 ```shell
-poetry run nox -s amalgate_lua_scripts
+poetry run -- nox -s amalgate_lua_scripts
 ```
 
 ## Running Tests
@@ -57,7 +57,7 @@ poetry run -- nox -s run_in_dev_env -- poetry install
 You can execute the unit tests without special preparation in the regular poetry environment:
 
 ```shell
-poetry run pytest tests/unit_tests
+poetry run -- pytest tests/unit_tests
 ```
 
 ### Python Integration Tests with and w/o database

@@ -12,13 +12,12 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
 def test_create_poller():
     with zmq.Context() as context:
         factory = ZMQSocketFactory(context)
-        with factory.create_socket(SocketType.PAIR) as socket1, factory.create_socket(
-            SocketType.PAIR
-        ) as socket2, factory.create_socket(
-            SocketType.PAIR
-        ) as socket3, factory.create_socket(
-            SocketType.PAIR
-        ) as socket4:
+        with (
+            factory.create_socket(SocketType.PAIR) as socket1,
+            factory.create_socket(SocketType.PAIR) as socket2,
+            factory.create_socket(SocketType.PAIR) as socket3,
+            factory.create_socket(SocketType.PAIR) as socket4,
+        ):
             socket1.bind("inproc://test1")
             socket2.connect("inproc://test1")
             socket3.bind("inproc://test2")
