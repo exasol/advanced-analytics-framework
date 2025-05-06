@@ -18,7 +18,7 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Check Version(s)
         run: poetry run -- version-check version.py
@@ -35,7 +35,7 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
 #      This step is disabled, because the project does not support sphinx yet
 #      - name: Build Documentation
@@ -77,7 +77,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Run lint
         run: poetry run -- nox -s lint:code
@@ -107,7 +107,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Run type-check
         run: poetry run -- nox -s lint:typing
@@ -128,7 +128,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Run security linter
         run: poetry run -- nox -s lint:security
@@ -151,7 +151,7 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Run format check
         run: poetry run -- nox -s project:format
@@ -175,7 +175,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       # This doesn't use nox, because currently the test structure doesn't fit yet
       - name: Run Tests and Collect Coverage

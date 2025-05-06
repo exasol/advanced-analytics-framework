@@ -1,26 +1,27 @@
-[tool.poetry]
+[project]
 name = "exasol-advanced-analytics-framework"
 version = "0.4.1"
+requires-python = ">=3.10,<4"
 description = "Framework for building complex data analysis algorithms with Exasol"
+authors = [
+    {name="Umit Buyuksahin", email="umit.buyuksahin@exasol.com"},
+    {name="Torsten Kilias", email="torsten.kilias@exasol.com"},
+]
+readme = 'README.md'
+keywords = ['exasol']
+dynamic = ["dependencies"]
 
+[project.urls]
+repository = "https://github.com/exasol/advanced-analytics-framework"
+homepage = "https://github.com/exasol/advanced-analytics-framework"
+
+[tool.poetry]
+requires-poetry = ">=2.1.0"
 packages = [
   {include = "exasol"},
 ]
 
-authors = [
-    	"Umit Buyuksahin <umit.buyuksahin@exasol.com>",
-    	"Torsten Kilias <torsten.kilias@exasol.com>"
-]
-
-readme = 'README.md'
-
-repository = "https://github.com/exasol/advanced-analytics-framework"
-homepage = "https://github.com/exasol/advanced-analytics-framework"
-
-keywords = ['exasol']
-
 [tool.poetry.dependencies]
-python = ">=3.10,<4"
 jinja2 = "^3.1.6"
 importlib-resources = "^6.5.2"
 exasol-bucketfs = "^1.0.1"
