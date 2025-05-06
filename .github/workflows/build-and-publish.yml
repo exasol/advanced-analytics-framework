@@ -25,7 +25,7 @@ jobs:
         run: poetry build
 
       - name: Build Script Language Container (SLC)
-        run: poetry run nox -s build_language_container
+        run: poetry run -- nox -s build_language_container
 
       - name: PyPi Release
         env:

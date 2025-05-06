@@ -24,13 +24,13 @@ jobs:
           poetry-version: 2.0.1
 
       - name: Install Development Environment
-        run: poetry run nox -s install_dev_env
+        run: poetry run -- nox -s install_dev_env
 
       - name: Poetry install
         run: poetry run -- nox -s run_in_dev_env -- poetry install
 
       - name: Amalgate Lua Scripts
-        run: poetry run nox -s amalgate_lua_scripts
+        run: poetry run -- nox -s amalgate_lua_scripts
 
       - name: Check if re-generated files differ from commit
         run: git diff --exit-code
