@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ./scripts/run_in_dev_env.sh \
-    poetry run itde spawn-test-environment \
+    poetry run -- itde spawn-test-environment \
     --environment-name test \
     --database-port-forward 8888 \
     --bucketfs-port-forward 6666 \

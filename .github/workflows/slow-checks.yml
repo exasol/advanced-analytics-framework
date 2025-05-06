@@ -2,9 +2,6 @@ name: Slow-Checks
 
 on:
   workflow_call:
-    secrets:
-      ALTERNATIVE_GITHUB_TOKEN:
-        required: false
 
 jobs:
   slow-check-approval:

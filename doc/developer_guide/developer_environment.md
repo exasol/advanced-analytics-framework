@@ -28,8 +28,7 @@ From the project root run:
 
 1. `./scripts/install_lua_environment.sh`
 2. Install poetry 
-   - Already installed in Vagrant 
-   - In Github Actions we currently use the following action: https://github.com/abatilo/actions-poetry
+   - Already installed in Vagrant
 
 ## Usage
 

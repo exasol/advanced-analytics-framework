@@ -10,22 +10,28 @@ jobs:
 
   cd-job:
     name: Continuous Delivery
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 
       - name: SCM Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@0.20.0
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
         with:
-          poetry-version: 2.0.1
+          poetry-version: 2.1.2
 
       - name: Build Artifacts
         run: poetry build
 
       - name: Build Script Language Container (SLC)
-        run: poetry run nox -s build_language_container
+        run: poetry run -- nox -s build_language_container
+
+      - name: PyPi Release
+        env:
+          POETRY_HTTP_BASIC_PYPI_USERNAME: "__token__"
+          POETRY_HTTP_BASIC_PYPI_PASSWORD: "${{ secrets.PYPI_TOKEN }}"
+        run: poetry publish
 
       - name: GitHub Release
         env:
@@ -33,12 +39,5 @@ jobs:
         run: >
           gh release create ${GITHUB_REF_NAME}
           --title ${GITHUB_REF_NAME}
-          --notes-file doc/changes/changes_${GITHUB_REF_NAME}.md
+          --notes-file ./doc/changes/changes_${GITHUB_REF_NAME}.md
           dist/*
-          .slc/*
-
-      - name: PyPi Release
-        env:
-          POETRY_HTTP_BASIC_PYPI_USERNAME: "__token__"
-          POETRY_HTTP_BASIC_PYPI_PASSWORD: "${{ secrets.PYPI_TOKEN }}"
-        run: poetry publish
