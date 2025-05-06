@@ -8,9 +8,6 @@ from exasol.analytics.schema import (
     InsertStatement,
     TableNameImpl,
     UnknownColumnError,
-    decimal_column,
-    timestamp_column,
-    varchar_column,
 )
 
 

@@ -15,9 +15,11 @@ from exasol.analytics.query_handler.udf.interface import (
     UDFQueryHandler,
     UDFQueryHandlerFactory,
 )
-from exasol.analytics.schema.column import Column
+from exasol.analytics.schema.column import (
+    Column,
+    DecimalColumn,
+)
 from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.schema.column_type import ColumnType
 
 TEST_INPUT = "<<TEST_INPUT>>"
 FINAL_RESULT = "<<FINAL_RESULT>>"
@@ -60,8 +62,8 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
     def start(self) -> Union[Continue, Finish[str]]:
         return_query = 'SELECT 1 AS "a", 2 AS "b" FROM DUAL'
         return_query_columns = [
-            Column(ColumnName("a"), ColumnType("INTEGER")),
-            Column(ColumnName("b"), ColumnType("INTEGER")),
+            DecimalColumn.simple("a"),
+            DecimalColumn.simple("b"),
         ]
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=return_query, output_columns=return_query_columns
