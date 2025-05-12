@@ -146,6 +146,10 @@ class BooleanColumn(Column):
 
     @classmethod
     def simple(cls, name: str) -> "BooleanColumn":
+        """
+        Instanciate a subclass of Column with name specified as a simple
+        str, rather than a ColumnName object.
+        """
         return cls(ColumnName(name))
 
     @classmethod
