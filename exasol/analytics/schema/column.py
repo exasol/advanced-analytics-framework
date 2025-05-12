@@ -63,8 +63,7 @@ class Column:
 
     @classmethod
     @abstractmethod
-    def sql_names(cls) -> list[str]:
-        ...
+    def sql_names(cls) -> list[str]: ...
 
     @classproperty
     def sql_name(self):
@@ -72,8 +71,7 @@ class Column:
 
     @classmethod
     @abstractmethod
-    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column":
-        ...
+    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column": ...
 
     @classmethod
     def pyexasol_mapping(self) -> PyexasolMapping:
