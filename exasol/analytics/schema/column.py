@@ -2,21 +2,10 @@
 # as this breaks typeguard checks
 
 import re
-from abc import (
-    ABC,
-    ABCMeta,
-    abstractmethod,
-)
+from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    Any,
-    Callable,
-    Optional,
-    Protocol,
-)
-
-import typeguard
+from typing import Any
 
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_types import (
@@ -31,8 +20,8 @@ from exasol.analytics.utils.data_classes_runtime_type_check import check_datacla
 
 class UnsupportedSqlType(RuntimeError):
     """
-    When calling ColumnClass.from_sql_name() with an name of an SQL column
-    type not supported by any subclass of Column.
+    The error raised when calling ColumnClass.from_sql_name() with a name
+    of an SQL column not supported by any subclass of Column.
     """
 
 
@@ -41,43 +30,8 @@ class classproperty(property):
         return self.fget(owner_cls)
 
 
-class ColumnClass(ABCMeta):
-    @abstractmethod
-    def sql_names(self) -> list[str]: ...
-
-    @abstractmethod
-    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column": ...
-
-    def pyexasol_mapping(self) -> PyexasolMapping:
-        """
-        Default PyexasolMapping inherited as @classmethod by all classes
-        declaring ColumnClass as metaclass, overriden in some classes.
-        """
-        return PyexasolMapping(int_keys=[], modifier_key=None)
-
-    @classmethod
-    def from_sql_name(cls, sql_name: str) -> "ColumnClass":
-        classes: list[ColumnClass] = [
-            BooleanColumn,
-            CharColumn,
-            DateColumn,
-            DecimalColumn,
-            DoublePrecisionColumn,
-            GeometryColumn,
-            HashTypeColumn,
-            TimeStampColumn,
-            VarCharColumn,
-        ]
-        try:
-            return next(c for c in classes if sql_name in c.sql_names())
-        except StopIteration:
-            raise UnsupportedSqlType(
-                f'Couldn\'t find a subclass of Column for SQL type name "{sql_name}" '
-            )
-
-
 @dataclass(frozen=True, repr=True, eq=True)
-class Column(ABC):
+class Column:
     """
     Abstract class for representing a column of an SQL table.  The
     abstract class only holds the name of the column, additional attributes
@@ -107,9 +61,27 @@ class Column(ABC):
     @abstractmethod
     def sql_spec(self, for_create: bool) -> str: ...
 
+    @classmethod
+    @abstractmethod
+    def sql_names(cls) -> list[str]:
+        ...
+
     @classproperty
     def sql_name(self):
         return self.sql_names()[0]
+
+    @classmethod
+    @abstractmethod
+    def from_sql(cls, column_name: str, sql_type: SqlType) -> "Column":
+        ...
+
+    @classmethod
+    def pyexasol_mapping(self) -> PyexasolMapping:
+        """
+        Default PyexasolMapping inherited as @classmethod by all
+        subclasses of Column, overriden in some of them.
+        """
+        return PyexasolMapping(int_keys=[], modifier_key=None)
 
     @classmethod
     def check_arg(cls, name: str, value: int, allowed: range):
@@ -117,13 +89,33 @@ class Column(ABC):
             raise ValueError(f"{cls.__name__} {name}={value} not in {allowed}.")
 
     @classmethod
+    def get_class(cls, sql_name: str) -> type["Column"]:
+        classes: list[type["Column"]] = [
+            BooleanColumn,
+            CharColumn,
+            DateColumn,
+            DecimalColumn,
+            DoublePrecisionColumn,
+            GeometryColumn,
+            HashTypeColumn,
+            TimeStampColumn,
+            VarCharColumn,
+        ]
+        try:
+            return next(c for c in classes if sql_name in c.sql_names())
+        except StopIteration:
+            raise UnsupportedSqlType(
+                f'Couldn\'t find a subclass of Column for SQL type name "{sql_name}" '
+            )
+
+    @classmethod
     def from_pyexasol(
         cls,
         column_name: str,
-        pyexasol_args: dict[str, Any] = {},
+        pyexasol_args: dict[str, Any],
     ) -> "Column":
         sql_type_name = pyexasol_args[PyexasolOption.TYPE.value]
-        column_class = ColumnClass.from_sql_name(sql_type_name)
+        column_class = cls.get_class(sql_type_name)
         sql_type = SqlType.from_pyexasol(
             pyexasol_args,
             column_class.pyexasol_mapping(),
@@ -137,12 +129,12 @@ class Column(ABC):
         exa.meta.input_columns[0].sql_type
         """
         sql_type = SqlType.from_string(spec)
-        column_class = ColumnClass.from_sql_name(sql_type.name)
+        column_class = cls.get_class(sql_type.name)
         return column_class.from_sql(column_name, sql_type)
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class BooleanColumn(Column, metaclass=ColumnClass):
+class BooleanColumn(Column):
     def __post_init__(self):
         super().__post_init__()
         check_dataclass_types(self)
@@ -164,7 +156,7 @@ class BooleanColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class CharColumn(Column, metaclass=ColumnClass):
+class CharColumn(Column):
     size: int = 1
     charset: CharSet = CharSet.UTF8
 
@@ -202,7 +194,7 @@ class CharColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class DateColumn(Column, metaclass=ColumnClass):
+class DateColumn(Column):
     def __post_init__(self):
         super().__post_init__()
         check_dataclass_types(self)
@@ -224,7 +216,7 @@ class DateColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class DecimalColumn(Column, metaclass=ColumnClass):
+class DecimalColumn(Column):
     precision: int = 18
     scale: int = 0
 
@@ -263,7 +255,7 @@ class DecimalColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class DoublePrecisionColumn(Column, metaclass=ColumnClass):
+class DoublePrecisionColumn(Column):
     def __post_init__(self):
         super().__post_init__()
         check_dataclass_types(self)
@@ -285,7 +277,7 @@ class DoublePrecisionColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class GeometryColumn(Column, metaclass=ColumnClass):
+class GeometryColumn(Column):
     srid: int = 0
     "Spatial reference identifier"
 
@@ -327,7 +319,7 @@ class HashSizeUnit(Enum):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class HashTypeColumn(Column, metaclass=ColumnClass):
+class HashTypeColumn(Column):
     size: int = 16
     unit: HashSizeUnit = HashSizeUnit.BYTE
 
@@ -384,7 +376,7 @@ class HashTypeColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class TimeStampColumn(Column, metaclass=ColumnClass):
+class TimeStampColumn(Column):
     precision: int = 3
     local_time_zone: bool = False
 
@@ -431,7 +423,7 @@ class TimeStampColumn(Column, metaclass=ColumnClass):
 
 
 @dataclass(frozen=True, repr=True, eq=True)
-class VarCharColumn(Column, metaclass=ColumnClass):
+class VarCharColumn(Column):
     size: int
     charset: CharSet = CharSet.UTF8
 

@@ -24,7 +24,6 @@ class PyexasolOption(Enum):
     TYPE = "type"
 
 
-@dataclass(frozen=True)
 class PyexasolMapping:
     """
     This class helps mapping the metadata provided by pyexasol for columns
@@ -39,15 +38,21 @@ class PyexasolMapping:
     is required for option "WITH LOCAL TIME ZONE" for timestamp columns.
     """
 
-    int_keys: list[PyexasolOption]
-    modifier_key: Optional[PyexasolOption] = None
-    modifier_getter: Callable[[dict[str, Any]], str] = lambda x: ""
+    def __init__(
+        self,
+        int_keys: list[PyexasolOption],
+        modifier_key: Optional[PyexasolOption] = None,
+        modifier_getter: Callable[[dict[str, Any]], str] = lambda x: "",
+    ):
+        self.int_keys = int_keys
+        self._modifier_key = modifier_key
+        self._modifier_getter = modifier_getter
 
     def modifier(self, args: dict[str, Any]) -> str:
         return (
-            str(args.get(self.modifier_key.value, ""))
-            if self.modifier_key
-            else self.modifier_getter(args)
+            str(args.get(self._modifier_key.value, ""))
+            if self._modifier_key
+            else self._modifier_getter(args)
         )
 
 
