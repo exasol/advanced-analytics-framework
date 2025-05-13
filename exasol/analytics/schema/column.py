@@ -76,8 +76,9 @@ class Column:
     @classmethod
     def pyexasol_mapping(self) -> PyexasolMapping:
         """
-        Default PyexasolMapping inherited as @classmethod by all
-        subclasses of Column, overriden in some of them.
+        This classmethod returns the default mapping of pyexasol metadata
+        to native SQL. A subclass may override this method providing the
+        mapping appropriate for the data type described by this class.
         """
         return PyexasolMapping(int_keys=[], modifier_key=None)
 
