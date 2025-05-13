@@ -2,11 +2,10 @@ import pytest
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
-    Column,
-    ColumnNameBuilder,
-    ColumnType,
+    DecimalColumn,
     Table,
     TableNameImpl,
+    VarCharColumn,
 )
 
 
@@ -14,8 +13,8 @@ def test_valid():
     table = Table(
         TableNameImpl("table"),
         [
-            Column(ColumnNameBuilder.create("column1"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("VACHAR")),
+            DecimalColumn.simple("column1"),
+            VarCharColumn.simple("column2", size=1),
         ],
     )
 
@@ -30,30 +29,22 @@ def test_duplicate_column_names_fail():
         table = Table(
             TableNameImpl("table"),
             [
-                Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-                Column(ColumnNameBuilder.create("column"), ColumnType("VACHAR")),
+                DecimalColumn.simple("column"),
+                VarCharColumn.simple("column", size=1),
             ],
         )
 
 
 def test_set_new_name_fail():
-    table = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     with pytest.raises(AttributeError) as c:
         table.name = "edf"
 
 
 def test_set_new_columns_fail():
-    table = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     with pytest.raises(AttributeError) as c:
-        table.columns = [
-            Column(ColumnNameBuilder.create("column1"), ColumnType("INTEGER"))
-        ]
+        table.columns = [DecimalColumn.simple("column1")]
 
 
 def test_wrong_types_in_constructor():
@@ -62,88 +53,55 @@ def test_wrong_types_in_constructor():
 
 
 def test_columns_list_is_immutable():
-    table = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     columns = table.columns
-    columns.append(Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")))
+    columns.append(DecimalColumn.simple("column"))
     assert len(columns) == 2 and len(table.columns) == 1
 
 
 def test_equality():
-    table1 = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    table2 = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
+    table2 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     assert table1 == table2
 
 
 def test_inequality_name():
-    table1 = Table(
-        TableNameImpl("table1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    table2 = Table(
-        TableNameImpl("table2"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table1"), [DecimalColumn.simple("column")])
+    table2 = Table(TableNameImpl("table2"), [DecimalColumn.simple("column")])
     assert table1 != table2
 
 
 def test_inequality_columns():
-    table1 = Table(
-        TableNameImpl("table1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     table2 = Table(
-        TableNameImpl("table1"),
+        TableNameImpl("table"),
         [
-            Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("INTEGER")),
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
         ],
     )
     assert table1 != table2
 
 
 def test_hash_equality():
-    table1 = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    table2 = Table(
-        TableNameImpl("table"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
+    table2 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     assert hash(table1) == hash(table2)
 
 
 def test_hash_inequality_name():
-    table1 = Table(
-        TableNameImpl("table1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
-    table2 = Table(
-        TableNameImpl("table2"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table1"), [DecimalColumn.simple("column")])
+    table2 = Table(TableNameImpl("table2"), [DecimalColumn.simple("column")])
     assert hash(table1) != hash(table2)
 
 
 def test_hash_inequality_columns():
-    table1 = Table(
-        TableNameImpl("table1"),
-        [Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER"))],
-    )
+    table1 = Table(TableNameImpl("table"), [DecimalColumn.simple("column")])
     table2 = Table(
-        TableNameImpl("table1"),
+        TableNameImpl("table"),
         [
-            Column(ColumnNameBuilder.create("column"), ColumnType("INTEGER")),
-            Column(ColumnNameBuilder.create("column2"), ColumnType("INTEGER")),
+            DecimalColumn.simple("column"),
+            DecimalColumn.simple("column2"),
         ],
     )
     assert hash(table1) != hash(table2)

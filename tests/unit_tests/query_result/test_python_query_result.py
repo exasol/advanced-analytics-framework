@@ -2,18 +2,17 @@ from exasol.analytics.query_handler.query.result.python_query_result import (
     PythonQueryResult,
 )
 from exasol.analytics.schema import (
-    Column,
-    ColumnName,
-    ColumnType,
+    DecimalColumn,
+    VarCharColumn,
 )
 
 DATA_SIZE = 100
 FETCH_SIZE = 10
 INPUT_DATA = [(i, (1.0 * i / DATA_SIZE), str(2 * i)) for i in range(1, DATA_SIZE + 1)]
 INPUT_COLUMNS = [
-    Column(ColumnName("t1"), ColumnType("INTEGER")),
-    Column(ColumnName("t2"), ColumnType("FLOAT")),
-    Column(ColumnName("t3"), ColumnType("VARCHAR(2000)")),
+    DecimalColumn.simple("t1"),
+    DecimalColumn.simple("t2", precision=2),
+    VarCharColumn.simple("t3", size=200),
 ]
 
 

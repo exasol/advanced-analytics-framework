@@ -42,13 +42,12 @@ from exasol.analytics.query_handler.result import (
     Finish,
 )
 from exasol.analytics.schema import (
-    ColumnBuilder,
-    ColumnNameBuilder,
-    ColumnType,
+    DecimalColumn,
     SchemaName,
     TableBuilder,
     TableName,
     TableNameBuilder,
+    VarCharColumn,
 )
 
 
@@ -181,24 +180,9 @@ def create_input() -> SQLStageInputOutput:
 
 
 def create_stage_input_output(table_name: TableName):
-    identifier_column = (
-        ColumnBuilder()
-        .with_name(ColumnNameBuilder().with_name("ID").build())
-        .with_type(ColumnType("INTEGER"))
-        .build()
-    )
-    sample_column = (
-        ColumnBuilder()
-        .with_name(ColumnNameBuilder().with_name("SAMPLE").build())
-        .with_type(ColumnType("INTEGER"))
-        .build()
-    )
-    target_column = (
-        ColumnBuilder()
-        .with_name(ColumnNameBuilder().with_name("TARGET").build())
-        .with_type(ColumnType("INTEGER"))
-        .build()
-    )
+    identifier_column = DecimalColumn.simple("ID")
+    sample_column = DecimalColumn.simple("SAMPLE")
+    target_column = DecimalColumn.simple("TARGET")
     columns = [
         identifier_column,
         sample_column,

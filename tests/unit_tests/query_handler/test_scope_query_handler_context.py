@@ -12,12 +12,10 @@ from exasol.analytics.query_handler.context.top_level_query_handler_context impo
     ChildContextNotReleasedError,
 )
 from exasol.analytics.schema import (
-    ColumnBuilder,
-    ColumnName,
-    ColumnType,
     SchemaName,
     Table,
     UDFName,
+    VarCharColumn,
     View,
 )
 
@@ -409,33 +407,13 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
 
 def test_using_table_name_proxy_in_table(context_mock: ScopeQueryHandlerContext):
     table_name = context_mock.get_temporary_table_name()
-    table = Table(
-        table_name,
-        columns=[
-            (
-                ColumnBuilder()
-                .with_name(ColumnName("COLUMN1"))
-                .with_type(ColumnType("VARCHAR"))
-                .build()
-            )
-        ],
-    )
+    table = Table(table_name, columns=[VarCharColumn.simple("COLUMN1", size=1)])
     assert table.name is not None
 
 
 def test_using_view_name_proxy_in_view(context_mock: ScopeQueryHandlerContext):
     view_name = context_mock.get_temporary_view_name()
-    view = View(
-        view_name,
-        columns=[
-            (
-                ColumnBuilder()
-                .with_name(ColumnName("COLUMN1"))
-                .with_type(ColumnType("VARCHAR"))
-                .build()
-            )
-        ],
-    )
+    view = View(view_name, columns=[VarCharColumn.simple("COLUMN1", size=1)])
     assert view.name is not None
 
 

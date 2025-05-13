@@ -10,9 +10,8 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxie
     find_object_proxies,
 )
 from exasol.analytics.schema import (
-    ColumnBuilder,
-    ColumnNameBuilder,
-    ColumnType,
+    ColumnName,
+    DecimalColumn,
     TableBuilder,
     TableName,
     View,
@@ -86,12 +85,7 @@ def test_object_proxy_in_sub_dependency(object_proxy):
 def test_object_proxy_in_table(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column = (
-        ColumnBuilder()
-        .with_name(ColumnNameBuilder.create("test"))
-        .with_type(ColumnType("INTEGER"))
-        .build()
-    )
+    column = DecimalColumn.simple("test")
     table = TableBuilder().with_name(object_proxy).with_columns([column]).build()
     result = find_object_proxies(table)
     assert result == [object_proxy]
@@ -100,12 +94,7 @@ def test_object_proxy_in_table(object_proxy):
 def test_object_proxy_in_view(object_proxy):
     if not isinstance(object_proxy, ViewName):
         pytest.skip()
-    column = (
-        ColumnBuilder()
-        .with_name(ColumnNameBuilder.create("test"))
-        .with_type(ColumnType("INTEGER"))
-        .build()
-    )
+    column = DecimalColumn.simple("test")
     view = View(name=object_proxy, columns=[column])
     result = find_object_proxies(view)
     assert result == [object_proxy]
@@ -114,7 +103,7 @@ def test_object_proxy_in_view(object_proxy):
 def test_object_proxy_in_column_name(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column_name = ColumnNameBuilder.create("test", table_like_name=object_proxy)
+    column_name = ColumnName("test", table_like_name=object_proxy)
     result = find_object_proxies(column_name)
     assert result == [object_proxy]
 
@@ -122,10 +111,8 @@ def test_object_proxy_in_column_name(object_proxy):
 def test_object_proxy_in_column(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column_name = ColumnNameBuilder.create("test", table_like_name=object_proxy)
-    column = (
-        ColumnBuilder().with_name(column_name).with_type(ColumnType("INTEGER")).build()
-    )
+    column_name = ColumnName("test", table_like_name=object_proxy)
+    column = DecimalColumn(column_name)
     result = find_object_proxies(column)
     assert result == [object_proxy]
 

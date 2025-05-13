@@ -302,11 +302,11 @@ def test_columns():
         )
 
         def run(ctx: UDFContext):
-            wrapper = UDFQueryResult(
-                ctx, exa, OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
-            )
+            # Map the INPUT_COLUMNS defined above onto a, b, c in different order
+            column_mapping = OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
+            wrapper = UDFQueryResult(ctx, exa, column_mapping)
             for column in wrapper.columns():
-                ctx.emit(column.name.name, column.type.name)
+                ctx.emit(column.name.name, column.rendered)
 
     executor = UDFMockExecutor()
     meta = MockMetaData(
@@ -319,10 +319,12 @@ def test_columns():
             Column("sql_type", str, "VARCHAR(1000)"),
         ],
     )
-
     exa = MockExaEnvironment(meta)
     result = executor.run([Group(INPUT_DATA)], exa)
-    assert result[0].rows == [("a", "INTEGER"), ("b", "VARCHAR(2000)"), ("c", "FLOAT")]
+    t1 = "DECIMAL(18,0)"
+    t2 = "DOUBLE PRECISION"
+    t3 = "VARCHAR(2000) UTF8"
+    assert result[0].rows == [("a", t1), ("b", t3), ("c", t2)]
 
 
 def test_column_get_attr():
