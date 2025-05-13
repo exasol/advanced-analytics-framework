@@ -30,9 +30,8 @@ from exasol.analytics.schema.column_types import (
     SqlType,
 )
 
+TEST_CASES_ARGUMENT_NAMES = ("column_class", "args", "sql_type", "sql_suffix")
 TEST_CASES = [
-    # argument names
-    ("column_class", "args", "sql_type", "sql_suffix"),
     # actual test cases
     # pyexasol output never contains unit and always assumes BYTE
     # size seems to be 2 times the size specified during creation.
@@ -74,12 +73,6 @@ TEST_CASES = [
         "(2) CHARACTER SET ASCII",
     ),
 ]
-
-
-def all_column_test_cases():
-    argument_names = ",".join(TEST_CASES[0])
-    actual_test_cases = TEST_CASES[1:]
-    return pytest.mark.parametrize(argument_names, actual_test_cases)
 
 
 @pytest.fixture
@@ -187,7 +180,7 @@ def test_invalid_arguments(column_class, args, message):
         column_class.simple("C", **args)
 
 
-@all_column_test_cases()
+@pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_from_sql_spec(random_name, column_class, args, sql_type, sql_suffix):
     spec = f"{sql_type}{sql_suffix}".replace(" CHARACTER SET", "")
     actual = Column.from_sql_spec(random_name, spec)
@@ -204,7 +197,7 @@ def simulate_pyexasol_args(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-@all_column_test_cases()
+@pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_for_create(random_name, column_class, args, sql_type, sql_suffix):
     # instantiate the specified column class in two ways
     columns = [
