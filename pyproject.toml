@@ -1,6 +1,6 @@
 [project]
 name = "exasol-advanced-analytics-framework"
-version = "0.4.1"
+version = "0.5.0"
 requires-python = ">=3.10,<4"
 description = "Framework for building complex data analysis algorithms with Exasol"
 authors = [
