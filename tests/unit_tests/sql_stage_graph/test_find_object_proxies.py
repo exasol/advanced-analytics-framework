@@ -10,6 +10,7 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxie
     find_object_proxies,
 )
 from exasol.analytics.schema import (
+    Column,
     ColumnName,
     DecimalColumn,
     TableBuilder,
@@ -112,7 +113,7 @@ def test_object_proxy_in_column(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
     column_name = ColumnName("test", table_like_name=object_proxy)
-    column = DecimalColumn(column_name)
+    column = Column(column_name, DecimalColumn())
     result = find_object_proxies(column)
     assert result == [object_proxy]
 

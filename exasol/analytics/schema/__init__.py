@@ -1,7 +1,10 @@
-from exasol.analytics.schema.column import (
+from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.column_name_builder import ColumnNameBuilder
+from exasol.analytics.schema.column_type_utils import CharSet
+from exasol.analytics.schema.column_type import (
     BooleanColumn,
     CharColumn,
-    Column,
+    ColumnType,
     DateColumn,
     DecimalColumn,
     DoublePrecisionColumn,
@@ -12,9 +15,7 @@ from exasol.analytics.schema.column import (
     UnsupportedSqlType,
     VarCharColumn,
 )
-from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.schema.column_name_builder import ColumnNameBuilder
-from exasol.analytics.schema.column_types import CharSet
+from exasol.analytics.schema.column import Column
 from exasol.analytics.schema.connection_object_name import ConnectionObjectName
 from exasol.analytics.schema.connection_object_name_builder import (
     ConnectionObjectNameBuilder,

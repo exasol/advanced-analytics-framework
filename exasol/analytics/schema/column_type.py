@@ -2,12 +2,15 @@ from enum import Enum
 from abc import abstractmethod
 from typing import Any
 from dataclasses import dataclass
-from exasol.analytics.schema.column_types import (
+from exasol.analytics.schema.column_name import ColumnName
+from exasol.analytics.schema.column_type_utils import (
+    CharSet,
     ColumnTypeSource,
     PyexasolMapping,
     PyexasolOption,
     SqlType,
 )
+from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
 class UnsupportedSqlType(RuntimeError):
@@ -57,7 +60,6 @@ class ColumnType:
     @abstractmethod
     def from_sql(cls, sql_type: SqlType) -> "ColumnType":
         ...
-
 
     @classmethod
     def pyexasol_mapping(self) -> PyexasolMapping:
@@ -117,6 +119,15 @@ class ColumnType:
         return subclass.from_sql(sql_type)
 
 
+def make_column(name: str, type: ColumnType) -> "Column":
+    """
+    Instanciate a Column with name specified as a simple str, rather
+    than a ColumnName object.
+    """
+    from exasol.analytics.schema.column import Column
+    return Column(ColumnName(name), type)
+
+
 @dataclass(frozen=True, repr=True, eq=True)
 class BooleanColumn(ColumnType):
     def __post_init__(self):
@@ -134,10 +145,13 @@ class BooleanColumn(ColumnType):
     def from_sql(cls, sql_type: SqlType) -> "BooleanColumn":
         return cls()
 
-
-class CharSet(Enum):
-    UTF8 = "UTF8"
-    ASCII = "ASCII"
+    @classmethod
+    def simple(cls, name: str) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls())
 
 
 @dataclass(frozen=True, repr=True, eq=True)
@@ -168,6 +182,19 @@ class CharColumn(ColumnType):
         args = sql_type.char_type_args
         return cls(**args)
 
+    @classmethod
+    def simple(
+        cls,
+        name: str,
+        size: int = 1,
+        charset: CharSet = CharSet.UTF8,
+    ) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(size, charset))
+
 
 @dataclass(frozen=True, repr=True, eq=True)
 class DateColumn(ColumnType):
@@ -185,6 +212,14 @@ class DateColumn(ColumnType):
     @classmethod
     def from_sql(cls, sql_type: SqlType) -> "DateColumn":
         return cls()
+
+    @classmethod
+    def simple(cls, name: str) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls())
 
 
 @dataclass(frozen=True, repr=True, eq=True)
@@ -221,6 +256,14 @@ class DecimalColumn(ColumnType):
         args = sql_type.int_dict(keys=["precision", "scale"])
         return cls(**args)
 
+    @classmethod
+    def simple(cls, name: str, precision: int = 18, scale: int = 0) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(precision, scale))
+
 
 @dataclass(frozen=True, repr=True, eq=True)
 class DoublePrecisionColumn(ColumnType):
@@ -238,6 +281,14 @@ class DoublePrecisionColumn(ColumnType):
     @classmethod
     def from_sql(cls, sql_type: SqlType) -> "DoublePrecisionColumn":
         return cls()
+
+    @classmethod
+    def simple(cls, name: str) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls())
 
 
 @dataclass(frozen=True, repr=True, eq=True)
@@ -264,6 +315,14 @@ class GeometryColumn(ColumnType):
     def from_sql(cls, sql_type: SqlType) -> "GeometryColumn":
         args = sql_type.int_dict(keys=["srid"])
         return cls(**args)
+
+    @classmethod
+    def simple(cls, name: str, srid: int = 0) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(srid))
 
 
 class HashSizeUnit(Enum):
@@ -331,6 +390,19 @@ class HashTypeColumn(ColumnType):
             args["unit"] = HashSizeUnit(sql_type.modifier)
         return cls(**args)
 
+    @classmethod
+    def simple(
+        cls,
+        name: str,
+        size: int = 16,
+        unit: HashSizeUnit = HashSizeUnit.BYTE,
+    ) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(size, unit))
+
 
 @dataclass(frozen=True, repr=True, eq=True)
 class TimeStampColumn(ColumnType):
@@ -369,6 +441,19 @@ class TimeStampColumn(ColumnType):
             args["local_time_zone"] = True
         return cls(**args)
 
+    @classmethod
+    def simple(
+        cls,
+        name: str,
+        precision: int = 3,
+        local_time_zone: bool = False,
+    ) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(precision, local_time_zone))
+
 
 @dataclass(frozen=True, repr=True, eq=True)
 class VarCharColumn(ColumnType):
@@ -398,3 +483,16 @@ class VarCharColumn(ColumnType):
     def from_sql(cls, sql_type: SqlType) -> "VarCharColumn":
         args = sql_type.char_type_args
         return cls(**args)
+
+    @classmethod
+    def simple(
+        cls,
+        name: str,
+        size: int,
+        charset: CharSet = CharSet.UTF8,
+    ) -> "Column":
+        """
+        Instanciate a Column with this class as its type and its name
+        specified as a simple str, rather than a ColumnName object.
+        """
+        return make_column(name, cls(size, charset))
