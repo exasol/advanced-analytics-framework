@@ -1,4 +1,3 @@
-from exasol.analytics.schema.column_type import CharSet
 from exasol.analytics.schema.column import (
     BooleanColumn,
     CharColumn,
@@ -15,6 +14,7 @@ from exasol.analytics.schema.column import (
 )
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_name_builder import ColumnNameBuilder
+from exasol.analytics.schema.column_type import CharSet
 from exasol.analytics.schema.connection_object_name import ConnectionObjectName
 from exasol.analytics.schema.connection_object_name_builder import (
     ConnectionObjectNameBuilder,
