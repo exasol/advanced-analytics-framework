@@ -329,6 +329,11 @@ class HashTypeColumn(Column):
     def __post_init__(self):
         super().__post_init__()
         check_dataclass_types(self)
+        ranges = {
+            HashSizeUnit.BIT: range(8, 8193),
+            HashSizeUnit.BYTE: range(1, 1025),
+        }
+        self.check_arg("size", self.size, ranges[self.unit])
         if self.unit == HashSizeUnit.BIT and self.size % 8:
             raise ValueError(
                 "HashTypeColumn with unit BIT and"

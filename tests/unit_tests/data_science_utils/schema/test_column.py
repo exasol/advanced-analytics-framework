@@ -166,8 +166,18 @@ def test_varchar_without_size():
         ),
         (
             HashTypeColumn,
-            {"unit": HashSizeUnit.BIT, "size": 2},
+            {"unit": HashSizeUnit.BIT, "size": 11},
             "multiple of 8",
+        ),
+        (
+            HashTypeColumn,
+            {"unit": HashSizeUnit.BIT, "size": 8193},
+            r"size.* not in range\(8, 8193\)",
+        ),
+        (
+            HashTypeColumn,
+            {"unit": HashSizeUnit.BYTE, "size": 0},
+            r"size.* not in range\(1, 1025\)",
         ),
         (TimeStampColumn, {"precision": 10}, r"precision.* not in range\(0, 10\)"),
         (TimeStampColumn, {"precision": -1}, r"precision.* not in range\(0, 10\)"),
