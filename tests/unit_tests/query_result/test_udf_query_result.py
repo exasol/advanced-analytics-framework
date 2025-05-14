@@ -306,7 +306,7 @@ def test_columns():
             column_mapping = OrderedDict([("t1", "a"), ("t3", "b"), ("t2", "c")])
             wrapper = UDFQueryResult(ctx, exa, column_mapping)
             for column in wrapper.columns():
-                ctx.emit(column.name.name, column.rendered)
+                ctx.emit(column.name.name, column.type.rendered)
 
     executor = UDFMockExecutor()
     meta = MockMetaData(

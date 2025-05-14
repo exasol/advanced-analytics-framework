@@ -43,6 +43,10 @@ class ColumnType:
     def __post_init__(self):
         check_dataclass_types(self)
 
+    @property
+    def rendered(self) -> str:
+        return self.sql_spec(for_create=False)
+
     @abstractmethod
     def sql_spec(self, for_create: bool) -> str:
         ...

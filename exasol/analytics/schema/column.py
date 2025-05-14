@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type import ColumnType
@@ -17,11 +18,6 @@ class Column:
     def for_create(self) -> str:
         return self.sql_spec(for_create=True)
 
-    @property
-    def rendered(self) -> str:
-        # return self.sql_spec(for_create=False)
-        return self.type.sql_spec(for_create=False)
-
     def sql_spec(self, for_create: bool = False) -> str:
         return f"{self.name.fully_qualified} {self.type.sql_spec(for_create)}"
 
@@ -30,4 +26,15 @@ class Column:
         return cls(
             name=ColumnName(name),
             type=ColumnType.from_sql_spec(type_spec),
+        )
+
+    @classmethod
+    def from_pyexasol(
+        cls,
+        column_name: str,
+        pyexasol_args: dict[str, Any],
+    ) -> "Column":
+        return Column(
+            name=ColumnName(column_name),
+            type=ColumnType.from_pyexasol(pyexasol_args),
         )

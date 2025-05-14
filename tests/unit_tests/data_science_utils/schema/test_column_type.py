@@ -65,23 +65,71 @@ TEST_CASES = [
     ),
 ]
 
+# --------------------------------------------------
+# tests for class Column
+
+
+def test_set_new_column_name_fail():
+    column = DecimalColumn.simple("abc")
+    with pytest.raises(AttributeError) as c:
+        column.name = "edf"
+
+
+def test_equality():
+    column1 = DecimalColumn.simple("abc")
+    column2 = DecimalColumn.simple("abc")
+    assert column1 == column2
+
+
+def test_inequality_name():
+    column1 = DecimalColumn.simple("abc")
+    column2 = DecimalColumn.simple("def")
+    assert column1 != column2
+
+
 def test_inequality_precision():
-    column1 = DecimalColumn(precision=2)
-    column2 = DecimalColumn(precision=3)
+    column1 = DecimalColumn.simple("abc", precision=2)
+    column2 = DecimalColumn.simple("abc", precision=3)
     assert column1 != column2
 
 
 def test_hash_equality():
-    column1 = DecimalColumn(precision=2)
-    column2 = DecimalColumn(precision=2)
+    column1 = DecimalColumn.simple("abc", precision=2)
+    column2 = DecimalColumn.simple("abc", precision=2)
     assert hash(column1) == hash(column2)
 
 
-def test_hash_inequality_precision():
-    column1 = DecimalColumn(precision=2)
-    column2 = DecimalColumn(precision=3)
+def test_hash_inequality_name():
+    column1 = DecimalColumn.simple("abc")
+    column2 = DecimalColumn.simple("def")
     assert hash(column1) != hash(column2)
 
+
+def test_hash_inequality_precision():
+    column1 = DecimalColumn.simple("abc", precision=2)
+    column2 = DecimalColumn.simple("abc", precision=3)
+    assert hash(column1) != hash(column2)
+
+
+def test_column_from_sql_spec():
+    actual = Column.from_sql_spec("H", "HASHTYPE(10 BYTE)")
+    expected = HashTypeColumn.simple("H", unit=HashSizeUnit.BYTE, size=10)
+    assert actual == expected
+
+
+def test_column_from_pyexasol():
+    pyexasol_spec = {
+        "type": "TIMESTAMP",
+        "precision": 4,
+        "withLocalTimeZone": True,
+    }
+    actual = Column.from_pyexasol("TS", pyexasol_spec)
+    expected = TimeStampColumn.simple("TS", precision=4, local_time_zone=True)
+    assert actual == expected
+
+
+# --------------------------------------------------
+# tests for class ColumnType
 
 @pytest.mark.parametrize(
     "column_class, args",
@@ -152,7 +200,7 @@ def test_invalid_arguments(column_class, args, message):
 
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
-def test_from_sql_spec(subclass, args, sql_type, sql_suffix):
+def test_column_type_from_sql_spec(subclass, args, sql_type, sql_suffix):
     spec = f"{sql_type}{sql_suffix}".replace(" CHARACTER SET", "")
     actual = ColumnType.from_sql_spec(spec)
     expected = subclass(**args)
@@ -176,13 +224,18 @@ def random_name() -> str:
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
+    """
+    This test compares the behavior of classes Column and ColumnType.
+    """
+
     # instantiate the specified column type class in two ways
-    columns = [
-        Column(ColumnName(random_name), subclass(**args)),  # plain
-        subclass.simple(random_name, **args),  # using method simple() of the type subclass
-    ]
+    plain = Column(ColumnName(random_name), subclass(**args))
+    from_subclass = subclass.simple(random_name, **args)
+    columns = [ plain, from_subclass ]
+
     # assert both results are equal
     assert columns[0] == columns[1]
+
     # and property for_create yields the expected result
     for col in columns:
         expected = f'"{random_name}" {sql_type}{sql_suffix}'
@@ -220,7 +273,7 @@ def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
         ({"type": "VARCHAR", "size": 2}, VarCharColumn(size=2)),
     ],
 )
-def test_from_pyexasol(args, expected):
+def test_column_type_from_pyexasol(args, expected):
     actual = ColumnType.from_pyexasol(args)
     assert actual == expected
 

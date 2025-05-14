@@ -59,7 +59,8 @@ def test_create_audit_table(pyexasol_connection, db_schema, exa_all_columns):
     pyexasol_connection.execute(audit_table.create_statement)
     actual = exa_all_columns.query(audit_table.name.name)
     expected = {
-        c.name.name: c.rendered for c in (BaseAuditColumns.all + additional_columns)
+        c.name.name: c.type.rendered
+        for c in (BaseAuditColumns.all + additional_columns)
     }
     assert actual == expected
 

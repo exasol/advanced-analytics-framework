@@ -19,5 +19,5 @@ def test_create_table(pyexasol_connection, db_schema, exa_all_columns):
     )
     pyexasol_connection.execute(table.create_statement)
     actual = exa_all_columns.query(table_name="SAMPLE")
-    expected = {c.name.name: c.rendered for c in columns}
+    expected = {c.name.name: c.type.rendered for c in columns}
     assert actual == expected
