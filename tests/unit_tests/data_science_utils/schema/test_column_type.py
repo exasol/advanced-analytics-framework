@@ -131,6 +131,7 @@ def test_column_from_pyexasol():
 # --------------------------------------------------
 # tests for class ColumnType
 
+
 @pytest.mark.parametrize(
     "column_class, args",
     [
@@ -215,10 +216,12 @@ def simulate_pyexasol_args(args: dict[str, Any]) -> dict[str, Any]:
         "unit": HashSizeUnit.BYTE,
     }
 
+
 @pytest.fixture
 def random_name() -> str:
     import random
     import string
+
     return random.choice(string.ascii_letters.upper())
 
 
@@ -231,7 +234,7 @@ def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
     # instantiate the specified column type class in two ways
     plain = Column(ColumnName(random_name), subclass(**args))
     from_subclass = subclass.simple(random_name, **args)
-    columns = [ plain, from_subclass ]
+    columns = [plain, from_subclass]
 
     # assert both results are equal
     assert columns[0] == columns[1]
@@ -265,7 +268,7 @@ def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
         (
             {"type": "HASHTYPE", "size": 4},
             HashTypeColumn(size=2, unit=HashSizeUnit.BYTE),
-         ),
+        ),
         (
             {"type": "TIMESTAMP", "precision": 4, "withLocalTimeZone": True},
             TimeStampColumn(precision=4, local_time_zone=True),

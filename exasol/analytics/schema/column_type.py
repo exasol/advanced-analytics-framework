@@ -1,7 +1,8 @@
-from enum import Enum
 from abc import abstractmethod
-from typing import Any
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type_utils import (
     CharSet,
@@ -48,13 +49,11 @@ class ColumnType:
         return self.sql_spec(for_create=False)
 
     @abstractmethod
-    def sql_spec(self, for_create: bool) -> str:
-        ...
+    def sql_spec(self, for_create: bool) -> str: ...
 
     @classmethod
     @abstractmethod
-    def sql_names(cls) -> list[str]:
-        ...
+    def sql_names(cls) -> list[str]: ...
 
     @classproperty
     def sql_name(self):
@@ -62,8 +61,7 @@ class ColumnType:
 
     @classmethod
     @abstractmethod
-    def from_sql(cls, sql_type: SqlType) -> "ColumnType":
-        ...
+    def from_sql(cls, sql_type: SqlType) -> "ColumnType": ...
 
     @classmethod
     def pyexasol_mapping(self) -> PyexasolMapping:
@@ -129,6 +127,7 @@ def make_column(name: str, type: ColumnType) -> "Column":
     than a ColumnName object.
     """
     from exasol.analytics.schema.column import Column
+
     return Column(ColumnName(name), type)
 
 
