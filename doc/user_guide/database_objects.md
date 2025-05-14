@@ -50,7 +50,6 @@ value of `unit`:
 * `unit`== `HashSizeUnit.BYTE`, then `size` must be in range 1-1024
 * `unit`== `HashSizeUnit.BIT`, then `size` must be in range 8-8192 and must be a multiple of 8
 
-
 ### Instantiating a `Column` Object
 
 You can instantiate a column:
