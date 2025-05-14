@@ -1,5 +1,29 @@
 # Unreleased
 
+This release comes with breaking changes in package `exasol.analytics.schema`:
+* Classes `ColumnType` and `ColumnBuilder` are removed
+* Class `Column` is changed significantly
+* Subclasses of `Column` have been added for specific column types:
+  * `BooleanColumn`
+  * `CharColumn`
+  * `DateColumn`
+  * `DecimalColumn`
+  * `DoublePrecisionColumn`
+  * `GeometryColumn`
+  * `HashTypeColumn`
+  * `TimeStampColumn`
+  * `VarCharColumn`
+* Additional classes have been added for specific attributes of some of the column types:
+  * `CharSet`
+  * `HashSizeUnit`
+* Convenience functions for creating instances of `Column` have been replaced by class method `simple()` of the resp. subclasses of `Column`:
+  * `decimal_column()`
+  * `varchar_column()`
+  * `hashtype_column()`
+
+
+Please see the [User Guide](http://github.com/exasol/advanced-analytics-framework/blob/main/doc/user_guide/database_objects.md) about creating and using instances of `Column` starting with this release.
+
 ## Documentation
 
 * #283: Updated description and README

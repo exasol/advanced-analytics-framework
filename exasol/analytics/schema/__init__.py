@@ -1,7 +1,7 @@
+from exasol.analytics.schema.column_type import CharSet
 from exasol.analytics.schema.column import (
     BooleanColumn,
     CharColumn,
-    CharSet,
     Column,
     DateColumn,
     DecimalColumn,
