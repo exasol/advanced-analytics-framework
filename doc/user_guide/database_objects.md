@@ -5,7 +5,7 @@ The Advanced Analytics Framework (AAF) contains Python module `exasol.analytics.
 The module contains interfaces and implementations:
 
 * Class `Table` describes a SQL TABLE
-* Class `View` describes an SQL VIEW
+* Class `View` describes a SQL VIEW
 * Class `Column` describes columns of SQL tables and views, see [Class Column](#class-column)
 
 Interfaces and implementation classes for names of specific database objects:
