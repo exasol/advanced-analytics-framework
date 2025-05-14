@@ -4,8 +4,6 @@ from enum import Enum
 from typing import Any
 
 from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
-
 from exasol.analytics.schema.column_type_utils import (
     CharSet,
     ColumnTypeSource,
@@ -13,6 +11,8 @@ from exasol.analytics.schema.column_type_utils import (
     PyexasolOption,
     SqlType,
 )
+from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
+
 
 class UnsupportedSqlType(RuntimeError):
     """
@@ -533,5 +533,3 @@ class Column:
             name=ColumnName(column_name),
             type=ColumnType.from_pyexasol(pyexasol_args),
         )
-
-    
