@@ -356,7 +356,6 @@ class HashTypeColumn(ColumnType):
             HashSizeUnit.BIT: range(8, 8193),
             HashSizeUnit.BYTE: range(1, 1025),
         }
-        # TODO: add tests
         self.check_arg("size", self.size, ranges[self.unit])
         if self.unit == HashSizeUnit.BIT and self.size % 8:
             raise ValueError(
@@ -383,13 +382,9 @@ class HashTypeColumn(ColumnType):
     def from_sql(cls, sql_type: SqlType) -> "HashTypeColumn":
         if sql_type.source == ColumnTypeSource.PYEXASOL:
             int_args = sql_type.int_args or [32]
-            # For data type HASHTYPE(n BYTE) web-socket-api currently returns
-            # n * 2 differing from documentation.
-            #
-            # References
-            # * https://docs.exasol.com/db/latest/sql_references/data_types/data_type_size.htm#Otherdatatypes
-            # * https://github.com/exasol/pyexasol/issues/189
-            # * https://github.com/exasol/websocket-api/blob/master/python/EXASOL/__init__.py#L206
+            # For data type HASHTYPE web-socket-api reports the size in terms
+            # of characters of the string representation which is 2 times the
+            # size in BYTE specified during creation.
             size = int_args[0] // 2
             sql_type = SqlType(sql_type.name, [size], sql_type.modifier)
 
