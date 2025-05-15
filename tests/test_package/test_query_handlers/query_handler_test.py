@@ -17,7 +17,7 @@ from exasol.analytics.query_handler.udf.interface import (
 )
 from exasol.analytics.schema.column import (
     Column,
-    DecimalColumn,
+    decimal_column,
 )
 from exasol.analytics.schema.column_name import ColumnName
 
@@ -62,8 +62,8 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
     def start(self) -> Union[Continue, Finish[str]]:
         return_query = 'SELECT 1 AS "a", 2 AS "b" FROM DUAL'
         return_query_columns = [
-            DecimalColumn.simple("a"),
-            DecimalColumn.simple("b"),
+            decimal_column("a"),
+            decimal_column("b"),
         ]
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=return_query, output_columns=return_query_columns

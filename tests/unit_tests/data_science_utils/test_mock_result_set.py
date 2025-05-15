@@ -1,8 +1,8 @@
 import pytest
 
 from exasol.analytics.schema import (
-    DecimalColumn,
-    VarCharColumn,
+    decimal_column,
+    varchar_column,
 )
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 
@@ -75,8 +75,8 @@ def test_fetchmany():
 def test_columns():
     input = [("a", 1), ("b", 2), ("c", 4)]
     columns = [
-        VarCharColumn.simple("t1", size=200000),
-        DecimalColumn.simple("t2"),
+        varchar_column("t1", size=200000),
+        decimal_column("t2"),
     ]
     result_set = MockResultSet(rows=input, columns=columns)
     assert columns == result_set.columns()
@@ -84,6 +84,6 @@ def test_columns():
 
 def test_rows_and_columns_different_length():
     input = [("a", 1), ("b", 2), ("c", 4)]
-    columns = [VarCharColumn.simple("t1", size=200000)]
+    columns = [varchar_column("t1", size=200000)]
     with pytest.raises(AssertionError):
         result_set = MockResultSet(rows=input, columns=columns)

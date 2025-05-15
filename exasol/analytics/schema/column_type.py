@@ -15,7 +15,7 @@ from exasol.analytics.utils.data_classes_runtime_type_check import check_datacla
 
 class UnsupportedSqlType(RuntimeError):
     """
-    The error raised when calling ColumnClass.from_sql_name() with a name
+    The error raised when calling ColumnType.from_sql_spec() with a name
     of an SQL column not supported by any subclass of Column.
     """
 
@@ -205,7 +205,7 @@ class DecimalType(ColumnType):
         self.check_arg("scale", self.scale, range(0, 37))
         if self.scale > self.precision:
             raise ValueError(
-                f"DecimalColumn scale must be ≤ precision but"
+                f"DecimalType scale must be ≤ precision but"
                 f" scale={self.scale} > precision={self.precision}."
             )
 
@@ -294,7 +294,7 @@ class HashTypeType(ColumnType):
         self.check_arg("size", self.size, ranges[self.unit])
         if self.unit == HashSizeUnit.BIT and self.size % 8:
             raise ValueError(
-                "HashTypeColumn with unit BIT and"
+                "HashTypeType with unit BIT and"
                 f" size not a multiple of 8: size={self.size}."
             )
 

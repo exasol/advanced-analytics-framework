@@ -18,10 +18,10 @@ from exasol.analytics.query_handler.graph.stage.sql.input_output import (
 )
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
     SchemaName,
     Table,
     TableNameBuilder,
+    decimal_column,
 )
 
 
@@ -33,17 +33,17 @@ class TestEnum(Enum):
 
 @pytest.fixture()
 def identifier():
-    return DecimalColumn.simple("id")
+    return decimal_column("id")
 
 
 @pytest.fixture()
 def sample():
-    return DecimalColumn.simple("x1")
+    return decimal_column("x1")
 
 
 @pytest.fixture()
 def target():
-    return DecimalColumn.simple("y1")
+    return decimal_column("y1")
 
 
 def create_table_like(name: str, columns: List[Column]):

@@ -28,12 +28,12 @@ from exasol.analytics.query_handler.result import (
 )
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
     SchemaName,
     TableName,
     TableNameImpl,
     ViewName,
     ViewNameImpl,
+    decimal_column,
 )
 from exasol.analytics.sql_executor.testing.mock_result_set import MockResultSet
 from exasol.analytics.sql_executor.testing.mock_sql_executor import (
@@ -221,7 +221,7 @@ def test_audit(
             aaf_pytest_db_schema,
             f"{prefix}_4_1",
             "SELECT 1",
-            DecimalColumn.simple("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
+            decimal_column("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
         ),
         # modify query #2
         *expect_count_rows(
@@ -238,7 +238,7 @@ def test_audit(
             aaf_pytest_db_schema,
             f"{prefix}_6_1",
             "SELECT 1",
-            DecimalColumn.simple("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
+            decimal_column("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
         ),
         # final audit log query
         expect_query(
@@ -258,7 +258,7 @@ def test_audit(
             aaf_pytest_db_schema,
             f"{prefix}_8_1",
             "SELECT (CAST 1 as DECIMAL(1,0))",
-            DecimalColumn.simple("DUMMY_COLUMN", precision=1, scale=0),
+            decimal_column("DUMMY_COLUMN", precision=1, scale=0),
         ),
     )
     sample = "hello world"

@@ -19,11 +19,11 @@ from exasol.analytics.query_handler.query.select import (
 )
 from exasol.analytics.schema import (
     DbObjectType,
-    DecimalColumn,
     SchemaName,
     TableName,
     TableNameImpl,
-    VarCharColumn,
+    decimal_column,
+    varchar_column,
 )
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
@@ -52,8 +52,8 @@ def other_table():
 
 def test_init():
     additional_columns = [
-        VarCharColumn.simple("NAME", size=20),
-        DecimalColumn.simple("AGE", precision=3),
+        varchar_column("NAME", size=20),
+        decimal_column("AGE", precision=3),
     ]
     audit_table = AuditTable("my_schema", "pfx", additional_columns)
     assert audit_table.name.schema_name.name == "my_schema"

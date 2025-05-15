@@ -55,7 +55,7 @@ value of `unit`:
 You can instantiate a column:
 
 ```python
-col = Column(ColumnName("D"), DecimalColumn(precision=10, scale=1))
+col = Column(ColumnName("D"), DecimalType(precision=10, scale=1))
 ```
 
 Additionally there are convenience methods accepting a simple string for the column name:

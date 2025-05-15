@@ -20,7 +20,7 @@ from exasol.analytics.query_handler.result import (
 )
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
+    decimal_column,
 )
 
 
@@ -34,7 +34,7 @@ class TestQueryHandler(QueryHandler[Dict[str, Any], int]):
         self._parameter = parameter
 
     def start(self) -> Union[Continue, Finish[int]]:
-        column = DecimalColumn.simple("A", precision=12, scale=0)
+        column = decimal_column("A", precision=12, scale=0)
         return Continue(
             [],
             SelectQueryWithColumnDefinition(
