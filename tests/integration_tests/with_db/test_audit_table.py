@@ -11,11 +11,11 @@ from exasol.analytics.query_handler.query.select import (
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.schema import (
-    DecimalColumn,
     SchemaName,
     TableName,
     TableNameImpl,
-    VarCharColumn,
+    decimal_column,
+    varchar_column,
 )
 from tests.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
@@ -52,8 +52,8 @@ def subquery_table(pyexasol_connection, db_schema) -> TableName:
 
 def test_create_audit_table(pyexasol_connection, db_schema, exa_all_columns):
     additional_columns = [
-        VarCharColumn.simple("NAME", size=20),
-        DecimalColumn.simple("AGE", precision=3),
+        varchar_column("NAME", size=20),
+        decimal_column("AGE", precision=3),
     ]
     audit_table = AuditTable(db_schema, "pfx", additional_columns)
     pyexasol_connection.execute(audit_table.create_statement)

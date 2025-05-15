@@ -4,61 +4,70 @@ import pytest
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
-    BooleanColumn,
-    CharColumn,
+    BooleanType,
+    CharType,
     CharSet,
     Column,
     ColumnName,
     ColumnType,
-    DateColumn,
-    DecimalColumn,
-    DoublePrecisionColumn,
-    GeometryColumn,
+    DateType,
+    DecimalType,
+    DoublePrecisionType,
+    GeometryType,
     HashSizeUnit,
-    HashTypeColumn,
-    TimeStampColumn,
+    HashTypeType,
+    TimeStampType,
     UnsupportedSqlType,
-    VarCharColumn,
+    VarCharType,
+    boolean_column,
+    char_column,
+    date_column,
+    decimal_column,
+    double_column,
+    geometry_column,
+    hashtype_column,
+    timestamp_column,
+    varchar_column,
 )
 
 TEST_CASES_ARGUMENT_NAMES = ("subclass", "args", "sql_type", "sql_suffix")
 TEST_CASES = [
-    (BooleanColumn, {}, "BOOLEAN", ""),
+    (BooleanType, {}, "BOOLEAN", ""),
     (
-        CharColumn,
+        CharType,
         {},
         "CHAR",
         "(1) UTF8",
     ),
     (
-        CharColumn,
+        CharType,
         {"size": 2, "charset": CharSet.ASCII},
         "CHAR",
         "(2) ASCII",
     ),
-    (DateColumn, {}, "DATE", ""),
-    (DecimalColumn, {}, "DECIMAL", "(18,0)"),
-    (DecimalColumn, {"precision": 2}, "DECIMAL", "(2,0)"),
-    (DecimalColumn, {"precision": 2, "scale": 1}, "DECIMAL", "(2,1)"),
-    (DoublePrecisionColumn, {}, "DOUBLE PRECISION", ""),
-    (GeometryColumn, {}, "GEOMETRY", "(0)"),
-    (GeometryColumn, {"srid": 1}, "GEOMETRY", "(1)"),
+    (DateType, {}, "DATE", ""),
+    (DecimalType, {}, "DECIMAL", "(18,0)"),
+    (DecimalType, {"precision": 2}, "DECIMAL", "(2,0)"),
+    (DecimalType, {"precision": 2, "scale": 1}, "DECIMAL", "(2,1)"),
+    (DoublePrecisionType, {}, "DOUBLE PRECISION", ""),
+    (GeometryType, {}, "GEOMETRY", "(0)"),
+    (GeometryType, {"srid": 1}, "GEOMETRY", "(1)"),
     # Pyexasol output never contains unit and reports size in terms of
     # characters of the string representation which is 2 times the size in
     # BYTE specified during creation.
-    (HashTypeColumn, {}, "HASHTYPE", "(16 BYTE)"),
-    (HashTypeColumn, {"size": 10}, "HASHTYPE", "(10 BYTE)"),
-    (HashTypeColumn, {"unit": HashSizeUnit.BIT}, "HASHTYPE", "(16 BIT)"),
-    (TimeStampColumn, {}, "TIMESTAMP", "(3)"),
+    (HashTypeType, {}, "HASHTYPE", "(16 BYTE)"),
+    (HashTypeType, {"size": 10}, "HASHTYPE", "(10 BYTE)"),
+    (HashTypeType, {"unit": HashSizeUnit.BIT}, "HASHTYPE", "(16 BIT)"),
+    (TimeStampType, {}, "TIMESTAMP", "(3)"),
     (
-        TimeStampColumn,
+        TimeStampType,
         {"precision": 6, "local_time_zone": True},
         "TIMESTAMP",
         "(6) WITH LOCAL TIME ZOME",
     ),
-    (VarCharColumn, {"size": 2}, "VARCHAR", "(2) UTF8"),
+    (VarCharType, {"size": 2}, "VARCHAR", "(2) UTF8"),
     (
-        VarCharColumn,
+        VarCharType,
         {"size": 2, "charset": CharSet.ASCII},
         "VARCHAR",
         "(2) ASCII",
@@ -70,50 +79,50 @@ TEST_CASES = [
 
 
 def test_set_new_column_name_fail():
-    column = DecimalColumn.simple("abc")
+    column = decimal_column("abc")
     with pytest.raises(AttributeError) as c:
         column.name = "edf"
 
 
 def test_equality():
-    column1 = DecimalColumn.simple("abc")
-    column2 = DecimalColumn.simple("abc")
+    column1 = decimal_column("abc")
+    column2 = decimal_column("abc")
     assert column1 == column2
 
 
 def test_inequality_name():
-    column1 = DecimalColumn.simple("abc")
-    column2 = DecimalColumn.simple("def")
+    column1 = decimal_column("abc")
+    column2 = decimal_column("def")
     assert column1 != column2
 
 
 def test_inequality_precision():
-    column1 = DecimalColumn.simple("abc", precision=2)
-    column2 = DecimalColumn.simple("abc", precision=3)
+    column1 = decimal_column("abc", precision=2)
+    column2 = decimal_column("abc", precision=3)
     assert column1 != column2
 
 
 def test_hash_equality():
-    column1 = DecimalColumn.simple("abc", precision=2)
-    column2 = DecimalColumn.simple("abc", precision=2)
+    column1 = decimal_column("abc", precision=2)
+    column2 = decimal_column("abc", precision=2)
     assert hash(column1) == hash(column2)
 
 
 def test_hash_inequality_name():
-    column1 = DecimalColumn.simple("abc")
-    column2 = DecimalColumn.simple("def")
+    column1 = decimal_column("abc")
+    column2 = decimal_column("def")
     assert hash(column1) != hash(column2)
 
 
 def test_hash_inequality_precision():
-    column1 = DecimalColumn.simple("abc", precision=2)
-    column2 = DecimalColumn.simple("abc", precision=3)
+    column1 = decimal_column("abc", precision=2)
+    column2 = decimal_column("abc", precision=3)
     assert hash(column1) != hash(column2)
 
 
 def test_column_from_sql_spec():
     actual = Column.from_sql_spec("H", "HASHTYPE(10 BYTE)")
-    expected = HashTypeColumn.simple("H", unit=HashSizeUnit.BYTE, size=10)
+    expected = hashtype_column("H", unit=HashSizeUnit.BYTE, size=10)
     assert actual == expected
 
 
@@ -124,7 +133,7 @@ def test_column_from_pyexasol():
         "withLocalTimeZone": True,
     }
     actual = Column.from_pyexasol("TS", pyexasol_spec)
-    expected = TimeStampColumn.simple("TS", precision=4, local_time_zone=True)
+    expected = timestamp_column("TS", precision=4, local_time_zone=True)
     assert actual == expected
 
 
@@ -135,13 +144,13 @@ def test_column_from_pyexasol():
 @pytest.mark.parametrize(
     "column_class, args",
     [
-        (DecimalColumn, {"precision": "string"}),
-        (DecimalColumn, {"scale": "string"}),
-        (VarCharColumn, {"size": "string"}),
-        (CharColumn, {"size": "string"}),
-        (CharColumn, {"charset": 1}),
-        (TimeStampColumn, {"local_time_zone": 1}),
-        (GeometryColumn, {"srid": "string"}),
+        (DecimalType, {"precision": "string"}),
+        (DecimalType, {"scale": "string"}),
+        (VarCharType, {"size": "string"}),
+        (CharType, {"size": "string"}),
+        (CharType, {"charset": 1}),
+        (TimeStampType, {"local_time_zone": 1}),
+        (GeometryType, {"srid": "string"}),
     ],
 )
 def test_arg_value_wrong_type(column_class, args):
@@ -151,53 +160,53 @@ def test_arg_value_wrong_type(column_class, args):
 
 def test_varchar_without_size():
     with pytest.raises(TypeError, match="missing .* 'size'"):
-        VarCharColumn()
+        VarCharType()
 
 
 @pytest.mark.parametrize(
-    "column_class, args, message",
+    "subclass, args, message",
     [
-        (CharColumn, {"size": 0}, r"size.* not in range\(1, 2001\)"),
-        (CharColumn, {"size": 2001}, r"size.* not in range\(1, 2001\)"),
+        (CharType, {"size": 0}, r"size.* not in range\(1, 2001\)"),
+        (CharType, {"size": 2001}, r"size.* not in range\(1, 2001\)"),
         (
-            DecimalColumn,
+            DecimalType,
             {"precision": 0},
             r"precision.* not in range\(1, 37\)",
         ),
         (
-            DecimalColumn,
+            DecimalType,
             {"scale": 40},
             r"scale.* not in range\(0, 37\)",
         ),
         (
-            DecimalColumn,
+            DecimalType,
             {"precision": 1, "scale": 2},
             "scale.* > precision",
         ),
         (
-            HashTypeColumn,
+            HashTypeType,
             {"unit": HashSizeUnit.BIT, "size": 11},
             "multiple of 8",
         ),
         (
-            HashTypeColumn,
+            HashTypeType,
             {"unit": HashSizeUnit.BIT, "size": 8193},
             r"size.* not in range\(8, 8193\)",
         ),
         (
-            HashTypeColumn,
+            HashTypeType,
             {"unit": HashSizeUnit.BYTE, "size": 0},
             r"size.* not in range\(1, 1025\)",
         ),
-        (TimeStampColumn, {"precision": 10}, r"precision.* not in range\(0, 10\)"),
-        (TimeStampColumn, {"precision": -1}, r"precision.* not in range\(0, 10\)"),
-        (VarCharColumn, {"size": 0}, r"size.* not in range\(1, 2000001\)"),
-        (VarCharColumn, {"size": 2000001}, r"size.* not in range\(1, 2000001\)"),
+        (TimeStampType, {"precision": 10}, r"precision.* not in range\(0, 10\)"),
+        (TimeStampType, {"precision": -1}, r"precision.* not in range\(0, 10\)"),
+        (VarCharType, {"size": 0}, r"size.* not in range\(1, 2000001\)"),
+        (VarCharType, {"size": 2000001}, r"size.* not in range\(1, 2000001\)"),
     ],
 )
-def test_invalid_arguments(column_class, args, message):
+def test_invalid_arguments(subclass, args, message):
     with pytest.raises(ValueError, match=message):
-        column_class(**args)
+        subclass(**args)
 
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
@@ -225,16 +234,31 @@ def random_name() -> str:
     return random.choice(string.ascii_letters.upper())
 
 
+CONVENIENCE_METHODS = {
+    BooleanType:         boolean_column,
+    CharType:            char_column,
+    DateType:            date_column,
+    DecimalType:         decimal_column,
+    DoublePrecisionType: double_column,
+    GeometryType:        geometry_column,
+    HashTypeType:        hashtype_column,
+    TimeStampType:       timestamp_column,
+    VarCharType:         varchar_column,
+}
+
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_rendered(random_name, subclass, args, sql_type, sql_suffix):
     """
     This test compares the behavior of classes Column and ColumnType.
     """
+    def create_via_convenience_method(name: str, **args: Any) -> ColumnType:
+        method = CONVENIENCE_METHODS[subclass]
+        return method(name, **args)
 
     # instantiate the specified column type class in two ways
     plain = Column(ColumnName(random_name), subclass(**args))
-    from_subclass = subclass.simple(random_name, **args)
-    columns = [plain, from_subclass]
+    via_convenience_method = create_via_convenience_method(random_name, **args)
+    columns = [plain, via_convenience_method]
 
     # assert both results are equal
     assert columns[0] == columns[1]
@@ -248,32 +272,32 @@ def test_rendered(random_name, subclass, args, sql_type, sql_suffix):
 @pytest.mark.parametrize(
     "args, expected",
     [
-        ({"type": "BOOLEAN"}, BooleanColumn()),
-        ({"type": "CHAR"}, CharColumn()),
-        ({"type": "CHAR", "size": 2}, CharColumn(size=2)),
-        ({"type": "DATE"}, DateColumn()),
-        ({"type": "DOUBLE"}, DoublePrecisionColumn()),
-        ({"type": "DECIMAL"}, DecimalColumn()),
+        ({"type": "BOOLEAN"}, BooleanType()),
+        ({"type": "CHAR"}, CharType()),
+        ({"type": "CHAR", "size": 2}, CharType(size=2)),
+        ({"type": "DATE"}, DateType()),
+        ({"type": "DOUBLE"}, DoublePrecisionType()),
+        ({"type": "DECIMAL"}, DecimalType()),
         (
             {"type": "DECIMAL", "precision": 10, "scale": 2},
-            DecimalColumn(precision=10, scale=2),
+            DecimalType(precision=10, scale=2),
         ),
-        ({"type": "GEOMETRY"}, GeometryColumn()),
-        ({"type": "GEOMETRY", "srid": 2}, GeometryColumn(srid=2)),
-        ({"type": "HASHTYPE"}, HashTypeColumn()),
+        ({"type": "GEOMETRY"}, GeometryType()),
+        ({"type": "GEOMETRY", "srid": 2}, GeometryType(srid=2)),
+        ({"type": "HASHTYPE"}, HashTypeType()),
         (
             {"type": "HASHTYPE", "size": 16, "unit": "BIT"},
-            HashTypeColumn(size=8, unit=HashSizeUnit.BIT),
+            HashTypeType(size=8, unit=HashSizeUnit.BIT),
         ),
         (
             {"type": "HASHTYPE", "size": 4},
-            HashTypeColumn(size=2, unit=HashSizeUnit.BYTE),
+            HashTypeType(size=2, unit=HashSizeUnit.BYTE),
         ),
         (
             {"type": "TIMESTAMP", "precision": 4, "withLocalTimeZone": True},
-            TimeStampColumn(precision=4, local_time_zone=True),
+            TimeStampType(precision=4, local_time_zone=True),
         ),
-        ({"type": "VARCHAR", "size": 2}, VarCharColumn(size=2)),
+        ({"type": "VARCHAR", "size": 2}, VarCharType(size=2)),
     ],
 )
 def test_column_type_from_pyexasol(args, expected):

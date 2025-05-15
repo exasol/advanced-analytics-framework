@@ -12,8 +12,8 @@ from exasol.analytics.query_handler.query.select import SelectQuery, SelectQuery
 from exasol.analytics.query_handler.context.proxy.bucketfs_location_proxy import BucketFSLocationProxy
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
-    VarCharColumn,
+    decimal_column,
+    varchar_column,
 )
 from datetime import datetime
 from exasol.bucketfs import as_string
@@ -56,8 +56,8 @@ class ExampleQueryHandler(UDFQueryHandler):
         query_handler_return_query = SelectQueryWithColumnDefinition(
             query_string=table_query_string('SELECT "c1", "c2" from {table_name}'),
             output_columns=[
-                VarCharColumn.simple("c1", size=100),
-                DecimalColumn.simple("c2"),
+                varchar_column("c1", size=100),
+                decimal_column("c2"),
             ])
         return Continue(
             query_list=query_list,

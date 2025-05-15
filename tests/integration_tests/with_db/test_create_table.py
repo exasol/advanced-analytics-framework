@@ -1,17 +1,17 @@
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
     SchemaName,
     Table,
     TableNameImpl,
-    VarCharColumn,
+    decimal_column,
+    varchar_column,
 )
 
 
 def test_create_table(pyexasol_connection, db_schema, exa_all_columns):
     columns = [
-        VarCharColumn.simple("NAME", size=20),
-        DecimalColumn.simple("AGE", precision=3),
+        varchar_column("NAME", size=20),
+        decimal_column("AGE", precision=3),
     ]
     table = Table(
         name=TableNameImpl("SAMPLE", SchemaName(db_schema)),
