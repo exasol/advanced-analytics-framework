@@ -28,13 +28,13 @@ TEST_CASES = [
         CharColumn,
         {},
         "CHAR",
-        "(1) CHARACTER SET UTF8",
+        "(1) UTF8",
     ),
     (
         CharColumn,
         {"size": 2, "charset": CharSet.ASCII},
         "CHAR",
-        "(2) CHARACTER SET ASCII",
+        "(2) ASCII",
     ),
     (DateColumn, {}, "DATE", ""),
     (DecimalColumn, {}, "DECIMAL", "(18,0)"),
@@ -56,12 +56,12 @@ TEST_CASES = [
         "TIMESTAMP",
         "(6) WITH LOCAL TIME ZOME",
     ),
-    (VarCharColumn, {"size": 2}, "VARCHAR", "(2) CHARACTER SET UTF8"),
+    (VarCharColumn, {"size": 2}, "VARCHAR", "(2) UTF8"),
     (
         VarCharColumn,
         {"size": 2, "charset": CharSet.ASCII},
         "VARCHAR",
-        "(2) CHARACTER SET ASCII",
+        "(2) ASCII",
     ),
 ]
 
@@ -202,7 +202,7 @@ def test_invalid_arguments(column_class, args, message):
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_column_type_from_sql_spec(subclass, args, sql_type, sql_suffix):
-    spec = f"{sql_type}{sql_suffix}".replace(" CHARACTER SET", "")
+    spec = f"{sql_type}{sql_suffix}"
     actual = ColumnType.from_sql_spec(spec)
     expected = subclass(**args)
     assert actual == expected
@@ -226,7 +226,7 @@ def random_name() -> str:
 
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
-def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
+def test_rendered(random_name, subclass, args, sql_type, sql_suffix):
     """
     This test compares the behavior of classes Column and ColumnType.
     """
@@ -239,10 +239,10 @@ def test_for_create(random_name, subclass, args, sql_type, sql_suffix):
     # assert both results are equal
     assert columns[0] == columns[1]
 
-    # and property for_create yields the expected result
+    # and property rendered yields the expected result
     for col in columns:
         expected = f'"{random_name}" {sql_type}{sql_suffix}'
-        assert col.for_create == expected
+        assert col.rendered == expected
 
 
 @pytest.mark.parametrize(
