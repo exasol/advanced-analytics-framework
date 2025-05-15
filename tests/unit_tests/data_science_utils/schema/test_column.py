@@ -5,8 +5,8 @@ from typeguard import TypeCheckError
 
 from exasol.analytics.schema import (
     BooleanType,
-    CharType,
     CharSet,
+    CharType,
     Column,
     ColumnName,
     ColumnType,
@@ -235,22 +235,24 @@ def random_name() -> str:
 
 
 CONVENIENCE_METHODS = {
-    BooleanType:         boolean_column,
-    CharType:            char_column,
-    DateType:            date_column,
-    DecimalType:         decimal_column,
+    BooleanType: boolean_column,
+    CharType: char_column,
+    DateType: date_column,
+    DecimalType: decimal_column,
     DoublePrecisionType: double_column,
-    GeometryType:        geometry_column,
-    HashTypeType:        hashtype_column,
-    TimeStampType:       timestamp_column,
-    VarCharType:         varchar_column,
+    GeometryType: geometry_column,
+    HashTypeType: hashtype_column,
+    TimeStampType: timestamp_column,
+    VarCharType: varchar_column,
 }
+
 
 @pytest.mark.parametrize(TEST_CASES_ARGUMENT_NAMES, TEST_CASES)
 def test_rendered(random_name, subclass, args, sql_type, sql_suffix):
     """
     This test compares the behavior of classes Column and ColumnType.
     """
+
     def create_via_convenience_method(name: str, **args: Any) -> ColumnType:
         method = CONVENIENCE_METHODS[subclass]
         return method(name, **args)

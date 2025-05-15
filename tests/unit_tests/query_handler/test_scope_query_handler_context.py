@@ -15,8 +15,8 @@ from exasol.analytics.schema import (
     SchemaName,
     Table,
     UDFName,
-    varchar_column,
     View,
+    varchar_column,
 )
 
 

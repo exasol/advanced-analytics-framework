@@ -2,11 +2,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from exasol.analytics.schema.column_name import ColumnName
-from exasol.analytics.schema.column_type_utils import CharSet
 from exasol.analytics.schema.column_type import (
-    ColumnType,
     BooleanType,
     CharType,
+    ColumnType,
     DateType,
     DecimalType,
     DoublePrecisionType,
@@ -16,7 +15,7 @@ from exasol.analytics.schema.column_type import (
     TimeStampType,
     VarCharType,
 )
-
+from exasol.analytics.schema.column_type_utils import CharSet
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
