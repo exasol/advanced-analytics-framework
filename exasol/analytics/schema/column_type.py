@@ -31,7 +31,7 @@ class ColumnType:
     Abstract class for representing a column of an SQL table.  The
     abstract class only holds the name of the column, additional attributes
     such as size, precision, scale, etc. are defined in subclasses, such as
-    DecimalColumn, VarCharColumn, etc.
+    DecimalType, VarCharType, etc.
 
     The instances of the subclasses can be rendered for creating a CREATE
     TABLE statement.
@@ -132,7 +132,7 @@ class BooleanType(ColumnType):
         return ["BOOLEAN"]
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "BooleanColumn":
+    def from_sql(cls, sql_type: SqlType) -> "BooleanType":
         return cls()
 
 
@@ -161,7 +161,7 @@ class CharType(ColumnType):
         )
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "CharColumn":
+    def from_sql(cls, sql_type: SqlType) -> "CharType":
         args = sql_type.char_type_args
         return cls(**args)
 
@@ -181,7 +181,7 @@ class DateType(ColumnType):
         return ["DATE"]
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "DateColumn":
+    def from_sql(cls, sql_type: SqlType) -> "DateType":
         return cls()
 
 
@@ -216,7 +216,7 @@ class DecimalType(ColumnType):
         )
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "DecimalColumn":
+    def from_sql(cls, sql_type: SqlType) -> "DecimalType":
         args = sql_type.int_dict(keys=["precision", "scale"])
         return cls(**args)
 
@@ -236,7 +236,7 @@ class DoublePrecisionType(ColumnType):
         return ["DOUBLE PRECISION", "DOUBLE", "FLOAT"]
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "DoublePrecisionColumn":
+    def from_sql(cls, sql_type: SqlType) -> "DoublePrecisionType":
         return cls()
 
 
@@ -262,7 +262,7 @@ class GeometryType(ColumnType):
         return PyexasolMapping(int_keys=[PyexasolOption.SRID])
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "GeometryColumn":
+    def from_sql(cls, sql_type: SqlType) -> "GeometryType":
         args = sql_type.int_dict(keys=["srid"])
         return cls(**args)
 
@@ -314,7 +314,7 @@ class HashTypeType(ColumnType):
         )
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "HashTypeColumn":
+    def from_sql(cls, sql_type: SqlType) -> "HashTypeType":
         if sql_type.source == ColumnTypeSource.PYEXASOL:
             int_args = sql_type.int_args or [32]
             # For data type HASHTYPE web-socket-api reports the size in terms
@@ -361,7 +361,7 @@ class TimeStampType(ColumnType):
         )
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "TimeStampColumn":
+    def from_sql(cls, sql_type: SqlType) -> "TimeStampType":
         args = sql_type.int_dict(keys=["precision"])
         if sql_type.modifier:
             args["local_time_zone"] = True
@@ -393,6 +393,6 @@ class VarCharType(ColumnType):
         )
 
     @classmethod
-    def from_sql(cls, sql_type: SqlType) -> "VarCharColumn":
+    def from_sql(cls, sql_type: SqlType) -> "VarCharType":
         args = sql_type.char_type_args
         return cls(**args)
