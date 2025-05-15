@@ -46,8 +46,7 @@ class ColumnType:
 
     @property
     @abstractmethod
-    def rendered(self) -> str:
-        ...
+    def rendered(self) -> str: ...
 
     @classmethod
     @abstractmethod
