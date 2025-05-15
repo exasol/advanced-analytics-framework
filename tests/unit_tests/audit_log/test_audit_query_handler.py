@@ -24,10 +24,10 @@ from exasol.analytics.query_handler.result import (
     Finish,
 )
 from exasol.analytics.schema import (
-    DecimalColumn,
     SchemaName,
     TableName,
     TableNameImpl,
+    decimal_column,
 )
 from tests.unit_tests.audit_log.qh_utils import continue_action
 from tests.utils.audit_table_utils import (
@@ -72,7 +72,7 @@ def create_audit_query_handler(
         query_handler_factory=lambda parameter, context: child,
         schema_getter=schema_getter,
         table_name_prefix_getter=table_name_prefix_getter,
-        additional_columns=[DecimalColumn.simple("DDD", precision=9)],
+        additional_columns=[decimal_column("DDD", precision=9)],
     )
 
 

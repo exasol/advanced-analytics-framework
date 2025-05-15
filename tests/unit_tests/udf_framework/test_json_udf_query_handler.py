@@ -18,7 +18,7 @@ from exasol.analytics.query_handler.result import (
     Finish,
 )
 from exasol.analytics.query_handler.udf.json_impl import JsonUDFQueryHandler
-from exasol.analytics.schema import DecimalColumn
+from exasol.analytics.schema import decimal_column
 
 
 class ConstructorTestJSONQueryHandler(JSONQueryHandler):
@@ -112,6 +112,6 @@ def test_handle_query_result_check_query_result(top_level_query_handler_context_
         wrapped_json_query_handler_class=HandleQueryResultCheckQueryResultTestJSONQueryHandler,
     )
     result = query_handler.handle_query_result(
-        PythonQueryResult(data=[(1,)], columns=[DecimalColumn.simple("a")])
+        PythonQueryResult(data=[(1,)], columns=[decimal_column("a")])
     )
     assert isinstance(result, Finish) and result.result == '{"a": 1}'

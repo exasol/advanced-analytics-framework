@@ -15,8 +15,8 @@ from exasol.analytics.schema import (
     SchemaName,
     Table,
     UDFName,
-    VarCharColumn,
     View,
+    varchar_column,
 )
 
 
@@ -407,13 +407,13 @@ def test_cleanup_parent_before_grand_child_without_temporary_objects(
 
 def test_using_table_name_proxy_in_table(context_mock: ScopeQueryHandlerContext):
     table_name = context_mock.get_temporary_table_name()
-    table = Table(table_name, columns=[VarCharColumn.simple("COLUMN1", size=1)])
+    table = Table(table_name, columns=[varchar_column("COLUMN1", size=1)])
     assert table.name is not None
 
 
 def test_using_view_name_proxy_in_view(context_mock: ScopeQueryHandlerContext):
     view_name = context_mock.get_temporary_view_name()
-    view = View(view_name, columns=[VarCharColumn.simple("COLUMN1", size=1)])
+    view = View(view_name, columns=[varchar_column("COLUMN1", size=1)])
     assert view.name is not None
 
 

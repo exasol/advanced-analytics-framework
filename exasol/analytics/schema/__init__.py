@@ -1,20 +1,32 @@
 from exasol.analytics.schema.column import (
-    BooleanColumn,
-    CharColumn,
     Column,
-    DateColumn,
-    DecimalColumn,
-    DoublePrecisionColumn,
-    GeometryColumn,
-    HashSizeUnit,
-    HashTypeColumn,
-    TimeStampColumn,
-    UnsupportedSqlType,
-    VarCharColumn,
+    boolean_column,
+    char_column,
+    date_column,
+    decimal_column,
+    double_column,
+    geometry_column,
+    hashtype_column,
+    timestamp_column,
+    varchar_column,
 )
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_name_builder import ColumnNameBuilder
-from exasol.analytics.schema.column_types import CharSet
+from exasol.analytics.schema.column_type import (
+    BooleanType,
+    CharType,
+    ColumnType,
+    DateType,
+    DecimalType,
+    DoublePrecisionType,
+    GeometryType,
+    HashSizeUnit,
+    HashTypeType,
+    TimeStampType,
+    UnsupportedSqlType,
+    VarCharType,
+)
+from exasol.analytics.schema.column_type_utils import CharSet
 from exasol.analytics.schema.connection_object_name import ConnectionObjectName
 from exasol.analytics.schema.connection_object_name_builder import (
     ConnectionObjectNameBuilder,

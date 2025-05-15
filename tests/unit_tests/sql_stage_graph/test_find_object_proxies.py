@@ -10,12 +10,14 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxie
     find_object_proxies,
 )
 from exasol.analytics.schema import (
+    Column,
     ColumnName,
-    DecimalColumn,
+    DecimalType,
     TableBuilder,
     TableName,
     View,
     ViewName,
+    decimal_column,
 )
 
 BUCKETFS_LOCATION = "BUCKETFS_LOCATION"
@@ -85,7 +87,7 @@ def test_object_proxy_in_sub_dependency(object_proxy):
 def test_object_proxy_in_table(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
-    column = DecimalColumn.simple("test")
+    column = decimal_column("test")
     table = TableBuilder().with_name(object_proxy).with_columns([column]).build()
     result = find_object_proxies(table)
     assert result == [object_proxy]
@@ -94,7 +96,7 @@ def test_object_proxy_in_table(object_proxy):
 def test_object_proxy_in_view(object_proxy):
     if not isinstance(object_proxy, ViewName):
         pytest.skip()
-    column = DecimalColumn.simple("test")
+    column = decimal_column("test")
     view = View(name=object_proxy, columns=[column])
     result = find_object_proxies(view)
     assert result == [object_proxy]
@@ -112,7 +114,7 @@ def test_object_proxy_in_column(object_proxy):
     if not isinstance(object_proxy, TableName):
         pytest.skip()
     column_name = ColumnName("test", table_like_name=object_proxy)
-    column = DecimalColumn(column_name)
+    column = Column(column_name, DecimalType())
     result = find_object_proxies(column)
     assert result == [object_proxy]
 

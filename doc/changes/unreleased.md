@@ -1,26 +1,32 @@
 # Unreleased
 
 This release comes with breaking changes in package `exasol.analytics.schema`:
-* Classes `ColumnType` and `ColumnBuilder` are removed
-* Class `Column` is changed significantly
-* Subclasses of `Column` have been added for specific column types:
-  * `BooleanColumn`
-  * `CharColumn`
-  * `DateColumn`
-  * `DecimalColumn`
-  * `DoublePrecisionColumn`
-  * `GeometryColumn`
-  * `HashTypeColumn`
-  * `TimeStampColumn`
-  * `VarCharColumn`
+* Class `ColumnBuilder` has been removed
+* Class `ColumnType` is changed significantly
+* Subclasses of `ColumnType` have been added for specific column types:
+  * `BooleanType`
+  * `CharType`
+  * `DateType`
+  * `DecimalType`
+  * `DoublePrecisionType`
+  * `GeometryType`
+  * `HashTypeType`
+  * `TimeStampType`
+  * `VarCharType`
 * Additional classes have been added for specific attributes of some of the column types:
   * `CharSet`
   * `HashSizeUnit`
-* Convenience functions for creating instances of `Column` have been replaced by class method `simple()` of the resp. subclasses of `Column`:
-  * `decimal_column()`
-  * `varchar_column()`
-  * `hashtype_column()`
 
+The available convenience functions for creating instances of `Column` specifying the name as a simple string have been completed:
+* `boolean_column`
+* `char_column`
+* `date_column`
+* `decimal_column`
+* `double_column`
+* `geometry_column`
+* `hashtype_column`
+* `timestamp_column`
+* `varchar_column`
 
 Please see the [User Guide](http://github.com/exasol/advanced-analytics-framework/blob/main/doc/user_guide/database_objects.md) about creating and using instances of `Column` starting with this release.
 
@@ -29,10 +35,14 @@ Please see the [User Guide](http://github.com/exasol/advanced-analytics-framewor
 * #283: Updated description and README
 * #290: Added user guide for database objects in module `exasol.analytics.schema`
 
-## Refactoring
+## Refactorings
 
 * #286: Updated exasol-toolbox to 1.0.1
 * #240: Enhanced `schema.column_type.ColumnType`
+* #292: Added check for range of attribute `size` to `HashTypeColumn`
+* #294: Refactored class `Column` once again, see user guide
+  * Re-introduced attribute `type`
+  * Re-added class `ColumnType`
 
 ## Internal
 

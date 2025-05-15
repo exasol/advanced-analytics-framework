@@ -1,6 +1,6 @@
 import pytest
 
-from exasol.analytics.schema.column_types import (
+from exasol.analytics.schema.column_type_utils import (
     ColumnTypeSource,
     PyexasolMapping,
     PyexasolOption,

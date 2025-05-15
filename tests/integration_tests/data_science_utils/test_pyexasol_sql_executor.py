@@ -2,13 +2,13 @@ import pyexasol
 import pytest
 
 from exasol.analytics.schema import (
-    CharColumn,
     CharSet,
     Column,
     ColumnNameBuilder,
-    DecimalColumn,
     HashSizeUnit,
-    HashTypeColumn,
+    char_column,
+    decimal_column,
+    hashtype_column,
 )
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 
@@ -31,10 +31,10 @@ def pyexasol_result_set(pyexasol_sql_executor):
     row_count = 100000
     expected_result = [(1, "a", "1.1", "bb")] * row_count
     expected_columns = [
-        DecimalColumn.simple("c1", precision=1, scale=0),
-        CharColumn.simple("c2", size=1, charset=CharSet.ASCII),
-        DecimalColumn.simple("c3", precision=2, scale=1),
-        HashTypeColumn.simple("c4", size=1, unit=HashSizeUnit.BYTE),
+        decimal_column("c1", precision=1, scale=0),
+        char_column("c2", size=1, charset=CharSet.ASCII),
+        decimal_column("c3", precision=2, scale=1),
+        hashtype_column("c4", size=1, unit=HashSizeUnit.BYTE),
     ]
     result_set = pyexasol_sql_executor.execute(
         f"""SELECT 1 as "c1", 'a' as "c2", 1.1 as "c3", cast('bb' as HASHTYPE(1 BYTE)) as "c4"
