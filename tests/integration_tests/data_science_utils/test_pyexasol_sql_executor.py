@@ -5,10 +5,10 @@ from exasol.analytics.schema import (
     CharSet,
     Column,
     ColumnNameBuilder,
+    HashSizeUnit,
     char_column,
     decimal_column,
     hashtype_column,
-    HashSizeUnit,
 )
 from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 

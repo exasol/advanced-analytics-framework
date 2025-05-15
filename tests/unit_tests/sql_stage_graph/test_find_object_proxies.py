@@ -12,12 +12,12 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.find_object_proxie
 from exasol.analytics.schema import (
     Column,
     ColumnName,
+    DecimalType,
     TableBuilder,
     TableName,
     View,
     ViewName,
     decimal_column,
-    DecimalType,
 )
 
 BUCKETFS_LOCATION = "BUCKETFS_LOCATION"
