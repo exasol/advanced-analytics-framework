@@ -29,12 +29,12 @@ jobs:
       - name: Copy Artifacts into Root Folder
         working-directory: ./artifacts
         run: |
-          poetry run -- coverage combine --keep coverage-python3.9*/.coverage
+          poetry run -- coverage combine --keep coverage-python3.10*/.coverage
           # Errors during copying are ignored because they are checked in the next step
           cp .coverage ../ || true
-          cp lint-python3.9/.lint.txt ../ || true
-          cp lint-python3.9/.lint.json ../ || true
-          cp security-python3.9/.security.json ../ || true
+          cp lint-python3.10/.lint.txt ../ || true
+          cp lint-python3.10/.lint.json ../ || true
+          cp security-python3.10/.security.json ../ || true
 
       - name: Validate Artifacts
         run: poetry run -- nox -s artifacts:validate
