@@ -31,10 +31,10 @@ jobs:
   #   steps:
   #     - name: SCM Checkout
   #       uses: actions/checkout@v4
-  # 
+  #
   #     - name: Setup Python & Poetry Environment
   #       uses: exasol/python-toolbox/.github/actions/python-environment@1.2.0
-  # 
+  #
   #     - name: Build Documentation
   #       run: |
   #         poetry run -- nox -s docs:build
@@ -159,7 +159,8 @@ jobs:
 
   Tests:
     name: Unit-Tests (Python-${{ matrix.python-version }})
-    needs: [ Documentation, Lint, Type-Check, Security, Format, build-matrix ]
+    # removed Documentation,
+    needs: [ Lint, Type-Check, Security, Format, build-matrix ]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
