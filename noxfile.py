@@ -18,8 +18,8 @@ nox.options.sessions = ["fix"]
 SCRIPTS_DIRECTORY = ROOT_DIR / "scripts"
 RUN_IN_DEV_SCRIPT = SCRIPTS_DIRECTORY / "run_in_dev_env.sh"
 RUN_IN_DEV_SCRIPT_STR = str(RUN_IN_DEV_SCRIPT)
-TEST_DIRECTORY = ROOT_DIR / "tests"
-INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration_tests"
+TEST_DIRECTORY = ROOT_DIR / "test"
+INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration"
 
 nox.options.sessions = []
 
@@ -74,7 +74,7 @@ def run_lua_unit_tests(session: Session):
 
 @nox.session(python=False)
 def run_python_unit_tests(session: Session):
-    unit_test_directory = TEST_DIRECTORY / "unit_tests"
+    unit_test_directory = TEST_DIRECTORY / "unit"
     _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
 
 
