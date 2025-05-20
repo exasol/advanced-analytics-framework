@@ -1,10 +1,5 @@
 import json
 import textwrap
-from test.test_package.test_query_handlers.query_handler_test import (
-    FINAL_RESULT,
-    QUERY_LIST,
-    TEST_INPUT,
-)
 from typing import (
     List,
     Tuple,
@@ -12,6 +7,12 @@ from typing import (
 
 import pyexasol
 import pytest
+
+from test.package.test_query_handlers.query_handler_test import (
+    FINAL_RESULT,
+    QUERY_LIST,
+    TEST_INPUT,
+)
 
 QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
 QUERY_AUDIT_LOGS = """
