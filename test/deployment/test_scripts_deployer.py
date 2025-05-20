@@ -1,8 +1,9 @@
+from test.utils.db_queries import DBQueries
+
 from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (
     save_aaf_query_loop_lua_script,
 )
 from exasol.analytics.query_handler.deployment.scripts_deployer import ScriptsDeployer
-from test.utils.db_queries import DBQueries
 
 
 def test_scripts_deployer(deployed_slc, language_alias, pyexasol_connection, request):

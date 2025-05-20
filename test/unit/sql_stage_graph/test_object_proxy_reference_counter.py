@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import Union
 from unittest.mock import (
     MagicMock,
@@ -14,7 +15,6 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_refer
     ObjectProxyReferenceCounter,
     ReferenceCounterStatus,
 )
-from test.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
 MockObjectProxy = Union[ObjectProxy, MagicMock]

@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import Union
 from unittest.mock import (
     MagicMock,
@@ -21,7 +22,6 @@ from exasol.analytics.udf.communication.peer_communicator.register_peer_connecti
     RegisterPeerConnection,
 )
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
-from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass

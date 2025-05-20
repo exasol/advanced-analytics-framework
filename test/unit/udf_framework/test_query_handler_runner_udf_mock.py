@@ -1,5 +1,8 @@
 import json
 import re
+from test.unit.udf_framework import mock_query_handlers
+from test.unit.udf_framework.mock_query_handlers import TEST_CONNECTION
+from test.utils.test_utils import pytest_regex
 from typing import (
     Any,
     Dict,
@@ -17,9 +20,6 @@ from exasol.analytics.query_handler.udf.runner.udf import (
     QueryHandlerStatus,
     create_bucketfs_location_from_conn_object,
 )
-from test.unit.udf_framework import mock_query_handlers
-from test.unit.udf_framework.mock_query_handlers import TEST_CONNECTION
-from test.utils.test_utils import pytest_regex
 
 TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
 
