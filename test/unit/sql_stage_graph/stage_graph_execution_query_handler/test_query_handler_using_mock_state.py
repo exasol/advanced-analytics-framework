@@ -35,7 +35,7 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 MockSQLStageGraphExecutionQueryHandlerState = Union[
     SQLStageGraphExecutionQueryHandlerState, MagicMock

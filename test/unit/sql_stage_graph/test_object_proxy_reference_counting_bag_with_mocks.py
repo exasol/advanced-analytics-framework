@@ -22,7 +22,7 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_refer
     ObjectProxyReferenceCounterFactory,
     ObjectProxyReferenceCountingBag,
 )
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 MockObjectProxyReferenceCounter = Union[ObjectProxyReferenceCounter, MagicMock]
 MockObjectProxyReferenceCounterFactory = Union[ObjectProxyReferenceCounterFactory, Mock]

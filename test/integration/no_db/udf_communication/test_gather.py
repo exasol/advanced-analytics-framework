@@ -20,10 +20,10 @@ from exasol.analytics.udf.communication.ip_address import (
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.utils import (
+from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     CommunicatorTestProcessParameter,
     TestProcess,
@@ -70,17 +70,32 @@ def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
             is_discovery_leader_node=is_discovery_leader_node,
             socket_factory=socket_factory,
         )
-        value = None
-        if communicator.is_multi_node_leader():
-            value = b"Success"
-        result = communicator.broadcast(value)
+        value = f"{parameter.node_name}_{parameter.instance_name}"
+        names = {
+            f"n{node}_i{instance}".encode()
+            for instance in range(parameter.number_of_instances_per_node)
+            for node in range(parameter.number_of_nodes)
+        }
+        result = communicator.gather(value.encode("utf-8"))
         LOGGER.info(
             "result",
             result=result,
             instance_name=parameter.instance_name,
             node_name=parameter.node_name,
         )
-        queue.put(result.decode("utf-8"))
+        if communicator.is_multi_node_leader():
+            if isinstance(result, List):
+                if names != set(result):
+                    queue.put(f"Leader failed: {result} != {names}")
+                    return
+            else:
+                queue.put(f"Leader failed: {result} != {names}")
+                return
+        else:
+            if result is not None:
+                queue.put(f"Non-Leader failed: {result} is not None")
+                return
+        queue.put("Success")
     except Exception as e:
         LOGGER.exception("Exception during test")
         queue.put(f"Failed during test: {e}")

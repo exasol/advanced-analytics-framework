@@ -67,7 +67,7 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "tests.*",
+    "test.*",
     "noxfile",
 ]
 ignore_errors = true

@@ -18,7 +18,7 @@ from exasol.analytics.udf.communication.peer_communicator.synchronize_connection
     SynchronizeConnectionSender,
 )
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass()

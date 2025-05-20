@@ -83,7 +83,7 @@ def _generate_test_matrix_entry(test_file: Path):
 
 
 def _generate_github_integration_tests_without_db_matrix() -> str:
-    without_db_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
+    without_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
     test_files = without_db_test_directory.rglob("test_*.py")
     output = [_generate_test_matrix_entry(test_file) for test_file in test_files]
     json_str = json.dumps(output)
@@ -128,7 +128,7 @@ def build_language_container(session: Session):
 
 @nox.session(python=False)
 def run_python_integration_tests_with_db(session: Session):
-    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "with_db"
+    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "db"
     _run_in_dev_env_poetry_call(
         session,
         "pytest",

@@ -16,7 +16,7 @@ from exasol.analytics.schema import (
     SchemaName,
     TableNameImpl,
 )
-from tests.utils.audit_table_utils import (
+from test.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     create_insert_query,
 )

@@ -13,10 +13,8 @@ from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
-from exasol.analytics.udf.communication.discovery.multi_node import (
-    DiscoverySocketFactory,
-)
-from exasol.analytics.udf.communication.discovery.multi_node.communicator import (
+from exasol.analytics.udf.communication.discovery import localhost
+from exasol.analytics.udf.communication.discovery.localhost.communicator import (
     CommunicatorFactory,
 )
 from exasol.analytics.udf.communication.ip_address import (
@@ -30,10 +28,10 @@ from exasol.analytics.udf.communication.peer_communicator.peer_communicator impo
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.utils import (
+from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     PeerCommunicatorTestProcessParameter,
     TestProcess,
@@ -63,22 +61,16 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
-    listen_ip = IPAddress(ip_address="127.1.0.1")
     discovery_port = Port(port=44444)
+    listen_ip = IPAddress(ip_address="127.1.0.1")
     context = zmq.Context()
     socket_factory = ZMQSocketFactory(context)
-    discovery_socket_factory = DiscoverySocketFactory()
-    is_leader = False
-    leader_name = "i0"
-    if parameter.instance_name == leader_name:
-        is_leader = True
+    discovery_socket_factory = localhost.DiscoverySocketFactory()
     peer_communicator = CommunicatorFactory().create(
         group_identifier=parameter.group_identifier,
         name=parameter.instance_name,
         number_of_instances=parameter.number_of_instances,
-        is_discovery_leader=is_leader,
         listen_ip=listen_ip,
-        discovery_ip=listen_ip,
         discovery_port=discovery_port,
         socket_factory=socket_factory,
         discovery_socket_factory=discovery_socket_factory,
@@ -103,14 +95,6 @@ REPETITIONS_FOR_FUNCTIONALITY = 1
 
 def test_functionality_2():
     run_test_with_repetitions(2, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_3():
-    run_test_with_repetitions(3, REPETITIONS_FOR_FUNCTIONALITY)
-
-
-def test_functionality_5():
-    run_test_with_repetitions(5, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_10():

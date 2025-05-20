@@ -18,7 +18,7 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import (
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import (
     assert_parent_query_handler_context_not_called,
     assert_reference_counting_bag_creation,
     assert_reference_counting_bag_not_called,
@@ -26,7 +26,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.assert
     assert_stage_not_called,
     assert_stage_query_handler_created,
 )
-from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
     TestSetup,
     create_execution_query_handler_state_setup,
     create_mocks_for_stage,

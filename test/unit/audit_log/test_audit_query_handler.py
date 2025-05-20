@@ -29,8 +29,8 @@ from exasol.analytics.schema import (
     TableName,
     TableNameImpl,
 )
-from tests.unit_tests.audit_log.qh_utils import continue_action
-from tests.utils.audit_table_utils import (
+from test.unit.audit_log.qh_utils import continue_action
+from test.utils.audit_table_utils import (
     create_insert_query,
     prefix_matcher,
     regex_matcher,

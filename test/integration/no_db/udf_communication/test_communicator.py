@@ -6,6 +6,7 @@ from typing import (
     Tuple,
 )
 
+import pytest
 import structlog
 import zmq
 from structlog import WriteLoggerFactory
@@ -20,10 +21,10 @@ from exasol.analytics.udf.communication.ip_address import (
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.utils import (
+from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     CommunicatorTestProcessParameter,
     TestProcess,
@@ -53,87 +54,59 @@ LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 
 def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
-    try:
-        is_discovery_leader_node = parameter.node_name == "n0"
-        context = zmq.Context()
-        socket_factory = ZMQSocketFactory(context)
-        communicator = Communicator(
-            multi_node_discovery_port=Port(port=44444),
-            local_discovery_port=parameter.local_discovery_port,
-            multi_node_discovery_ip=IPAddress(ip_address="127.0.0.1"),
-            node_name=parameter.node_name,
-            instance_name=parameter.instance_name,
-            listen_ip=IPAddress(ip_address="127.0.0.1"),
-            group_identifier=parameter.group_identifier,
-            number_of_nodes=parameter.number_of_nodes,
-            number_of_instances_per_node=parameter.number_of_instances_per_node,
-            is_discovery_leader_node=is_discovery_leader_node,
-            socket_factory=socket_factory,
-        )
-        value = f"{parameter.node_name}_{parameter.instance_name}"
-        names = {
-            f"n{node}_i{instance}".encode()
-            for instance in range(parameter.number_of_instances_per_node)
-            for node in range(parameter.number_of_nodes)
-        }
-        result = communicator.gather(value.encode("utf-8"))
-        LOGGER.info(
-            "result",
-            result=result,
-            instance_name=parameter.instance_name,
-            node_name=parameter.node_name,
-        )
-        if communicator.is_multi_node_leader():
-            if isinstance(result, List):
-                if names != set(result):
-                    queue.put(f"Leader failed: {result} != {names}")
-                    return
-            else:
-                queue.put(f"Leader failed: {result} != {names}")
-                return
-        else:
-            if result is not None:
-                queue.put(f"Non-Leader failed: {result} is not None")
-                return
-        queue.put("Success")
-    except Exception as e:
-        LOGGER.exception("Exception during test")
-        queue.put(f"Failed during test: {e}")
+    is_discovery_leader_node = parameter.node_name == "n0"
+    context = zmq.Context()
+    socket_factory = ZMQSocketFactory(context)
+    communicator = Communicator(
+        multi_node_discovery_port=Port(port=44444),
+        local_discovery_port=parameter.local_discovery_port,
+        multi_node_discovery_ip=IPAddress(ip_address="127.0.0.1"),
+        node_name=parameter.node_name,
+        instance_name=parameter.instance_name,
+        listen_ip=IPAddress(ip_address="127.0.0.1"),
+        group_identifier=parameter.group_identifier,
+        number_of_nodes=parameter.number_of_nodes,
+        number_of_instances_per_node=parameter.number_of_instances_per_node,
+        is_discovery_leader_node=is_discovery_leader_node,
+        socket_factory=socket_factory,
+    )
+    queue.put("Finished")
+
+
+@pytest.mark.parametrize(
+    "number_of_nodes, number_of_instances_per_node, repetitions",
+    [
+        (2, 2, 100),
+        (3, 3, 20),
+    ],
+)
+def test_reliability(
+    number_of_nodes: int, number_of_instances_per_node: int, repetitions: int
+):
+    run_test_with_repetitions(
+        number_of_nodes=number_of_nodes,
+        number_of_instances_per_node=number_of_instances_per_node,
+        repetitions=repetitions,
+    )
 
 
 REPETITIONS_FOR_FUNCTIONALITY = 1
 
 
 def test_functionality_2_1():
-    run_test_with_repetitions(
-        number_of_nodes=2,
-        number_of_instances_per_node=1,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
+    run_test_with_repetitions(2, 1, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_1_2():
-    run_test_with_repetitions(
-        number_of_nodes=1,
-        number_of_instances_per_node=2,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
+    run_test_with_repetitions(1, 2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_2_2():
-    run_test_with_repetitions(
-        number_of_nodes=2,
-        number_of_instances_per_node=2,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
+    run_test_with_repetitions(2, 2, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def test_functionality_3_3():
-    run_test_with_repetitions(
-        number_of_nodes=3,
-        number_of_instances_per_node=3,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
+    run_test_with_repetitions(3, 3, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(
@@ -195,5 +168,5 @@ def run_test(
     for process in processes:
         result_key = (process.parameter.node_name, process.parameter.instance_name)
         actual_result_of_threads[result_key] = process.get()
-        expected_result_of_threads[result_key] = "Success"
+        expected_result_of_threads[result_key] = "Finished"
     return expected_result_of_threads, actual_result_of_threads
