@@ -7,9 +7,6 @@ jobs:
   slow-check-approval:
     name: Slow Check Approval
     runs-on: ubuntu-24.04
-    # Even though the environment "manual-approval" will be created automatically,
-    # it still needs to be configured to require interactive review.
-    # See project settings on GitHub (Settings / Environments / manual-approval).
     environment: manual-approval
     steps:
       - name: Slow Test Approval
