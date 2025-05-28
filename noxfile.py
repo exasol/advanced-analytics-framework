@@ -72,10 +72,11 @@ def run_lua_unit_tests(session: Session):
     _run_in_dev_env_call(session, str(lua_tests_script))
 
 
-@nox.session(python=False)
-def run_python_unit_tests(session: Session):
-    unit_test_directory = TEST_DIRECTORY / "unit"
-    _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
+# obsolete
+# @nox.session(python=False)
+# def run_python_unit_tests(session: Session):
+#     unit_test_directory = TEST_DIRECTORY / "unit"
+#     _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
 
 
 def _generate_test_matrix_entry(test_file: Path):

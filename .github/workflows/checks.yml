@@ -188,3 +188,12 @@ jobs:
           name: coverage-python${{ matrix.python-version }}-fast
           path: .coverage
           include-hidden-files: true
+
+      - name: Install Development Environment
+        run: poetry run -- nox -s install_dev_env
+
+      - name: Poetry install
+        run: poetry run -- nox -s run_in_dev_env -- poetry install
+
+      - name: Run Lua unit tests and static code analyzer
+        run: poetry run -- nox -s run_in_dev_env -- ./scripts/lua_tests.sh
