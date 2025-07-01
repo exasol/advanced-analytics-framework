@@ -34,6 +34,7 @@ Please see the [User Guide](http://github.com/exasol/advanced-analytics-framewor
 * #286: Updated exasol-toolbox to 1.0.1
 * #240: Enhanced `schema.column_type.ColumnType`
 * #296: Updated `exasol-toolbox`, re-generated GitHub workflows
+* #301: Updated exasol-toolbox to 1.4.0
 
 ## Internal
 
