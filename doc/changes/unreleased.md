@@ -39,3 +39,4 @@ Please see the [User Guide](http://github.com/exasol/advanced-analytics-framewor
 
 * #287: Re-locked dependencies to resolve CVE-2025-43859 for h11
 * #286: Updated poetry to 2.1.2
+* #301: Re-locked dependencies to resolve CVE-2024-47081 for requests, CVE-2025-50181 & CVE-2025-50182 for urllib3, & CVE-2025-47287 for tornado
