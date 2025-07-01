@@ -51,6 +51,7 @@ exasol-script-languages-container-tool = "^1.1.0"
 pytest-exasol-slc = ">=0.1.0,<1.0.0"
 pytest-exasol-backend = ">=0.3.0,<1.0.0"
 pytest-exasol-extension = ">=0.1.0,<1.0.0"
+types-networkx = "^3.5.0.20250701"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -61,16 +62,11 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = [
-    "pandas.*", "exasol.bucketfs.*", "pyexasol.*", "exasol.pytnsion_common.*",
-    "networkx.*", "exasol_udf_mock_python.*", "joblib.*",
-    "exasol.python_extension_common.*", ]
-ignore_missing_imports = true
-
-
-[[tool.mypy.overrides]]
-module = [
     "test.*",
-    "noxfile",
+    "pyexasol.*",
+    "pandas.*",
+    "joblib.*",
+
 ]
 ignore_errors = true
 

@@ -1,5 +1,4 @@
 import json
-import typing
 from typing import (
     Generic,
     List,
@@ -9,6 +8,7 @@ from typing import (
 )
 
 import networkx as nx
+from networkx import DiGraph
 
 T = TypeVar("T")
 
@@ -16,7 +16,7 @@ T = TypeVar("T")
 class ExecutionGraph(Generic[T]):
 
     def __init__(self, start_node: T, end_node: T, edges: Set[Tuple[T, T]]):
-        self._graph = nx.DiGraph()
+        self._graph: DiGraph = nx.DiGraph()
         self._graph.add_edges_from(edges)
         self._graph.add_node(start_node)
         self._graph.add_node(end_node)
