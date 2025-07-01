@@ -19,7 +19,7 @@ jobs:
 #      These steps are disabled, because the project does not support sphinx yet
 
 #       - name: Setup Python & Poetry Environment
-#         uses: exasol/python-toolbox/.github/actions/python-environment@1.2.0
+#         uses: exasol/python-toolbox/.github/actions/python-environment@1.4.0
 #
 #       - name: Build Documentation
 #         run: |

@@ -8,6 +8,8 @@ jobs:
     name: Slow Check Approval
     runs-on: ubuntu-24.04
     environment: manual-approval
+    permissions:
+      contents: read
     steps:
       - name: Slow Test Approval
         run: "echo Slow Test Approval"
@@ -17,6 +19,8 @@ jobs:
     needs: [slow-check-approval]
     uses: ./.github/workflows/tests-integration-no-db.yml
     secrets: inherit
+    permissions:
+      contents: read
     with:
       slow-tests: true
       python-version: "3.10"
@@ -26,6 +30,8 @@ jobs:
     needs: [slow-check-approval]
     uses: ./.github/workflows/tests-integration-db.yml
     secrets: inherit
+    permissions:
+      contents: read
     with:
       slow-tests: true
       python-version: "3.10"
