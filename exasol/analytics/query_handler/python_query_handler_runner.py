@@ -71,7 +71,9 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
             try:
                 self._handle_finish()
             except Exception as e1:
-                LOGGER.exception("Caught exeception during cleanup after an exception.")
+                LOGGER.exception(
+                    "Catched exeception during cleanup after an exception."
+                )
             raise RuntimeError(
                 f"Execution of query handler {self._state.query_handler} failed."
             ) from e
