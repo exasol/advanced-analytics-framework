@@ -195,7 +195,7 @@ jobs:
           include-hidden-files: true
 
   Code-Generation:
-    name: Check Code Generation (Amalgate)
+    name: Code Generation Check
     uses: ./.github/workflows/check-code-generation.yml
     permissions:
       contents: read
