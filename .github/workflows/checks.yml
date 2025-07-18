@@ -193,3 +193,9 @@ jobs:
           name: coverage-python${{ matrix.python-version }}-fast
           path: .coverage
           include-hidden-files: true
+
+  Code-Generation:
+    name: Check Code Generation (Amalgate)
+    uses: ./.github/workflows/check-code-generation.yml
+    permissions:
+      contents: read
