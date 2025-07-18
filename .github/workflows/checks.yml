@@ -23,26 +23,26 @@ jobs:
 
   # This step is disabled, because the project does not support sphinx yet
 
-#   Documentation:
-#     name: Docs
-#     needs: [ Version-Check ]
-#     runs-on: ubuntu-24.04
-#     permissions:
-#       contents: read
-#     steps:
-#       - name: SCM Checkout
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Python & Poetry Environment
-#         uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
-#
-#       - name: Build Documentation
-#         run: |
-#           poetry run -- nox -s docs:build
-#
-#       - name: Link Check
-#         run: |
-#           poetry run -- nox -s links:check
+  # Documentation:
+  #   name: Docs
+  #   needs: [ Version-Check ]
+  #   runs-on: ubuntu-24.04
+  #   permissions:
+  #     contents: read
+  #   steps:
+  #     - name: SCM Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Python & Poetry Environment
+  #       uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
+  #
+  #     - name: Build Documentation
+  #       run: |
+  #         poetry run -- nox -s docs:build
+  #
+  #     - name: Link Check
+  #       run: |
+  #         poetry run -- nox -s links:check
 
   build-matrix:
     name: Generate Build Matrix
