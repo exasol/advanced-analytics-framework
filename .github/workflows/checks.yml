@@ -22,7 +22,7 @@ jobs:
         run: poetry run -- nox -s version:check
 
   # This step is disabled, because the project does not support sphinx yet
- 
+
 #   Documentation:
 #     name: Docs
 #     needs: [ Version-Check ]
@@ -32,14 +32,14 @@ jobs:
 #     steps:
 #       - name: SCM Checkout
 #         uses: actions/checkout@v4
-# 
+#
 #       - name: Setup Python & Poetry Environment
 #         uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
-# 
+#
 #       - name: Build Documentation
 #         run: |
 #           poetry run -- nox -s docs:build
-# 
+#
 #       - name: Link Check
 #         run: |
 #           poetry run -- nox -s links:check
@@ -183,8 +183,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # This doesn't use nox, because currently the test structure doesn't fit yet
       - name: Run Tests and Collect Coverage
-        run: poetry run -- nox -s test:unit -- --coverage
+        run: poetry run pytest tests/unit_tests
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4.6.2
