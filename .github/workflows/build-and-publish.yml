@@ -11,19 +11,19 @@ jobs:
   cd-job:
     name: Continuous Delivery
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
-
       - name: SCM Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@1.0.1
-        with:
-          poetry-version: 2.1.2
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
 
       - name: Build Artifacts
         run: poetry build
 
+      # Do we really need this?                        
       - name: Build Script Language Container (SLC)
         run: poetry run -- nox -s build_language_container
 
