@@ -1,6 +1,6 @@
 [project]
 name = "exasol-advanced-analytics-framework"
-version = "1.0.0"
+version = "0.4.1"
 requires-python = ">=3.10,<4"
 description = "Framework for building complex data analysis algorithms with Exasol"
 authors = [
@@ -56,8 +56,6 @@ pytest-exasol-extension = ">=0.1.0,<1.0.0"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.coverage.report]
-ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -69,7 +67,7 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "test.*",
+    "tests.*",
     "noxfile",
 ]
 ignore_errors = true
