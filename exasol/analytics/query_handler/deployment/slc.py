@@ -1,7 +1,7 @@
 import subprocess
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Generator
 
 from exasol.python_extension_common.deployment.language_container_builder import (
     LanguageContainerBuilder,
@@ -53,7 +53,7 @@ class AAFLanguageContainerBuilder(LanguageContainerBuilder):
 
 
 @contextmanager
-def custom_slc_builder() -> LanguageContainerBuilder:
+def custom_slc_builder() -> Generator[LanguageContainerBuilder, None, None]:
     project_directory = find_path_backwards("pyproject.toml", __file__).parent
     with AAFLanguageContainerBuilder(SLC_NAME) as builder:
         builder.prepare_flavor(project_directory)
