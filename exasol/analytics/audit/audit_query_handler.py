@@ -32,7 +32,7 @@ from exasol.analytics.query_handler.result import (
 )
 from exasol.analytics.schema import (
     Column,
-    DecimalColumn,
+    decimal_column,
 )
 
 LOG = logging.getLogger(__name__)
@@ -142,7 +142,7 @@ class AuditQueryHandler(QueryHandler[ParameterType, ResultType]):
         """
         input_query = SelectQueryWithColumnDefinition(
             query_string="SELECT (CAST 1 as DECIMAL(1,0)) as DUMMY_COLUMN",
-            output_columns=[DecimalColumn.simple("DUMMY_COLUMN", precision=1, scale=0)],
+            output_columns=[decimal_column("DUMMY_COLUMN", precision=1, scale=0)],
         )
         return Continue(
             query_list=self._augmented([audit_query]),

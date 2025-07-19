@@ -211,4 +211,3 @@ In this example, the algorithm is finished at this iteration and returns 2<sup>_
 ## Additional Information
 
 * [Object Proxies](proxies.md) for managing temporary locations in the database and BucketFS
-* [Database Objects](database_objects.md)
