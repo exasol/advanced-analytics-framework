@@ -23,7 +23,8 @@ jobs:
       - name: Build Artifacts
         run: poetry build
 
-      # SLC is uploaded to the GitHub release in step "GitHub Release"
+      # SLC is uploaded to the GitHub release in step "GitHub Release", see
+      # also AAF Developer Guide.
       - name: Build Script Language Container (SLC)
         run: poetry run -- nox -s build_language_container
 

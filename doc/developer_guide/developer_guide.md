@@ -12,6 +12,8 @@ The following command builds the SLC for the AAF
 poetry run -- nox -s build_language_container
 ```
 
+GitHub workflow `build-and-publish.yml` also adds the SLC to each release of the AAF on GitHub.
+
 Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guide.md#script-language-container-slc).
 
 ## Update Generated Files
