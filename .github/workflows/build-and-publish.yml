@@ -23,7 +23,7 @@ jobs:
       - name: Build Artifacts
         run: poetry build
 
-      # Do we really need this?                        
+      # SLC is uploaded to the GitHub release in step "GitHub Release"
       - name: Build Script Language Container (SLC)
         run: poetry run -- nox -s build_language_container
 
