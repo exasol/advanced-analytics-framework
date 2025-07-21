@@ -1,6 +1,6 @@
 [project]
 name = "exasol-advanced-analytics-framework"
-version = "1.0.0"
+version = "0.6.0"
 requires-python = ">=3.10,<4"
 description = "Framework for building complex data analysis algorithms with Exasol"
 authors = [
@@ -24,7 +24,7 @@ packages = [
 [tool.poetry.dependencies]
 jinja2 = "^3.1.6"
 importlib-resources = "^6.5.2"
-exasol-bucketfs = "^1.0.1"
+exasol-bucketfs = ">=1,<3"
 click = "^8.1.8"
 pyexasol = ">=0.25.0,<1.0.0"
 pandas = "^2.2.3"
@@ -56,8 +56,6 @@ pytest-exasol-extension = ">=0.1.0,<1.0.0"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.coverage.report]
-ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -69,7 +67,7 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "test.*",
+    "tests.*",
     "noxfile",
 ]
 ignore_errors = true
@@ -98,3 +96,9 @@ max-module-lines = 800
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
+
+
+[tool.sonar]
+projectKey = "com.exasol:advanced-analytics-framework"
+hostUrl = "https://sonarcloud.io"
+organization = "exasol"

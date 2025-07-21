@@ -12,6 +12,8 @@ The following command builds the SLC for the AAF
 poetry run -- nox -s build_language_container
 ```
 
+GitHub workflow `build-and-publish.yml` also adds the SLC to each release of the AAF on GitHub.
+
 Installing the SLC ins described in the [AAF User Guide](../user_guide/user_guide.md#script-language-container-slc).
 
 ## Update Generated Files
@@ -57,15 +59,15 @@ poetry run -- nox -s run_in_dev_env -- poetry install
 You can execute the unit tests without special preparation in the regular poetry environment:
 
 ```shell
-poetry run -- pytest test/unit
+poetry run -- pytest tests/unit_tests
 ```
 
 ### Python Integration Tests with and w/o database
 
 The following commands run integration tests w/o and with database
 ```shell
-poetry run -- nox -s run_python_test -- -- test/integration/no_db/
-poetry run -- nox -s run_python_test -- -- --backend=onprem test/integration/db/
+poetry run -- nox -s run_python_test -- -- tests/integration_tests/without_db/
+poetry run -- nox -s run_python_test -- -- --backend=onprem tests/integration_tests/with_db/
 ```
 
 ### Lua Unit Tests

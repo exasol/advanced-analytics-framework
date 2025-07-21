@@ -16,11 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
-#      These steps are disabled, because the project does not support sphinx yet
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
 
-#       - name: Setup Python & Poetry Environment
-#         uses: exasol/python-toolbox/.github/actions/python-environment@1.2.0
-#
+# This step is disabled, because the project does not support sphinx yet
+
 #       - name: Build Documentation
 #         run: |
 #           poetry run -- nox -s docs:multiversion
@@ -30,9 +30,7 @@ jobs:
 #         uses: actions/upload-pages-artifact@v3
 #         with:
 #           path: .html-documentation
-
-# This job is disabled, because the project does not support sphinx yet
-
+#
 #   deploy-documentation:
 #     needs: [ build-documentation ]
 #     permissions:

@@ -10,6 +10,7 @@ class Config:
     root: Path = ROOT_DIR
     doc: Path = ROOT_DIR / "doc"
     version_file: Path = ROOT_DIR / "version.py"
+    source: Path = Path("exasol/analytics")
     path_filters: Iterable[str] = (
         "dist",
         ".eggs",

@@ -1,9 +1,7 @@
 name: Check Code Generation
 
 on:
-  push:
-    branches-ignore:
-      - main
+  workflow_call:
 
 jobs:
   check_code_generation:

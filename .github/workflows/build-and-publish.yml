@@ -18,11 +18,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@1.2.0
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.6.1
 
       - name: Build Artifacts
         run: poetry build
 
+      # SLC is uploaded to the GitHub release in step "GitHub Release", see
+      # also AAF Developer Guide.
       - name: Build Script Language Container (SLC)
         run: poetry run -- nox -s build_language_container
 
