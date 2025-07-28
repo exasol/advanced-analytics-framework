@@ -25,7 +25,7 @@ class BaseAuditColumns:
     PARENT_LOG_SPAN_ID = hashtype_column("PARENT_LOG_SPAN_ID", bytes=16)
     # For ModifyQuery EVENT_NAME will be either "Begin" or "End".  For other
     # queries this can be a custom string, e.g.  "ERROR", "COMMIT", ...
-    EVENT_NAME = varchar_column("EVENT_NAME", size=128)
+    EVENT_NAME = varchar_column("EVENT_NAME", size=2000000)
     # This will contain the string representation of a json document.
     EVENT_ATTRIBUTES = varchar_column("EVENT_ATTRIBUTES", size=2000000)
     DB_OBJECT_TYPE = varchar_column("DB_OBJECT_TYPE", size=128)

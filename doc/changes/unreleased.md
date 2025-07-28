@@ -2,7 +2,9 @@
 
 ## Features
 
-* #313: Increased width of AuditLog column `ERROR_MESSAGE` to 2 000 000 characters
+* #313: Increased width of AuditLog columns to 2 000 000 characters:
+  * `ERROR_MESSAGE`
+  * `EVENT_NAME`
 
 ## Bugfixes
 
