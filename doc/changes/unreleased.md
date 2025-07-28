@@ -11,3 +11,4 @@
 ## Refactorings
 
 * #309: Removed GitHub workflow `ci-cd.yml`
+* #223: Fixed typo "Catched" to "Caught" in error messages

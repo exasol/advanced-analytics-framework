@@ -53,7 +53,7 @@ class DiscoverySocket:
         try:
             self._udp_socket.close()
         except Exception as e:
-            self._logger.exception("Catched exception during self._udp_socket.close")
+            self._logger.exception("Caught exception during self._udp_socket.close")
 
     def __del__(self):
         self.close()
