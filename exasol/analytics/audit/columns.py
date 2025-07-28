@@ -33,7 +33,7 @@ class BaseAuditColumns:
     DB_OBJECT_SCHEMA = varchar_column("DB_OBJECT_SCHEMA", size=128)
     # Contains the schema name for operations CREATE/DROP SCHEMA:
     DB_OBJECT_NAME = varchar_column("DB_OBJECT_NAME", size=128)
-    ERROR_MESSAGE = varchar_column("ERROR_MESSAGE", size=200)
+    ERROR_MESSAGE = varchar_column("ERROR_MESSAGE", size=2000000)
 
     all = [
         LOG_TIMESTAMP,
