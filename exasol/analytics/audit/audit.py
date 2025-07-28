@@ -102,13 +102,12 @@ class AuditTable(Table):
 
     def _insert(self, query: AuditQuery) -> Query:
         def log_span_fields(log_span: LogSpan | None):
-            run_id = {
-                BaseAuditColumns.RUN_ID: str(self._run_id)
-            }
+            run_id = {BaseAuditColumns.RUN_ID: str(self._run_id)}
             if not log_span:
                 return base_column_values(run_id)
             return base_column_values(
-                run_id | {
+                run_id
+                | {
                     BaseAuditColumns.LOG_SPAN_NAME: log_span.name,
                     BaseAuditColumns.LOG_SPAN_ID: str(log_span.id),
                 },
