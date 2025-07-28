@@ -246,11 +246,13 @@ def test_audit(
             INSERT INTO {audit_table.name.fully_qualified} (
               "LOG_TIMESTAMP",
               "SESSION_ID",
-              "EVENT_ATTRIBUTES"
+              "EVENT_ATTRIBUTES",
+              "RUN_ID"
             ) SELECT
               SYSTIMESTAMP(),
               CURRENT_SESSION,
-              '{{{{"c": 456}}}}'
+              '{{{{"c": 456}}}}',
+              'RUN_ID_2'
             """
         ),
         # sub query of final audit log query
