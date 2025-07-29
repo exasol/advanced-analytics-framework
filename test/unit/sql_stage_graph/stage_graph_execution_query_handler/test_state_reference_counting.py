@@ -1,4 +1,10 @@
 import dataclasses
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
+    TestSetup,
+    create_execution_query_handler_state_setup,
+    create_mocks_for_stage,
+)
+from test.utils.mock_cast import mock_cast
 from typing import (
     Dict,
     List,
@@ -20,12 +26,6 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
-    TestSetup,
-    create_execution_query_handler_state_setup,
-    create_mocks_for_stage,
-)
-from test.utils.mock_cast import mock_cast
 
 
 def create_diamond_setup(

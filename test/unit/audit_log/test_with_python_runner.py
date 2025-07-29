@@ -1,3 +1,5 @@
+from test.unit.audit_log.qh_utils import continue_action
+from test.utils.audit_table_utils import create_insert_query
 from typing import Callable
 from unittest.mock import (
     Mock,
@@ -41,8 +43,6 @@ from exasol.analytics.sql_executor.testing.mock_sql_executor import (
     create_sql_executor,
     expect_query,
 )
-from test.unit.audit_log.qh_utils import continue_action
-from test.utils.audit_table_utils import create_insert_query
 
 
 @pytest.fixture()

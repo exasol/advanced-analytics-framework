@@ -1,4 +1,9 @@
 import logging
+from test.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    all_rows_as_dicts,
+    create_insert_query,
+)
 
 import pytest
 
@@ -16,11 +21,6 @@ from exasol.analytics.schema import (
     TableNameImpl,
     decimal_column,
     varchar_column,
-)
-from test.utils.audit_table_utils import (
-    SAMPLE_LOG_SPAN,
-    all_rows_as_dicts,
-    create_insert_query,
 )
 
 LOG = logging.getLogger(__name__)

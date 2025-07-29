@@ -1,3 +1,16 @@
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import (
+    assert_parent_query_handler_context_not_called,
+    assert_reference_counting_bag_creation,
+    assert_reference_counting_bag_not_called,
+    assert_release_on_query_handler_context_for_stage,
+    assert_stage_not_called,
+    assert_stage_query_handler_created,
+)
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
+    TestSetup,
+    create_execution_query_handler_state_setup,
+    create_mocks_for_stage,
+)
 from typing import (
     List,
     Union,
@@ -20,19 +33,6 @@ from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
-)
-from test.unit.sql_stage_graph.stage_graph_execution_query_handler.assert_helper import (
-    assert_parent_query_handler_context_not_called,
-    assert_reference_counting_bag_creation,
-    assert_reference_counting_bag_not_called,
-    assert_release_on_query_handler_context_for_stage,
-    assert_stage_not_called,
-    assert_stage_query_handler_created,
-)
-from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
-    TestSetup,
-    create_execution_query_handler_state_setup,
-    create_mocks_for_stage,
 )
 
 

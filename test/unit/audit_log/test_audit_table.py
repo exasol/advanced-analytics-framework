@@ -2,6 +2,14 @@ import logging
 import re
 import uuid
 from inspect import cleandoc
+from test.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    LogSpan,
+    create_insert_query,
+    prefix_matcher,
+    query_matcher,
+    regex_matcher,
+)
 from unittest.mock import Mock
 
 import pytest
@@ -24,14 +32,6 @@ from exasol.analytics.schema import (
     TableNameImpl,
     decimal_column,
     varchar_column,
-)
-from test.utils.audit_table_utils import (
-    SAMPLE_LOG_SPAN,
-    LogSpan,
-    create_insert_query,
-    prefix_matcher,
-    query_matcher,
-    regex_matcher,
 )
 
 LOG = logging.getLogger(__name__)

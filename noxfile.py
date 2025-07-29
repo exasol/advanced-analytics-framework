@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import nox
+
 # imports all nox task provided by the toolbox
 from exasol.toolbox.nox.tasks import *  # type: ignore
 from nox import Session
@@ -54,12 +55,12 @@ def install_dev_env(session: Session):
 @nox.session(python=False)
 def amalgate_lua_scripts(session: Session):
     script = (
-            ROOT_DIR
-            / "exasol"
-            / "analytics"
-            / "query_handler"
-            / "deployment"
-            / "regenerate_scripts.py"
+        ROOT_DIR
+        / "exasol"
+        / "analytics"
+        / "query_handler"
+        / "deployment"
+        / "regenerate_scripts.py"
     )
     _run_in_dev_env_poetry_call(session, "python", str(script))
 

@@ -1,4 +1,10 @@
 from dataclasses import dataclass
+from test.unit.audit_log.qh_utils import continue_action
+from test.utils.audit_table_utils import (
+    create_insert_query,
+    prefix_matcher,
+    regex_matcher,
+)
 from typing import Generic
 from unittest.mock import Mock
 
@@ -29,12 +35,6 @@ from exasol.analytics.schema import (
     TableName,
     TableNameImpl,
     decimal_column,
-)
-from test.unit.audit_log.qh_utils import continue_action
-from test.utils.audit_table_utils import (
-    create_insert_query,
-    prefix_matcher,
-    regex_matcher,
 )
 
 

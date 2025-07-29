@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import (
     List,
     Tuple,
@@ -36,7 +37,6 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     Socket,
 )
-from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass

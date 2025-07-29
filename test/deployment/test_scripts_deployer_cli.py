@@ -1,8 +1,9 @@
+from test.utils.db_queries import DBQueries
+
 from click.testing import CliRunner
 
 from exasol.analytics.query_handler.deployment import deploy
 from exasol.analytics.query_handler.deployment.slc import LANGUAGE_ALIAS
-from test.utils.db_queries import DBQueries
 
 
 def test_scripts_deployer_cli(

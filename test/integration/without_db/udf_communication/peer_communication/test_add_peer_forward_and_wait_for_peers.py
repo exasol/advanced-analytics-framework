@@ -1,6 +1,15 @@
 import time
 import traceback
 from pathlib import Path
+from test.integration.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+    ConditionalMethodDropper,
+)
+from test.integration.without_db.udf_communication.peer_communication.utils import (
+    BidirectionalQueue,
+    PeerCommunicatorTestProcessParameter,
+    TestProcess,
+    assert_processes_finish,
+)
 from typing import (
     Dict,
     List,
@@ -32,15 +41,6 @@ from exasol.analytics.udf.communication.socket_factory.fault_injection import (
 )
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
-)
-from test.integration.without_db.udf_communication.peer_communication.conditional_method_dropper import (
-    ConditionalMethodDropper,
-)
-from test.integration.without_db.udf_communication.peer_communication.utils import (
-    BidirectionalQueue,
-    PeerCommunicatorTestProcessParameter,
-    TestProcess,
-    assert_processes_finish,
 )
 
 structlog.configure(
