@@ -1,12 +1,9 @@
 import json
 import os
-from datetime import datetime
 from pathlib import Path
 
 import nox
-
 # imports all nox task provided by the toolbox
-from exasol.toolbox.nox.tasks import *
 from nox import Session
 
 from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
@@ -56,12 +53,12 @@ def install_dev_env(session: Session):
 @nox.session(python=False)
 def amalgate_lua_scripts(session: Session):
     script = (
-        ROOT_DIR
-        / "exasol"
-        / "analytics"
-        / "query_handler"
-        / "deployment"
-        / "regenerate_scripts.py"
+            ROOT_DIR
+            / "exasol"
+            / "analytics"
+            / "query_handler"
+            / "deployment"
+            / "regenerate_scripts.py"
     )
     _run_in_dev_env_poetry_call(session, "python", str(script))
 
@@ -70,12 +67,6 @@ def amalgate_lua_scripts(session: Session):
 def run_lua_unit_tests(session: Session):
     lua_tests_script = SCRIPTS_DIRECTORY / "lua_tests.sh"
     _run_in_dev_env_call(session, str(lua_tests_script))
-
-
-@nox.session(python=False)
-def run_python_unit_tests(session: Session):
-    unit_test_directory = TEST_DIRECTORY / "unit"
-    _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
 
 
 def _generate_test_matrix_entry(test_file: Path):
