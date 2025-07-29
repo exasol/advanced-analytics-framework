@@ -4,6 +4,7 @@ from pathlib import Path
 
 import nox
 # imports all nox task provided by the toolbox
+from exasol.toolbox.nox.tasks import *  # type: ignore
 from nox import Session
 
 from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
