@@ -56,7 +56,7 @@ def _new(cls: type[_T], parent_cls: type):
         raise TypeError(f"No custom __delattr__ allowed. Got {cls.__delattr__}.")
     if cls.__init__ != object.__init__ and cls.__init__ != _init:
         raise TypeError(f"No custom constructors allowed. Got {cls.__init__}.")
-    result_object = super(parent_cls, cls).__new__(cls)
+    result_object = super(parent_cls, cls).__new__(cls)  # type: ignore
     result_id = _Meta._result_counter.next()
     setattr(result_object, "result_id", result_id)
     return result_object
