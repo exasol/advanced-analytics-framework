@@ -24,11 +24,11 @@ jobs:
           python-version: ${{ inputs.python-version }}
           poetry-version: 2.1.2
 
-      - id: generate_integration_tests_without_db
+      - id: generate_matrix
         name: "Generate list of integration tests without DB"
         run: poetry run -- nox -s matrix:no-db
     outputs:
-      test-path: ${{ steps.generate_integration_tests_no_db.outputs.matrix }}
+      test-path: ${{ steps.generate_matrix.outputs.matrix }}
 
   run_test:
     needs: prepare_matrix
