@@ -28,10 +28,10 @@ from exasol.analytics.udf.communication.peer_communicator.peer_communicator impo
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
-from test.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+from test.integration.without_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,
 )
-from test.integration_tests.without_db.udf_communication.peer_communication.utils import (
+from test.integration.without_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     PeerCommunicatorTestProcessParameter,
     TestProcess,
