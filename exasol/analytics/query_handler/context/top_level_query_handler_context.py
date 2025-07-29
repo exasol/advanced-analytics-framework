@@ -56,8 +56,8 @@ class ChildContextNotReleasedError(Exception):
 
     def __init__(
         self,
-        not_released_child_contexts: List[ScopeQueryHandlerContext],
-        exceptions_thrown_by_not_released_child_contexts: List[
+        not_released_child_contexts: list[ScopeQueryHandlerContext],
+        exceptions_thrown_by_not_released_child_contexts: list[
             "ChildContextNotReleasedError"
         ],
     ):
@@ -109,11 +109,11 @@ class _ScopeQueryHandlerContextBase(ScopeQueryHandlerContext, ABC):
         self._temporary_schema_name = temporary_schema_name
         self._temporary_bucketfs_location = temporary_bucketfs_location
         self._temporary_db_object_name_prefix = temporary_db_object_name_prefix
-        self._not_released_object_proxies: Set[ObjectProxy] = set()
-        self._released_object_proxies: Set[ObjectProxy] = set()
-        self._owned_object_proxies: Set[ObjectProxy] = set()
+        self._not_released_object_proxies: set[ObjectProxy] = set()
+        self._released_object_proxies: set[ObjectProxy] = set()
+        self._owned_object_proxies: set[ObjectProxy] = set()
         self._counter = 0
-        self._child_query_handler_context_list: List[_ChildQueryHandlerContext] = []
+        self._child_query_handler_context_list: list[_ChildQueryHandlerContext] = []
         self._not_released = True
 
     def release(self) -> None:
@@ -349,7 +349,7 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         super()._release_object(object_proxy)
         object_proxy._release()
 
-    def cleanup_released_object_proxies(self) -> List[Query]:
+    def cleanup_released_object_proxies(self) -> list[Query]:
         """
         Cleans up released objects.
         BucketFSLocationProxies will be directly removed.
@@ -357,12 +357,12 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         The clean up queries are sorted in reverse order of their creation,
         such that, we remove first objects that might depend on previous objects.
         """
-        db_objects: List[DBObjectNameProxy] = [
+        db_objects: list[DBObjectNameProxy] = [
             object_proxy
             for object_proxy in self._released_object_proxies
             if isinstance(object_proxy, DBObjectNameProxy)
         ]
-        bucketfs_objects: List[BucketFSLocationProxy] = [
+        bucketfs_objects: list[BucketFSLocationProxy] = [
             object_proxy
             for object_proxy in self._released_object_proxies
             if isinstance(object_proxy, BucketFSLocationProxy)
@@ -379,7 +379,7 @@ class TopLevelQueryHandlerContext(_ScopeQueryHandlerContextBase):
         return cleanup_queries
 
     @staticmethod
-    def _remove_bucketfs_objects(bucketfs_object_proxies: List[BucketFSLocationProxy]):
+    def _remove_bucketfs_objects(bucketfs_object_proxies: list[BucketFSLocationProxy]):
         for object_proxy in bucketfs_object_proxies:
             object_proxy.cleanup()
 

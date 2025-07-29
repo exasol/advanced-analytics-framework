@@ -29,10 +29,10 @@ from tests.utils.mock_cast import mock_cast
 
 
 def create_diamond_setup(
-    stage1_result_prototypes: List[Union[Continue, Finish, MagicMock]],
-    stage2_result_prototypes: List[Union[Continue, Finish, MagicMock]],
-    stage3_result_prototypes: List[Union[Continue, Finish, MagicMock]],
-    stage4_result_prototypes: List[Union[Continue, Finish, MagicMock]],
+    stage1_result_prototypes: list[Union[Continue, Finish, MagicMock]],
+    stage2_result_prototypes: list[Union[Continue, Finish, MagicMock]],
+    stage3_result_prototypes: list[Union[Continue, Finish, MagicMock]],
+    stage4_result_prototypes: list[Union[Continue, Finish, MagicMock]],
 ) -> TestSetup:
     stage1_setup = create_mocks_for_stage(stage1_result_prototypes, stage_index=1)
     stage2_setup = create_mocks_for_stage(stage2_result_prototypes, stage_index=2)
@@ -67,7 +67,7 @@ def create_diamond_setup(
 @dataclasses.dataclass
 class ReferenceCountingSetup:
     test_setup: TestSetup
-    object_proxy_dict: Dict[ObjectProxy, int]
+    object_proxy_dict: dict[ObjectProxy, int]
 
 
 def create_diamond_setup_with_finish_with_last_stage_returning_new_result() -> (
@@ -108,7 +108,7 @@ def create_diamond_setup_with_finish_with_last_stage_returning_existing_result()
     return ReferenceCountingSetup(test_setup, object_proxy_dict)
 
 
-def equip_reference_counting_bag_with_logic(test_setup) -> Dict[ObjectProxy, int]:
+def equip_reference_counting_bag_with_logic(test_setup) -> dict[ObjectProxy, int]:
     object_proxy_dict = dict()
 
     def side_effect_contains(object_proxy):

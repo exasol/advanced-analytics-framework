@@ -53,7 +53,7 @@ MockSQLStageGraphExecutionQueryHandlerStateFactory = Union[
 
 @dataclasses.dataclass
 class SQLStageQueryHandlerMockSetup:
-    results: List[MockQueryHandlerResult]
+    results: list[MockQueryHandlerResult]
     query_handler: MockSQLStageQueryHandler
 
     def reset_mock(self):
@@ -64,10 +64,10 @@ class SQLStageQueryHandlerMockSetup:
 
 @dataclasses.dataclass
 class SQLStageQueryHandlerSetupDefinition:
-    result_prototypes: List[Union[Continue, Finish]]
+    result_prototypes: list[Union[Continue, Finish]]
 
     def create_mock_setup(self) -> SQLStageQueryHandlerMockSetup:
-        results: List[MockQueryHandlerResult] = [
+        results: list[MockQueryHandlerResult] = [
             create_autospec(result_prototype)
             for result_prototype in self.result_prototypes
         ]
@@ -79,7 +79,7 @@ class SQLStageQueryHandlerSetupDefinition:
 
 @dataclasses.dataclass
 class StateMockSetup:
-    query_handler_mock_setups: List[SQLStageQueryHandlerMockSetup]
+    query_handler_mock_setups: list[SQLStageQueryHandlerMockSetup]
     state: MockSQLStageGraphExecutionQueryHandlerState
 
     def reset_mock(self):
@@ -90,7 +90,7 @@ class StateMockSetup:
 
 @dataclasses.dataclass
 class StateSetupDefinition:
-    query_handler_setup_definitions: List[SQLStageQueryHandlerSetupDefinition]
+    query_handler_setup_definitions: list[SQLStageQueryHandlerSetupDefinition]
 
     def create_mock_setup(self) -> StateMockSetup:
         query_handler_mock_setups = [
@@ -326,7 +326,7 @@ def test_handle_query_result_single_query_handler_returning_continue_finish():
         - that the result is equal to the result of query_handler.handle_query_result
     """
 
-    def arrange() -> Tuple[TestSetup, MockQueryResult]:
+    def arrange() -> tuple[TestSetup, MockQueryResult]:
         state_setup_definition = StateSetupDefinition(
             query_handler_setup_definitions=[
                 SQLStageQueryHandlerSetupDefinition(
@@ -471,7 +471,7 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part2()
         - that the result is equal to the result of the second query_handler.start
     """
 
-    def arrange() -> Tuple[TestSetup, QueryResult]:
+    def arrange() -> tuple[TestSetup, QueryResult]:
         test_setup = (
             create_test_setup_with_two_query_handler_returning_continue_finish()
         )
@@ -520,7 +520,7 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part3()
         - that the result is equal to the result of the second query_handler.handle_query_result
     """
 
-    def arrange() -> Tuple[TestSetup, QueryResult]:
+    def arrange() -> tuple[TestSetup, QueryResult]:
         test_setup = (
             create_test_setup_with_two_query_handler_returning_continue_finish()
         )

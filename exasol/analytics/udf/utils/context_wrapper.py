@@ -1,7 +1,7 @@
 from collections import OrderedDict
+from collections.abc import Mapping
 from typing import (
     TYPE_CHECKING,
-    Mapping,
     Optional,
     Union,
 )

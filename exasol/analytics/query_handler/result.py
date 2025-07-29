@@ -19,7 +19,7 @@ class Result:
 
 @dataclass()
 class Continue(Result):
-    query_list: List[Query]
+    query_list: list[Query]
     input_query: SelectQueryWithColumnDefinition
 
 

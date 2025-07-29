@@ -44,7 +44,7 @@ def assert_stage_not_called(test_setup: TestSetup, *, stage_index: int):
 
 
 def assert_stage_query_handler_created(
-    test_setup: TestSetup, *, stage_index: int, stage_inputs: List[SQLStageInputOutput]
+    test_setup: TestSetup, *, stage_index: int, stage_inputs: list[SQLStageInputOutput]
 ):
     stage_setup = test_setup.stage_setups[stage_index]
     mock_cast(

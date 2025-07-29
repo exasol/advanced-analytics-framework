@@ -10,5 +10,5 @@ from exasol.analytics.schema.view_name import ViewName
 class View(TableLike[ViewName]):
 
     @typechecked
-    def __init__(self, name: ViewName, columns: List[Column]):
+    def __init__(self, name: ViewName, columns: list[Column]):
         super().__init__(name, columns)

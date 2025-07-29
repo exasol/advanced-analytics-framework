@@ -12,7 +12,7 @@ from exasol.analytics.schema.table_name import TableName
 class Table(TableLike[TableName]):
 
     @typechecked
-    def __init__(self, name: TableName, columns: List[Column]):
+    def __init__(self, name: TableName, columns: list[Column]):
         super().__init__(name, columns)
 
     @property

@@ -38,7 +38,7 @@ class TestSetup:
     abort_time_mock: Union[Timer, MagicMock]
     out_control_socket_mock: Union[Socket, MagicMock]
     retry_timer_mock: Union[Timer, MagicMock]
-    frame_mocks: List[Union[Frame, MagicMock]]
+    frame_mocks: list[Union[Frame, MagicMock]]
     message: messages.Payload
     payload_message_sender: PayloadMessageSender
 

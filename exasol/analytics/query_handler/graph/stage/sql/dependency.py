@@ -22,7 +22,7 @@ class Dependency:
     """
 
     object: Any
-    dependencies: Dict[Enum, "Dependency"] = dataclasses.field(default_factory=dict)
+    dependencies: dict[Enum, "Dependency"] = dataclasses.field(default_factory=dict)
     """
     Each dependency can again have subsequent dependencies. For example, a
     view can depend on another view which in fact then consists of table.
@@ -33,10 +33,10 @@ class Dependency:
         # can be only resolved if check_type uses the locals and globals of this frame
         try:
             typeguard.check_type(
-                value=self.dependencies, expected_type=Dict[Enum, "Dependency"]
+                value=self.dependencies, expected_type=dict[Enum, "Dependency"]
             )
         except TypeCheckError as e:
             raise TypeCheckError(f"Field 'dependencies' has wrong type: {e}")
 
 
-Dependencies = Dict[object, Dependency]
+Dependencies = dict[object, Dependency]

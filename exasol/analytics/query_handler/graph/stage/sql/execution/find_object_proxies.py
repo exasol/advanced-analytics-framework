@@ -1,7 +1,7 @@
+from collections.abc import Iterable
 from typing import (
     Any,
     Dict,
-    Iterable,
     List,
     Set,
 )
@@ -11,7 +11,7 @@ from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
 )
 
 
-def find_object_proxies(obj: Any) -> List[ObjectProxy]:
+def find_object_proxies(obj: Any) -> list[ObjectProxy]:
     """
     This functions searches through the object tree of obj to find ObjectProxy objects.
     This functions can be used when you need to know which ObjectProxy objects are still in use.
@@ -21,7 +21,7 @@ def find_object_proxies(obj: Any) -> List[ObjectProxy]:
     return _find_object_proxies(obj, set())
 
 
-def _find_object_proxies(obj: Any, already_seen: Set[int]) -> List[ObjectProxy]:
+def _find_object_proxies(obj: Any, already_seen: set[int]) -> list[ObjectProxy]:
     """
     This functions searches through the object tree of obj to find ObjectProxy objects
     and tracks the already seen object ids.
@@ -36,7 +36,7 @@ def _find_object_proxies(obj: Any, already_seen: Set[int]) -> List[ObjectProxy]:
         already_seen.add(obj_identifier)
         if isinstance(obj, ObjectProxy):
             return [obj]
-        elif isinstance(obj, Dict):
+        elif isinstance(obj, dict):
             return find_object_proxies_in_dict(obj, already_seen)
         elif isinstance(obj, Iterable) and not isinstance(obj, str):
             generator = (_find_object_proxies(o, already_seen) for o in obj)
@@ -47,7 +47,7 @@ def _find_object_proxies(obj: Any, already_seen: Set[int]) -> List[ObjectProxy]:
             return []
 
 
-def find_object_proxies_in_dict(obj: Dict, already_seen: Set[int]) -> List[ObjectProxy]:
+def find_object_proxies_in_dict(obj: dict, already_seen: set[int]) -> list[ObjectProxy]:
     # We can't create temporary lists for keys and values and then reuse the Iterable part of _find_object_proxies.
     # Because, the id of temporary lists could be reused and then we wouldn't trasverse all branches of the object graphs.
     result = []

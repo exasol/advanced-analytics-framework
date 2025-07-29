@@ -35,8 +35,8 @@ class TestSetup:
     __test__ = False
     mock_parent_query_context_handler: MockScopeQueryHandlerContext
     mock_object_proxy_reference_counter_factory: MockObjectProxyReferenceCounterFactory
-    mock_object_proxies: List[MockObjectProxy]
-    mock_object_proxy_reference_counters: List[MockObjectProxyReferenceCounter]
+    mock_object_proxies: list[MockObjectProxy]
+    mock_object_proxy_reference_counters: list[MockObjectProxyReferenceCounter]
 
     def reset_mock(self):
         self.mock_parent_query_context_handler.reset_mock()
@@ -51,7 +51,7 @@ def create_test_setup(*, proxy_count: int) -> TestSetup:
     parent_query_context_handler: MockScopeQueryHandlerContext = create_autospec(
         ScopeQueryHandlerContext
     )
-    object_proxies: List[MockObjectProxy] = [
+    object_proxies: list[MockObjectProxy] = [
         create_autospec(ObjectProxy) for i in range(proxy_count)
     ]
     object_proxy_reference_counter_factory: MockObjectProxyReferenceCounterFactory = (
@@ -70,7 +70,7 @@ def create_test_setup(*, proxy_count: int) -> TestSetup:
 
 
 def create_test_setup_with_reference_counters(
-    mock_object_proxies: List[MockObjectProxy],
+    mock_object_proxies: list[MockObjectProxy],
 ):
     object_proxy_reference_counters = [
         create_mock_reference_counter() for _ in mock_object_proxies

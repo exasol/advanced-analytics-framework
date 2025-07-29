@@ -46,7 +46,7 @@ class TestSetup:
     out_control_socket_mock: Union[MagicMock, Socket]
     clock_mock: Union[MagicMock, Clock]
     payload_message_sender_factory_mock: Union[MagicMock, PayloadMessageSenderFactory]
-    payload_message_sender_mocks: List[Union[MagicMock, PayloadMessageSender]]
+    payload_message_sender_mocks: list[Union[MagicMock, PayloadMessageSender]]
     payload_message_sender_timeout_config: PayloadMessageSenderTimeoutConfig
     my_connection_info: ConnectionInfo
     peer: Peer
@@ -128,7 +128,7 @@ def create_acknowledge_payload_message(
 
 def create_payload_message(
     test_setup: TestSetup, sequence_number: int
-) -> Tuple[messages.Payload, List[Frame]]:
+) -> tuple[messages.Payload, list[Frame]]:
     frames = [create_autospec(Frame)]
     message = messages.Payload(
         source=test_setup.peer,

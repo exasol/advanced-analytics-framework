@@ -41,7 +41,7 @@ def _delattr(self, key: str):
 _T = TypeVar("_T")
 
 
-def _new(cls: Type[_T], parent_cls: Type):
+def _new(cls: type[_T], parent_cls: type):
     """
     Create a new object from cls which is a subclass of parent_cls.
     where a unique id is set for each object regardless of the specific type.
@@ -74,7 +74,7 @@ class _ResultCounter:
 class _Meta(type):
     _result_counter = _ResultCounter()
 
-    def __new__(cls, name: str, bases: Tuple[Type, ...], attrs: Any):
+    def __new__(cls, name: str, bases: tuple[type, ...], attrs: Any):
         """
         Create a new type based on the parameters and overwrites the functions __new__, __init__ and __setattr__.
         This function is calles for types that declare this class as their metaclass.
@@ -84,7 +84,7 @@ class _Meta(type):
         """
         result_type = type(name, bases, attrs)
 
-        def _configured_new(cls: Type[_T]):
+        def _configured_new(cls: type[_T]):
             """This function is called for subclasses of classes that declare _Meta as their metaclass."""
             return _new(cls, result_type)
 

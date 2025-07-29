@@ -79,10 +79,10 @@ class BackgroundPeerState:
     def received_register_peer_complete(self):
         self._register_peer_forwarder.received_register_peer_complete()
 
-    def send_payload(self, message: messages.Payload, frames: List[Frame]):
+    def send_payload(self, message: messages.Payload, frames: list[Frame]):
         self._payload_handler.send_payload(message, frames)
 
-    def received_payload(self, message: messages.Payload, frames: List[Frame]):
+    def received_payload(self, message: messages.Payload, frames: list[Frame]):
         self._payload_handler.received_payload(message, frames)
 
     def received_acknowledge_payload(self, message: messages.AcknowledgePayload):

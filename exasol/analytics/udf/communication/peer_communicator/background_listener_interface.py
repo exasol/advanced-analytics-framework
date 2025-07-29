@@ -1,10 +1,10 @@
 import threading
+from collections.abc import Iterator
 from dataclasses import (
     asdict,
     dataclass,
 )
 from typing import (
-    Iterator,
     List,
     Optional,
     Set,
@@ -132,15 +132,15 @@ class BackgroundListenerInterface:
         register_message = messages.RegisterPeer(peer=peer)
         self._in_control.socket.send(serialize_message(register_message))
 
-    def send_payload(self, message: messages.Payload, payload: List[Frame]):
+    def send_payload(self, message: messages.Payload, payload: list[Frame]):
         serialized_message = serialize_message(message)
         frame = self._socket_factory.create_frame(serialized_message)
         self._in_control.socket.send_multipart([frame] + payload)
 
     def receive_messages(
         self, timeout_in_milliseconds: Optional[int] = 0
-    ) -> Iterator[Tuple[Message, List[Frame]]]:
-        def poll() -> Set[PollerFlag]:
+    ) -> Iterator[tuple[Message, list[Frame]]]:
+        def poll() -> set[PollerFlag]:
             return (
                 self._out_control.socket.poll(
                     flags=PollerFlag.POLLIN,

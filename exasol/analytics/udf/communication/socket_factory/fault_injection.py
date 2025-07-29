@@ -68,12 +68,12 @@ class Socket(abstract.Socket):
         message = self._internal_socket.receive()
         return message
 
-    def receive_multipart(self) -> List[abstract.Frame]:
+    def receive_multipart(self) -> list[abstract.Frame]:
         message = self._internal_socket.receive_multipart()
-        converted_message: List[abstract.Frame] = [Frame(frame) for frame in message]
+        converted_message: list[abstract.Frame] = [Frame(frame) for frame in message]
         return converted_message
 
-    def send_multipart(self, message: List[abstract.Frame]):
+    def send_multipart(self, message: list[abstract.Frame]):
         def convert_frame(frame: abstract.Frame):
             if not isinstance(frame, Frame):
                 raise TypeError(f"Frame type not supported, {frame}")
@@ -99,9 +99,9 @@ class Socket(abstract.Socket):
 
     def poll(
         self,
-        flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]],
+        flags: Union[abstract.PollerFlag, set[abstract.PollerFlag]],
         timeout_in_ms: Optional[int] = None,
-    ) -> Optional[Set[abstract.PollerFlag]]:
+    ) -> Optional[set[abstract.PollerFlag]]:
         return self._internal_socket.poll(flags, timeout_in_ms)
 
     def close(self, linger=None):
@@ -135,12 +135,12 @@ class Poller(abstract.Poller):
 
     def __init__(self, internal_poller: abstract.Poller):
         self._internal_poller = internal_poller
-        self._socket_map: Dict[abstract.Socket, abstract.Socket] = {}
+        self._socket_map: dict[abstract.Socket, abstract.Socket] = {}
 
     def register(
         self,
         socket: abstract.Socket,
-        flags: Union[abstract.PollerFlag, Set[abstract.PollerFlag]],
+        flags: Union[abstract.PollerFlag, set[abstract.PollerFlag]],
     ) -> None:
         if not isinstance(socket, Socket):
             raise TypeError(f"Socket type not supported {socket}")
@@ -150,7 +150,7 @@ class Poller(abstract.Poller):
 
     def poll(
         self, timeout_in_ms: Optional[int] = None
-    ) -> Dict[abstract.Socket, Set[abstract.PollerFlag]]:
+    ) -> dict[abstract.Socket, set[abstract.PollerFlag]]:
         poll_result = self._internal_poller.poll(timeout_in_ms)
         return {
             self._socket_map[internal_socket]: flags

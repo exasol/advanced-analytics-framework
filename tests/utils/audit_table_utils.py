@@ -1,12 +1,12 @@
 import re
 import uuid
+from collections.abc import Iterator
 from enum import (
     Enum,
     auto,
 )
 from typing import (
     Any,
-    Iterator,
 )
 
 import pyexasol

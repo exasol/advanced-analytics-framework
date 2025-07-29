@@ -25,7 +25,7 @@ class PayloadMessageSenderFactory:
         clock: Clock,
         sender: Sender,
         message: Payload,
-        frames: List[Frame],
+        frames: list[Frame],
         payload_message_sender_timeout_config: PayloadMessageSenderTimeoutConfig,
         out_control_socket: Socket,
     ) -> PayloadMessageSender:

@@ -87,7 +87,7 @@ def test_call_localhost_rank_greater_zero():
     leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.peer = peer
     test_setup.localhost_communicator_mock.leader = leader
-    frames: List[Union[Frame, MagicMock]] = [
+    frames: list[Union[Frame, MagicMock]] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -124,7 +124,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frames: List[Union[Frame, MagicMock]] = [
+    frames: list[Union[Frame, MagicMock]] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -173,7 +173,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: List[Union[Frame, MagicMock]] = [
+    frame_mocks: list[Union[Frame, MagicMock]] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -226,7 +226,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: List[Union[Frame, MagicMock]] = [
+    frame_mocks: list[Union[Frame, MagicMock]] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]

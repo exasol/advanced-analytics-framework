@@ -21,7 +21,7 @@ class HashableTestObject:
 
 @dataclasses.dataclass
 class ObjectWithList:
-    test: List[HashableTestObject]
+    test: list[HashableTestObject]
 
 
 def test_object_with_list_equal():
@@ -86,7 +86,7 @@ def test_object_with_multiple_attributes_not_equal():
 
 @dataclasses.dataclass
 class ObjectWithDict:
-    test: Dict[HashableTestObject, HashableTestObject]
+    test: dict[HashableTestObject, HashableTestObject]
 
 
 def test_object_with_dict_equal():
@@ -173,7 +173,7 @@ def test_object_not_hashable_different_values_equal_hash():
 
 @dataclasses.dataclass
 class ObjectWithCycle:
-    cycle: List
+    cycle: list
 
 
 def create_object_with_cycle(value: int) -> ObjectWithCycle:

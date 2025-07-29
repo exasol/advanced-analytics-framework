@@ -117,7 +117,7 @@ class TestProcess(Generic[T]):
         self._process.terminate()
 
 
-def assert_processes_finish(processes: List[TestProcess], timeout_in_seconds: int):
+def assert_processes_finish(processes: list[TestProcess], timeout_in_seconds: int):
     timeout_in_ns = timeout_in_seconds * NANOSECONDS_PER_SECOND
     start_time_ns = time.monotonic_ns()
     while True:
@@ -139,15 +139,15 @@ def assert_processes_finish(processes: List[TestProcess], timeout_in_seconds: in
     assert alive_processes_before_kill == []
 
 
-def terminate_alive_processes(processes: List[TestProcess]):
+def terminate_alive_processes(processes: list[TestProcess]):
     for process in get_alive_processes(processes):
         t = process.terminate()
 
 
-def kill_alive_processes(processes: List[TestProcess]):
+def kill_alive_processes(processes: list[TestProcess]):
     for process in get_alive_processes(processes):
         t = process.kill()
 
 
-def get_alive_processes(processes: List[TestProcess]) -> List[TestProcess]:
+def get_alive_processes(processes: list[TestProcess]) -> list[TestProcess]:
     return [process for process in processes if process.is_alive()]

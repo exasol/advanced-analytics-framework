@@ -38,11 +38,11 @@ class Socket(abc.ABC):
         """Receive a message synchronously"""
 
     @abc.abstractmethod
-    def receive_multipart(self) -> List[Frame]:
+    def receive_multipart(self) -> list[Frame]:
         """Receive a multipart message synchronously"""
 
     @abc.abstractmethod
-    def send_multipart(self, message: List[Frame]):
+    def send_multipart(self, message: list[Frame]):
         """Sends a multipart message asynchronously"""
 
     @abc.abstractmethod
@@ -60,9 +60,9 @@ class Socket(abc.ABC):
     @abc.abstractmethod
     def poll(
         self,
-        flags: Union[PollerFlag, Set[PollerFlag]],
+        flags: Union[PollerFlag, set[PollerFlag]],
         timeout_in_ms: Optional[int] = None,
-    ) -> Optional[Set[PollerFlag]]:
+    ) -> Optional[set[PollerFlag]]:
         """
         Checks if the socket can receive or send without blocking or
         if timeout is set, it waits until a requested event occurred.
@@ -94,14 +94,14 @@ class Poller(abc.ABC):
 
     @abc.abstractmethod
     def register(
-        self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]
+        self, socket: Socket, flags: Union[PollerFlag, set[PollerFlag]]
     ) -> None:
         """Register a socket with the events we want to poll."""
 
     @abc.abstractmethod
     def poll(
         self, timeout_in_ms: Optional[int] = None
-    ) -> Dict[Socket, Set[PollerFlag]]:
+    ) -> dict[Socket, set[PollerFlag]]:
         """Poll if an event occurred for the registered sockets or wait until an event occurred, if timeout is set."""
 
 

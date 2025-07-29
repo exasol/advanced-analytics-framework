@@ -31,7 +31,7 @@ class ObjectProxyReferenceCountingBag:
             object_proxy_reference_counter_factory
         )
         self._parent_query_context_handler = parent_query_context_handler
-        self._reference_counter_map: Dict[ObjectProxy, ObjectProxyReferenceCounter] = {}
+        self._reference_counter_map: dict[ObjectProxy, ObjectProxyReferenceCounter] = {}
 
     def add(self, object_proxy: ObjectProxy):
         if object_proxy not in self._reference_counter_map:

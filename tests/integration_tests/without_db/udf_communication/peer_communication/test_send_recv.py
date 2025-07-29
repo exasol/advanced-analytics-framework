@@ -69,7 +69,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
     logger = LOGGER.bind(
         group_identifier=parameter.group_identifier, name=parameter.instance_name
     )
-    received_values: Set[str] = set()
+    received_values: set[str] = set()
     try:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
@@ -180,7 +180,7 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 
 def run_test(group: str, number_of_instances: int, seed: int):
-    connection_infos: Dict[int, ConnectionInfo] = {}
+    connection_infos: dict[int, ConnectionInfo] = {}
     parameters = [
         PeerCommunicatorTestProcessParameter(
             instance_name=f"i{i}",
@@ -190,7 +190,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
         )
         for i in range(number_of_instances)
     ]
-    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = [
+    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]] = [
         TestProcess(parameter, run=run) for parameter in parameters
     ]
     for i in range(number_of_instances):
@@ -200,7 +200,7 @@ def run_test(group: str, number_of_instances: int, seed: int):
     for i in range(number_of_instances):
         t = processes[i].put(connection_infos)
     assert_processes_finish(processes, timeout_in_seconds=180)
-    received_values: Dict[int, Set[str]] = {}
+    received_values: dict[int, set[str]] = {}
     for i in range(number_of_instances):
         received_values[i] = processes[i].get()
     expected_received_values = {

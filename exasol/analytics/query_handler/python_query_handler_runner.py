@@ -111,7 +111,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         )
         self._execute_queries(cleanup_query_list)
 
-    def _execute_queries(self, queries: List[Query]):
+    def _execute_queries(self, queries: list[Query]):
         for query in queries:
             self._sql_executor.execute(query.query_string)
 
@@ -124,7 +124,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
 
     def _wrap_return_query(
         self, input_query: SelectQueryWithColumnDefinition
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         if self._state.input_query_query_handler_context is None:
             raise UninitializedAttributeError(
                 "Current state's input query query handler context is not set."

@@ -22,6 +22,6 @@ class Dataset:
     """
 
     table_like: TableLike
-    identifier_columns: List[Column]
-    columns: List[Column]
+    identifier_columns: list[Column]
+    columns: list[Column]
     dependencies: Dependencies = field(default_factory=dict)
