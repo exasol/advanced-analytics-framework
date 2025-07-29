@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import (
     List,
     Union,
@@ -10,7 +11,6 @@ from unittest.mock import (
 )
 
 import exasol.bucketfs as bfs
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (

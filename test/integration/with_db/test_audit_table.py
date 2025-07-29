@@ -1,11 +1,11 @@
 import logging
-
-import pytest
 from test.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     all_rows_as_dicts,
     create_insert_query,
 )
+
+import pytest
 
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.columns import BaseAuditColumns

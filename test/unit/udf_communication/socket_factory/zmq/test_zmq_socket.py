@@ -1,3 +1,4 @@
+from test.utils.mock_cast import mock_cast
 from typing import (
     Optional,
     Union,
@@ -9,7 +10,6 @@ from unittest.mock import (
 
 import pytest
 import zmq
-from test.utils.mock_cast import mock_cast
 from zmq import ZMQError
 
 from exasol.analytics.udf.communication.socket_factory.abstract import (

@@ -2,9 +2,6 @@ import logging
 import re
 import uuid
 from inspect import cleandoc
-from unittest.mock import Mock
-
-import pytest
 from test.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
     LogSpan,
@@ -13,6 +10,9 @@ from test.utils.audit_table_utils import (
     query_matcher,
     regex_matcher,
 )
+from unittest.mock import Mock
+
+import pytest
 
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.columns import BaseAuditColumns

@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import Union
 from unittest.mock import (
     MagicMock,
@@ -8,7 +9,6 @@ from unittest.mock import (
 
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer_communicator.payload_handler import (

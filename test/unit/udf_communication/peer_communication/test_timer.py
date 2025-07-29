@@ -1,11 +1,10 @@
+from test.utils.mock_cast import mock_cast
 from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
     create_autospec,
 )
-
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer

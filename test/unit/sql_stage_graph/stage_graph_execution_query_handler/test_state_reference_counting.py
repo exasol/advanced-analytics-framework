@@ -1,4 +1,10 @@
 import dataclasses
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
+    TestSetup,
+    create_execution_query_handler_state_setup,
+    create_mocks_for_stage,
+)
+from test.utils.mock_cast import mock_cast
 from typing import (
     Dict,
     List,
@@ -21,12 +27,6 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
-    TestSetup,
-    create_execution_query_handler_state_setup,
-    create_mocks_for_stage,
-)
-from test.utils.mock_cast import mock_cast
 
 
 def _get_finish(test_setup: TestSetup, i: int) -> Finish:
@@ -199,9 +199,7 @@ def test_handle_result_diamond_return_finish_new_result_part1():
     assert (
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 0).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 0).result),
             call.add(_get_finish(ref_count_setup.test_setup, 0).result),
             call.add(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
@@ -240,13 +238,9 @@ def test_handle_result_diamond_return_finish_new_result_part2():
     assert (
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 1).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 1).result),
             call.add(_get_finish(ref_count_setup.test_setup, 1).result),
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 0).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 0).result),
             call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
@@ -287,13 +281,9 @@ def test_handle_result_diamond_return_finish_new_result_part3():
     assert (
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 0).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 0).result),
             call.add(_get_finish(ref_count_setup.test_setup, 0).result),
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 0).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 0).result),
             call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
@@ -336,13 +326,9 @@ def test_handle_result_diamond_return_finish_new_result_part4():
     print(ref_count_setup.object_proxy_dict)
     ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.assert_has_calls(
         [
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 1).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 1).result),
             call.remove(_get_finish(ref_count_setup.test_setup, 1).result),
-            call.__contains__(
-                _get_finish(ref_count_setup.test_setup, 0).result
-            ),
+            call.__contains__(_get_finish(ref_count_setup.test_setup, 0).result),
             call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
@@ -390,9 +376,7 @@ def test_handle_result_diamond_return_finish_existing_result():
     state_setup = ref_count_setup.test_setup.state_setup
     mock_cast(
         state_setup.reference_counting_bag_mock_setup.bag.transfer_back_to_parent_query_handler_context
-    ).assert_called_once_with(
-        _get_finish(ref_count_setup.test_setup, 0).result
-    )
+    ).assert_called_once_with(_get_finish(ref_count_setup.test_setup, 0).result)
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 1)
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 2)

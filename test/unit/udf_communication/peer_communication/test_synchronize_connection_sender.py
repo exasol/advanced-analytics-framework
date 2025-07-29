@@ -1,12 +1,11 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
     create_autospec,
 )
-
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo

@@ -1,3 +1,4 @@
+from test.utils.mock_cast import mock_cast
 from typing import (
     Optional,
     Union,
@@ -11,7 +12,6 @@ from unittest.mock import (
 import numpy as np
 import pytest
 from numpy.random import RandomState
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.socket_factory import (
     abstract,

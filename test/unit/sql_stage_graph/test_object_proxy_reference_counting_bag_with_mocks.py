@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import (
     List,
     Union,
@@ -11,7 +12,6 @@ from unittest.mock import (
 )
 
 import pytest
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext

@@ -1,4 +1,5 @@
 import dataclasses
+from test.utils.mock_cast import mock_cast
 from typing import (
     List,
     Optional,
@@ -12,7 +13,6 @@ from unittest.mock import (
 )
 
 from polyfactory.factories.pydantic_factory import ModelFactory
-from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
