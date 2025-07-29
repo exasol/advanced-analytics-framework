@@ -29,6 +29,10 @@ from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_se
 from test.utils.mock_cast import mock_cast
 
 
+def _get_finish(test_setup: TestSetup, i: int) -> Finish:
+    return cast(Finish, test_setup.stage_setups[i].results[0])
+
+
 def create_diamond_setup(
     stage1_result_prototypes: list[Union[Continue, Finish, MagicMock]],
     stage2_result_prototypes: list[Union[Continue, Finish, MagicMock]],
@@ -83,10 +87,10 @@ def create_diamond_setup_with_finish_with_last_stage_returning_new_result() -> (
     stage1_object_proxy = create_autospec(ObjectProxy)
     stage2_object_proxy = create_autospec(ObjectProxy)
     stage4_object_proxy = create_autospec(ObjectProxy)
-    test_setup.stage_setups[0].results[0].result = stage1_object_proxy
-    test_setup.stage_setups[1].results[0].result = stage2_object_proxy
-    test_setup.stage_setups[2].results[0].result = stage1_object_proxy
-    test_setup.stage_setups[3].results[0].result = stage4_object_proxy
+    _get_finish(test_setup, 0).result = stage1_object_proxy
+    _get_finish(test_setup, 1).result = stage2_object_proxy
+    _get_finish(test_setup, 2).result = stage1_object_proxy
+    _get_finish(test_setup, 3).result = stage4_object_proxy
     object_proxy_dict = equip_reference_counting_bag_with_logic(test_setup)
     return ReferenceCountingSetup(test_setup, object_proxy_dict)
 
@@ -101,10 +105,10 @@ def create_diamond_setup_with_finish_with_last_stage_returning_existing_result()
         stage4_result_prototypes=[Finish(result=None)],
     )
     stage1_object_proxy = create_autospec(ObjectProxy)
-    test_setup.stage_setups[0].results[0].result = stage1_object_proxy
-    test_setup.stage_setups[1].results[0].result = stage1_object_proxy
-    test_setup.stage_setups[2].results[0].result = stage1_object_proxy
-    test_setup.stage_setups[3].results[0].result = stage1_object_proxy
+    _get_finish(test_setup, 0).result = stage1_object_proxy
+    _get_finish(test_setup, 1).result = stage1_object_proxy
+    _get_finish(test_setup, 2).result = stage1_object_proxy
+    _get_finish(test_setup, 3).result = stage1_object_proxy
     object_proxy_dict = equip_reference_counting_bag_with_logic(test_setup)
     return ReferenceCountingSetup(test_setup, object_proxy_dict)
 
@@ -147,21 +151,15 @@ def equip_reference_counting_bag_with_logic(test_setup) -> dict[ObjectProxy, int
     return object_proxy_dict
 
 
-def _get_finish(test_setup: TestSetup, i: int) -> Finish:
-    return cast(Finish, test_setup.stage_setups[i].results[0])
-
-
 def assert_transfer_from_child_to_parent_query_handler_context(
     ref_count_setup: ReferenceCountingSetup, stage_index: int
 ):
-    # result = _get_finish(ref_count_setup.test_setup, stage_index).result
     mock_cast(
         ref_count_setup.test_setup.stage_setups[
             stage_index
         ].child_query_handler_context.transfer_object_to
     ).assert_called_once_with(
         _get_finish(ref_count_setup.test_setup, stage_index).result,
-        # ref_count_setup.test_setup.stage_setups[stage_index].results[0].result,
         ref_count_setup.test_setup.state_setup.parent_query_handler_context,
     )
 
@@ -202,10 +200,10 @@ def test_handle_result_diamond_return_finish_new_result_part1():
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[0].results[0].result
+                _get_finish(ref_count_setup.test_setup, 0).result
             ),
-            call.add(ref_count_setup.test_setup.stage_setups[0].results[0].result),
-            call.add(ref_count_setup.test_setup.stage_setups[0].results[0].result),
+            call.add(_get_finish(ref_count_setup.test_setup, 0).result),
+            call.add(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
     assert_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
@@ -243,13 +241,13 @@ def test_handle_result_diamond_return_finish_new_result_part2():
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[1].results[0].result
+                _get_finish(ref_count_setup.test_setup, 1).result
             ),
-            call.add(ref_count_setup.test_setup.stage_setups[1].results[0].result),
+            call.add(_get_finish(ref_count_setup.test_setup, 1).result),
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[0].results[0].result
+                _get_finish(ref_count_setup.test_setup, 0).result
             ),
-            call.remove(ref_count_setup.test_setup.stage_setups[0].results[0].result),
+            call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
@@ -290,13 +288,13 @@ def test_handle_result_diamond_return_finish_new_result_part3():
         ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.mock_calls
         == [
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[0].results[0].result
+                _get_finish(ref_count_setup.test_setup, 0).result
             ),
-            call.add(ref_count_setup.test_setup.stage_setups[0].results[0].result),
+            call.add(_get_finish(ref_count_setup.test_setup, 0).result),
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[0].results[0].result
+                _get_finish(ref_count_setup.test_setup, 0).result
             ),
-            call.remove(ref_count_setup.test_setup.stage_setups[0].results[0].result),
+            call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
@@ -339,13 +337,13 @@ def test_handle_result_diamond_return_finish_new_result_part4():
     ref_count_setup.test_setup.state_setup.reference_counting_bag_mock_setup.bag.assert_has_calls(
         [
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[1].results[0].result
+                _get_finish(ref_count_setup.test_setup, 1).result
             ),
-            call.remove(ref_count_setup.test_setup.stage_setups[1].results[0].result),
+            call.remove(_get_finish(ref_count_setup.test_setup, 1).result),
             call.__contains__(
-                ref_count_setup.test_setup.stage_setups[0].results[0].result
+                _get_finish(ref_count_setup.test_setup, 0).result
             ),
-            call.remove(ref_count_setup.test_setup.stage_setups[0].results[0].result),
+            call.remove(_get_finish(ref_count_setup.test_setup, 0).result),
         ]
     )
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
@@ -393,7 +391,7 @@ def test_handle_result_diamond_return_finish_existing_result():
     mock_cast(
         state_setup.reference_counting_bag_mock_setup.bag.transfer_back_to_parent_query_handler_context
     ).assert_called_once_with(
-        ref_count_setup.test_setup.stage_setups[0].results[0].result
+        _get_finish(ref_count_setup.test_setup, 0).result
     )
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 0)
     assert_no_transfer_from_child_to_parent_query_handler_context(ref_count_setup, 1)
