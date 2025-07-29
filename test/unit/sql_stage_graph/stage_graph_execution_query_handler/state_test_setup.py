@@ -10,6 +10,7 @@ from unittest.mock import (
 )
 
 import exasol.bucketfs as bfs
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
@@ -35,7 +36,6 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
-from tests.utils.mock_cast import mock_cast
 
 MockScopeQueryHandlerContext = Union[ScopeQueryHandlerContext, MagicMock]
 MockSQLStageQueryHandler = Union[SQLStageQueryHandler, MagicMock]

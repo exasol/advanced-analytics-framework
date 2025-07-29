@@ -1,6 +1,10 @@
 from unittest.mock import Mock
 
 import pytest
+from tests.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    create_insert_query,
+)
 
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
@@ -15,10 +19,6 @@ from exasol.analytics.schema import (
     DbOperationType,
     SchemaName,
     TableNameImpl,
-)
-from tests.utils.audit_table_utils import (
-    SAMPLE_LOG_SPAN,
-    create_insert_query,
 )
 
 

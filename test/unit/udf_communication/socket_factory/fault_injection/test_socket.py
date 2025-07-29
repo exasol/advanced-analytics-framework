@@ -11,12 +11,12 @@ from unittest.mock import (
 import numpy as np
 import pytest
 from numpy.random import RandomState
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.socket_factory import (
     abstract,
     fault_injection,
 )
-from tests.utils.mock_cast import mock_cast
 
 
 def test_create_socket_with():

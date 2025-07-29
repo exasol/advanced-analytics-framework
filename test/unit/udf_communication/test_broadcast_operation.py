@@ -12,6 +12,7 @@ from unittest.mock import (
 )
 
 from polyfactory.factories.pydantic_factory import ModelFactory
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
@@ -22,7 +23,6 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
-from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)

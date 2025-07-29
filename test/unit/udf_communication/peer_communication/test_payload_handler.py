@@ -8,6 +8,7 @@ from unittest.mock import (
 
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer_communicator.payload_handler import (
@@ -20,7 +21,6 @@ from exasol.analytics.udf.communication.peer_communicator.payload_sender import 
     PayloadSender,
 )
 from exasol.analytics.udf.communication.socket_factory.abstract import Frame
-from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass

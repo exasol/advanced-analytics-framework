@@ -10,6 +10,8 @@ from unittest.mock import (
     create_autospec,
 )
 
+from tests.utils.mock_cast import mock_cast
+
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import (
     IPAddress,
@@ -38,7 +40,6 @@ from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 from exasol.analytics.udf.communication.peer_communicator.sender import Sender
 from exasol.analytics.udf.communication.peer_communicator.timer import TimerFactory
 from exasol.analytics.udf.communication.socket_factory.abstract import Socket
-from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass()

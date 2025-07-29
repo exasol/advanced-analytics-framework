@@ -7,6 +7,7 @@ from unittest.mock import (
 )
 
 import pytest
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import (
@@ -21,7 +22,6 @@ from exasol.analytics.udf.communication.peer_communicator.register_peer_connecti
     RegisterPeerConnection,
 )
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
-from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass

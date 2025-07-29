@@ -8,6 +8,7 @@ from unittest.mock import (
 )
 
 from polyfactory.factories.pydantic_factory import ModelFactory
+from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.gather_operation import GatherOperation
 from exasol.analytics.udf.communication.messages import Gather
@@ -21,7 +22,6 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
-from tests.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)

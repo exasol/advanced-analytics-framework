@@ -5,6 +5,14 @@ from inspect import cleandoc
 from unittest.mock import Mock
 
 import pytest
+from tests.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    LogSpan,
+    create_insert_query,
+    prefix_matcher,
+    query_matcher,
+    regex_matcher,
+)
 
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.audit.columns import BaseAuditColumns
@@ -24,14 +32,6 @@ from exasol.analytics.schema import (
     TableNameImpl,
     decimal_column,
     varchar_column,
-)
-from tests.utils.audit_table_utils import (
-    SAMPLE_LOG_SPAN,
-    LogSpan,
-    create_insert_query,
-    prefix_matcher,
-    query_matcher,
-    regex_matcher,
 )
 
 LOG = logging.getLogger(__name__)
