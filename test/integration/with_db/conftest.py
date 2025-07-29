@@ -29,10 +29,10 @@ def slc_builder(use_onprem, use_saas) -> LanguageContainerBuilder:
     another wheel and its pip requirements on top.
 
     In result the SLC will contain AAF and the subproject from directory
-    tests/test_package.
+    test/test_package.
     """
     if use_saas or use_onprem:
-        test_package = find_path_backwards("tests/test_package", __file__)
+        test_package = find_path_backwards("test/test_package", __file__)
         with custom_slc_builder() as builder:
             builder.prepare_flavor(test_package)
             yield builder
