@@ -100,7 +100,7 @@ class Communicator:
         )
         return peer_communicator
 
-    def gather(self, value: bytes) -> Optional[List[bytes]]:
+    def gather(self, value: bytes) -> Optional[list[bytes]]:
         sequence_number = self._next_sequence_number()
         gather = GatherOperation(
             sequence_number=sequence_number,

@@ -57,7 +57,7 @@ class TestSetup:
         MagicMock, SynchronizeConnectionSenderFactory
     ]
     timer_factory_mock: Union[MagicMock, TimerFactory]
-    timer_mocks: List[Mock]
+    timer_mocks: list[Mock]
     sender_mock: Union[MagicMock, Sender]
     connection_establisher_builder: ConnectionEstablisherBuilder
     connection_establisher_factory_mock: Union[MagicMock, ConnectionEstablisherFactory]

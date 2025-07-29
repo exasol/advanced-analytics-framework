@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 class ExecutionGraph(Generic[T]):
 
-    def __init__(self, start_node: T, end_node: T, edges: Set[Tuple[T, T]]):
+    def __init__(self, start_node: T, end_node: T, edges: set[tuple[T, T]]):
         self._graph = nx.DiGraph()
         self._graph.add_edges_from(edges)
         self._graph.add_node(start_node)
@@ -65,23 +65,23 @@ class ExecutionGraph(Generic[T]):
     def end_node(self) -> T:
         return self._end_node
 
-    def predecessors(self, node: T) -> List[T]:
+    def predecessors(self, node: T) -> list[T]:
         if not node in self._graph:
             raise Exception(f"The node {node} is not in the graph.")
         return list(self._graph.predecessors(node))
 
-    def successors(self, node: T) -> List[T]:
+    def successors(self, node: T) -> list[T]:
         if not node in self._graph:
             raise Exception(f"The node {node} is not in the graph.")
         return list(self._graph.successors(node))
 
-    def nodes(self) -> Set[T]:
+    def nodes(self) -> set[T]:
         return set(self._graph)
 
-    def edges(self) -> Set[Tuple[T, T]]:
+    def edges(self) -> set[tuple[T, T]]:
         return set(self._graph.edges)
 
-    def compute_reverse_dependency_order(self) -> List[T]:
+    def compute_reverse_dependency_order(self) -> list[T]:
         reversed_graph = self._graph.reverse()
         post_order_of_reversed_graph = list(
             nx.traversal.dfs_postorder_nodes(reversed_graph, self._end_node)
@@ -91,7 +91,7 @@ class ExecutionGraph(Generic[T]):
         )
         return reversed_post_order_of_reversed_graph
 
-    def compute_dependency_order(self) -> List[T]:
+    def compute_dependency_order(self) -> list[T]:
         post_order_of__graph = list(
             nx.traversal.dfs_postorder_nodes(self._graph, self._start_node)
         )

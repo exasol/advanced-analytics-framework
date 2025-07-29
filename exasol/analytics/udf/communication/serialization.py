@@ -14,6 +14,6 @@ def serialize_message(obj: BaseModel) -> bytes:
 T = TypeVar("T", bound=BaseModel)
 
 
-def deserialize_message(message: bytes, base_model_class: Type[T]) -> T:
+def deserialize_message(message: bytes, base_model_class: type[T]) -> T:
     obj = base_model_class.parse_raw(message, encoding="UTF-8")
     return obj

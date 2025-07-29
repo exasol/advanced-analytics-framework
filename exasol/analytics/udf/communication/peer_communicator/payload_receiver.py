@@ -35,9 +35,9 @@ class PayloadReceiver:
             my_connection_info=self._my_connection_info.model_dump(),
         )
         self._next_received_payload_sequence_number = 0
-        self._received_payload_dict: Dict[int, List[Frame]] = {}
+        self._received_payload_dict: dict[int, list[Frame]] = {}
 
-    def received_payload(self, message: messages.Payload, frames: List[Frame]):
+    def received_payload(self, message: messages.Payload, frames: list[Frame]):
         self._logger.info("received_payload", message=message.model_dump())
         self._send_acknowledge_payload_message(message.sequence_number)
         if message.sequence_number == self._next_received_payload_sequence_number:
@@ -47,13 +47,13 @@ class PayloadReceiver:
             self._add_new_message_to_buffer(message, frames)
 
     def _add_new_message_to_buffer(
-        self, message: messages.Payload, frames: List[Frame]
+        self, message: messages.Payload, frames: list[Frame]
     ):
         self._logger.info("put_to_buffer", message=message.model_dump())
         self._received_payload_dict[message.sequence_number] = frames
 
     def _forward_new_message_directly(
-        self, message: messages.Payload, frames: List[Frame]
+        self, message: messages.Payload, frames: list[Frame]
     ):
         self._logger.info("forward_from_message", message=message.model_dump())
         self._forward_received_payload(frames)
@@ -84,7 +84,7 @@ class PayloadReceiver:
         )
         self._sender.send(message=messages.Message(root=acknowledge_payload_message))
 
-    def _forward_received_payload(self, frames: List[Frame]):
+    def _forward_received_payload(self, frames: list[Frame]):
         self._out_control_socket.send_multipart(frames)
         self._next_received_payload_sequence_number += 1
 

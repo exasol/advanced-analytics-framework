@@ -16,19 +16,19 @@ class ResultSet(ABC):
         pass
 
     @abstractmethod
-    def __next__(self) -> Tuple:
+    def __next__(self) -> tuple:
         pass
 
     @abstractmethod
-    def fetchone(self) -> Tuple:
+    def fetchone(self) -> tuple:
         pass
 
     @abstractmethod
-    def fetchmany(self, size=None) -> List[Tuple]:
+    def fetchmany(self, size=None) -> list[tuple]:
         pass
 
     @abstractmethod
-    def fetchall(self) -> List[Tuple]:
+    def fetchall(self) -> list[tuple]:
         pass
 
     @abstractmethod
@@ -36,7 +36,7 @@ class ResultSet(ABC):
         pass
 
     @abstractmethod
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         pass
 
     @abstractmethod

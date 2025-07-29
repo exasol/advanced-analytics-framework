@@ -22,7 +22,7 @@ class ExpectedQuery:
 
 
 class MockSQLExecutor(SQLExecutor):
-    def __init__(self, expected_queries: List[ExpectedQuery] = []):
+    def __init__(self, expected_queries: list[ExpectedQuery] = []):
         self._expected_queries = expected_queries
         self._expected_query_iterator = iter(expected_queries)
 

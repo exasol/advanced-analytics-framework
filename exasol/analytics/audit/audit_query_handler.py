@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Callable,
     Generic,
-    Iterator,
     Optional,
     TypeAlias,
     TypeVar,

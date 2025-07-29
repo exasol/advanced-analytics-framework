@@ -90,7 +90,7 @@ def create_acknowledge_payload_message(
 
 def create_payload_message(
     test_setup: TestSetup, sequence_number: int
-) -> Tuple[messages.Payload, List[Frame]]:
+) -> tuple[messages.Payload, list[Frame]]:
     frames = [create_autospec(Frame)]
     message = messages.Payload(
         source=test_setup.peer,

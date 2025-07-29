@@ -42,22 +42,22 @@ class PyExasolResultSet(ResultSet):
     def __iter__(self):
         return self
 
-    def __next__(self) -> Tuple[Any]:
+    def __next__(self) -> tuple[Any]:
         return self.statement.__next__()
 
-    def fetchone(self) -> Tuple[Any]:
+    def fetchone(self) -> tuple[Any]:
         return self.statement.fetchone()
 
-    def fetchmany(self, size=DEFAULT_FETCHMANY_SIZE) -> List[Tuple[Any]]:
+    def fetchmany(self, size=DEFAULT_FETCHMANY_SIZE) -> list[tuple[Any]]:
         return self.statement.fetchmany(size)
 
-    def fetchall(self) -> List[Tuple[Any]]:
+    def fetchall(self) -> list[tuple[Any]]:
         return self.statement.fetchall()
 
     def rowcount(self):
         return self.statement.rowcount()
 
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         columns = [
             Column(
                 ColumnNameBuilder.create(column_name),

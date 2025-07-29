@@ -95,8 +95,8 @@ class UDFResult:
     input_query_view: Optional[str] = None
     input_query: Optional[str] = None
     final_result: str = "{}"
-    query_list: List[Query] = field(default_factory=list)
-    cleanup_query_list: List[Query] = field(default_factory=list)
+    query_list: list[Query] = field(default_factory=list)
+    cleanup_query_list: list[Query] = field(default_factory=list)
     status: QueryHandlerStatus = QueryHandlerStatus.CONTINUE
 
 
@@ -314,7 +314,7 @@ class QueryHandlerRunnerUDF:
         self._state_file_bucketfs_location().rm()
 
     def _create_udf_query_result(
-        self, ctx, query_columns: Optional[List[Column]]
+        self, ctx, query_columns: Optional[list[Column]]
     ) -> UDFQueryResult:
         colum_start_ix = 8 if self._checked_parameter.iter_num == 0 else 4
         if query_columns is None:
@@ -331,7 +331,7 @@ class QueryHandlerRunnerUDF:
         self,
         query_handler_context: ScopeQueryHandlerContext,
         input_query: SelectQueryWithColumnDefinition,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         temporary_view_name = query_handler_context.get_temporary_view_name()
         query_handler_udf_name = UDFNameBuilder.create(
             name=self.exa.meta.script_name,
@@ -354,7 +354,7 @@ class QueryHandlerRunnerUDF:
         )
         return query_create_view, query_query_handler
 
-    def _get_query_columns(self) -> List[Column]:
+    def _get_query_columns(self) -> list[Column]:
         query_columns = []
         for i in range(len(self.exa.meta.input_columns)):
             col_name = self.exa.meta.input_columns[i].name

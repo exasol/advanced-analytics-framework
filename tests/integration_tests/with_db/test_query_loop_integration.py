@@ -133,7 +133,7 @@ def test_query_loop_integration_with_one_iteration_with_not_released_temporary_o
 
     # get audit logs after executing query loop
     conn.execute(QUERY_FLUSH_STATS)
-    audit_logs: List[Tuple[str]] = conn.execute(
+    audit_logs: list[tuple[str]] = conn.execute(
         textwrap.dedent(QUERY_AUDIT_LOGS)
     ).fetchmany(N_FETCHED_ROWS)
     executed_queries = [row[0] for row in audit_logs]
@@ -180,7 +180,7 @@ def test_query_loop_integration_with_two_iteration(
 
     # get audit logs after executing query loop
     conn.execute(QUERY_FLUSH_STATS)
-    audit_logs: List[Tuple[str]] = conn.execute(
+    audit_logs: list[tuple[str]] = conn.execute(
         textwrap.dedent(QUERY_AUDIT_LOGS)
     ).fetchmany(N_FETCHED_ROWS)
     executed_queries = [row[0] for row in audit_logs]

@@ -31,7 +31,7 @@ class FrontendPeerState:
         peer: Peer,
     ):
         self._connection_is_closed = False
-        self._received_messages: Deque[List[Frame]] = deque()
+        self._received_messages: Deque[list[Frame]] = deque()
         self._background_listener = background_listener
         self._my_connection_info = my_connection_info
         self._peer = peer
@@ -55,7 +55,7 @@ class FrontendPeerState:
         self._peer_register_forwarder_is_ready = True
 
     def received_payload_message(
-        self, message_obj: messages.Payload, frames: List[Frame]
+        self, message_obj: messages.Payload, frames: list[Frame]
     ):
         if message_obj.source != self._peer:
             raise RuntimeError(
@@ -69,7 +69,7 @@ class FrontendPeerState:
     def peer_is_ready(self) -> bool:
         return self._connection_is_ready and self._peer_register_forwarder_is_ready
 
-    def send(self, payload: List[Frame]):
+    def send(self, payload: list[Frame]):
         message = messages.Payload(
             source=Peer(connection_info=self._my_connection_info),
             destination=self._peer,
@@ -82,7 +82,7 @@ class FrontendPeerState:
     def has_received_messages(self) -> bool:
         return len(self._received_messages) > 0
 
-    def recv(self) -> List[Frame]:
+    def recv(self) -> list[Frame]:
         if len(self._received_messages) > 0:
             return self._received_messages.pop()
         else:

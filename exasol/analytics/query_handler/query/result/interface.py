@@ -2,9 +2,9 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterator
 from typing import (
     Any,
-    Iterator,
     List,
     Tuple,
     Union,
@@ -12,7 +12,7 @@ from typing import (
 
 from exasol.analytics.schema.column import Column
 
-Row = Tuple[Any, ...]
+Row = tuple[Any, ...]
 
 
 class QueryResult(ABC):
@@ -46,9 +46,9 @@ class QueryResult(ABC):
         pass
 
     @abstractmethod
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         pass
 
     @abstractmethod
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         pass

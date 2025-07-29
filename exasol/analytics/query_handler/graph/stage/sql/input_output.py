@@ -26,5 +26,5 @@ class SQLStageInputOutput:
 
 @dataclass(frozen=True)
 class MultiDatasetSQLStageInputOutput(SQLStageInputOutput):
-    datasets: Dict[object, Dataset]
+    datasets: dict[object, Dataset]
     dependencies: Dependencies = field(default_factory=dict)

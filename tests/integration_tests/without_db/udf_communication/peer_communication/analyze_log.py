@@ -13,7 +13,7 @@ from typing import (
 
 
 def is_log_sequence_ok(
-    lines: List[Dict[str, str]], line_predicate: Callable[[Dict[str, str]], bool]
+    lines: list[dict[str, str]], line_predicate: Callable[[dict[str, str]], bool]
 ):
     result = False
     for line in lines:
@@ -22,32 +22,32 @@ def is_log_sequence_ok(
     return result
 
 
-def is_peer_ready(line: Dict[str, str]):
+def is_peer_ready(line: dict[str, str]):
     return line["module"] == "peer_is_ready_sender" and line["event"] == "send"
 
 
-def is_connection_acknowledged(line: Dict[str, str]):
+def is_connection_acknowledged(line: dict[str, str]):
     return (
         line["module"] == "background_peer_state"
         and line["event"] == "received_acknowledge_connection"
     )
 
 
-def is_connection_synchronized(line: Dict[str, str]):
+def is_connection_synchronized(line: dict[str, str]):
     return (
         line["module"] == "background_peer_state"
         and line["event"] == "received_synchronize_connection"
     )
 
 
-def is_register_peer_acknowledged(line: Dict[str, str]):
+def is_register_peer_acknowledged(line: dict[str, str]):
     return (
         line["module"] == "background_peer_state"
         and line["event"] == "received_acknowledge_register_peer"
     )
 
 
-def is_register_peer_complete(line: Dict[str, str]):
+def is_register_peer_complete(line: dict[str, str]):
     return (
         line["module"] == "background_peer_state"
         and line["event"] == "received_register_peer_complete"

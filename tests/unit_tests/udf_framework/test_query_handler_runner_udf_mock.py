@@ -54,7 +54,7 @@ def query_handler_bfs_connection(tmp_path):
 
 
 def create_mocked_exa_env(
-    udf_script_name: str, bfs_connection, connections: Dict[str, Any] = {}
+    udf_script_name: str, bfs_connection, connections: dict[str, Any] = {}
 ):
     meta = create_mock_data(udf_script_name)
     connections[BUCKETFS_CONNECTION_NAME] = bfs_connection

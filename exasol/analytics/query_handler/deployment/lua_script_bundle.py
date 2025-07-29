@@ -21,8 +21,8 @@ class LuaScriptBundle:
     def __init__(
         self,
         lua_main_file: PathLike,
-        lua_source_files: List[PathLike],
-        lua_modules: List[str],
+        lua_source_files: list[PathLike],
+        lua_modules: list[str],
     ):
         self.lua_main_file = lua_main_file
         self.lua_modules = lua_modules

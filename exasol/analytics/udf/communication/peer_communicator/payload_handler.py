@@ -17,13 +17,13 @@ class PayloadHandler:
         self._payload_receiver = payload_receiver
         self._payload_sender = payload_sender
 
-    def send_payload(self, message: messages.Payload, frames: List[Frame]):
+    def send_payload(self, message: messages.Payload, frames: list[Frame]):
         self._payload_sender.send_payload(message, frames)
 
     def received_acknowledge_payload(self, message: messages.AcknowledgePayload):
         self._payload_sender.received_acknowledge_payload(message)
 
-    def received_payload(self, message: messages.Payload, frames: List[Frame]):
+    def received_payload(self, message: messages.Payload, frames: list[Frame]):
         self._payload_receiver.received_payload(message, frames)
 
     def try_send(self):

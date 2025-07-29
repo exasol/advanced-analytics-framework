@@ -60,7 +60,7 @@ class GatherOperation:
             sequence_number=self._sequence_number,
         )
 
-    def __call__(self) -> Optional[List[bytes]]:
+    def __call__(self) -> Optional[list[bytes]]:
         if self._localhost_communicator.rank > LOCALHOST_LEADER_RANK:
             self._send_to_localhost_leader()
             return None
@@ -77,7 +77,7 @@ class GatherOperation:
         self._logger.info("_send_to_localhost_leader", frame=frames[0].to_bytes())
         self._localhost_communicator.send(peer=leader, message=frames)
 
-    def _handle_messages_from_local_peers(self) -> Optional[List[bytes]]:
+    def _handle_messages_from_local_peers(self) -> Optional[list[bytes]]:
         if self._checked_multi_node_communicator.rank > 0:
             self._forward_to_multi_node_leader()
             return None
@@ -145,12 +145,12 @@ class GatherOperation:
         frames = [self._socket_factory.create_frame(serialized_message), value_frame]
         return frames
 
-    def _handle_messages_from_all_nodes(self) -> List[bytes]:
+    def _handle_messages_from_all_nodes(self) -> list[bytes]:
         communicator = self._checked_multi_node_communicator
         number_of_instances_in_cluster = (
             communicator.number_of_peers * self._number_of_instances_per_node
         )
-        result: Dict[int, bytes] = {MULTI_NODE_LEADER_RANK: self._value}
+        result: dict[int, bytes] = {MULTI_NODE_LEADER_RANK: self._value}
         localhost_messages_are_done = False
         multi_node_messages_are_done = False
         while not self._is_result_complete(result, number_of_instances_in_cluster):
@@ -163,7 +163,7 @@ class GatherOperation:
         sorted_items = sorted(result.items(), key=lambda kv: kv[0])
         return [v for k, v in sorted_items]
 
-    def _receive_localhost_messages(self, result: Dict[int, bytes]) -> bool:
+    def _receive_localhost_messages(self, result: dict[int, bytes]) -> bool:
         if self._number_of_instances_per_node == 1:
             return True
         peers_with_messages = self._localhost_communicator.poll_peers()
@@ -183,7 +183,7 @@ class GatherOperation:
         return is_done
 
     def _receive_multi_node_messages(
-        self, result: Dict[int, bytes], number_of_instances_in_cluster: int
+        self, result: dict[int, bytes], number_of_instances_in_cluster: int
     ) -> bool:
         communicator = self._checked_multi_node_communicator
         if communicator.number_of_peers == 1:
@@ -211,7 +211,7 @@ class GatherOperation:
         return is_done
 
     def _is_result_complete(
-        self, result: Dict[int, bytes], number_of_instances_in_cluster: int
+        self, result: dict[int, bytes], number_of_instances_in_cluster: int
     ) -> bool:
         complete = len(result) == number_of_instances_in_cluster
         return complete
@@ -262,7 +262,7 @@ class GatherOperation:
         return specific_message_obj
 
     def _check_if_position_is_already_set(
-        self, position: int, result: Dict[int, bytes], specific_message_obj: Gather
+        self, position: int, result: dict[int, bytes], specific_message_obj: Gather
     ):
         if position in result:
             raise RuntimeError(

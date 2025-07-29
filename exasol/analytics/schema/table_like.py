@@ -19,7 +19,7 @@ NameType = TypeVar("NameType", bound=TableLikeName)
 class TableLike(DBObject[NameType], ABC):
 
     @typechecked
-    def __init__(self, name: NameType, columns: List[Column]):
+    def __init__(self, name: NameType, columns: list[Column]):
         super().__init__(name)
         self._columns = columns
         if len(self._columns) == 0:
@@ -29,7 +29,7 @@ class TableLike(DBObject[NameType], ABC):
             raise ValueError("Column names are not unique.")
 
     @property
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         return list(self._columns)
 
     def __eq__(self, other):

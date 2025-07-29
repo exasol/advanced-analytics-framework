@@ -57,7 +57,7 @@ class StageSetup:
     child_query_handler_context: MockScopeQueryHandlerContext
     query_handler: MockSQLStageQueryHandler
     stage: MockSQLStage
-    results: List[MockQueryHandlerResult]
+    results: list[MockQueryHandlerResult]
     result_bucketfs_location: MockBucketFSLocation
 
     def reset_mock(self):
@@ -97,7 +97,7 @@ class ExecutionQueryHandlerStateSetup:
 @dataclasses.dataclass
 class TestSetup:
     __test__ = False
-    stage_setups: List[StageSetup]
+    stage_setups: list[StageSetup]
     state_setup: ExecutionQueryHandlerStateSetup
 
     def reset_mock(self):
@@ -107,7 +107,7 @@ class TestSetup:
 
 
 def create_execution_query_handler_state_setup(
-    sql_stage_graph: SQLStageGraph, stage_setups: List[StageSetup]
+    sql_stage_graph: SQLStageGraph, stage_setups: list[StageSetup]
 ) -> ExecutionQueryHandlerStateSetup:
     child_scoped_query_handler_contexts = [
         stage_setup.child_query_handler_context for stage_setup in stage_setups
@@ -159,7 +159,7 @@ def create_reference_counting_bag_mock_setup() -> ReferenceCountingBagSetup:
 
 
 def create_mock_query_handler_context(
-    child_scoped_query_handler_contexts: List[ScopeQueryHandlerContext],
+    child_scoped_query_handler_contexts: list[ScopeQueryHandlerContext],
 ) -> MockScopeQueryHandlerContext:
     scoped_query_handler_context: MockScopeQueryHandlerContext = create_autospec(
         ScopeQueryHandlerContext
@@ -171,14 +171,14 @@ def create_mock_query_handler_context(
 
 
 def create_mocks_for_stage(
-    result_prototypes: List[Union[Finish, Continue]], *, stage_index: int
+    result_prototypes: list[Union[Finish, Continue]], *, stage_index: int
 ) -> StageSetup:
     child_scoped_query_handler_context: MockScopeQueryHandlerContext = create_autospec(
         ScopeQueryHandlerContext
     )
     sql_stage: MockSQLStage = create_autospec(SQLStage)
     sql_stage.__hash__.return_value = stage_index
-    result: List[MockQueryHandlerResult] = [
+    result: list[MockQueryHandlerResult] = [
         create_autospec(result_prototype) for result_prototype in result_prototypes
     ]
     query_handler: MockSQLStageQueryHandler = create_autospec(QueryHandler)

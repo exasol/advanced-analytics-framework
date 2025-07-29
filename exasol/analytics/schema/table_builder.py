@@ -21,7 +21,7 @@ class TableBuilder:
         self._name = name
         return self
 
-    def with_columns(self, columns: List[Column]) -> "TableBuilder":
+    def with_columns(self, columns: list[Column]) -> "TableBuilder":
         self._columns = columns
         return self
 

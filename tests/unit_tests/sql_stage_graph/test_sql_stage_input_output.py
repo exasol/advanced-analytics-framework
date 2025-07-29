@@ -50,7 +50,7 @@ def target():
     return target
 
 
-def create_table_like(name: str, columns: List[Column]):
+def create_table_like(name: str, columns: list[Column]):
     return Table(
         TableNameBuilder.create(name, SchemaName("TEST_SCHEMA")),
         columns=columns,

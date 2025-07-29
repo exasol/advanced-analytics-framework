@@ -27,7 +27,7 @@ class JsonUDFQueryHandler(UDFQueryHandler):
         self,
         parameter: str,
         query_handler_context: ScopeQueryHandlerContext,
-        wrapped_json_query_handler_class: Type[JSONQueryHandler],
+        wrapped_json_query_handler_class: type[JSONQueryHandler],
     ):
         super().__init__(parameter, query_handler_context)
         json_parameter = json.loads(parameter)
@@ -60,7 +60,7 @@ class JsonUDFQueryHandler(UDFQueryHandler):
 
 class JsonUDFQueryHandlerFactory(UDFQueryHandlerFactory, ABC):
 
-    def __init__(self, wrapped_json_query_handler_class: Type[JSONQueryHandler]):
+    def __init__(self, wrapped_json_query_handler_class: type[JSONQueryHandler]):
         self._wrapped_json_query_handler_class = wrapped_json_query_handler_class
 
     def create(

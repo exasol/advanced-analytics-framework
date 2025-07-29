@@ -218,7 +218,7 @@ def create_stage_input_output(table_name: TableName):
 @dataclasses.dataclass
 class TestSetup:
     __test__ = False
-    stages: List[TestSQLStage]
+    stages: list[TestSQLStage]
     stage_input_output: SQLStageInputOutput
     child_query_handler_context: ScopeQueryHandlerContext
     query_handler: SQLStageGraphExecutionQueryHandler
@@ -227,7 +227,7 @@ class TestSetup:
 def create_test_setup(
     *,
     sql_stage_graph: SQLStageGraph,
-    stages: List[TestSQLStage],
+    stages: list[TestSQLStage],
     context: TopLevelQueryHandlerContext,
     bucketfs_location: bfs.path.PathLike,
 ) -> TestSetup:
@@ -569,7 +569,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
           child_query_handler_context.release, returns a single cleanup query
     """
 
-    def arrange() -> Tuple[TestSetup, QueryResult]:
+    def arrange() -> tuple[TestSetup, QueryResult]:
         stage1 = TestSQLStage(
             index=1,
             query_handler_factory=HandleQueryResultCreateNewOutputTestSQLStageQueryHandler,

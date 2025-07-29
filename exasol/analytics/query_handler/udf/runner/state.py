@@ -19,4 +19,4 @@ class QueryHandlerRunnerState:
     query_handler: QueryHandler
     connection_lookup: Optional[UDFConnectionLookup] = None
     input_query_query_handler_context: Optional[ScopeQueryHandlerContext] = None
-    input_query_output_columns: Optional[List[Column]] = None
+    input_query_output_columns: Optional[list[Column]] = None

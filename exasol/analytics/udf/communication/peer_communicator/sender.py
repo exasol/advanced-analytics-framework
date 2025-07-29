@@ -39,7 +39,7 @@ class Sender:
             send_socket.send(serialized_message)
             send_socket.close(self._send_socket_linger_time_in_ms)
 
-    def send_multipart(self, frames: List[Frame]):
+    def send_multipart(self, frames: list[Frame]):
         with self._send_socket_factory.create_send_socket() as send_socket:
             send_socket.send_multipart(frames)
             send_socket.close(self._send_socket_linger_time_in_ms)

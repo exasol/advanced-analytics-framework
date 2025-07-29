@@ -130,7 +130,7 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
 
 
 def run_test(group: str, number_of_instances: int):
-    connection_infos: Dict[int, ConnectionInfo] = {}
+    connection_infos: dict[int, ConnectionInfo] = {}
     parameters = [
         PeerCommunicatorTestProcessParameter(
             instance_name=f"i{i}",
@@ -140,7 +140,7 @@ def run_test(group: str, number_of_instances: int):
         )
         for i in range(number_of_instances)
     ]
-    processes: List[TestProcess[PeerCommunicatorTestProcessParameter]] = [
+    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]] = [
         TestProcess(parameter, run=run) for parameter in parameters
     ]
     for i in range(number_of_instances):
@@ -148,7 +148,7 @@ def run_test(group: str, number_of_instances: int):
     for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     assert_processes_finish(processes, timeout_in_seconds=180)
-    peers_of_threads: Dict[int, List[ConnectionInfo]] = {}
+    peers_of_threads: dict[int, list[ConnectionInfo]] = {}
     for i in range(number_of_instances):
         peers_of_threads[i] = processes[i].get()
     expected_peers_of_threads = {

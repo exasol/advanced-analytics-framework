@@ -92,7 +92,7 @@ class PeerCommunicator:
             my_connection_info=self._my_connection_info.model_dump()
         )
         self._logger.info("my_connection_info")
-        self._peer_states: Dict[Peer, FrontendPeerState] = {}
+        self._peer_states: dict[Peer, FrontendPeerState] = {}
 
     def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
         for message_obj, frames in self._background_listener.receive_messages(
@@ -163,7 +163,7 @@ class PeerCommunicator:
             self._are_all_peers_connected, timeout_in_milliseconds
         )
 
-    def peers(self, timeout_in_milliseconds: Optional[int] = None) -> List[Peer]:
+    def peers(self, timeout_in_milliseconds: Optional[int] = None) -> list[Peer]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
             peers = [peer for peer in self._peer_states.keys()] + [
@@ -225,13 +225,13 @@ class PeerCommunicator:
         result = len(self._peer_states) == self._number_of_peers - 1 and all_peers_ready
         return result
 
-    def send(self, peer: Peer, message: List[Frame]):
+    def send(self, peer: Peer, message: list[Frame]):
         self.wait_for_peers()
         self._peer_states[peer].send(message)
 
     def recv(
         self, peer: Peer, timeout_in_milliseconds: Optional[int] = None
-    ) -> List[Frame]:
+    ) -> list[Frame]:
         self.wait_for_peers()
         peer_has_received_messages = self._wait_for_condition(
             self._peer_states[peer].has_received_messages,
@@ -244,9 +244,9 @@ class PeerCommunicator:
 
     def poll_peers(
         self,
-        peers: Optional[List[Peer]] = None,
+        peers: Optional[list[Peer]] = None,
         timeout_in_milliseconds: Optional[int] = None,
-    ) -> List[Peer]:
+    ) -> list[Peer]:
         self.wait_for_peers()
 
         _peers = self._peer_states.keys() if peers is None else peers

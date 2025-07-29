@@ -1,8 +1,10 @@
+from collections.abc import (
+    Hashable,
+    Iterable,
+)
 from typing import (
     Any,
     Dict,
-    Hashable,
-    Iterable,
     Set,
 )
 
@@ -11,7 +13,7 @@ def generate_hash_for_object(obj: Any) -> int:
     return hash(tuple(_hash_object(v, set()) for k, v in sorted(obj.__dict__.items())))
 
 
-def _hash_object(obj: Any, already_seen: Set[int]) -> int:
+def _hash_object(obj: Any, already_seen: set[int]) -> int:
     """
     This function generates a hash value for the object using either the objects __hash__ method,
     or by inspecting it, if it is a list or dict. For non-hashable objects it returns 0.
@@ -27,7 +29,7 @@ def _hash_object(obj: Any, already_seen: Set[int]) -> int:
         already_seen.add(object_id)
         if isinstance(obj, Hashable):
             return hash(obj)
-        elif isinstance(obj, Dict):
+        elif isinstance(obj, dict):
             return hash(
                 (
                     _hash_object(obj.keys(), already_seen),

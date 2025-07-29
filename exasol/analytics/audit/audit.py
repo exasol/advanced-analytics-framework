@@ -1,8 +1,8 @@
 import logging
 import uuid
+from collections.abc import Iterator
 from typing import (
     Any,
-    Iterator,
     cast,
 )
 

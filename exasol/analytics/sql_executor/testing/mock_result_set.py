@@ -12,7 +12,7 @@ from exasol.analytics.sql_executor.interface import ResultSet
 class MockResultSet(ResultSet):
 
     def __init__(
-        self, rows: Optional[List[Tuple]] = None, columns: Optional[List[Column]] = None
+        self, rows: Optional[list[tuple]] = None, columns: Optional[list[Column]] = None
     ):
         self._columns = columns
         self._rows = rows
@@ -31,26 +31,26 @@ class MockResultSet(ResultSet):
         else:
             return self
 
-    def __next__(self) -> Tuple:
+    def __next__(self) -> tuple:
         if self._rows is None:
             raise NotImplementedError()
         else:
             return next(self._iter)
 
-    def fetchone(self) -> Tuple:
+    def fetchone(self) -> tuple:
         if self._rows is None:
             raise NotImplementedError()
         else:
             row = next(self)
             return row
 
-    def fetchmany(self, size=1000) -> List[Tuple]:
+    def fetchmany(self, size=1000) -> list[tuple]:
         if self._rows is None:
             raise NotImplementedError()
         else:
             return [row for row in itertools.islice(self, size)]
 
-    def fetchall(self) -> List[Tuple]:
+    def fetchall(self) -> list[tuple]:
         if self._rows is None:
             raise NotImplementedError()
         else:
@@ -62,7 +62,7 @@ class MockResultSet(ResultSet):
         else:
             return len(self._rows)
 
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         if self._columns is None:
             raise NotImplementedError()
         else:

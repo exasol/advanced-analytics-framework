@@ -80,7 +80,7 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[Dict[str, Any]]]:
+    ) -> Union[Continue, Finish[dict[str, Any]]]:
         a = query_result.a
         if a != 1:
             raise AssertionError(f"Expected query_result.a={a} to be 1.")

@@ -53,7 +53,7 @@ class SQLStageGraphExecutionQueryHandlerState:
         self._reference_counting_bag = reference_counting_bag_factory(
             query_handler_context
         )
-        self._stage_inputs_map = DefaultDict[SQLStage, List[SQLStageInputOutput]](list)
+        self._stage_inputs_map = DefaultDict[SQLStage, list[SQLStageInputOutput]](list)
         self._stages_in_execution_order = (
             self._sql_stage_graph.compute_dependency_order()
         )
@@ -63,14 +63,14 @@ class SQLStageGraphExecutionQueryHandlerState:
         ]
         self._stage_inputs_map[self._current_stage].append(parameter.input)
         self._current_query_handler: Optional[
-            QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]
+            QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]
         ] = None
         self._current_qh_context: Optional[ScopeQueryHandlerContext] = None
         self._create_current_query_handler()
 
     def get_current_query_handler(
         self,
-    ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
+    ) -> QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]:
         value = self._current_query_handler
         if value is None:
             raise RuntimeError("No current query handler set.")
@@ -160,13 +160,13 @@ class SQLStageGraphExecutionQueryHandlerState:
         self._add_result_to_reference_counting_bag(result, successors)
 
     def _add_result_to_inputs_of_successors(
-        self, result: SQLStageInputOutput, successors: List[SQLStage]
+        self, result: SQLStageInputOutput, successors: list[SQLStage]
     ):
         for successor in successors:
             self._stage_inputs_map[successor].append(result)
 
     def _add_result_to_reference_counting_bag(
-        self, result: SQLStageInputOutput, successors: List[SQLStage]
+        self, result: SQLStageInputOutput, successors: list[SQLStage]
     ):
         object_proxies = find_object_proxies(result)
         for object_proxy in object_proxies:
@@ -195,7 +195,7 @@ class SQLStageGraphExecutionQueryHandlerState:
             self._remove_object_proxies_from_reference_counting_bag(object_proxies)
 
     def _remove_object_proxies_from_reference_counting_bag(
-        self, object_proxies: List[ObjectProxy]
+        self, object_proxies: list[ObjectProxy]
     ):
         for object_proxy in object_proxies:
             if object_proxy in self._reference_counting_bag:

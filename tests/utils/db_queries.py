@@ -5,7 +5,7 @@ deployed_script_list = ["AAF_QUERY_HANDLER_UDF", "AAF_RUN_QUERY_HANDLER"]
 
 class DBQueries:
     @staticmethod
-    def get_all_scripts(db_conn, schema_name) -> List[int]:
+    def get_all_scripts(db_conn, schema_name) -> list[int]:
         query_all_scripts = f"""
                 SELECT SCRIPT_NAME 
                 FROM EXA_ALL_SCRIPTS
@@ -20,7 +20,7 @@ class DBQueries:
         return all(script in all_scripts for script in deployed_script_list)
 
     @staticmethod
-    def get_language_settings(db_conn) -> List:
+    def get_language_settings(db_conn) -> list:
         query = f"""
             SELECT "SYSTEM_VALUE", "SESSION_VALUE" 
             FROM SYS.EXA_PARAMETERS 

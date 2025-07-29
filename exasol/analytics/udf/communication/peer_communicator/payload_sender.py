@@ -55,7 +55,7 @@ class PayloadSender:
             my_connection_info=self._my_connection_info.model_dump(),
         )
         self._next_send_payload_sequence_number = 0
-        self._payload_message_sender_dict: Dict[int, PayloadMessageSender] = (
+        self._payload_message_sender_dict: dict[int, PayloadMessageSender] = (
             OrderedDict()
         )
 
@@ -72,7 +72,7 @@ class PayloadSender:
                 serialize_message(messages.Message(root=message))
             )
 
-    def send_payload(self, message: messages.Payload, frames: List[Frame]):
+    def send_payload(self, message: messages.Payload, frames: list[Frame]):
         self._logger.info("send_payload", message=message.model_dump())
         self._payload_message_sender_dict[message.sequence_number] = (
             self._payload_message_sender_factory.create(

@@ -25,11 +25,11 @@ from exasol.analytics.schema import (
 )
 
 
-class TestQueryHandler(QueryHandler[Dict[str, Any], int]):
+class TestQueryHandler(QueryHandler[dict[str, Any], int]):
     __test__ = False
 
     def __init__(
-        self, parameter: Dict[str, Any], query_handler_context: ScopeQueryHandlerContext
+        self, parameter: dict[str, Any], query_handler_context: ScopeQueryHandlerContext
     ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter

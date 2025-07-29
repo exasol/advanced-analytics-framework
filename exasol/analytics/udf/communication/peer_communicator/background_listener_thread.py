@@ -186,7 +186,7 @@ class BackgroundListenerThread:
         self._out_control_socket_address = out_control_socket_address
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
-        self._peer_state: Dict[Peer, BackgroundPeerState] = {}
+        self._peer_state: dict[Peer, BackgroundPeerState] = {}
         self._register_peer_connection: Optional[RegisterPeerConnection] = None
         self._sockets: Optional[RuntimeSockets] = None
 
@@ -242,7 +242,7 @@ class BackgroundListenerThread:
             message = self.sockets.listen.receive_multipart()
             self._handle_listener_message(message)
 
-    def _handle_control_message(self, frames: List[Frame]) -> Status:
+    def _handle_control_message(self, frames: list[Frame]) -> Status:
         try:
             message_obj: messages.Message = deserialize_message(
                 frames[0].to_bytes(), messages.Message
@@ -277,7 +277,7 @@ class BackgroundListenerThread:
             and self._config.forward_register_peer_config.is_leader
         ) or not self._config.forward_register_peer_config.is_enabled
 
-    def send_payload(self, payload: messages.Payload, frames: List[Frame]):
+    def send_payload(self, payload: messages.Payload, frames: list[Frame]):
         self._peer_state[payload.destination].send_payload(
             message=payload, frames=frames
         )
@@ -322,7 +322,7 @@ class BackgroundListenerThread:
                 payload_message_sender_timeout_config=self._config.payload_message_sender_timeout_config,
             )
 
-    def _handle_listener_message(self, frames: List[Frame]):
+    def _handle_listener_message(self, frames: list[Frame]):
         logger = self._logger.bind(sender_queue_id=frames[0].to_bytes())
         message_content_bytes = frames[1].to_bytes()
         try:
@@ -371,7 +371,7 @@ class BackgroundListenerThread:
             and self._config.forward_register_peer_config.is_enabled
         )
 
-    def _handle_payload_message(self, payload: messages.Payload, frames: List[Frame]):
+    def _handle_payload_message(self, payload: messages.Payload, frames: list[Frame]):
         self._peer_state[payload.source].received_payload(payload, frames=frames)
 
     def _handle_acknowledge_payload_message(

@@ -19,7 +19,7 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 )
 
 
-def _flags_to_bitmask(flags: Union[PollerFlag, Set[PollerFlag]]) -> int:
+def _flags_to_bitmask(flags: Union[PollerFlag, set[PollerFlag]]) -> int:
     if isinstance(flags, set):
         result = 0
         for flag in flags:
@@ -35,7 +35,7 @@ def _flags_to_bitmask(flags: Union[PollerFlag, Set[PollerFlag]]) -> int:
         raise ValueError(f"Flag not supported {flags}")
 
 
-def _bitmask_to_flags(bitmask: int) -> Set[PollerFlag]:
+def _bitmask_to_flags(bitmask: int) -> set[PollerFlag]:
     result = set()
     if bitmask & zmq.POLLIN != 0:
         result.add(PollerFlag.POLLIN)
@@ -65,7 +65,7 @@ class ZMQSocket(Socket):
     def receive(self) -> bytes:
         return self._internal_socket.recv()
 
-    def receive_multipart(self) -> List[Frame]:
+    def receive_multipart(self) -> list[Frame]:
         def convert_frame(frame: zmq.Frame):
             if not isinstance(frame, zmq.Frame):
                 raise ValueError(f"Frame not supported {frame}")
@@ -75,7 +75,7 @@ class ZMQSocket(Socket):
         message = [convert_frame(frame) for frame in zmq_message]
         return message
 
-    def send_multipart(self, message: List[Frame]):
+    def send_multipart(self, message: list[Frame]):
         def convert_frame(frame: Frame):
             if not isinstance(frame, ZMQFrame):
                 raise ValueError(f"Frame not supported {frame}")
@@ -95,9 +95,9 @@ class ZMQSocket(Socket):
 
     def poll(
         self,
-        flags: Union[PollerFlag, Set[PollerFlag]],
+        flags: Union[PollerFlag, set[PollerFlag]],
         timeout_in_ms: Optional[int] = None,
-    ) -> Set[PollerFlag]:
+    ) -> set[PollerFlag]:
         input_bitmask = _flags_to_bitmask(flags)
         result_bitmask = self._internal_socket.poll(
             flags=input_bitmask, timeout=timeout_in_ms
@@ -138,7 +138,7 @@ class ZMQPoller(Poller):
         self._sockets_map = {}
 
     def register(
-        self, socket: Socket, flags: Union[PollerFlag, Set[PollerFlag]]
+        self, socket: Socket, flags: Union[PollerFlag, set[PollerFlag]]
     ) -> None:
         if isinstance(socket, ZMQSocket):
             self._sockets_map[socket._internal_socket] = socket
@@ -149,7 +149,7 @@ class ZMQPoller(Poller):
 
     def poll(
         self, timeout_in_ms: Optional[int] = None
-    ) -> Dict[Socket, Set[PollerFlag]]:
+    ) -> dict[Socket, set[PollerFlag]]:
         poll_result = dict(self._internal_poller.poll(timeout_in_ms))
         result = {
             self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)

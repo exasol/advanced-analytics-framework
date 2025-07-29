@@ -34,7 +34,7 @@ from tests.unit_tests.sql_stage_graph.stage_graph_execution_query_handler.state_
 
 
 def create_single_stage_setup(
-    result_prototypes: List[Union[Continue, Finish, MagicMock]],
+    result_prototypes: list[Union[Continue, Finish, MagicMock]],
 ) -> TestSetup:
     stage_setup = create_mocks_for_stage(result_prototypes, stage_index=0)
     sql_stage_graph = SQLStageGraph(
@@ -59,7 +59,7 @@ def test_get_current_query_handler_single_stage_after_init():
 
     def act(
         test_setup: TestSetup,
-    ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
+    ) -> QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]:
         current_query_handler = (
             test_setup.state_setup.execution_query_handler_state.get_current_query_handler()
         )
@@ -156,7 +156,7 @@ def test_get_current_query_handler_single_stage_return_continue_finish():
 
     def act(
         test_setup: TestSetup,
-    ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
+    ) -> QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]:
         current_query_handler = (
             test_setup.state_setup.execution_query_handler_state.get_current_query_handler()
         )
@@ -236,7 +236,7 @@ def test_get_current_query_handler_single_stage_return_continue_finish_part2():
 
     def act(
         test_setup: TestSetup,
-    ) -> QueryHandler[List[SQLStageInputOutput], SQLStageInputOutput]:
+    ) -> QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]:
         current_query_handler = (
             test_setup.state_setup.execution_query_handler_state.get_current_query_handler()
         )

@@ -1,6 +1,6 @@
+from collections.abc import Iterator
 from typing import (
     Any,
-    Iterator,
     List,
     Optional,
     Tuple,
@@ -42,13 +42,13 @@ class PythonQueryResult(QueryResult):
     def rowcount(self) -> int:
         return len(self._data)
 
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         return list(self._columns)
 
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return [column.name.name for column in self._columns]
 
-    def __init__(self, data: List[Tuple[Any, ...]], columns: List[Column]):
+    def __init__(self, data: list[tuple[Any, ...]], columns: list[Column]):
         self._columns = columns
         self._data = data
         self._iter = iter(data)

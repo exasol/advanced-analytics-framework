@@ -169,14 +169,14 @@ def run_test(
         for n in range(number_of_nodes)
         for i in range(number_of_instances_per_node)
     ]
-    processes: List[TestProcess[CommunicatorTestProcessParameter]] = [
+    processes: list[TestProcess[CommunicatorTestProcessParameter]] = [
         TestProcess(parameter, run=run) for parameter in parameters
     ]
     for process in processes:
         process.start()
     assert_processes_finish(processes, timeout_in_seconds=180)
-    actual_result_of_threads: Dict[Tuple[str, str], str] = {}
-    expected_result_of_threads: Dict[Tuple[str, str], str] = {}
+    actual_result_of_threads: dict[tuple[str, str], str] = {}
+    expected_result_of_threads: dict[tuple[str, str], str] = {}
     for process in processes:
         result_key = (process.parameter.node_name, process.parameter.instance_name)
         actual_result_of_threads[result_key] = process.get()

@@ -39,6 +39,6 @@ def database_with_slc(
     itest_db_schema,
     bucketfs_connection_factory,
     deployed_slc,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     bucketfs_connection_factory(BUCKETFS_CONNECTION_NAME, "my-folder")
     return BUCKETFS_CONNECTION_NAME, itest_db_schema

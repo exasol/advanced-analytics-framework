@@ -19,7 +19,7 @@ class PayloadMessageSender:
     def __init__(
         self,
         message: messages.Payload,
-        frames: List[Frame],
+        frames: list[Frame],
         retry_timer: Timer,
         abort_timer: Timer,
         sender: Sender,

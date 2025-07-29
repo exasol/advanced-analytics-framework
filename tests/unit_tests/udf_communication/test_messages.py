@@ -17,7 +17,7 @@ base_message_subclasses = BaseMessage.__subclasses__()
 
 
 @pytest.mark.parametrize("message_class", base_message_subclasses)
-def test_message_serialization(message_class: Type):
+def test_message_serialization(message_class: type):
     factory = ModelFactory.create_factory(model=message_class)
     message = factory.build()
     byte_string = serialize_message(message)
@@ -26,7 +26,7 @@ def test_message_serialization(message_class: Type):
 
 
 @pytest.mark.parametrize("message_class", base_message_subclasses)
-def test_message_type(message_class: Type):
+def test_message_type(message_class: type):
     factory = ModelFactory.create_factory(model=message_class)
     message = factory.build()
     assert (

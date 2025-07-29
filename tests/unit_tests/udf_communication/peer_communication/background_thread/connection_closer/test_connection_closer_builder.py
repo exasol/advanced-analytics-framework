@@ -55,7 +55,7 @@ class TestSetup:
     ]
     close_connection_sender_factory_mock: Union[MagicMock, CloseConnectionSenderFactory]
     timer_factory_mock: Union[MagicMock, TimerFactory]
-    timer_mocks: List[Mock]
+    timer_mocks: list[Mock]
     sender_mock: Union[MagicMock, Sender]
     connection_closer_builder: ConnectionCloserBuilder
     connection_closer_factory_mock: Union[MagicMock, ConnectionCloserFactory]

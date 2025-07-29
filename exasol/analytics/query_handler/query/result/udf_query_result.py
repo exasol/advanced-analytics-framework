@@ -1,11 +1,11 @@
 import collections
+from collections import OrderedDict
+from collections.abc import Iterator
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterator,
     List,
     Optional,
-    OrderedDict,
     Union,
 )
 
@@ -84,10 +84,10 @@ class UDFQueryResult(QueryResult):
             filtered_df_from_start_col = filtered_df.iloc[:, start_col:]
             return filtered_df_from_start_col
 
-    def columns(self) -> List[Column]:
+    def columns(self) -> list[Column]:
         return list(self._columns)
 
-    def _compute_columns(self, exa) -> List[Column]:
+    def _compute_columns(self, exa) -> list[Column]:
         column_dict = {
             column.name: column.sql_type for column in exa.meta.input_columns
         }
@@ -97,5 +97,5 @@ class UDFQueryResult(QueryResult):
         ]
         return columns
 
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return list(self._reverse_column_mapping.keys())

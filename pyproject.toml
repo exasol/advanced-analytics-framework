@@ -24,7 +24,7 @@ packages = [
 [tool.poetry.dependencies]
 jinja2 = "^3.1.6"
 importlib-resources = "^6.5.2"
-exasol-bucketfs = ">=1,<3"
+exasol-bucketfs = ">=1.0.1,<3"
 click = "^8.1.8"
 pyexasol = ">=0.25.0,<1.0.0"
 pandas = "^2.2.3"
@@ -45,58 +45,53 @@ exasol-integration-test-docker-environment = "^3.4.0"
 polyfactory = "^2.19.0"
 pytest-repeat = ">=0.9.3"
 elasticsearch = "^8.17.1"
-exasol-toolbox = "^1.0.0"
+exasol-toolbox = "^1.7.0"
 exasol-python-extension-common = ">=0.6.0,<1.0.0"
 exasol-script-languages-container-tool = "^1.1.0"
 pytest-exasol-slc = ">=0.1.0,<1.0.0"
 pytest-exasol-backend = ">=0.3.0,<1.0.0"
 pytest-exasol-extension = ">=0.1.0,<1.0.0"
+types-networkx = "^3.5.0.20250728"
+pandas-stubs = "^2.3.0.250703"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-
 [[tool.mypy.overrides]]
 module = [
-    "pandas.*", "exasol.bucketfs.*", "pyexasol.*", "exasol.pytnsion_common.*",
-    "networkx.*", "exasol_udf_mock_python.*", "joblib.*",
-    "exasol.python_extension_common.*", ]
-ignore_missing_imports = true
-
-
-[[tool.mypy.overrides]]
-module = [
+    # no py.typed file yet
+    "pyexasol.*",
+    "exasol_udf_mock_python.*",
+    "exasol.python_extension_common.*", # typed from 0.9.0
+    # not type checking yet
     "tests.*",
-    "noxfile",
+    # no stubs available as of 2025
+    "joblib.*",
+    # fix typing on these files
+    "exasol.analytics.query_handler.graph.execution_graph"
 ]
 ignore_errors = true
-
+follow_untyped_imports = true
 
 [tool.pylint.master]
 fail-under = 6.0
-
-
 
 [tool.black]
 line-length = 88
 verbose = false
 include = "\\.pyi?$"
 
-
 [tool.isort]
 profile = "black"
 force_grid_wrap = 2
-
 
 [tool.pylint.format]
 max-line-length = 88
 max-module-lines = 800
 
-
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
-
 
 [tool.sonar]
 projectKey = "com.exasol:advanced-analytics-framework"

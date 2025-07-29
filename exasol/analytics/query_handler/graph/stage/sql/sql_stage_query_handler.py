@@ -1,8 +1,8 @@
 import dataclasses
 from abc import ABC
+from collections.abc import Sized
 from typing import (
     List,
-    Sized,
 )
 
 import exasol.bucketfs as bfs
@@ -19,7 +19,7 @@ def is_empty(obj: Sized):
 
 @dataclasses.dataclass(eq=True)
 class SQLStageQueryHandlerInput:
-    sql_stage_inputs: List[SQLStageInputOutput]
+    sql_stage_inputs: list[SQLStageInputOutput]
     result_bucketfs_location: bfs.path.PathLike
 
     def __post_init__(self):
