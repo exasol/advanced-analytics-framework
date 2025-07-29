@@ -7,7 +7,7 @@ from typing import (
 
 import pyexasol
 import pytest
-from tests.test_package.test_query_handlers.query_handler_test import (
+from test.test_package.test_query_handlers.query_handler_test import (
     FINAL_RESULT,
     QUERY_LIST,
     TEST_INPUT,

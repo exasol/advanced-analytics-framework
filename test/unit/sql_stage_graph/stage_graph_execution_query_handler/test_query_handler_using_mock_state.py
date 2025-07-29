@@ -11,7 +11,7 @@ from unittest.mock import (
     create_autospec,
 )
 
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (

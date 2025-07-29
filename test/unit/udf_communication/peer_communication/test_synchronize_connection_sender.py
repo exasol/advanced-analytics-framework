@@ -6,7 +6,7 @@ from unittest.mock import (
     create_autospec,
 )
 
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo

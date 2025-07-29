@@ -1,4 +1,4 @@
-from tests.utils.db_queries import DBQueries
+from test.utils.db_queries import DBQueries
 
 from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (
     save_aaf_query_loop_lua_script,

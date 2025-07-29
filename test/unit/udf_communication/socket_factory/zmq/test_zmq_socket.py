@@ -9,7 +9,7 @@ from unittest.mock import (
 
 import pytest
 import zmq
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 from zmq import ZMQError
 
 from exasol.analytics.udf.communication.socket_factory.abstract import (

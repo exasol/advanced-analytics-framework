@@ -7,7 +7,7 @@ from unittest.mock import (
 )
 
 import pytest
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import (

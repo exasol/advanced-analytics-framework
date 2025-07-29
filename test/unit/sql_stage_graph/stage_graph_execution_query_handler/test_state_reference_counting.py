@@ -1,13 +1,9 @@
 import dataclasses
-from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
-    TestSetup,
-    create_execution_query_handler_state_setup,
-    create_mocks_for_stage,
-)
 from typing import (
     Dict,
     List,
     Union,
+    cast,
 )
 from unittest.mock import (
     MagicMock,
@@ -15,8 +11,6 @@ from unittest.mock import (
     call,
     create_autospec,
 )
-
-from tests.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.graph.stage.sql.execution.query_handler_state import (
@@ -27,6 +21,12 @@ from exasol.analytics.query_handler.result import (
     Continue,
     Finish,
 )
+from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_setup import (
+    TestSetup,
+    create_execution_query_handler_state_setup,
+    create_mocks_for_stage,
+)
+from test.utils.mock_cast import mock_cast
 
 
 def create_diamond_setup(
@@ -147,15 +147,21 @@ def equip_reference_counting_bag_with_logic(test_setup) -> dict[ObjectProxy, int
     return object_proxy_dict
 
 
+def _get_finish(test_setup: TestSetup, i: int) -> Finish:
+    return cast(Finish, test_setup.stage_setups[i].results[0])
+
+
 def assert_transfer_from_child_to_parent_query_handler_context(
     ref_count_setup: ReferenceCountingSetup, stage_index: int
 ):
+    # result = _get_finish(ref_count_setup.test_setup, stage_index).result
     mock_cast(
         ref_count_setup.test_setup.stage_setups[
             stage_index
         ].child_query_handler_context.transfer_object_to
     ).assert_called_once_with(
-        ref_count_setup.test_setup.stage_setups[stage_index].results[0].result,
+        _get_finish(ref_count_setup.test_setup, stage_index).result,
+        # ref_count_setup.test_setup.stage_setups[stage_index].results[0].result,
         ref_count_setup.test_setup.state_setup.parent_query_handler_context,
     )
 

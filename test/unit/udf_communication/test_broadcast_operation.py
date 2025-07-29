@@ -12,7 +12,7 @@ from unittest.mock import (
 )
 
 from polyfactory.factories.pydantic_factory import ModelFactory
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation

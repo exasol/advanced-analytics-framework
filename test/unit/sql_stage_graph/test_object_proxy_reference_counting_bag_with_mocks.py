@@ -11,7 +11,7 @@ from unittest.mock import (
 )
 
 import pytest
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext

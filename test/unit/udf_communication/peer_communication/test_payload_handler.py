@@ -8,7 +8,7 @@ from unittest.mock import (
 
 import pytest
 from polyfactory.factories.pydantic_factory import ModelFactory
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer_communicator.payload_handler import (

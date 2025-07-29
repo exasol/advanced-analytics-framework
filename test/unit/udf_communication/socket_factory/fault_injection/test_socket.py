@@ -11,7 +11,7 @@ from unittest.mock import (
 import numpy as np
 import pytest
 from numpy.random import RandomState
-from tests.utils.mock_cast import mock_cast
+from test.utils.mock_cast import mock_cast
 
 from exasol.analytics.udf.communication.socket_factory import (
     abstract,
