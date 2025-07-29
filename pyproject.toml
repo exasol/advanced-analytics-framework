@@ -52,6 +52,7 @@ pytest-exasol-slc = ">=0.1.0,<1.0.0"
 pytest-exasol-backend = ">=0.3.0,<1.0.0"
 pytest-exasol-extension = ">=0.1.0,<1.0.0"
 types-networkx = "^3.5.0.20250728"
+pandas-stubs = "^2.3.0.250703"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
