@@ -10,10 +10,8 @@ from exasol.analytics.sql_executor.pyexasol_impl import PyexasolSQLExecutor
 
 
 @pytest.fixture()
-def pyexasol_sql_executor():
-    con = pyexasol.connect(dsn="localhost:8888", user="sys", password="exasol")
-    yield PyexasolSQLExecutor(con)
-    con.close()
+def pyexasol_sql_executor(pyexasol_connection: pyexasol.ExaConnection):
+    yield PyexasolSQLExecutor(pyexasol_connection)
 
 
 RESULT_SET_INDEX = 0
