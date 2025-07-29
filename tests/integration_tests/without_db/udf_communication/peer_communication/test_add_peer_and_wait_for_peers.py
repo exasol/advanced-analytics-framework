@@ -34,10 +34,10 @@ from exasol.analytics.udf.communication.socket_factory.fault_injection import (
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.conditional_method_dropper import (
+from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,
 )
-from tests.integration_tests.without_db.udf_communication.peer_communication.utils import (
+from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     PeerCommunicatorTestProcessParameter,
     TestProcess,

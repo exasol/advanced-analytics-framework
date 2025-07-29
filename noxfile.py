@@ -18,8 +18,8 @@ nox.options.sessions = ["fix"]
 SCRIPTS_DIRECTORY = ROOT_DIR / "scripts"
 RUN_IN_DEV_SCRIPT = SCRIPTS_DIRECTORY / "run_in_dev_env.sh"
 RUN_IN_DEV_SCRIPT_STR = str(RUN_IN_DEV_SCRIPT)
-TEST_DIRECTORY = ROOT_DIR / "tests"
-INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration_tests"
+TEST_DIRECTORY = ROOT_DIR / "test"
+INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration"
 
 nox.options.sessions = []
 
@@ -74,7 +74,7 @@ def run_lua_unit_tests(session: Session):
 
 @nox.session(python=False)
 def run_python_unit_tests(session: Session):
-    unit_test_directory = TEST_DIRECTORY / "unit_tests"
+    unit_test_directory = TEST_DIRECTORY / "unit"
     _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
 
 
@@ -82,23 +82,23 @@ def _generate_test_matrix_entry(test_file: Path):
     return {"name": str(test_file.name), "path": str(test_file)}
 
 
-def _generate_github_integration_tests_without_db_matrix() -> str:
-    without_db_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
-    test_files = without_db_test_directory.rglob("test_*.py")
+def _generate_github_integration_tests_no_db_matrix() -> str:
+    no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
+    test_files = no_db_test_directory.rglob("test_*.py")
     output = [_generate_test_matrix_entry(test_file) for test_file in test_files]
     json_str = json.dumps(output)
     return json_str
 
 
 @nox.session(python=False)
-def generate_github_integration_tests_without_db_matrix_json(session: Session):
-    json_str = _generate_github_integration_tests_without_db_matrix()
+def generate_github_integration_tests_no_db_matrix_json(session: Session):
+    json_str = _generate_github_integration_tests_no_db_matrix()
     print(json_str)
 
 
 @nox.session(python=False)
-def write_github_integration_tests_without_db_matrix(session: Session):
-    json_str = _generate_github_integration_tests_without_db_matrix()
+def write_github_integration_tests_no_db_matrix(session: Session):
+    json_str = _generate_github_integration_tests_no_db_matrix()
     github_output_definition = f"matrix={json_str}"
     if "GITHUB_OUTPUT" in os.environ:
         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
@@ -108,8 +108,8 @@ def write_github_integration_tests_without_db_matrix(session: Session):
 
 
 @nox.session(python=False)
-def run_python_integration_tests_without_db(session: Session):
-    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
+def run_python_integration_tests_no_db(session: Session):
+    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
     _run_in_dev_env_poetry_call(session, "pytest", str(integration_test_directory))
 
 

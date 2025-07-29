@@ -41,7 +41,7 @@ from exasol.analytics.sql_executor.testing.mock_sql_executor import (
     create_sql_executor,
     expect_query,
 )
-from tests.unit_tests.audit_log.qh_utils import continue_action
+from test.unit.audit_log.qh_utils import continue_action
 from tests.utils.audit_table_utils import create_insert_query
 
 

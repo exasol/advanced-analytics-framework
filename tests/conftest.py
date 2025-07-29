@@ -1,4 +1,4 @@
 pytest_plugins = [
-    "tests.integration_tests.with_db.fixtures.setup_database_fixture",
-    "tests.unit_tests.query_handler.fixtures",
+    "test.integration.with_db.fixtures.setup_database_fixture",
+    "test.unit.query_handler.fixtures",
 ]

@@ -17,8 +17,8 @@ from exasol.analytics.query_handler.udf.runner.udf import (
     QueryHandlerStatus,
     create_bucketfs_location_from_conn_object,
 )
-from tests.unit_tests.udf_framework import mock_query_handlers
-from tests.unit_tests.udf_framework.mock_query_handlers import TEST_CONNECTION
+from test.unit.udf_framework import mock_query_handlers
+from test.unit.udf_framework.mock_query_handlers import TEST_CONNECTION
 from tests.utils.test_utils import pytest_regex
 
 TEMPORARY_NAME_PREFIX = "temporary_name_prefix"
@@ -112,7 +112,7 @@ def test_query_handler_udf_with_one_iteration(mocked_exa_env):
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "MockQueryHandlerWithOneIterationFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         mock_query_handlers.TEST_INPUT,
     )
     result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
@@ -136,7 +136,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_child_query_hand
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContextFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         "{}",
     )
     result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
@@ -160,7 +160,7 @@ def test_query_handler_udf_with_one_iteration_with_not_released_temporary_object
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObjectFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         "{}",
     )
     result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
@@ -183,7 +183,7 @@ def test_query_handler_udf_with_one_iteration_and_temp_table(mocked_exa_env):
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "QueryHandlerTestWithOneIterationAndTempTableFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         "{}",
     )
     result = UDFMockExecutor().run([Group([input_data])], mocked_exa_env)
@@ -220,7 +220,7 @@ def test_query_handler_udf_with_two_iteration(
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "MockQueryHandlerWithTwoIterationsFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         "{}",
     )
     executor = UDFMockExecutor()
@@ -315,7 +315,7 @@ def test_query_handler_udf_using_connection(
         TEMPORARY_NAME_PREFIX,
         "temp_schema",
         "MockQueryHandlerUsingConnectionFactory",
-        "tests.unit_tests.udf_framework.mock_query_handlers",
+        "test.unit.udf_framework.mock_query_handlers",
         "{}",
     )
     result = UDFMockExecutor().run([Group([input_data])], exa)
