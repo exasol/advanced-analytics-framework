@@ -8,7 +8,7 @@ GITHOOKS_PATH="$REPO_DIR/githooks"
 pushd "$REPO_DIR"
 bash "$GITHOOKS_PATH/prohibit_commit_to_main.sh"
 
-poetry run -- nox -s amalgate_lua_scripts
+poetry run -- nox -s lua:amalgate
 
 git add "$SRC_PATH/resources/outputs/"
 popd

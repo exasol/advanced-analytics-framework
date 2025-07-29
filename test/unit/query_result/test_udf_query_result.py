@@ -14,6 +14,23 @@ INPUT_COLUMNS = [
 ]
 
 
+# def test_x1():
+#     def sample():
+#         from collections import OrderedDict
+#
+#         from exasol_udf_mock_python.udf_context import UDFContext
+#
+#         from exasol.analytics.query_handler.query.result.udf_query_result import (
+#             UDFQueryResult,
+#         )
+#
+#         print("Hello world")
+#
+#     import inspect
+#     s = inspect.findsource(sample)
+#     print(f'{s}')
+
+
 def test_fetch_as_dataframe_column_names():
     def udf_wrapper():
         from collections import OrderedDict

@@ -26,7 +26,7 @@ jobs:
 
       - id: generate_integration_tests_without_db
         name: "Generate list of integration tests without DB"
-        run: poetry run -- nox -s write_github_integration_tests_no_db_matrix
+        run: poetry run -- nox -s matrix:no-db
     outputs:
       test-path: ${{ steps.generate_integration_tests_no_db.outputs.matrix }}
 
@@ -53,7 +53,7 @@ jobs:
           poetry-version: 2.1.2
 
       - name: Poetry install
-        run: poetry run -- nox -s run_in_dev_env -- poetry install
+        run: poetry run -- nox -s devenv:run -- poetry install
 
       - name: Run Python integration tests without db
         run: poetry run -- nox -s run_python_test -- ${{ matrix.test-path.path }}

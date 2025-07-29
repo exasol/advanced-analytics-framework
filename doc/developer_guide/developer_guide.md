@@ -9,7 +9,7 @@ The developer guide explains how to maintain and develop the Advanced Analytics 
 The following command builds the SLC for the AAF
 
 ```shell
-poetry run -- nox -s build_language_container
+poetry run -- nox -s slc:build
 ```
 
 GitHub workflow `build-and-publish.yml` also adds the SLC to each release of the AAF on GitHub.
@@ -23,7 +23,7 @@ AAF contains the amalgated Lua script [create_query_loop.sql](https://github.com
 The following command updates the amalgated script:
 
 ```shell
-poetry run -- nox -s amalgate_lua_scripts
+poetry run -- nox -s lua:amalgate
 ```
 
 ## Running Tests
@@ -50,8 +50,8 @@ The Development Environment
 
 The following commands install the Development Environment and add the AAF
 ```shell
-poetry run -- nox -s install_dev_env
-poetry run -- nox -s run_in_dev_env -- poetry install
+poetry run -- nox -s devenv:install
+poetry run -- nox -s devenv:run -- poetry install
 ```
 
 ### Python Unit Tests
@@ -66,13 +66,13 @@ poetry run -- pytest test/unit
 
 The following commands run integration tests w/o and with database
 ```shell
-poetry run -- nox -s run_python_test -- -- test/integration/no_db/
-poetry run -- nox -s run_python_test -- -- --backend=onprem test/integration/with_db/
+poetry run -- nox -s devenv:pytest -- -- test/integration/no_db/
+poetry run -- nox -s devenv:pytest -- -- --backend=onprem test/integration/with_db/
 ```
 
 ### Lua Unit Tests
 
 The following command executes the Lua Unit Tests:
 ```shell
-poety run nox -s run_lua_unit_tests
+poety run nox -s lua:unit-tests
 ```
