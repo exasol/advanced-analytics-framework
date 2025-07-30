@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        elements: ${{ fromJSON(jobs.testmatrix.outputs) }}
+        elements: ${{ fromJSON(needs.testmatrix.outputs) }}
     runs-on: ubuntu-24.04
     name: Run ${{ matrix.test-path.name }}
     steps:

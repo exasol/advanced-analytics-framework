@@ -70,6 +70,17 @@ poetry run -- nox -s itests:no-db
 poetry run -- nox -s itests:with-db -- --backend=onprem
 ```
 
+As the integration tests without database take very long (> 60 minutes), the
+CI build
+1. Enumerates all files below directory test/integration/with_db
+2. Creates a build matrix
+3. Runs the tests in parallel, each file separately
+
+```shell
+poetry run -- nox -s devenv:pytest -- <file> --backend=onprem
+```
+
+
 ### Lua Unit Tests
 
 The following command executes the Lua Unit Tests:
