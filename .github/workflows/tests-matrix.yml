@@ -22,8 +22,10 @@ jobs:
           poetry-version: 2.1.2
 
       - id: generate_matrix
-        name: "Generate list of integration tests without DB"
-        run: poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
+        name: Generate List of Integration Tests Without Database
+        run: |
+          poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
     # outputs:
     #   files: ${{ steps.generate_matrix.outputs.matrix }}
 
@@ -32,7 +34,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Print
-        run: echo ${{ needs.testmatrix }}
+        run: echo ${{ fromJSON(needs.testmatrix) }}
 
   run_test:
     needs: testmatrix
