@@ -119,7 +119,6 @@ def write_github_integration_tests_no_db_matrix(session: Session):
     print(f"files={json_str}")
 
 
-
 @nox.session(name="slc:build", python=False)
 def build_language_container(session: Session):
     export_path = ROOT_DIR / ".slc"
