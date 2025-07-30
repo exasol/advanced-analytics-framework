@@ -26,8 +26,8 @@ jobs:
         run: |
           poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
-    # outputs:
-    #   files: ${{ steps.generate_matrix.outputs.matrix }}
+    outputs:
+      files: ${{ steps.generate_matrix.outputs.files }}
 
   examine:
     needs: testmatrix
@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        file: ${{ fromJSON(needs.testmatrix.files) }}
+        file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
         # file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
     name: Run ${{ matrix.file }}

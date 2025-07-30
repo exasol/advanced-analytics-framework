@@ -79,7 +79,7 @@ def run_python_unit_tests(session: Session):
 
 
 @nox.session
-def x1(session) -> str:
+def x1(session):
     dir = INTEGRATION_TEST_DIRECTORY / "no_db"
     for f in dir.rglob("test_*.py"):
         f1 = f.relative_to(ROOT_DIR)
@@ -103,15 +103,15 @@ def _generate_github_integration_tests_no_db_matrix() -> str:
 #     print(json_str)
 
 
-@nox.session(name="matrix:no-db-old", python=False)
-def write_github_integration_tests_no_db_matrix(session: Session):
-    json_str = _generate_github_integration_tests_no_db_matrix()
-    github_output_definition = f"matrix={json_str}"
-    if "GITHUB_OUTPUT" in os.environ:
-        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-            print(github_output_definition, file=fh)
-    else:
-        print(github_output_definition)
+# @nox.session(name="matrix:no-db", python=False)
+# def write_github_integration_tests_no_db_matrix(session: Session):
+#     json_str = _generate_github_integration_tests_no_db_matrix()
+#     github_output_definition = f"matrix={json_str}"
+#     if "GITHUB_OUTPUT" in os.environ:
+#         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+#             print(github_output_definition, file=fh)
+#     else:
+#         print(github_output_definition)
 
 
 @nox.session(name="matrix:no-db", python=False)
