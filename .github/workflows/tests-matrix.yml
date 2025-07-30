@@ -25,16 +25,16 @@ jobs:
         name: "Generate list of integration tests without DB"
         run: poetry run -- nox -s matrix:no-db
     outputs:
-      path: ${{ steps.generate_matrix.outputs.matrix }}
+      files: ${{ steps.generate_matrix.outputs.matrix }}
 
   run_test:
     needs: testmatrix
     strategy:
       fail-fast: false
       matrix:
-        elements: ${{ fromJSON(needs.testmatrix.outputs.path) }}
+        file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
     name: Run ${{ matrix.test-path.name }}
     steps:
       - name: Print
-        run: echo ${{ matrix.elements.path }}
+        run: echo ${{ matrix.file }}

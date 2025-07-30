@@ -78,11 +78,18 @@ def run_python_unit_tests(session: Session):
     _run_in_dev_env_poetry_call(session, "pytest", dir)
 
 
+@nox.session
+def x1(session) -> str:
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+    for f in dir.rglob("test_*.py"):
+        f1 = f.relative_to(ROOT_DIR)
+        print(f'{f1}')
 
 
 def _generate_github_integration_tests_no_db_matrix() -> str:
     def entry(file: Path):
-        return {"name": str(file.name), "path": str(file)}
+        # return {"path": str(file.relative_to(ROOT_DIR))}
+        return str(file.relative_to(ROOT_DIR))
 
     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
     globbed = no_db_test_directory.rglob("test_*.py")
