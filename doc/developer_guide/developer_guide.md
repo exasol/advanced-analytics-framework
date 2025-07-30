@@ -59,15 +59,15 @@ poetry run -- nox -s devenv:run -- poetry install
 You can execute the unit tests without special preparation in the regular poetry environment:
 
 ```shell
-poetry run -- pytest test/unit
+poetry run -- nox -s test:unit
 ```
 
 ### Python Integration Tests with and w/o database
 
 The following commands run integration tests w/o and with database
 ```shell
-poetry run -- nox -s devenv:pytest -- -- test/integration/no_db/
-poetry run -- nox -s devenv:pytest -- -- --backend=onprem test/integration/with_db/
+poetry run -- nox -s itests:no-db
+poetry run -- nox -s itests:with-db -- --backend=onprem
 ```
 
 ### Lua Unit Tests
