@@ -88,8 +88,8 @@ def x1(session) -> str:
 
 def _generate_github_integration_tests_no_db_matrix() -> str:
     def entry(file: Path):
-        return {"path": str(file.relative_to(ROOT_DIR))}
-        # return str(file.relative_to(ROOT_DIR))
+        # return {"path": str(file.relative_to(ROOT_DIR))}
+        return str(file.relative_to(ROOT_DIR))
 
     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
     globbed = no_db_test_directory.rglob("test_*.py")
