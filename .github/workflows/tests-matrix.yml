@@ -34,14 +34,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Print
-        run: echo ${{ fromJSON(needs.testmatrix) }}
+        run: echo "${{ fromJSON(needs.testmatrix.files) }}"
 
   run_test:
     needs: testmatrix
     strategy:
       fail-fast: false
       matrix:
-        file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
+        file: ${{ fromJSON(needs.testmatrix.files) }}
+        # file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
     name: Run ${{ matrix.file }}
     steps:
