@@ -50,7 +50,8 @@ jobs:
 
       - name: Run Pytest
         # See Developer Guide on nox session itests:no-db
+        # proposal: don't use devenv here:
+        # nox -s devenv:pytest --
         run: >
-          poetry run -- nox -s devenv:pytest --
-          ${{ matrix.file.path }}
+          poetry run -- pytest ${{ matrix.file.path }}
           -o log_cli=true -o log_cli_level=INFO
