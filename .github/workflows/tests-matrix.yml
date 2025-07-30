@@ -1,0 +1,40 @@
+name: Run integration tests without DB
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        required: true
+
+jobs:
+
+  testmatrix:
+    name: Prepare Matrix for integration tests without DB
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.7.0
+        with:
+          python-version: ${{ inputs.python-version }}
+          poetry-version: 2.1.2
+
+      - id: generate_matrix
+        name: "Generate list of integration tests without DB"
+        run: poetry run -- nox -s matrix:no-db
+    outputs:
+      path: ${{ steps.generate_matrix.outputs.matrix }}
+
+  run_test:
+    needs: testmatrix
+    strategy:
+      fail-fast: false
+      matrix:
+        elements: ${{ fromJSON(jobs.testmatrix.outputs) }}
+    runs-on: ubuntu-24.04
+    name: Run ${{ matrix.test-path.name }}
+    steps:
+      - name: Print
+        run: echo ${{ matrix.elements.path }}

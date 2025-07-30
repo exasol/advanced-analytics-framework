@@ -78,33 +78,34 @@ def run_python_unit_tests(session: Session):
     _run_in_dev_env_poetry_call(session, "pytest", dir)
 
 
-# def _generate_test_matrix_entry(test_file: Path):
-#     return {"name": str(test_file.name), "path": str(test_file)}
-#
-#
-# def _generate_github_integration_tests_no_db_matrix() -> str:
-#     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
-#     test_files = no_db_test_directory.rglob("test_*.py")
-#     output = [_generate_test_matrix_entry(test_file) for test_file in test_files]
-#     json_str = json.dumps(output)
-#     return json_str
-#
-#
+
+
+def _generate_github_integration_tests_no_db_matrix() -> str:
+    def entry(file: Path):
+        return {"name": str(file.name), "path": str(file)}
+
+    no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
+    globbed = no_db_test_directory.rglob("test_*.py")
+    output = [entry(file) for file in globbed]
+    json_str = json.dumps(output)
+    return json_str
+
+
 # @nox.session(python=False)  # unused
 # def generate_github_integration_tests_no_db_matrix_json(session: Session):
 #     json_str = _generate_github_integration_tests_no_db_matrix()
 #     print(json_str)
-#
-#
-# @nox.session(name="matrix:no-db", python=False)
-# def write_github_integration_tests_no_db_matrix(session: Session):
-#     json_str = _generate_github_integration_tests_no_db_matrix()
-#     github_output_definition = f"matrix={json_str}"
-#     if "GITHUB_OUTPUT" in os.environ:
-#         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-#             print(github_output_definition, file=fh)
-#     else:
-#         print(github_output_definition)
+
+
+@nox.session(name="matrix:no-db", python=False)
+def write_github_integration_tests_no_db_matrix(session: Session):
+    json_str = _generate_github_integration_tests_no_db_matrix()
+    github_output_definition = f"matrix={json_str}"
+    if "GITHUB_OUTPUT" in os.environ:
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            print(github_output_definition, file=fh)
+    else:
+        print(github_output_definition)
 
 
 @nox.session(name="itests:no-db", python=False)  # unused

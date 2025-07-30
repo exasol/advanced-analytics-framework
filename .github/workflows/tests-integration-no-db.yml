@@ -38,7 +38,7 @@ jobs:
     #     test-path: ${{ fromJSON(needs.prepare_matrix.outputs.test-path) }}
     runs-on: ubuntu-24.04
     # name: Run ${{ matrix.test-path.name }}
-    name: Run Python Integration Tests Without Database
+    name: Python ITests Without Database
     steps:
       # - name: Set pytest markers
       #   id: pytest-markers

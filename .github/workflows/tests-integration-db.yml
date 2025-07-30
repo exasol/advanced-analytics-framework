@@ -13,6 +13,7 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-24.04
+    name: Python ITests With Database    
     steps:
 
       # - name: Set pytest markers
