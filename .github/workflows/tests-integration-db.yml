@@ -3,9 +3,6 @@ name: Run integration tests with DB
 on:
   workflow_call:
     inputs:
-      # slow-tests:
-      #   type: boolean
-      #   default: false
       python-version:
         type: string
         required: true
@@ -15,11 +12,6 @@ jobs:
     runs-on: ubuntu-24.04
     name: Python iTests With DB
     steps:
-
-      # - name: Set pytest markers
-      #   id: pytest-markers
-      #   if: ${{ ! inputs.slow-tests }}
-      #   run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.0
@@ -55,5 +47,3 @@ jobs:
           --backend=onprem
           --setup-show
           -o log_cli=true -o log_cli_level=INFO
-#         env:
-#           PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'
