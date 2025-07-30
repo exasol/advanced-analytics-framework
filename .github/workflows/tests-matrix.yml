@@ -23,9 +23,9 @@ jobs:
 
       - id: generate_matrix
         name: "Generate list of integration tests without DB"
-        run: poetry run -- nox -s matrix:no-db
-    outputs:
-      files: ${{ steps.generate_matrix.outputs.matrix }}
+        run: poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
+    # outputs:
+    #   files: ${{ steps.generate_matrix.outputs.matrix }}
 
   run_test:
     needs: testmatrix

@@ -57,7 +57,8 @@ jobs:
         run: poetry run -- nox -s devenv:run -- poetry install
 
       - name: Run Python integration tests without db
-        # run: poetry run -- nox -s devenv:pytest -- ${{ matrix.test-path.path }}
-        run: poetry run -- nox -s itests:no-db -- -o log_cli=true -o log_cli_level=INFO
-#         env:
-#           PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'
+        run: >
+          poetry run -- nox -s devenv:pytest --
+          ${{ matrix.file }}
+          -o log_cli=true -o log_cli_level=INFO
+        # run: poetry run -- nox -s itests:no-db -- -o log_cli=true -o log_cli_level=INFO

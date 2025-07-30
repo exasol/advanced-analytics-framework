@@ -83,12 +83,11 @@ def x1(session) -> str:
     dir = INTEGRATION_TEST_DIRECTORY / "no_db"
     for f in dir.rglob("test_*.py"):
         f1 = f.relative_to(ROOT_DIR)
-        print(f'{f1}')
+        print(f"{f1}")
 
 
 def _generate_github_integration_tests_no_db_matrix() -> str:
     def entry(file: Path):
-        # return {"path": str(file.relative_to(ROOT_DIR))}
         return str(file.relative_to(ROOT_DIR))
 
     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
@@ -104,7 +103,7 @@ def _generate_github_integration_tests_no_db_matrix() -> str:
 #     print(json_str)
 
 
-@nox.session(name="matrix:no-db", python=False)
+@nox.session(name="matrix:no-db-old", python=False)
 def write_github_integration_tests_no_db_matrix(session: Session):
     json_str = _generate_github_integration_tests_no_db_matrix()
     github_output_definition = f"matrix={json_str}"
@@ -113,6 +112,12 @@ def write_github_integration_tests_no_db_matrix(session: Session):
             print(github_output_definition, file=fh)
     else:
         print(github_output_definition)
+
+
+@nox.session(name="matrix:no-db", python=False)
+def write_github_integration_tests_no_db_matrix(session: Session):
+    json_str = _generate_github_integration_tests_no_db_matrix()
+    print(f"files={json_str}")
 
 
 @nox.session(name="itests:no-db", python=False)  # unused
