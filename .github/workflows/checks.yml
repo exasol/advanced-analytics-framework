@@ -181,7 +181,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # This doesn't use nox, because currently the test structure doesn't fit yet
       - name: Run Tests and Collect Coverage
         run: poetry run -- nox -s test:unit -- --coverage
 
