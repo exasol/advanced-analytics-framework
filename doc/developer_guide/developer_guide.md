@@ -70,11 +70,10 @@ poetry run -- nox -s itests:no-db
 poetry run -- nox -s itests:with-db -- --backend=onprem
 ```
 
-As the integration tests without database take very long (> 60 minutes), the
-CI build
+As the integration tests without database take very long (> 60 minutes), the CI build
 1. Enumerates all files below directory test/integration/with_db
 2. Creates a build matrix
-3. Runs the tests in parallel, each file separately
+3. Runs the tests in parallel jobs, one job for each file
 
 ```shell
 poetry run -- nox -s devenv:pytest -- <file> --backend=onprem

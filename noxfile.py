@@ -49,7 +49,30 @@ def run_in_dev_env_poetry(session: Session):
 
 @nox.session(name="devenv:pytest", python=False)
 def run_python_test(session: Session):
+    """
+    This Nox session is currently unused.
+    """
     _run_in_dev_env_poetry_call(session, "pytest", *session.posargs)
+
+
+@nox.session(name="devenv:pytest", python=False)
+def run_python_unit_tests(session: Session):
+    """
+    This Nox session is currently unused, as unit tests don't need devenv
+    and can be executed with PTB standard Nox session test:unit.
+    """
+    dir = TEST_DIRECTORY / "unit"
+    _run_in_dev_env_poetry_call(session, "pytest", dir)
+
+
+@nox.session(name="itests:no-db", python=False)
+def run_python_integration_tests_no_db(session: Session):
+    """
+    This Nox session is currently unused, see Developer Guide on why to
+    prefer session devenv:pytest.
+    """
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+    _run_in_dev_env_poetry_call(session, "pytest", dir, *session.posargs)
 
 
 @nox.session(name="devenv:install", python=False)
@@ -77,12 +100,6 @@ def run_lua_unit_tests(session: Session):
     _run_in_dev_env_call(session, script)
 
 
-@nox.session(name="run_python_unit_tests", python=False)  # unused
-def run_python_unit_tests(session: Session):
-    dir = TEST_DIRECTORY / "unit"
-    _run_in_dev_env_poetry_call(session, "pytest", dir)
-
-
 @nox.session(name="matrix:no-db", python=False)
 def write_github_integration_tests_no_db_matrix(session: Session):
     dir = INTEGRATION_TEST_DIRECTORY / "no_db"
@@ -101,17 +118,6 @@ def write_github_integration_tests_no_db_matrix(session: Session):
     json_str = json.dumps(files)
     print(f"files={json_str}")
 
-
-@nox.session(name="itests:no-db", python=False)  # unused
-def run_python_integration_tests_no_db(session: Session):
-    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
-    _run_in_dev_env_poetry_call(session, "pytest", dir, *session.posargs)
-
-
-@nox.session(name="itde:start", python=False)  # unused
-def start_integration_test_environment(session: Session):
-    script = SCRIPTS_DIRECTORY / "start_integration_test_environment.sh"
-    _run_in_dev_env_call(session, script)
 
 
 @nox.session(name="slc:build", python=False)
