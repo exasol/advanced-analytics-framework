@@ -1,15 +1,10 @@
-name: Check Code Generation
+name: Lua Checks
 
 on:
   workflow_call:
 
 jobs:
-  lua-checks:
-    name: Lua Checks
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.10" ]
+  Lua-Checks:
     runs-on: ubuntu-24.04
 
     steps:
@@ -18,19 +13,19 @@ jobs:
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@1.7.0
         with:
-          python-version: ${{ matrix.python-version }}
-          poetry-version: 2.1.2
+          python-version: "3.10"
+          poetry-version: "2.1.2"
 
       - name: Install Development Environment
         run: poetry run -- nox -s devenv:install
 
-      - name: Poetry install
+      - name: Poetry Install
         run: poetry run -- nox -s devenv:run -- poetry install
 
       - name: Amalgate Lua Scripts
         run: poetry run -- nox -s lua:amalgate
 
-      - name: Check if re-generated files differ from commit
+      - name: Check if Re-Generated Files Differ From Commit
         run: git diff --exit-code
 
       - name: Run Lua Unit Tests

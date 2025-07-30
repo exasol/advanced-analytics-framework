@@ -191,8 +191,7 @@ jobs:
           path: .coverage
           include-hidden-files: true
 
-  Code-Generation:
-    name: Lua Checks
+  Lua:
     uses: ./.github/workflows/lua-checks.yml
     permissions:
       contents: read
