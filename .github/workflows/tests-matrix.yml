@@ -27,6 +27,13 @@ jobs:
     # outputs:
     #   files: ${{ steps.generate_matrix.outputs.matrix }}
 
+  examine:
+    needs: testmatrix
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Print
+        run: echo ${{ needs.testmatrix }}
+
   run_test:
     needs: testmatrix
     strategy:
