@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -78,57 +79,21 @@ def run_python_unit_tests(session: Session):
     _run_in_dev_env_poetry_call(session, "pytest", dir)
 
 
-@nox.session
-def x1(session):
-    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
-    for f in dir.rglob("test_*.py"):
-        f1 = f.relative_to(ROOT_DIR)
-        print(f"{f1}")
-
-
-# def _generate_github_integration_tests_no_db_matrix() -> str:
-#     def entry(file: Path):
-#         return str(file.relative_to(ROOT_DIR))
-#
-#     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
-#     globbed = no_db_test_directory.rglob("test_*.py")
-#     output = [entry(file) for file in globbed]
-#     json_str = json.dumps(output)
-#     return json_str
-#
-#
-# @nox.session(python=False)  # unused
-# def generate_github_integration_tests_no_db_matrix_json(session: Session):
-#     json_str = _generate_github_integration_tests_no_db_matrix()
-#     print(json_str)
-
-
-# @nox.session(name="matrix:no-db", python=False)
-# def write_github_integration_tests_no_db_matrix(session: Session):
-#     json_str = _generate_github_integration_tests_no_db_matrix()
-#     github_output_definition = f"matrix={json_str}"
-#     if "GITHUB_OUTPUT" in os.environ:
-#         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-#             print(github_output_definition, file=fh)
-#     else:
-#         print(github_output_definition)
-#
-#
-# 1 @nox.session(name="matrix:no-db", python=False)
-# 1 def write_github_integration_tests_no_db_matrix(session: Session):
-# 1     json_str = _generate_github_integration_tests_no_db_matrix()
-# 1     print(f"files={json_str}")
-
-
 @nox.session(name="matrix:no-db", python=False)
 def write_github_integration_tests_no_db_matrix(session: Session):
-    def relative(file: Path):
-        return str(file.relative_to(ROOT_DIR))
+    def entry(file: Path):
+        short = (
+            re.sub(r"_communication|test_|\.py", "", str(file.relative_to(dir)))
+            .replace("/", " / ")
+            .replace("_", " ")
+            .title()
+        )
+        return {"short": short, "path": str(file.relative_to(ROOT_DIR))}
 
     dir = INTEGRATION_TEST_DIRECTORY / "no_db"
     globbed = dir.rglob("test_*.py")
-    paths = [relative(file) for file in globbed]
-    json_str = json.dumps(paths)
+    files = [entry(file) for file in globbed]
+    json_str = json.dumps(files)
     print(f"files={json_str}")
 
 

@@ -1,4 +1,4 @@
-name: Run integration tests without DB
+name: Run Integration Tests w/o DB
 
 on:
   workflow_call:
@@ -10,7 +10,7 @@ on:
 jobs:
 
   testmatrix:
-    name: Prepare Parallelization
+    name: Prepare Parallelization Matrix
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
       files: ${{ steps.generate_matrix.outputs.files }}
 
   run_test:
-    name: Python iTest w/o DB ${{ matrix.file }}
+    name: Run ${{ matrix.file.short }}
     needs: testmatrix
     strategy:
       fail-fast: false
@@ -49,7 +49,8 @@ jobs:
         run: poetry run -- nox -s devenv:run -- poetry install
 
       - name: Run Pytest
+        # See Developer Guide on nox session itests:no-db
         run: >
           poetry run -- nox -s devenv:pytest --
-          ${{ matrix.file }}
+          ${{ matrix.file.path }}
           -o log_cli=true -o log_cli_level=INFO

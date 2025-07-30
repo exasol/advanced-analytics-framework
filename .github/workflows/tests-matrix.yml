@@ -35,7 +35,7 @@ jobs:
       matrix:
         file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
-    name: Run ${{ matrix.file }}
+    name: Examine ${{ matrix.file.short }}
     steps:
       - name: Print
-        run: echo ${{ matrix.file }}
+        run: echo ${{ matrix.file.path }}
