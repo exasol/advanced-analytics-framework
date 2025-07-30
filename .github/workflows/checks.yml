@@ -181,9 +181,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run Lua Unit Tests
-        run: poetry run -- nox -s lua:unit-tests
-
       - name: Run Tests and Collect Coverage
         run: poetry run -- nox -s test:unit -- --coverage
 
@@ -195,7 +192,7 @@ jobs:
           include-hidden-files: true
 
   Code-Generation:
-    name: Code Generation Check
-    uses: ./.github/workflows/check-code-generation.yml
+    name: Lua Checks
+    uses: ./.github/workflows/lua-checks.yml
     permissions:
       contents: read

@@ -38,8 +38,12 @@ def run_in_dev_env(session: Session):
     _run_in_dev_env_call(session, *session.posargs)
 
 
-@nox.session(name="devenv:poetry", python=False)  # unused
+@nox.session(name="devenv:poetry", python=False)
 def run_in_dev_env_poetry(session: Session):
+    """
+    This Nox session calls poetry run in devenv and is designed to be used
+    interactively by human developers on-demand.
+    """
     _run_in_dev_env_poetry_call(session, *session.posargs)
 
 
@@ -67,7 +71,7 @@ def amalgate_lua_scripts(session: Session):
     _run_in_dev_env_poetry_call(session, "python", script)
 
 
-@nox.session(name="lua:unit-tests", python=False)  # unused
+@nox.session(name="lua:unit-tests", python=False)
 def run_lua_unit_tests(session: Session):
     script = SCRIPTS_DIRECTORY / "lua_tests.sh"
     _run_in_dev_env_call(session, script)

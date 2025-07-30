@@ -4,8 +4,8 @@ on:
   workflow_call:
 
 jobs:
-  check_code_generation:
-    name: Lua Amalgate and Example in User Guide
+  lua-checks:
+    name: Lua Checks
     strategy:
       fail-fast: false
       matrix:
@@ -32,3 +32,6 @@ jobs:
 
       - name: Check if re-generated files differ from commit
         run: git diff --exit-code
+
+      - name: Run Lua Unit Tests
+        run: poetry run -- nox -s lua:unit-tests
