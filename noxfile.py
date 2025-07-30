@@ -81,16 +81,17 @@ def run_python_unit_tests(session: Session):
 
 @nox.session(name="matrix:no-db", python=False)
 def write_github_integration_tests_no_db_matrix(session: Session):
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+
     def entry(file: Path):
         short = (
             re.sub(r"_communication|test_|\.py", "", str(file.relative_to(dir)))
-            .replace("/", " / ")
+            .replace("/", " \u2022 ")
             .replace("_", " ")
             .title()
         )
         return {"short": short, "path": str(file.relative_to(ROOT_DIR))}
 
-    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
     globbed = dir.rglob("test_*.py")
     files = [entry(file) for file in globbed]
     json_str = json.dumps(files)
