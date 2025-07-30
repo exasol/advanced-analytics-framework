@@ -86,17 +86,17 @@ def x1(session):
         print(f"{f1}")
 
 
-def _generate_github_integration_tests_no_db_matrix() -> str:
-    def entry(file: Path):
-        return str(file.relative_to(ROOT_DIR))
-
-    no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
-    globbed = no_db_test_directory.rglob("test_*.py")
-    output = [entry(file) for file in globbed]
-    json_str = json.dumps(output)
-    return json_str
-
-
+# def _generate_github_integration_tests_no_db_matrix() -> str:
+#     def entry(file: Path):
+#         return str(file.relative_to(ROOT_DIR))
+# 
+#     no_db_test_directory = INTEGRATION_TEST_DIRECTORY / "no_db"
+#     globbed = no_db_test_directory.rglob("test_*.py")
+#     output = [entry(file) for file in globbed]
+#     json_str = json.dumps(output)
+#     return json_str
+# 
+# 
 # @nox.session(python=False)  # unused
 # def generate_github_integration_tests_no_db_matrix_json(session: Session):
 #     json_str = _generate_github_integration_tests_no_db_matrix()
@@ -112,11 +112,23 @@ def _generate_github_integration_tests_no_db_matrix() -> str:
 #             print(github_output_definition, file=fh)
 #     else:
 #         print(github_output_definition)
+#
+#
+#1 @nox.session(name="matrix:no-db", python=False)
+#1 def write_github_integration_tests_no_db_matrix(session: Session):
+#1     json_str = _generate_github_integration_tests_no_db_matrix()
+#1     print(f"files={json_str}")
 
 
 @nox.session(name="matrix:no-db", python=False)
 def write_github_integration_tests_no_db_matrix(session: Session):
-    json_str = _generate_github_integration_tests_no_db_matrix()
+    def relative(file: Path):
+        return str(file.relative_to(ROOT_DIR))
+
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+    globbed = dir.rglob("test_*.py")
+    paths = [relative(file) for file in globbed]
+    json_str = json.dumps(paths)
     print(f"files={json_str}")
 
 

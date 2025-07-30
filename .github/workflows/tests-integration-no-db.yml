@@ -3,48 +3,40 @@ name: Run integration tests without DB
 on:
   workflow_call:
     inputs:
-      # slow-tests:
-      #   type: boolean
-      #   default: false
       python-version:
         type: string
         required: true
 
 jobs:
 
-  # prepare_matrix:
-  #   name: Prepare Matrix for integration tests without DB
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     - name: Setup Python & Poetry Environment
-  #       uses: exasol/python-toolbox/.github/actions/python-environment@1.7.0
-  #       with:
-  #         python-version: ${{ inputs.python-version }}
-  #         poetry-version: 2.1.2
-  #
-  #     - id: generate_matrix
-  #       name: "Generate list of integration tests without DB"
-  #       run: poetry run -- nox -s matrix:no-db
-  #   outputs:
-  #     test-path: ${{ steps.generate_matrix.outputs.matrix }}
+  testmatrix:
+    name: Prepare Matrix for Parallel Integration Tests Without DB
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & Poetry Environment
+        uses: exasol/python-toolbox/.github/actions/python-environment@1.7.0
+        with:
+          python-version: ${{ inputs.python-version }}
+          poetry-version: 2.1.2
+
+      - id: generate_matrix
+        name: Generate List of Integration Tests Without Database
+        run: |
+          poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
+    outputs:
+      files: ${{ steps.generate_matrix.outputs.files }}
 
   run_test:
-    # needs: prepare_matrix
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     test-path: ${{ fromJSON(needs.prepare_matrix.outputs.test-path) }}
+    needs: testmatrix
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
-    # name: Run ${{ matrix.test-path.name }}
-    name: Python ITests Without Database
+    name: Python ITest w/o DB ${{ matrix.file }}
     steps:
-      # - name: Set pytest markers
-      #   id: pytest-markers
-      #   if: ${{ ! inputs.slow-tests }}
-      #   run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
@@ -61,4 +53,3 @@ jobs:
           poetry run -- nox -s devenv:pytest --
           ${{ matrix.file }}
           -o log_cli=true -o log_cli_level=INFO
-        # run: poetry run -- nox -s itests:no-db -- -o log_cli=true -o log_cli_level=INFO
