@@ -10,7 +10,7 @@ on:
 jobs:
 
   testmatrix:
-    name: Prepare Matrix for Parallel Integration Tests Without DB
+    name: Prepare Parallelization
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -29,13 +29,13 @@ jobs:
       files: ${{ steps.generate_matrix.outputs.files }}
 
   run_test:
+    name: Python iTest w/o DB ${{ matrix.file }}
     needs: testmatrix
     strategy:
       fail-fast: false
       matrix:
         file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
-    name: Python ITest w/o DB ${{ matrix.file }}
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +48,7 @@ jobs:
       - name: Poetry install
         run: poetry run -- nox -s devenv:run -- poetry install
 
-      - name: Run Python integration tests without db
+      - name: Run Pytest
         run: >
           poetry run -- nox -s devenv:pytest --
           ${{ matrix.file }}
