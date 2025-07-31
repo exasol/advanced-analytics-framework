@@ -3,9 +3,6 @@ name: Run integration tests with DB
 on:
   workflow_call:
     inputs:
-      slow-tests:
-        type: boolean
-        default: false
       python-version:
         type: string
         required: true
@@ -13,12 +10,8 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-24.04
+    name: Python iTests With DB
     steps:
-
-      - name: Set pytest markers
-        id: pytest-markers
-        if: ${{ ! inputs.slow-tests }}
-        run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.0
@@ -40,15 +33,17 @@ jobs:
           poetry-version: 2.1.2
 
       - name: Install Development Environment
-        run: poetry run -- nox -s install_dev_env
+        run: poetry run -- nox -s devenv:install
 
       - name: Poetry install
-        run: poetry run -- nox -s run_in_dev_env -- poetry install
+        run: poetry run -- nox -s devenv:run -- poetry install
 
       - name: Poetry Export install
-        run: poetry run -- nox -s run_in_dev_env -- poetry self add poetry-plugin-export
+        run: poetry run -- nox -s devenv:run -- poetry self add poetry-plugin-export
 
       - name: Run Python integration tests with db
-        run: poetry run -- nox -s run_python_integration_tests_with_db -- -- --setup-show --backend=onprem
-        env:
-          PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'
+        run: >
+          poetry run -- nox -s itests:with-db --
+          --backend=onprem
+          --setup-show
+          -o log_cli=true -o log_cli_level=INFO

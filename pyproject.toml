@@ -65,7 +65,7 @@ module = [
     "exasol_udf_mock_python.*",
     "exasol.python_extension_common.*", # typed from 0.9.0
     # not type checking yet
-    "tests.*",
+    "test.*",
     # no stubs available as of 2025
     "joblib.*",
     # fix typing on these files
@@ -97,3 +97,7 @@ poetry-plugin-export = ">=1.8"
 projectKey = "com.exasol:advanced-analytics-framework"
 hostUrl = "https://sonarcloud.io"
 organization = "exasol"
+
+# See https://github.com/exasol/advanced-analytics-framework/issues/319
+[tool.coverage.report]
+ignore_errors = true

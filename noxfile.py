@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -18,42 +19,69 @@ nox.options.sessions = ["fix"]
 SCRIPTS_DIRECTORY = ROOT_DIR / "scripts"
 RUN_IN_DEV_SCRIPT = SCRIPTS_DIRECTORY / "run_in_dev_env.sh"
 RUN_IN_DEV_SCRIPT_STR = str(RUN_IN_DEV_SCRIPT)
-TEST_DIRECTORY = ROOT_DIR / "tests"
-INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration_tests"
+TEST_DIRECTORY = ROOT_DIR / "test"
+INTEGRATION_TEST_DIRECTORY = TEST_DIRECTORY / "integration"
 
 nox.options.sessions = []
 
 
-def _run_in_dev_env_poetry_call(session: Session, *args: str):
+def _run_in_dev_env_poetry_call(session: Session, *args: str | os.PathLike[str]):
     session.run(RUN_IN_DEV_SCRIPT_STR, "poetry", "run", *args)
 
 
-def _run_in_dev_env_call(session: Session, *args: str):
+def _run_in_dev_env_call(session: Session, *args: str | os.PathLike[str]):
     session.run(RUN_IN_DEV_SCRIPT_STR, *args)
 
 
-@nox.session(python=False)
+@nox.session(name="devenv:run", python=False)
 def run_in_dev_env(session: Session):
     _run_in_dev_env_call(session, *session.posargs)
 
 
-@nox.session(python=False)
+@nox.session(name="devenv:poetry", python=False)
 def run_in_dev_env_poetry(session: Session):
+    """
+    This Nox session calls poetry run in devenv and is designed to be used
+    interactively by human developers on-demand.
+    """
     _run_in_dev_env_poetry_call(session, *session.posargs)
 
 
-@nox.session(python=False)
+@nox.session(name="devenv:pytest", python=False)
 def run_python_test(session: Session):
+    """
+    This Nox session is currently unused.
+    """
     _run_in_dev_env_poetry_call(session, "pytest", *session.posargs)
 
 
-@nox.session(python=False)
+@nox.session(name="devenv:pytest", python=False)
+def run_python_unit_tests(session: Session):
+    """
+    This Nox session is currently unused, as unit tests don't need devenv
+    and can be executed with PTB standard Nox session test:unit.
+    """
+    dir = TEST_DIRECTORY / "unit"
+    _run_in_dev_env_poetry_call(session, "pytest", dir)
+
+
+@nox.session(name="itests:no-db", python=False)
+def run_python_integration_tests_no_db(session: Session):
+    """
+    This Nox session is currently unused, see Developer Guide on why to
+    prefer session devenv:pytest.
+    """
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+    _run_in_dev_env_poetry_call(session, "pytest", dir, *session.posargs)
+
+
+@nox.session(name="devenv:install", python=False)
 def install_dev_env(session: Session):
-    install_script = SCRIPTS_DIRECTORY / "install_development_environment.sh"
-    session.run(str(install_script))
+    script = SCRIPTS_DIRECTORY / "install_development_environment.sh"
+    session.run(script)
 
 
-@nox.session(python=False)
+@nox.session(name="lua:amalgate", python=False)
 def amalgate_lua_scripts(session: Session):
     script = (
         ROOT_DIR
@@ -63,75 +91,42 @@ def amalgate_lua_scripts(session: Session):
         / "deployment"
         / "regenerate_scripts.py"
     )
-    _run_in_dev_env_poetry_call(session, "python", str(script))
+    _run_in_dev_env_poetry_call(session, "python", script)
 
 
-@nox.session(python=False)
+@nox.session(name="lua:unit-tests", python=False)
 def run_lua_unit_tests(session: Session):
-    lua_tests_script = SCRIPTS_DIRECTORY / "lua_tests.sh"
-    _run_in_dev_env_call(session, str(lua_tests_script))
+    script = SCRIPTS_DIRECTORY / "lua_tests.sh"
+    _run_in_dev_env_call(session, script)
 
 
-@nox.session(python=False)
-def run_python_unit_tests(session: Session):
-    unit_test_directory = TEST_DIRECTORY / "unit_tests"
-    _run_in_dev_env_poetry_call(session, "pytest", str(unit_test_directory))
+@nox.session(name="matrix:no-db", python=False)
+def write_github_integration_tests_no_db_matrix(session: Session):
+    dir = INTEGRATION_TEST_DIRECTORY / "no_db"
+
+    def entry(file: Path):
+        short = (
+            re.sub(r"_communication|test_|\.py", "", str(file.relative_to(dir)))
+            .replace("/", " \u2022 ")
+            .replace("_", " ")
+            .title()
+        )
+        return {"short": short, "path": str(file.relative_to(ROOT_DIR))}
+
+    globbed = dir.rglob("test_*.py")
+    files = [entry(file) for file in globbed]
+    json_str = json.dumps(files)
+    print(f"files={json_str}")
 
 
-def _generate_test_matrix_entry(test_file: Path):
-    return {"name": str(test_file.name), "path": str(test_file)}
-
-
-def _generate_github_integration_tests_without_db_matrix() -> str:
-    without_db_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
-    test_files = without_db_test_directory.rglob("test_*.py")
-    output = [_generate_test_matrix_entry(test_file) for test_file in test_files]
-    json_str = json.dumps(output)
-    return json_str
-
-
-@nox.session(python=False)
-def generate_github_integration_tests_without_db_matrix_json(session: Session):
-    json_str = _generate_github_integration_tests_without_db_matrix()
-    print(json_str)
-
-
-@nox.session(python=False)
-def write_github_integration_tests_without_db_matrix(session: Session):
-    json_str = _generate_github_integration_tests_without_db_matrix()
-    github_output_definition = f"matrix={json_str}"
-    if "GITHUB_OUTPUT" in os.environ:
-        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-            print(github_output_definition, file=fh)
-    else:
-        print(github_output_definition)
-
-
-@nox.session(python=False)
-def run_python_integration_tests_without_db(session: Session):
-    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "without_db"
-    _run_in_dev_env_poetry_call(session, "pytest", str(integration_test_directory))
-
-
-@nox.session(python=False)
-def start_integration_test_environment(session: Session):
-    script_path = SCRIPTS_DIRECTORY / "start_integration_test_environment.sh"
-    _run_in_dev_env_call(session, str(script_path))
-
-
-@nox.session(python=False)
+@nox.session(name="slc:build", python=False)
 def build_language_container(session: Session):
     export_path = ROOT_DIR / ".slc"
     with custom_slc_builder() as builder:
         builder.export(export_path)
 
 
-@nox.session(python=False)
+@nox.session(name="itests:with-db", python=False)
 def run_python_integration_tests_with_db(session: Session):
-    integration_test_directory = INTEGRATION_TEST_DIRECTORY / "with_db"
-    _run_in_dev_env_poetry_call(
-        session,
-        "pytest",
-        str(integration_test_directory),
-        *session.posargs,
-    )
+    dir = INTEGRATION_TEST_DIRECTORY / "with_db"
+    _run_in_dev_env_poetry_call(session, "pytest", dir, *session.posargs)

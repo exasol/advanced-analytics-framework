@@ -21,7 +21,6 @@ jobs:
     uses: ./.github/workflows/tests-integration-no-db.yml
     secrets: inherit
     with:
-      slow-tests: true
       python-version: "3.10"
 
   run-itests-with-db:
@@ -30,5 +29,4 @@ jobs:
     uses: ./.github/workflows/tests-integration-db.yml
     secrets: inherit
     with:
-      slow-tests: true
       python-version: "3.10"

@@ -181,9 +181,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # This doesn't use nox, because currently the test structure doesn't fit yet
       - name: Run Tests and Collect Coverage
-        run: poetry run pytest tests/unit_tests
+        run: poetry run -- nox -s test:unit -- --coverage
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4.6.2
@@ -193,7 +192,12 @@ jobs:
           include-hidden-files: true
 
   Code-Generation:
-    name: Code Generation Check
     uses: ./.github/workflows/check-code-generation.yml
     permissions:
       contents: read
+
+  Lua:
+    uses: ./.github/workflows/lua-tests.yml
+    permissions:
+      contents: read
+

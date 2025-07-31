@@ -9,7 +9,7 @@ The developer guide explains how to maintain and develop the Advanced Analytics 
 The following command builds the SLC for the AAF
 
 ```shell
-poetry run -- nox -s build_language_container
+poetry run -- nox -s slc:build
 ```
 
 GitHub workflow `build-and-publish.yml` also adds the SLC to each release of the AAF on GitHub.
@@ -23,7 +23,7 @@ AAF contains the amalgated Lua script [create_query_loop.sql](https://github.com
 The following command updates the amalgated script:
 
 ```shell
-poetry run -- nox -s amalgate_lua_scripts
+poetry run -- nox -s lua:amalgate
 ```
 
 ## Running Tests
@@ -50,8 +50,8 @@ The Development Environment
 
 The following commands install the Development Environment and add the AAF
 ```shell
-poetry run -- nox -s install_dev_env
-poetry run -- nox -s run_in_dev_env -- poetry install
+poetry run -- nox -s devenv:install
+poetry run -- nox -s devenv:run -- poetry install
 ```
 
 ### Python Unit Tests
@@ -59,20 +59,52 @@ poetry run -- nox -s run_in_dev_env -- poetry install
 You can execute the unit tests without special preparation in the regular poetry environment:
 
 ```shell
-poetry run -- pytest tests/unit_tests
+poetry run -- nox -s test:unit
 ```
 
 ### Python Integration Tests with and w/o database
 
 The following commands run integration tests w/o and with database
 ```shell
-poetry run -- nox -s run_python_test -- -- tests/integration_tests/without_db/
-poetry run -- nox -s run_python_test -- -- --backend=onprem tests/integration_tests/with_db/
+poetry run -- nox -s itests:no-db
+poetry run -- nox -s itests:with-db -- --backend=onprem
 ```
+
+As the integration tests without database take very long (> 60 minutes), the CI build
+1. Enumerates all files below directory test/integration/with_db
+2. Creates a build matrix
+3. Runs the tests in parallel jobs, one job for each file
+
+```shell
+poetry run -- nox -s devenv:pytest -- <file> --backend=onprem
+```
+
 
 ### Lua Unit Tests
 
 The following command executes the Lua Unit Tests:
 ```shell
-poety run nox -s run_lua_unit_tests
+poety run nox -s lua:unit-tests
 ```
+
+## Measuring Code Coverage
+
+You can use the Python tool `coverage` to check which parts of AAF's implementation are covered by tests.
+
+However Python tool `coverage` reports an error `No source for code: 'exec_run'`, when running
+
+```shell
+poetry run -- coverage run -a -m pytest -v test/unit/udf_framework/test_query_handler_runner_udf_mock.py
+poetry run -- coverage json --data-file=.coverage -o coverage.json
+```
+
+The root cause is probably method [UDFMockExecutor_exec_run()](https://github.com/exasol/udf-mock-python/blob/main/exasol_udf_mock_python/udf_mock_executor.py#L42).
+
+AAF therefore ignores errors reported by Python tool `coverage` by mean of the following entry in file `pyproject.toml`:
+
+```ini
+[tool.coverage.report]
+ignore_errors = true
+```
+
+See also https://github.com/exasol/advanced-analytics-framework/issues/319.

@@ -1,19 +1,16 @@
-name: Run integration tests without DB
+name: Run Integration Tests w/o DB
 
 on:
   workflow_call:
     inputs:
-      slow-tests:
-        type: boolean
-        default: false
       python-version:
         type: string
         required: true
 
 jobs:
 
-  prepare_matrix:
-    name: Prepare Matrix for integration tests without DB
+  testmatrix:
+    name: Prepare Parallelization Matrix
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -24,26 +21,22 @@ jobs:
           python-version: ${{ inputs.python-version }}
           poetry-version: 2.1.2
 
-      - id: generate_integration_tests_without_db
-        name: "Generate list of integration tests without DB"
-        run: poetry run -- nox -s write_github_integration_tests_without_db_matrix
+      - id: generate_matrix
+        name: Generate List of Integration Tests Without Database
+        run: |
+          poetry run -- nox -s matrix:no-db >> "$GITHUB_OUTPUT"
     outputs:
-      test-path: ${{ steps.generate_integration_tests_without_db.outputs.matrix }}
+      files: ${{ steps.generate_matrix.outputs.files }}
 
   run_test:
-    needs: prepare_matrix
+    name: Run ${{ matrix.file.short }}
+    needs: testmatrix
     strategy:
       fail-fast: false
       matrix:
-        test-path: ${{ fromJSON(needs.prepare_matrix.outputs.test-path) }}
+        file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
-    name: Run ${{ matrix.test-path.name }}
     steps:
-      - name: Set pytest markers
-        id: pytest-markers
-        if: ${{ ! inputs.slow-tests }}
-        run: echo slow-tests='-m "not slow"' >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment
@@ -53,9 +46,12 @@ jobs:
           poetry-version: 2.1.2
 
       - name: Poetry install
-        run: poetry run -- nox -s run_in_dev_env -- poetry install
+        run: poetry run -- nox -s devenv:run -- poetry install
 
-      - name: Run Python integration tests without db
-        run: poetry run -- nox -s run_python_test -- ${{ matrix.test-path.path }}
-        env:
-          PYTEST_ADDOPTS: '-o log_cli=true -o log_cli_level=INFO ${{ steps.pytest-markers.outputs.slow-tests }}'
+      - name: Run Pytest
+        # See Developer Guide on nox session itests:no-db
+        # proposal: don't use devenv here:
+        # nox -s devenv:pytest --
+        run: >
+          poetry run -- pytest ${{ matrix.file.path }}
+          -o log_cli=true -o log_cli_level=INFO
