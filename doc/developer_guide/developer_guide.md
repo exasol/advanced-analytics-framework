@@ -86,3 +86,25 @@ The following command executes the Lua Unit Tests:
 ```shell
 poety run nox -s lua:unit-tests
 ```
+
+## Measuring Code Coverage
+
+You can use the Python tool `coverage` to check which parts of AAF's implementation are covered by tests.
+
+However Python tool `coverage` reports an error `No source for code: 'exec_run'`, when running
+
+```shell
+poetry run -- coverage run -a -m pytest -v test/unit/udf_framework/test_query_handler_runner_udf_mock.py
+poetry run -- coverage json --data-file=.coverage -o coverage.json
+```
+
+The root cause is probably method [UDFMockExecutor_exec_run()](https://github.com/exasol/udf-mock-python/blob/main/exasol_udf_mock_python/udf_mock_executor.py#L42).
+
+AAF therefore ignores errors reported by Python tool `coverage` by mean of the following entry in file `pyproject.toml`:
+
+```ini
+[tool.coverage.report]
+ignore_errors = true
+```
+
+See also https://github.com/exasol/advanced-analytics-framework/issues/319.
