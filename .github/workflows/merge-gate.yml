@@ -11,12 +11,14 @@ jobs:
     permissions:
       contents: read
 
+# experiment
+
 #   slow-checks:
 #     name: Slow
 #     uses: ./.github/workflows/slow-checks.yml
 #     permissions:
 #       contents: read
-# 
+#
 #   # This job ensures inputs have been executed successfully.
 #   approve-merge:
 #     name: Allow Merge
@@ -25,7 +27,7 @@ jobs:
 #       contents: read
 #     # If you need additional jobs to be part of the merge gate, add them below
 #     needs: [ fast-checks, slow-checks ]
-# 
+#
 #     # Each job requires a step, so we added this dummy step.
 #     steps:
 #       - name: Approve

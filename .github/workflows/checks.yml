@@ -164,7 +164,9 @@ jobs:
 
   Tests:
     name: Unit-Tests (Python-${{ matrix.python-version }})
-    needs: [ Lint, Type-Check, Security, Format, build-matrix ]
+    # experiment
+    # needs: [ Lint, Type-Check, Security, Format, build-matrix ]
+    needs: [ build-matrix ]
     runs-on: ubuntu-24.04
     permissions:
       contents: read

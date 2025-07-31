@@ -97,3 +97,7 @@ poetry-plugin-export = ">=1.8"
 projectKey = "com.exasol:advanced-analytics-framework"
 hostUrl = "https://sonarcloud.io"
 organization = "exasol"
+
+# See https://github.com/exasol/advanced-analytics-framework/issues/319
+[tool.coverage.report]
+ignore_errors = true
