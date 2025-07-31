@@ -1,10 +1,11 @@
-name: Lua Checks
+name: Check Code Generation
 
 on:
   workflow_call:
 
 jobs:
-  Lua-Checks:
+  check_code_generation:
+    name: Lua Amalgate
     runs-on: ubuntu-24.04
 
     steps:
@@ -27,6 +28,3 @@ jobs:
 
       - name: Check if Re-Generated Files Differ From Commit
         run: git diff --exit-code
-
-      - name: Run Lua Unit Tests
-        run: poetry run -- nox -s lua:unit-tests
