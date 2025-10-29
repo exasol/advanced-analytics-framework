@@ -6,3 +6,4 @@
 * #314: Renamed test directories
 * #254: Re-Enabled coverage reporting in Github workflows
 * #319: Ignored errors reported by Python tool `coverage`
+* #321: Updated dependency declaration to pyexasol
