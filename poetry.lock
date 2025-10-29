@@ -1131,19 +1131,19 @@ vectorstore-mmr = ["numpy (>=1)", "simsimd (>=3)"]
 
 [[package]]
 name = "exasol-bucketfs"
-version = "1.1.0"
+version = "2.1.0"
 description = "BucketFS utilities for the Python programming language"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "exasol_bucketfs-1.1.0-py3-none-any.whl", hash = "sha256:4918fb50421c37db833dc22383b274d533fda3e46e081afd783047904a7d956c"},
-    {file = "exasol_bucketfs-1.1.0.tar.gz", hash = "sha256:9618bad7878b471b95b7c01480b94cf35b543e5e7cb837cedb5b9b98b36f51e5"},
+    {file = "exasol_bucketfs-2.1.0-py3-none-any.whl", hash = "sha256:82d0f87d756921846ce60b7af112a71a491019aa46976693046399805c303a12"},
+    {file = "exasol_bucketfs-2.1.0.tar.gz", hash = "sha256:55583af02e8a65b40bb15bc462e8bcdf1c0195e00f8c1e70148724869fb6da29"},
 ]
 
 [package.dependencies]
 attrs = ">=23.2.0"
-exasol-saas-api = ">1.0,<2.0"
+exasol-saas-api = ">2.0.0,<3.0"
 httpx = ">=0.27.0"
 requests = ">=2.32.4"
 
@@ -1161,21 +1161,21 @@ files = [
 
 [[package]]
 name = "exasol-integration-test-docker-environment"
-version = "3.4.0"
+version = "4.3.0"
 description = "Integration Test Docker Environment for Exasol"
 optional = false
-python-versions = "<4,>=3.9"
+python-versions = "<4,>=3.9.2"
 groups = ["dev"]
 files = [
-    {file = "exasol_integration_test_docker_environment-3.4.0-py3-none-any.whl", hash = "sha256:4976a78c63a8d8591c0fad6968a5ca3d36f1fcd07805abe9a9fbe65b99961155"},
-    {file = "exasol_integration_test_docker_environment-3.4.0.tar.gz", hash = "sha256:6e654e5c0b853a07d102293800ba629d9401424eb0508a923fa8ebe9d918470c"},
+    {file = "exasol_integration_test_docker_environment-4.3.0-py3-none-any.whl", hash = "sha256:0f694a2c723617c189b84c145a18154e2a40f2fb58f98c73b39277af740de7c6"},
+    {file = "exasol_integration_test_docker_environment-4.3.0.tar.gz", hash = "sha256:2c82bd667be4b654d48ea5c43617c31608f3ec73312c8b6b51b2bb324a75ced6"},
 ]
 
 [package.dependencies]
 click = ">=7.0"
 docker = {version = ">=4.0.0,<7.0.0 || >7.0.0", markers = "sys_platform != \"win32\""}
 docutils = ">=0.21.2"
-exasol-error-reporting = ">=0.4.0"
+exasol-error-reporting = ">=1.0.0,<2.0.0"
 fabric = ">=3.0.1,<4.0.0"
 gitpython = ">=2.1.0"
 humanfriendly = ">=4.18"
@@ -1187,67 +1187,67 @@ netaddr = ">=0.7.19"
 networkx = ">=2.3"
 portalocker = ">=2.7.0,<3.0.0"
 pydot = ">=1.4.0"
-requests = ">=2.21.0"
+requests = ">=2.32.4"
 simplejson = ">=3.16.0"
 "stopwatch.py" = ">=1.0.0"
 
 [[package]]
 name = "exasol-python-extension-common"
-version = "0.10.0"
+version = "0.12.0"
 description = "A collection of common utilities for Exasol extensions."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "exasol_python_extension_common-0.10.0-py3-none-any.whl", hash = "sha256:38fb685358b0bda3b9aaed946d57194f82e3688c7232f10ea1370a8864d846f5"},
-    {file = "exasol_python_extension_common-0.10.0.tar.gz", hash = "sha256:18ee5e1de2cc0857cc44683e61dfa3e2ab0a223a9f04ec5cfc96dc2a7cdf21d0"},
+    {file = "exasol_python_extension_common-0.12.0-py3-none-any.whl", hash = "sha256:fcbaf865c0d5b347a8fb803e4d6788c1fbe4613e521260d98f6156109a2f55f2"},
+    {file = "exasol_python_extension_common-0.12.0.tar.gz", hash = "sha256:8d50be1105115ecfa983c598f6721882ab2f5892f70ed21dff3ef13e921a86fb"},
 ]
 
 [package.dependencies]
 click = ">=8.1.7,<9.0.0"
-exasol-bucketfs = ">=0.10.0"
-exasol-saas-api = ">=1.1.0,<2"
-exasol-script-languages-container-tool = ">=1.0.0,<2.0.0"
-pyexasol = ">=0.25.0,<1.0.0"
-requests = ">=2.32.0"
+exasol-bucketfs = ">=0.10.0,<3"
+exasol-saas-api = ">=1.1.0,<3"
+exasol-script-languages-container-tool = ">=3,<4"
+pyexasol = ">=0.25.0,<2"
+requests = ">=2.32.4"
 tenacity = ">=8.3.0,<9.0.0"
 
 [[package]]
 name = "exasol-saas-api"
-version = "1.1.1"
+version = "2.4.0"
 description = "API enabling Python applications connecting to Exasol database SaaS instances and using their SaaS services"
 optional = false
-python-versions = "<4.0.0,>=3.10.0"
+python-versions = "<4.0,>=3.10.0"
 groups = ["main", "dev"]
 files = [
-    {file = "exasol_saas_api-1.1.1-py3-none-any.whl", hash = "sha256:b92983fe149541f3c32904118ea3293498fe20610c8d69a17c8cbfb26bbd4579"},
-    {file = "exasol_saas_api-1.1.1.tar.gz", hash = "sha256:a4d759e3f68793d0c8a2c1c4676de70e40402d4f8c4dd89af2284a65eeec6534"},
+    {file = "exasol_saas_api-2.4.0-py3-none-any.whl", hash = "sha256:d672a2cc7154dbe1d8c2746855952286fe1bc202eab5143868a88d5fa39bce13"},
+    {file = "exasol_saas_api-2.4.0.tar.gz", hash = "sha256:16da81e77a179afb9b7b5f89f9ebb0c85d12a5f7b6ae43e23f360a9c670d39f4"},
 ]
 
 [package.dependencies]
 attrs = ">=22.2.0"
-httpx = ">=0.20.0"
+httpx = ">=0.23.0"
 ifaddr = ">=0.2.0,<0.3.0"
 python-dateutil = ">=2.8.0,<3.0.0"
-requests = ">=2.31.0,<3.0.0"
+requests = ">=2.32.4,<3.0.0"
 tenacity = ">=8.2.3,<9.0.0"
 types-requests = ">=2.31.0.6,<3.0.0.0"
 
 [[package]]
 name = "exasol-script-languages-container-tool"
-version = "1.1.0"
+version = "3.4.1"
 description = "Script Languages Container Tool"
 optional = false
 python-versions = "<4,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "exasol_script_languages_container_tool-1.1.0-py3-none-any.whl", hash = "sha256:bbea74850ea3c03dfb049f7b3053f224f0dc30f5d80403a598736738a43d31c9"},
-    {file = "exasol_script_languages_container_tool-1.1.0.tar.gz", hash = "sha256:a831f98ceeda2a74c9239a1a12f8e90b3a9612cd60dc2a3a33bbfe300669ecae"},
+    {file = "exasol_script_languages_container_tool-3.4.1-py3-none-any.whl", hash = "sha256:d0fabc5a8bfab38c2ad6e13309ebce813051f5e4a13ecfd6e50775bffb733af4"},
+    {file = "exasol_script_languages_container_tool-3.4.1.tar.gz", hash = "sha256:43264a85f2dbc6455993923583a0b73a58c5fb7e987852779fd83d89e3c63e2b"},
 ]
 
 [package.dependencies]
-exasol-bucketfs = ">=1.0.1,<2.0.0"
-exasol-integration-test-docker-environment = ">=3.4.0,<4.0.0"
+exasol-bucketfs = ">=1,<3"
+exasol-integration-test-docker-environment = ">=4.1.0,<5.0.0"
 importlib_metadata = ">=4.6.0"
 importlib-resources = ">=6.4.0"
 jsonschema = ">=4.23.0,<5.0.0"
@@ -3365,27 +3365,29 @@ types = ["mypy"]
 
 [[package]]
 name = "pyexasol"
-version = "0.27.0"
+version = "1.2.0"
 description = "Exasol python driver with extra features"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4,>=3.9.2"
 groups = ["main", "dev"]
 files = [
-    {file = "pyexasol-0.27.0-py3-none-any.whl", hash = "sha256:041e1db1ae8f26fa24876056ce8da5830e346fc47734847a95cc960ac056d0c6"},
-    {file = "pyexasol-0.27.0.tar.gz", hash = "sha256:795490cd810617bf927e0e90b88347facb5e66f58e0e16378fef5d22fadacd60"},
+    {file = "pyexasol-1.2.0-py3-none-any.whl", hash = "sha256:a5a4a91e246ab52841319a65e65acd1403e31dda4d5321d9b42fadabe5a2c0e9"},
+    {file = "pyexasol-1.2.0.tar.gz", hash = "sha256:d9680a6f4a295d48fe0275ccc260a3615f4ba4af00f03f1c021a1d8eb791cb40"},
 ]
 
 [package.dependencies]
+cryptography = ">=45.0.7"
 packaging = "*"
-pyopenssl = "*"
 rsa = "*"
 websocket-client = ">=1.0.1"
 
 [package.extras]
+all = ["orjson (>=3.6)", "pandas (>=2,<3)", "polars (>=1.10,<2.0)", "pproxy", "pyarrow (>=20.0.0,<21.0.0)", "python-rapidjson", "ujson"]
 examples = ["pproxy"]
-numpy = ["numpy (>1.26.0,<2)"]
 orjson = ["orjson (>=3.6)"]
-pandas = ["pandas[numpy] (>=2,<3)"]
+pandas = ["pandas (>=2,<3)"]
+polars = ["polars (>=1.10,<2.0)"]
+pyarrow = ["pyarrow (>=20.0.0,<21.0.0)"]
 rapidjson = ["python-rapidjson"]
 ujson = ["ujson"]
 
@@ -3509,26 +3511,6 @@ docs = ["sphinx (<7)", "sphinx_rtd_theme"]
 tests = ["hypothesis (>=3.27.0)", "pytest (>=7.4.0)", "pytest-cov (>=2.10.1)", "pytest-xdist (>=3.5.0)"]
 
 [[package]]
-name = "pyopenssl"
-version = "25.3.0"
-description = "Python wrapper module around the OpenSSL library"
-optional = false
-python-versions = ">=3.7"
-groups = ["main", "dev"]
-files = [
-    {file = "pyopenssl-25.3.0-py3-none-any.whl", hash = "sha256:1fda6fc034d5e3d179d39e59c1895c9faeaf40a79de5fc4cbbfbe0d36f4a77b6"},
-    {file = "pyopenssl-25.3.0.tar.gz", hash = "sha256:c981cb0a3fd84e8602d7afc209522773b94c1c2446a3c710a75b06fe1beae329"},
-]
-
-[package.dependencies]
-cryptography = ">=45.0.7,<47"
-typing-extensions = {version = ">=4.9", markers = "python_version < \"3.13\" and python_version >= \"3.8\""}
-
-[package.extras]
-docs = ["sphinx (!=5.2.0,!=5.2.0.post0,!=7.2.5)", "sphinx_rtd_theme"]
-test = ["pretend", "pytest (>=3.0.1)", "pytest-rerunfailures"]
-
-[[package]]
 name = "pyparsing"
 version = "3.2.5"
 description = "pyparsing - Classes and methods to define and execute parsing grammars"
@@ -3639,56 +3621,57 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
 name = "pytest-exasol-backend"
-version = "0.4.0"
+version = "1.2.2"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "pytest_exasol_backend-0.4.0-py3-none-any.whl", hash = "sha256:771c7bdb6d083b248adde5fd4289c3ee921b9631b50b006673fa3e83d1c58434"},
-    {file = "pytest_exasol_backend-0.4.0.tar.gz", hash = "sha256:def40966b39b6c03872ac2fe71632038480799657b251d452926551e2011d909"},
+    {file = "pytest_exasol_backend-1.2.2-py3-none-any.whl", hash = "sha256:5dc3e75422dbb0e4f7b38998a9604e80f06b4b853c266ab65e6e22452f77bd6c"},
+    {file = "pytest_exasol_backend-1.2.2.tar.gz", hash = "sha256:1b9154059bb985339a5cae2d7292f0adc979a0d9ef6bed37040a9c4aebca220a"},
 ]
 
 [package.dependencies]
-exasol-integration-test-docker-environment = ">=3.1.0,<4.0.0"
-exasol-saas-api = ">=1.1.0,<2"
+exasol-integration-test-docker-environment = ">=4.3,<5"
+exasol-saas-api = ">=2.3,<3"
 pytest = ">=7,<9"
 
 [[package]]
 name = "pytest-exasol-extension"
-version = "0.2.3"
+version = "0.2.4"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "pytest_exasol_extension-0.2.3-py3-none-any.whl", hash = "sha256:586a0942cdbd1424215871a51b1ed27b6047184d00c9095ec5f1dd6ee1e88fb5"},
-    {file = "pytest_exasol_extension-0.2.3.tar.gz", hash = "sha256:98b3728154d98c184685eed08c9905b4a40e57a1360b46550e790853d44869b5"},
+    {file = "pytest_exasol_extension-0.2.4-py3-none-any.whl", hash = "sha256:31c9193789581be19ca2c74678c1aa80a95078cb163e6363eb3f6faa3f8b94fd"},
+    {file = "pytest_exasol_extension-0.2.4.tar.gz", hash = "sha256:e54654287454720fd265b8da42df366155d11222430de919443c25eb69cb7be7"},
 ]
 
 [package.dependencies]
 exasol-python-extension-common = ">=0.10.0,<1"
-pyexasol = ">=0.26.0,<1"
+exasol-saas-api = ">=2.3,<3"
+pyexasol = ">1,<2"
 pytest = ">=7,<9"
-pytest-exasol-backend = ">=0.4.0"
+pytest-exasol-backend = ">=1.1,<2"
 
 [[package]]
 name = "pytest-exasol-slc"
-version = "0.4.1"
+version = "0.3.0"
 description = ""
 optional = false
-python-versions = "<4.0,>=3.10"
+python-versions = "<4,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "pytest_exasol_slc-0.4.1-py3-none-any.whl", hash = "sha256:a3d366d1f99a8011f0a1da44caa709042c82928e6e9fdfd8c82e777a4e255313"},
-    {file = "pytest_exasol_slc-0.4.1.tar.gz", hash = "sha256:08ada14b93b024fea46e6bff76a2bbc81a8d9682ec2e93b4d6b555766706aab5"},
+    {file = "pytest_exasol_slc-0.3.0-py3-none-any.whl", hash = "sha256:5219eb310390337231e95844aae28bfe243a6b6fff2058f39033b3fd3c651357"},
+    {file = "pytest_exasol_slc-0.3.0.tar.gz", hash = "sha256:548705d34135bfefdfddb5a923540bde0b332d12e947a13ca0115f19cc84aa9b"},
 ]
 
 [package.dependencies]
-exasol-python-extension-common = ">=0.9.0,<1.0.0"
+exasol-python-extension-common = ">=0.5.0"
 pytest = ">=7,<9"
-pytest-exasol-backend = ">=0.3.1,<1.0.0"
-pytest-exasol-extension = ">=0.2.1,<1.0.0"
+pytest-exasol-backend = ">=0.3.0"
+pytest-exasol-extension = ">=0.1.0"
 
 [[package]]
 name = "pytest-repeat"
@@ -5454,4 +5437,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4"
-content-hash = "429443890f61cd259bdf8927d2e89e4dde811aa000a96e88e0c1934331dc699b"
+content-hash = "b543cefebfe19e898f39efb29a3c38df07d737aea698218ccd1c03a81a9700f1"
