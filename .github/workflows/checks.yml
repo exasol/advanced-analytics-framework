@@ -164,7 +164,7 @@ jobs:
 
   Build-Packages:
     name: Build Package Check
-    needs: [ Documentation, Lint, Type-Check, Security, Format ]
+    needs: [ Lint, Type-Check, Security, Format ]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
