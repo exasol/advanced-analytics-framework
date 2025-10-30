@@ -12,15 +12,14 @@ jobs:
       contents: read
     steps:
       - name: SCM Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup Python & Poetry Environment
         uses: exasol/python-toolbox/.github/actions/python-environment@v1
 
-# This step is disabled, because the project does not support sphinx yet
-
+# These steps are disabled, because the project does not support sphinx yet
 #       - name: Build Documentation
 #         run: |
 #           poetry run -- nox -s docs:multiversion
