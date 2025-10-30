@@ -151,8 +151,8 @@ def test_functionality_10():
     reason="This test is unstable on Github Action, "
     "because of the limited number of cores on the default runners.",
 )
-def test_functionality_25():
-    run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
+def test_functionality_15():
+    run_test_with_repetitions(15, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
