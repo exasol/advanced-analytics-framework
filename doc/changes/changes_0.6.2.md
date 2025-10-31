@@ -1,4 +1,5 @@
 # 0.6.2 - 2025-10-29
+
 ## Summary
 
 This release updates the dependency declaration to `pyexasol` allowing versions `>=0.25.0,<2` which required updating some additional dependency declarations:
@@ -13,6 +14,8 @@ This release updates the dependency declaration to `pyexasol` allowing versions 
 * ITDE: exasol-integration-test-docker-environment
 * SLCT: exasol-script-languages-container-tool
 * PYTBE: pytest-exasol-backend
+
+However the release restricts dependency `structlog` to versions `<25.5` as version 25.5 makes many integration tests without database fail.
 
 ## Refactorings
 
