@@ -35,7 +35,6 @@ However the release restricts dependency `structlog` to versions `<25.5` as vers
 * Updated dependency `pandas:2.3.1` to `2.3.3`
 * Updated dependency `pydantic:2.11.7` to `2.12.3`
 * Updated dependency `pyexasol:0.27.0` to `1.2.0`
-* Updated dependency `structlog:25.4.0` to `25.5.0`
 
 ### `dev`
 * Updated dependency `elasticsearch:8.18.1` to `8.19.2`
