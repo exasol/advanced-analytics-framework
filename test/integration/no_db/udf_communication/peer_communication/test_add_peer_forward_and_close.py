@@ -110,7 +110,7 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
 
 
 @pytest.mark.parametrize(
-    "number_of_instances, repetitions", [(2, 1000), (10, 100), (15, 10)]
+    "number_of_instances, repetitions", [(2, 1000), (10, 100), (25, 10)]
 )
 def test_reliability(number_of_instances: int, repetitions: int):
     run_test_with_repetitions(number_of_instances, repetitions)
@@ -131,8 +131,8 @@ def test_functionality_10():
     run_test_with_repetitions(10, REPETITIONS_FOR_FUNCTIONALITY)
 
 
-def test_functionality_15():
-    run_test_with_repetitions(15, REPETITIONS_FOR_FUNCTIONALITY)
+def test_functionality_25():
+    run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
 
 
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
