@@ -1,26 +1,16 @@
 import sys
 import time
 import traceback
-from pathlib import Path
-from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
-    ConditionalMethodDropper,
-)
+from test.integration.no_db.structlog.structlog_utils import configure_structlog
 from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     PeerCommunicatorTestProcessParameter,
     TestProcess,
     assert_processes_finish,
 )
-from typing import (
-    Dict,
-    List,
-    Set,
-)
 
 import structlog
 import zmq
-from structlog import WriteLoggerFactory
-from structlog.tracebacks import ExceptionDictTransformer
 from structlog.typing import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
@@ -36,24 +26,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-structlog.configure(
-    context_class=dict,
-    logger_factory=WriteLoggerFactory(
-        file=Path(__file__).with_suffix(".log").open("wt")
-    ),
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        ConditionalMethodDropper(method_name="debug"),
-        ConditionalMethodDropper(method_name="info"),
-        structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(),
-        structlog.processors.ExceptionRenderer(
-            exception_formatter=ExceptionDictTransformer(locals_max_string=320)
-        ),
-        structlog.processors.CallsiteParameterAdder(),
-        structlog.processors.JSONRenderer(),
-    ],
-)
+configure_structlog()
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
