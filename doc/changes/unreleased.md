@@ -1,5 +1,9 @@
 # Unreleased
 
+## Summary
+
+This release updated dependency to `structlog` and centralizes the configuration of `structlog`.
+
 ## Refactorings
 
 * Updated locked dependencies & reformatted files
