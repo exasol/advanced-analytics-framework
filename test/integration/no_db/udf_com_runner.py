@@ -1,16 +1,9 @@
-import time
-from test.integration.no_db.structlog.structlog_utils import configure_structlog
 from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     CommunicatorTestProcessParameter,
-    TestProcess,
-    assert_processes_finish,
 )
 
-import structlog
 import zmq
-from structlog.types import FilteringBoundLogger
-
 from exasol.analytics.udf.communication.communicator import Communicator
 from exasol.analytics.udf.communication.ip_address import (
     IPAddress,
@@ -20,11 +13,29 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog(__file__)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
-factory = CommunicatorFactory()
+
+class CommunicatorFactory:
+    def create(self, parameter: CommunicatorTestProcessParameter) -> Communicator:
+        is_discovery_leader_node = parameter.node_name == "n0"
+        context = zmq.Context()
+        socket_factory = ZMQSocketFactory(context)
+        return Communicator(
+            multi_node_discovery_port=Port(port=44444),
+            local_discovery_port=parameter.local_discovery_port,
+            multi_node_discovery_ip=IPAddress(ip_address="127.0.0.1"),
+            node_name=parameter.node_name,
+            instance_name=parameter.instance_name,
+            listen_ip=IPAddress(ip_address="127.0.0.1"),
+            group_identifier=parameter.group_identifier,
+            number_of_nodes=parameter.number_of_nodes,
+            number_of_instances_per_node=parameter.number_of_instances_per_node,
+            is_discovery_leader_node=is_discovery_leader_node,
+            socket_factory=socket_factory,
+        )
+        
 
 def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
     try:
@@ -60,42 +71,37 @@ def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
         queue.put(f"Failed during test: {e}")
 
 
-REPETITIONS_FOR_FUNCTIONALITY = 1
+def run_test(
+    group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int
+):
+    parameters = [
+        CommunicatorTestProcessParameter(
+            node_name=f"n{n}",
+            instance_name=f"i{i}",
+            group_identifier=group_identifier,
+            number_of_nodes=number_of_nodes,
+            number_of_instances_per_node=number_of_instances_per_node,
+            local_discovery_port=Port(port=44445 + n),
+            seed=0,
+        )
+        for n in range(number_of_nodes)
+        for i in range(number_of_instances_per_node)
+    ]
+    processes: list[TestProcess[CommunicatorTestProcessParameter]] = [
+        TestProcess(parameter, run=run) for parameter in parameters
+    ]
+    for process in processes:
+        process.start()
+    assert_processes_finish(processes, timeout_in_seconds=180)
+    actual_result_of_threads: dict[tuple[str, str], str] = {}
+    expected_result_of_threads: dict[tuple[str, str], str] = {}
+    for process in processes:
+        result_key = (process.parameter.node_name, process.parameter.instance_name)
+        actual_result_of_threads[result_key] = process.get()
+        expected_result_of_threads[result_key] = "Success"
+    return expected_result_of_threads, actual_result_of_threads
 
 
-def test_functionality_2_1():
-    run_test_with_repetitions(
-        number_of_nodes=2,
-        number_of_instances_per_node=1,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
-
-
-def test_functionality_1_2():
-    run_test_with_repetitions(
-        number_of_nodes=1,
-        number_of_instances_per_node=2,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
-
-
-def test_functionality_2_2():
-    run_test_with_repetitions(
-        number_of_nodes=2,
-        number_of_instances_per_node=2,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
-
-
-def test_functionality_3_3():
-    run_test_with_repetitions(
-        number_of_nodes=3,
-        number_of_instances_per_node=3,
-        repetitions=REPETITIONS_FOR_FUNCTIONALITY,
-    )
-
-
-# identical
 def run_test_with_repetitions(
     number_of_nodes: int, number_of_instances_per_node: int, repetitions: int
 ):
@@ -126,35 +132,3 @@ def run_test_with_repetitions(
             number_of_instances_per_node=number_of_instances_per_node,
             duration=end_time - start_time,
         )
-
-
-# identical
-def run_test(
-    group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int
-):
-    parameters = [
-        CommunicatorTestProcessParameter(
-            node_name=f"n{n}",
-            instance_name=f"i{i}",
-            group_identifier=group_identifier,
-            number_of_nodes=number_of_nodes,
-            number_of_instances_per_node=number_of_instances_per_node,
-            local_discovery_port=Port(port=44445 + n),
-            seed=0,
-        )
-        for n in range(number_of_nodes)
-        for i in range(number_of_instances_per_node)
-    ]
-    processes: list[TestProcess[CommunicatorTestProcessParameter]] = [
-        TestProcess(parameter, run=run) for parameter in parameters
-    ]
-    for process in processes:
-        process.start()
-    assert_processes_finish(processes, timeout_in_seconds=180)
-    actual_result_of_threads: dict[tuple[str, str], str] = {}
-    expected_result_of_threads: dict[tuple[str, str], str] = {}
-    for process in processes:
-        result_key = (process.parameter.node_name, process.parameter.instance_name)
-        actual_result_of_threads[result_key] = process.get()
-        expected_result_of_threads[result_key] = "Success"
-    return expected_result_of_threads, actual_result_of_threads

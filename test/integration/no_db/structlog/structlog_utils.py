@@ -22,11 +22,11 @@ CALLSITE_PARAMETER_ADDER_PARAMETERS = {
 }
 
 
-def configure_structlog():
+def configure_structlog(file: str):
     structlog.configure(
         context_class=dict,
         logger_factory=WriteLoggerFactory(
-            file=Path(__file__).with_suffix(".log").open("wt")
+            file=Path(file).with_suffix(".log").open("wt")
         ),
         processors=[
             structlog.contextvars.merge_contextvars,

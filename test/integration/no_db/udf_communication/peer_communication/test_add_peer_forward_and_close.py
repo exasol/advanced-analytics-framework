@@ -31,11 +31,72 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog()
+configure_structlog(__file__)
+
+from test.integration.no_db.peer_com_runner import (
+    PeerCommunicatorFactory,
+    RepetitionRunner,
+    expect_success,
+)
+
+
+def executor(
+    logger: FilteringBoundLogger,
+    communicator_factory: PeerCommunicatorFactory,
+    parameter: PeerCommunicatorTestProcessParameter,
+    queue: BidirectionalQueue,
+):
+    try:
+        setup = communicator_factory.create(parameter)
+        com = setup.communicator
+        try:
+            queue.put(com.my_connection_info)
+            peer_connection_infos = queue.get()
+            if com.forward_register_peer_config.is_leader:
+                for index, connection_info in peer_connection_infos.items():
+                    com.register_peer(connection_info)
+        finally:
+            try:
+                com.stop()
+                queue.put("Success")
+            except Exception as e:
+                logger.exception("Exception during stop")
+                queue.put(f"Failed to stop: {e}")
+            setup.context.destroy(linger=0)
+            for frame in sys._current_frames().values():
+                stacktrace = traceback.format_stack(frame)
+                logger.info("Frame", stacktrace=stacktrace)
+    except Exception as e:
+        logger.exception("Exception during test")
+        queue.put(f"Failed: {e}")
+
+
+RUNNER = RepetitionRunner(
+    __name__,
+    communicator_factory=PeerCommunicatorFactory(
+        inject_faults=True,
+        leader_name="i0",
+        enable_forward=True,
+    ),
+    executor=executor,
+    expectation_generator=expect_success,
+)
+
+
+@pytest.mark.parametrize("instances", [2, 3, 10, 25])
+def test_functionality_new(instances):
+    RUNNER.run_multiple(instances, 1)
+
+
+@pytest.mark.parametrize("instances, repetitions", [(2, 1000), (10, 100), (25, 10)])
+def test_reliability_new(instances: int, repetitions: int):
+    RUNNER.run_multiple(instances, repetitions)
+
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
+# identical
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
     logger = LOGGER.bind(
         group_identifier=parameter.group_identifier, name=parameter.instance_name
@@ -54,12 +115,12 @@ def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQue
             number_of_peers=parameter.number_of_instances,
             listen_ip=listen_ip,
             group_identifier=parameter.group_identifier,
+            socket_factory=socket_factory,
             config=PeerCommunicatorConfig(
                 forward_register_peer_config=ForwardRegisterPeerConfig(
                     is_leader=leader, is_enabled=True
                 ),
             ),
-            socket_factory=socket_factory,
         )
         try:
             queue.put(com.my_connection_info)
@@ -109,6 +170,7 @@ def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+# identical
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         LOGGER.info(
@@ -133,6 +195,7 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
         )
 
 
+# identical
 def run_test(group: str, number_of_instances: int, seed: int):
     connection_infos: dict[int, ConnectionInfo] = {}
     parameters = [

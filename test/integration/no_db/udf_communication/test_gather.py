@@ -20,7 +20,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog()
+configure_structlog(__file__)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -109,6 +109,7 @@ def test_functionality_3_3():
     )
 
 
+# identical
 def run_test_with_repetitions(
     number_of_nodes: int, number_of_instances_per_node: int, repetitions: int
 ):
@@ -141,6 +142,7 @@ def run_test_with_repetitions(
         )
 
 
+# identical
 def run_test(
     group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int
 ):

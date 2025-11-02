@@ -21,10 +21,11 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog()
+configure_structlog(__file__)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
+factory = CommunicatorFactory()
 
 def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
     is_discovery_leader_node = parameter.node_name == "n0"
@@ -82,6 +83,7 @@ def test_functionality_3_3():
     run_test_with_repetitions(3, 3, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+# identical
 def run_test_with_repetitions(
     number_of_nodes: int, number_of_instances_per_node: int, repetitions: int
 ):
@@ -114,6 +116,7 @@ def run_test_with_repetitions(
         )
 
 
+# identical
 def run_test(
     group_identifier: str, number_of_nodes: int, number_of_instances_per_node: int
 ):

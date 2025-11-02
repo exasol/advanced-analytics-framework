@@ -29,7 +29,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog()
+configure_structlog(__file__)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
@@ -79,6 +79,7 @@ def test_functionality_25():
     run_test_with_repetitions(25, REPETITIONS_FOR_FUNCTIONALITY)
 
 
+# needs to pass seed = -1
 def run_test_with_repetitions(number_of_instances: int, repetitions: int):
     for i in range(repetitions):
         LOGGER.info(
@@ -102,7 +103,10 @@ def run_test_with_repetitions(number_of_instances: int, repetitions: int):
             duration=end_time - start_time,
         )
 
+# expected= expect_sorted_peers
 
+# identical peer_com_runner with seed = -1
+# does not put connection infos to processes
 def run_test(group: str, number_of_instances: int):
     connection_infos: dict[int, ConnectionInfo] = {}
     parameters = [
@@ -119,7 +123,6 @@ def run_test(group: str, number_of_instances: int):
     ]
     for i in range(number_of_instances):
         processes[i].start()
-    for i in range(number_of_instances):
         connection_infos[i] = processes[i].get()
     assert_processes_finish(processes, timeout_in_seconds=180)
     peers_of_threads: dict[int, list[ConnectionInfo]] = {}
