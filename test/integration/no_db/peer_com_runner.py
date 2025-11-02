@@ -109,7 +109,7 @@ class PeerCommunicatorFactory:
 Executor = Callable[
     [
         FilteringBoundLogger,
-        PeerCommunicatorFactory,
+        PeerCommunicatorFactory | None,
         PeerCommunicatorTestProcessParameter,
         BidirectionalQueue,
     ],
@@ -160,7 +160,7 @@ class RepetitionRunner:
     def __init__(
         self,
         name: str,
-        communicator_factory: PeerCommunicatorFactory,
+        communicator_factory: PeerCommunicatorFactory | None,
         executor: Executor,
         expectation_generator: ExpectationGenerator,
         vary_seed: bool = True,

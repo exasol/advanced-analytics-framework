@@ -106,8 +106,13 @@ RUNNER = RepetitionRunner(
 )
 
 
-@pytest.mark.parametrize("instances", [2, 5, 10]) # 25 instable
+@pytest.mark.parametrize("instances", [2, 5, 10, 25])
 def test_functionality_new(instances):
+    if instances > 20 and "GITHUB_ACTIONS" in os.environ:
+        pytest.skip(
+            "This test is unstable on Github Action, "
+            "because of the limited number of cores on the default runners.",
+        )
     RUNNER.run_multiple(instances, 1)
 
 

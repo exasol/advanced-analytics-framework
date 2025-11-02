@@ -1,5 +1,9 @@
 import time
 from test.integration.no_db.structlog.structlog_utils import configure_structlog
+from test.integration.no_db.udf_com_runner import (
+    UdfCommunicatorFactory,
+    RepetitionRunner,
+)
 from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     CommunicatorTestProcessParameter,
@@ -23,9 +27,47 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
 
 configure_structlog(__file__)
 
-LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
-factory = CommunicatorFactory()
+def executor(
+    logger: FilteringBoundLogger,
+    communicator_factory: UdfCommunicatorFactory,
+    parameter: CommunicatorTestProcessParameter,
+    queue: BidirectionalQueue,
+):
+    communicator = communicator_factory.create(parameter)
+    queue.put("Finished")
+
+
+RUNNER = RepetitionRunner(
+    __name__,
+    communicator_factory=UdfCommunicatorFactory(),
+    executor=executor,
+    expect="Finished",
+)
+
+@pytest.mark.parametrize("nodes, instances_per_node", [
+    (2,1), (1,2), (2, 2), (3,3),
+])
+def test_functionality_new(nodes, instances_per_node):
+    RUNNER.run_multiple(nodes, instances_per_node, 1)
+
+
+@pytest.mark.parametrize(
+    "nodes, instances_per_node, repetitions",
+    [
+        (2, 2, 100),
+        (3, 3, 20),
+    ],
+)
+def test_reliability_new(nodes: int, instances_per_node: int, repetitions: int):
+    RUNNER.run_multiple(
+        number_of_nodes=nodes,
+        number_of_instances_per_node=instances_per_node,
+        repetitions=repetitions,
+    )
+
+
+LOGGER: FilteringBoundLogger = structlog.get_logger(__name__)
 
 def run(parameter: CommunicatorTestProcessParameter, queue: BidirectionalQueue):
     is_discovery_leader_node = parameter.node_name == "n0"
