@@ -33,7 +33,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
 )
 
-configure_structlog()
+configure_structlog(__file__)
 
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
