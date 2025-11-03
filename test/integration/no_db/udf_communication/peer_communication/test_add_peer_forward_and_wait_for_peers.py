@@ -1,7 +1,7 @@
 import traceback
 from datetime import timedelta
 from test.integration.no_db.peer_com_runner import (
-    PeerCommunicatorFactory,
+    PeerComSetupFactory,
     RepetitionRunner,
     expect_sorted_peers,
 )
@@ -19,12 +19,12 @@ configure_structlog(__file__)
 
 def executor(
     logger: FilteringBoundLogger,
-    communicator_factory: PeerCommunicatorFactory,
+    setup_factory: PeerComSetupFactory,
     parameter: PeerCommunicatorTestProcessParameter,
     queue: BidirectionalQueue,
 ):
     try:
-        com = communicator_factory.create(parameter).communicator
+        com = setup_factory.create(parameter).communicator
         try:
             queue.put(com.my_connection_info)
             if com.forward_register_peer_config.is_leader:
@@ -45,7 +45,7 @@ def executor(
 
 RUNNER = RepetitionRunner(
     __name__,
-    communicator_factory=PeerCommunicatorFactory(
+    setup_factory=PeerComSetupFactory(
         inject_faults=True,
         leader_name="i0",
         enable_forward=True,

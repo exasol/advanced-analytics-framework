@@ -1,5 +1,5 @@
 from test.integration.no_db.peer_com_runner import (
-    PeerCommunicatorFactory,
+    PeerComSetupFactory,
     RepetitionRunner,
     expect_sorted_peers,
 )
@@ -32,7 +32,7 @@ configure_structlog(__file__)
 
 def executor(
     logger: FilteringBoundLogger,
-    communicator_factory: PeerCommunicatorFactory,
+    setup_factory: PeerComSetupFactory,
     parameter: PeerCommunicatorTestProcessParameter,
     queue: BidirectionalQueue,
 ):
@@ -66,7 +66,7 @@ def executor(
 
 RUNNER = RepetitionRunner(
     __name__,
-    communicator_factory=None,
+    setup_factory=None,
     executor=executor,
     expectation_generator=expect_sorted_peers,
     # the following parameters seem to habe no effect on the tests results:

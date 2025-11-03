@@ -2,7 +2,7 @@ import os
 import sys
 import traceback
 from test.integration.no_db.peer_com_runner import (
-    PeerCommunicatorFactory,
+    PeerComSetupFactory,
     RepetitionRunner,
 )
 from test.integration.no_db.structlog.structlog_utils import configure_structlog
@@ -23,13 +23,13 @@ configure_structlog(__file__)
 
 def executor(
     logger: FilteringBoundLogger,
-    communicator_factory: PeerCommunicatorFactory,
+    setup_factory: PeerComSetupFactory,
     parameter: PeerCommunicatorTestProcessParameter,
     queue: BidirectionalQueue,
 ):
     received_values: set[str] = set()
     try:
-        setup = communicator_factory.create(parameter)
+        setup = setup_factory.create(parameter)
         com = setup.communicator
         try:
             queue.put(com.my_connection_info)
@@ -78,7 +78,7 @@ def expectation_generator(
 
 RUNNER = RepetitionRunner(
     __name__,
-    communicator_factory=PeerCommunicatorFactory(inject_faults=True),
+    setup_factory=PeerComSetupFactory(inject_faults=True),
     executor=executor,
     transfer_connection_infos_to_processes=True,
     expectation_generator=expectation_generator,

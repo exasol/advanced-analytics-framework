@@ -1,7 +1,7 @@
 import sys
 import traceback
 from test.integration.no_db.peer_com_runner import (
-    PeerCommunicatorFactory,
+    PeerComSetupFactory,
     RepetitionRunner,
     expect_success,
 )
@@ -19,12 +19,12 @@ configure_structlog(__file__)
 
 def executor(
     logger: FilteringBoundLogger,
-    communicator_factory: PeerCommunicatorFactory,
+    setup_factory: PeerComSetupFactory,
     parameter: PeerCommunicatorTestProcessParameter,
     queue: BidirectionalQueue,
 ):
     try:
-        setup = communicator_factory.create(parameter)
+        setup = setup_factory.create(parameter)
         com = setup.communicator
         try:
             queue.put(com.my_connection_info)
@@ -48,7 +48,7 @@ def executor(
 
 RUNNER = RepetitionRunner(
     __name__,
-    communicator_factory=PeerCommunicatorFactory(inject_faults=True),
+    setup_factory=PeerComSetupFactory(inject_faults=True),
     executor=executor,
     expectation_generator=expect_success,
 )

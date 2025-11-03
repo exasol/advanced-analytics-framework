@@ -47,7 +47,7 @@ class PeerCommunicatorSetup:
 
 
 @dataclass
-class PeerCommunicatorFactory:
+class PeerComSetupFactory:
     inject_faults: bool = False
     leader_name: str = ""
     enable_forward: bool = False
@@ -71,12 +71,9 @@ class PeerCommunicatorFactory:
     def create(
         self,
         parameter: PeerCommunicatorTestProcessParameter,
-        # context: zmq.Context | None = None,
-        # socket_factory: SocketFactory | None = None,
-    ) -> PeerCommunicator:
+    ) -> PeerCommunicatorSetup:
         listen_ip = IPAddress(ip_address=f"127.1.0.1")
         context = zmq.Context()
-        # socket_factory = socket_factory or self.socket_factory(parameter, context)
         socket_factory = ZMQSocketFactory(context)
         if self.inject_faults:
             socket_factory = FaultInjectionSocketFactory(
@@ -108,7 +105,7 @@ class PeerCommunicatorFactory:
 Executor = Callable[
     [
         FilteringBoundLogger,
-        PeerCommunicatorFactory | None,
+        PeerComSetupFactory | None,
         PeerCommunicatorTestProcessParameter,
         BidirectionalQueue,
     ],
@@ -159,7 +156,7 @@ class RepetitionRunner:
     def __init__(
         self,
         name: str,
-        communicator_factory: PeerCommunicatorFactory | None,
+        setup_factory: PeerComSetupFactory | None,
         executor: Executor,
         expectation_generator: ExpectationGenerator,
         vary_seed: bool = True,
@@ -167,7 +164,7 @@ class RepetitionRunner:
         process_finish_timeout: timedelta = timedelta(seconds=180),
     ):
         self.logger: FilteringBoundLogger = structlog.get_logger(name)
-        self.communicator_factory = communicator_factory
+        self.setup_factory = setup_factory
         self.executor = executor
         self.vary_seed = vary_seed
         self.transfer_connection_infos = transfer_connection_infos_to_processes
@@ -185,7 +182,7 @@ class RepetitionRunner:
         )
         self.executor(
             logger=logger,
-            communicator_factory=self.communicator_factory,
+            setup_factory=self.setup_factory,
             parameter=parameter,
             queue=queue,
         )
