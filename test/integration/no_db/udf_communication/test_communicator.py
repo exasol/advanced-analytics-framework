@@ -31,9 +31,16 @@ RUNNER = RepetitionRunner(
     expect="Finished",
 )
 
-@pytest.mark.parametrize("nodes, instances_per_node", [
-    (2,1), (1,2), (2, 2), (3,3),
-])
+
+@pytest.mark.parametrize(
+    "nodes, instances_per_node",
+    [
+        (2, 1),
+        (1, 2),
+        (2, 2),
+        (3, 3),
+    ],
+)
 def test_functionality(nodes, instances_per_node):
     RUNNER.run_multiple(nodes, instances_per_node, 1)
 

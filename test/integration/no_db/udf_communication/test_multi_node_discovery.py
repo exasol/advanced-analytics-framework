@@ -80,8 +80,6 @@ def test_functionality(instances: int):
     RUNNER.run_multiple(instances, 1)
 
 
-@pytest.mark.parametrize(
-    "instances, repetitions", [(2, 1000), (10, 100), (25, 10)]
-)
+@pytest.mark.parametrize("instances, repetitions", [(2, 1000), (10, 100), (25, 10)])
 def test_reliability(instances: int, repetitions: int):
     RUNNER.run_multiple(instances, repetitions)

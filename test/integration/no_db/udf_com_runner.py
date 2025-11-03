@@ -6,6 +6,7 @@ from test.integration.no_db.udf_communication.peer_communication.utils import (
     assert_processes_finish,
 )
 from typing import Callable
+
 import structlog
 import zmq
 from structlog.types import FilteringBoundLogger
@@ -47,7 +48,7 @@ Executor = Callable[
         CommunicatorTestProcessParameter,
         BidirectionalQueue,
     ],
-    None
+    None,
 ]
 
 
@@ -135,7 +136,7 @@ class RepetitionRunner:
                 number_of_nodes=number_of_nodes,
                 number_of_instances_per_node=number_of_instances_per_node,
             )
-            assert expected == actual, f'{expected} =! {actual}'
+            assert expected == actual, f"{expected} =! {actual}"
             end_time = time.monotonic()
             self.logger.info(
                 f"Finish iteration",
@@ -146,6 +147,3 @@ class RepetitionRunner:
                 number_of_instances_per_node=number_of_instances_per_node,
                 duration=end_time - start_time,
             )
-
-
-

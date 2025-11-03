@@ -98,4 +98,3 @@ def test_functionality(instances):
 @pytest.mark.parametrize("instances, repetitions", [(2, 1000), (10, 100)])
 def test_reliability(instances: int, repetitions: int):
     RUNNER.run_multiple(instances, repetitions)
-

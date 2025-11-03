@@ -112,7 +112,7 @@ Executor = Callable[
         PeerCommunicatorTestProcessParameter,
         BidirectionalQueue,
     ],
-    None
+    None,
 ]
 
 
@@ -143,11 +143,11 @@ def expect_sorted_peers(
 
 ExpectationGenerator = Callable[
     [
-        int, # number_of_instances
-        dict[int, ConnectionInfo], # connection_infos
-        list[TestProcess[PeerCommunicatorTestProcessParameter]], # processes
+        int,  # number_of_instances
+        dict[int, ConnectionInfo],  # connection_infos
+        list[TestProcess[PeerCommunicatorTestProcessParameter]],  # processes
     ],
-    dict[int, Any] # expected_thread_result
+    dict[int, Any],  # expected_thread_result
 ]
 """
 Given the number_of_instances, the connection_infos, and the list of
@@ -201,8 +201,7 @@ class RepetitionRunner:
             for i in range(number_of_instances)
         ]
         processes: list[TestProcess[PeerCommunicatorTestProcessParameter]] = [
-            TestProcess(parameter, run=self.run)
-            for parameter in parameters
+            TestProcess(parameter, run=self.run) for parameter in parameters
         ]
         connection_infos: dict[int, ConnectionInfo] = {}
         for i in range(number_of_instances):
@@ -214,8 +213,7 @@ class RepetitionRunner:
                 t = processes[i].put(connection_infos)
         assert_processes_finish(processes, self.finish_timeout.seconds)
         actual: dict[int, list[ConnectionInfo]] = {
-            i: processes[i].get()
-            for i in range(number_of_instances)
+            i: processes[i].get() for i in range(number_of_instances)
         }
         expected = self.expectation_generator(
             number_of_instances,

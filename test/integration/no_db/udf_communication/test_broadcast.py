@@ -53,4 +53,3 @@ def test_functionality(nodes, instance_per_node):
         number_of_instances_per_node=instance_per_node,
         repetitions=1,
     )
-
