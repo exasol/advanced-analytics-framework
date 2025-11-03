@@ -1,3 +1,16 @@
+"""
+Centralized setup for integration tests without database verifying peer
+communication.
+
+The module provides class PeerComSetupFactory to create a test setup from the
+provided CommunicatorTestProcessParameter.
+
+Type Executor enables defining the actual test execution.
+
+Using class `RepetitionRunner` the test can be excecuter once or multiple
+times using a specified number of instances and instanced per node.
+"""
+
 import time
 from dataclasses import dataclass
 from datetime import timedelta
@@ -41,6 +54,16 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
 
 @dataclass
 class PeerCommunicatorSetup:
+    """
+    Unified setup for integration test without database verifying peer
+    communication.
+
+    The setup provides
+    * a zero message queue context
+    * a socket factory, optionally with fault injection
+    * a peer communicator
+    """
+
     context: zmq.Context
     socket_factory: SocketFactory
     communicator: PeerCommunicator
@@ -48,25 +71,14 @@ class PeerCommunicatorSetup:
 
 @dataclass
 class PeerComSetupFactory:
+    """
+    Creates a unified setup for integration test without database
+    verifying peer communication.
+    """
+
     inject_faults: bool = False
     leader_name: str = ""
     enable_forward: bool = False
-
-    def context(self) -> zmq.Context:
-        return zmq.Context()
-
-    def socket_factory(
-        self,
-        parameter: PeerCommunicatorTestProcessParameter,
-        context: zmq.Context | None = None,
-    ) -> SocketFactory:
-        context = context or self.context()
-        socket_factory = ZMQSocketFactory(context)
-        if not self.inject_faults:
-            return socket_factory
-        return FaultInjectionSocketFactory(
-            socket_factory, 0.01, RandomState(parameter.seed)
-        )
 
     def create(
         self,
@@ -111,32 +123,9 @@ Executor = Callable[
     ],
     None,
 ]
-
-
-def expect_success(
-    number_of_instances: int,
-    connection_infos: dict[int, ConnectionInfo],
-    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]],
-) -> dict[int, str]:
-    return {i: "Success" for i in range(number_of_instances)}
-
-
-def expect_sorted_peers(
-    number_of_instances: int,
-    connection_infos: dict[int, ConnectionInfo],
-    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]],
-) -> dict[int, set[str]]:
-    return {
-        i: sorted(
-            [
-                Peer(connection_info=connection_info)
-                for index, connection_info in connection_infos.items()
-            ],
-            key=key_for_peer,
-        )
-        for i in range(number_of_instances)
-    }
-
+"""
+Enables defining the actual test execution.
+"""
 
 ExpectationGenerator = Callable[
     [
@@ -152,7 +141,47 @@ processes, this function defines the expected results for each of the threads.
 """
 
 
+def expect_success(
+    number_of_instances: int,
+    connection_infos: dict[int, ConnectionInfo],
+    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]],
+) -> dict[int, str]:
+    """
+    Sample implementation for an ExpectationGenerator. Expects each thread
+    to return the string "Success".
+    """
+
+    return {i: "Success" for i in range(number_of_instances)}
+
+
+def expect_sorted_peers(
+    number_of_instances: int,
+    connection_infos: dict[int, ConnectionInfo],
+    processes: list[TestProcess[PeerCommunicatorTestProcessParameter]],
+) -> dict[int, set[str]]:
+    """
+    Alternate implementation for an ExpectationGenerator. Expects each
+    thread to return a sorted list of its peers.
+    """
+
+    return {
+        i: sorted(
+            [
+                Peer(connection_info=connection_info)
+                for index, connection_info in connection_infos.items()
+            ],
+            key=key_for_peer,
+        )
+        for i in range(number_of_instances)
+    }
+
+
 class RepetitionRunner:
+    """
+    Execute a defined test case once or multiple times using the specified
+    number of instances.
+    """
+
     def __init__(
         self,
         name: str,
@@ -188,6 +217,11 @@ class RepetitionRunner:
         )
 
     def run_single(self, group: str, number_of_instances: int, seed: int):
+        """
+        Run the specified executor once and assert the expected test
+        results.
+        """
+
         parameters = [
             PeerCommunicatorTestProcessParameter(
                 instance_name=f"i{i}",
@@ -220,6 +254,10 @@ class RepetitionRunner:
         return expected, actual
 
     def run_multiple(self, number_of_instances: int, repetitions: int):
+        """
+        Run the specified executor multiple times.
+        """
+
         for i in range(repetitions):
             self.logger.info(
                 f"Start iteration",

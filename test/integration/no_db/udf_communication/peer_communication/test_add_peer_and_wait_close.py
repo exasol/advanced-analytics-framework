@@ -1,12 +1,12 @@
 import sys
 import time
 import traceback
+from pathlib import Path
 from test.integration.no_db.peer_com_runner import (
     PeerComSetupFactory,
     RepetitionRunner,
     expect_success,
 )
-from pathlib import Path
 from test.integration.no_db.structlog.structlog_utils import configure_structlog
 from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
     ConditionalMethodDropper,

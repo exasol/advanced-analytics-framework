@@ -1,3 +1,16 @@
+"""
+Centralized setup for integration tests without database verifying UDF
+communication.
+
+The module provides class UdfCommunicatorFactory to create a communicator from
+the provided CommunicatorTestProcessParameter.
+
+Type Executor enables defining the actual test execution.
+
+Using class `RepetitionRunner` the test can be excecuter once or multiple
+times using a specified number of instances and instanced per node.
+"""
+
 import time
 from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
@@ -22,6 +35,11 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
 
 
 class UdfCommunicatorFactory:
+    """
+    Creates a communicator from the provided
+    CommunicatorTestProcessParameter.
+    """
+
     def create(self, parameter: CommunicatorTestProcessParameter) -> Communicator:
         is_discovery_leader_node = parameter.node_name == "n0"
         context = zmq.Context()
@@ -50,9 +68,17 @@ Executor = Callable[
     ],
     None,
 ]
+"""
+Enables defining the actual test execution.
+"""
 
 
 class RepetitionRunner:
+    """
+    Execute a defined test case once or multiple times using the specified
+    number of instances and instances per node.
+    """
+
     def __init__(
         self,
         name: str,
@@ -83,6 +109,11 @@ class RepetitionRunner:
         number_of_nodes: int,
         number_of_instances_per_node: int,
     ):
+        """
+        Run the specified executor once and assert the expected test
+        results.
+        """
+
         parameters = [
             CommunicatorTestProcessParameter(
                 node_name=f"n{n}",
@@ -116,6 +147,10 @@ class RepetitionRunner:
         number_of_instances_per_node: int,
         repetitions: int,
     ):
+        """
+        Run the specified executor multiple times.
+        """
+
         for i in range(repetitions):
             group = f"{time.monotonic_ns()}"
             self.logger.info(
