@@ -106,13 +106,13 @@ class RepetitionRunner:
         for process in processes:
             process.start()
         assert_processes_finish(processes, timeout_in_seconds=180)
-        actual_result_of_threads: dict[tuple[str, str], str] = {}
-        expected_result_of_threads: dict[tuple[str, str], str] = {}
+        actual: dict[tuple[str, str], str] = {}
+        expected: dict[tuple[str, str], str] = {}
         for process in processes:
             result_key = (process.parameter.node_name, process.parameter.instance_name)
-            actual_result_of_threads[result_key] = process.get()
-            expected_result_of_threads[result_key] = self.expect
-        return expected_result_of_threads, actual_result_of_threads
+            actual[result_key] = process.get()
+            expected[result_key] = self.expect
+        return expected, actual
 
     def run_multiple(
         self,
