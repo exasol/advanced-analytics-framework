@@ -70,10 +70,6 @@ class RepetitionRunner:
         parameter: CommunicatorTestProcessParameter,
         queue: BidirectionalQueue,
     ):
-        # logger = self.logger.bind(
-        #     group_identifier=parameter.group_identifier,
-        #     name=parameter.instance_name,
-        # )
         self.executor(
             logger=self.logger,
             communicator_factory=self.communicator_factory,
