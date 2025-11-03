@@ -1,5 +1,4 @@
 import time
-from collections.abc import Generator
 from dataclasses import dataclass
 from datetime import timedelta
 from test.integration.no_db.udf_communication.peer_communication.utils import (
