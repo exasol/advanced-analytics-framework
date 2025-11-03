@@ -1,6 +1,7 @@
 # Changes
 
 * [unreleased](unreleased.md)
+* [0.6.2](changes_0.6.2.md)
 * [0.6.1](changes_0.6.1.md)
 * [0.6.0](changes_0.6.0.md)
 * (Release 0.5.0 was skipped)
@@ -16,6 +17,7 @@
 hidden:
 ---
 unreleased
+changes_0.6.2
 changes_0.6.1
 changes_0.6.0
 changes_0.4.1
