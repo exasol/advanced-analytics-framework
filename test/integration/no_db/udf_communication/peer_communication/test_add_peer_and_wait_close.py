@@ -41,6 +41,36 @@ configure_structlog(__file__)
 LOGGER: FilteringBoundLogger = structlog.get_logger()
 
 
+def executor(
+    logger: FilteringBoundLogger,
+    communicator_factory: PeerCommunicatorFactory,
+    parameter: PeerCommunicatorTestProcessParameter,
+    queue: BidirectionalQueue,
+):
+    try:
+        setup = communicator_factory.create(parameter)
+        com = setup.communicator
+        try:
+            queue.put(com.my_connection_info)
+            for index, connection_info in queue.get().items():
+                com.register_peer(connection_info)
+            time.sleep(150)
+        finally:
+            try:
+                com.stop()
+                queue.put("Success")
+            except Exception as e:
+                logger.exception("Exception during test")
+                queue.put("Failed")
+            setup.context.destroy(linger=0)
+            for frame in sys._current_frames().values():
+                stacktrace = traceback.format_stack(frame)
+                logger.info("Frame", stacktrace=stacktrace)
+    except Exception as e:
+        logger.exception("Exception during test")
+        queue.put("Failed")
+
+
 def run(parameter: PeerCommunicatorTestProcessParameter, queue: BidirectionalQueue):
     logger = LOGGER.bind(
         group_identifier=parameter.group_identifier, name=parameter.instance_name
