@@ -9,7 +9,7 @@ description = {
    license = "MIT"
 }
 dependencies = {
-    "lua >= 5.1",
+    "lua >= 5.2",
     "amalg >= 0.8-1",
     "lua-cjson == 2.1.0-1", -- pinned to prevent "undefined symbol: lua_objlen" in 2.1.0.1 (https://github.com/mpx/lua-cjson/issues/56)
     "luaunit >= 3.3.-1",
