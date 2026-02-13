@@ -1,7 +1,7 @@
 [project]
 name = "exasol-advanced-analytics-framework"
 version = "0.6.2"
-requires-python = ">=3.10,<4"
+requires-python = ">=3.10,<3.14"
 description = "Framework for building complex data analysis algorithms with Exasol"
 authors = [
     {name="Umit Buyuksahin", email="umit.buyuksahin@exasol.com"},
@@ -41,7 +41,7 @@ pytest = ">=7,<9"
 pytest-assume = "^2.4.3"
 exasol-udf-mock-python = ">=0.2.0,<1.0.0"
 pytest-cov = "^5.0.0"
-exasol-integration-test-docker-environment = ">=3.4.0,<5"
+exasol-integration-test-docker-environment = ">=5,<6"
 polyfactory = "^2.19.0"
 pytest-repeat = ">=0.9.3"
 elasticsearch = "^8.17.1"

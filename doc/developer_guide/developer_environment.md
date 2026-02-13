@@ -14,7 +14,7 @@ For this project you need
 ### Install on a desktop machine
 
 1. Install poetry following the instructions on their [website](https://python-poetry.org/docs/).
-2. Install micromamba as explained on their [website](https://mamba.readthedocs.io/en/latest/installation.html)
+2. Install micromamba as explained on their [website](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)
 3. To install lua and all luarocks package, run from the project root 
 
     ```bash

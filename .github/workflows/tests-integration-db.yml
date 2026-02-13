@@ -24,6 +24,9 @@ jobs:
           docker-images: true
           swap-storage: false
 
+      - name: Allow unprivileged user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - uses: actions/checkout@v4
 
       - name: Setup Python & Poetry Environment

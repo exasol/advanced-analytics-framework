@@ -4,5 +4,5 @@ channels:
   - anaconda
 dependencies:
   - lua==5.4.*
-  - luarocks
+  - luarocks==3.12.*=*lua54*
   - python==3.10.*

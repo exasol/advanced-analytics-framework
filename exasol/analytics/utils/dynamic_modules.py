@@ -1,12 +1,13 @@
-import importlib
 import sys
+from importlib.machinery import ModuleSpec
+from importlib.util import module_from_spec
 from types import ModuleType
 from typing import Any
 
 
 def _create_module(name: str) -> ModuleType:
-    spec = importlib.machinery.ModuleSpec(name, None)
-    return importlib.util.module_from_spec(spec)
+    spec = ModuleSpec(name, None)
+    return module_from_spec(spec)
 
 
 def _register_module_for_import(name: str, mod: ModuleType):
