@@ -2,7 +2,11 @@
 
 ## Summary
 
-This release updated dependency to `structlog` and centralizes the configuration of `structlog`.
+This release updates the dependency to `structlog` and centralizes the configuration of `structlog` and fixes the Lua dependencies.
+
+## Bugfixes
+
+* #334: Fixed Lua dependencies
 
 ## Refactorings
 
