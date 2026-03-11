@@ -1,3 +1,14 @@
 poetry.lock     linguist-generated=True
 version.py      linguist-generated=True
 exasol/analytics/resources/outputs/create_query_loop.sql linguist-generated=True
+
+# PTB GitHub Workflows (CI/CD & Publishing)
+.github/workflows/build-and-publish.yml     linguist-generated=true
+.github/workflows/cd.yml                    linguist-generated=true
+.github/workflows/check-release-tag.yml     linguist-generated=true
+.github/workflows/ci.yml                    linguist-generated=true
+.github/workflows/gh-pages.yml              linguist-generated=true
+.github/workflows/matrix-*.yml              linguist-generated=true
+.github/workflows/merge-gate.yml            linguist-generated=true
+.github/workflows/pr-merge.yml              linguist-generated=true
+.github/workflows/report.yml                linguist-generated=true
