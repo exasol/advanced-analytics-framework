@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from datetime import datetime
 from pathlib import Path
 
 import nox
@@ -14,7 +13,7 @@ from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
 from noxconfig import ROOT_DIR
 
 # default actions to be run if nothing is explicitly specified with the -s option
-nox.options.sessions = ["fix"]
+nox.options.sessions = ["format:fix"]
 
 SCRIPTS_DIRECTORY = ROOT_DIR / "scripts"
 RUN_IN_DEV_SCRIPT = SCRIPTS_DIRECTORY / "run_in_dev_env.sh"
