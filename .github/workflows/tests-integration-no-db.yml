@@ -19,7 +19,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@v6
         with:
           python-version: ${{ inputs.python-version }}
-          poetry-version: 2.1.2
+          poetry-version: "2.3.0"
 
       - id: generate_matrix
         name: Generate List of Integration Tests Without Database
@@ -43,7 +43,7 @@ jobs:
         uses: exasol/python-toolbox/.github/actions/python-environment@v6
         with:
           python-version: ${{ inputs.python-version }}
-          poetry-version: 2.1.2
+          poetry-version: "2.3.0"
 
       - name: Poetry install
         run: poetry run -- nox -s devenv:run -- poetry install
