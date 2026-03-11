@@ -103,8 +103,18 @@ poetry-plugin-export = ">=1.8"
 
 [tool.sonar]
 projectKey = "com.exasol:advanced-analytics-framework"
-hostUrl = "https://sonarcloud.io"
+host.url = "https://sonarcloud.io"
 organization = "exasol"
+
+[tool.ruff.lint]
+extend-ignore = [
+    "E", # Syntax errors
+    "F", # Pyflakes rules (excluding F401)
+    "UP", # pyupgrade rules
+    "D",  # Docstring rules
+]
+extend-select = ["F401"]
+unfixable = []
 
 # See https://github.com/exasol/advanced-analytics-framework/issues/319
 [tool.coverage.report]
