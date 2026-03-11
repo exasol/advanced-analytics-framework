@@ -10,4 +10,5 @@ This release updates the dependency to `structlog` and centralizes the configura
 
 ## Refactorings
 
-* #323: Updated depdendency to `structlog`
+* #323: Updated dependency to `structlog`
+* #339: Updated to exasol-toolbox version `6.0.0`
