@@ -52,7 +52,7 @@ dev = [
     "polyfactory>=2.19.0,<3",
     "pytest-repeat>=0.9.3",
     "elasticsearch>=8.17.1,<9",
-    "exasol-toolbox>=1.7.0,<2",
+    "exasol-toolbox>=6.0.0,<7",
     "exasol-python-extension-common>=0.12.0,<1.0.0",
     "exasol-script-languages-container-tool>1,<4",
     "pytest-exasol-slc>=0.1.0,<1.0.0",
