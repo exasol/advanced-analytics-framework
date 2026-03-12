@@ -27,13 +27,13 @@ jobs:
       - name: Allow unprivileged user namespaces
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v1
+        uses: exasol/python-toolbox/.github/actions/python-environment@v6
         with:
           python-version: ${{ inputs.python-version }}
-          poetry-version: 2.1.2
+          poetry-version: "2.3.0"
 
       - name: Install Development Environment
         run: poetry run -- nox -s devenv:install
