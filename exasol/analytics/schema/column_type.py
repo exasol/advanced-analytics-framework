@@ -22,8 +22,8 @@ class ColumnType:
     precision: int | None = None
     scale: int | None = None
     size: int | None = None
-    characterSet: str | None = None
-    withLocalTimeZone: bool | None = None
+    characterSet: str | None = None  # NOSONAR(S116) ignore naming conventions
+    withLocalTimeZone: bool | None = None  # NOSONAR(S116) ignore naming conventions
     fraction: int | None = None
     srid: int | None = None
     unit: SizeUnit | None = None

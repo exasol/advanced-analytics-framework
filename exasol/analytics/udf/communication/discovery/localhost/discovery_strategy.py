@@ -103,7 +103,7 @@ class DiscoveryStrategy:
             serialized_message = self._local_discovery_socket.recvfrom(
                 timeout_in_seconds=timeout_in_seconds
             )
-        except TimeoutError as e:
+        except TimeoutError:
             serialized_message = None
         return serialized_message
 
