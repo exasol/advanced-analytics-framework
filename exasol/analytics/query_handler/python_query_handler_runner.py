@@ -140,6 +140,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
             col.name.fully_qualified for col in input_query.output_columns
         ]
         columns_str = ",\n".join(full_qualified_columns)
+        # fmt: off
         input_query_string = cleandoc(
             f"""
             SELECT
@@ -147,4 +148,5 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
             FROM {temporary_view_name.fully_qualified};
             """  # nosec: B608 - risk of SQL injection is accepted
         )
+        # fmt: on
         return input_query_create_view_string, input_query_string
