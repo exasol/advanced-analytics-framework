@@ -15,6 +15,14 @@ jobs:
     permissions:
       contents: read
 
+  publish-docs:
+    name: Publish Documentation
+    uses: ./.github/workflows/gh-pages.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
   report:
     needs:
       - run-fast-checks

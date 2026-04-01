@@ -10,18 +10,3 @@ workflows:
           - name: Build Script Language Container (SLC)
             id: build-script-language-container
             run: poetry run -- nox -s slc:build
-  - name: cd
-    remove_jobs:
-      # This should be activated in:
-      #    https://github.com/exasol/advanced-analytics-framework/issues/342
-      - publish-docs
-  - name: checks
-    remove_jobs:
-      # This should be activated in:
-      #    https://github.com/exasol/advanced-analytics-framework/issues/342
-      - build-documentation-and-check-links
-  - name: pr-merge
-    remove_jobs:
-      # This should be activated in:
-      #    https://github.com/exasol/advanced-analytics-framework/issues/342
-      - publish-docs
