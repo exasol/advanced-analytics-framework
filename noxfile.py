@@ -166,10 +166,3 @@ def fix(session: Session) -> None:
     _version(session, Mode.Fix)
     _pyupgrade(session, files=py_files)
     _code_format(session, Mode.Fix, py_files)
-
-
-@nox.session(name="format:check", python=False)
-def fmt_check(session: Session) -> None:
-    """Checks the project for correct formatting"""
-    py_files = get_filtered_python_files(PROJECT_CONFIG.root_path)
-    _code_format(session=session, mode=Mode.Check, files=py_files)

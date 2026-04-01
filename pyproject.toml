@@ -89,6 +89,7 @@ fail-under = 6.0
 line-length = 88
 verbose = false
 include = "\\.pyi?$"
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
@@ -113,9 +114,7 @@ extend-ignore = [
     "UP", # pyupgrade rules
     "D",  # Docstring rules
 ]
-extend-select = ["F401"]
-unfixable = []
 
-# See https://github.com/exasol/advanced-analytics-framework/issues/319
-[tool.coverage.report]
-ignore_errors = true
+# extend-select = ["F401"] # See https://github.com/exasol/advanced-analytics-framework/issues/341
+extend-select = []
+unfixable = []
