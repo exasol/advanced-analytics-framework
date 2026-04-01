@@ -133,7 +133,7 @@ EXECUTE SCRIPT "<AAF_DB_SCHEMA>"."AAF_RUN_QUERY_HANDLER"('{
 }');
 ```
 
-See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-example-query-handler) for a complete example.
+See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-query-handler) for a complete example.
 
 ### Placeholders
 
