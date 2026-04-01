@@ -22,3 +22,13 @@ jobs:
       contents: write
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+  publish-docs:
+    needs:
+      - build-and-publish
+    name: Publish Documentation
+    uses: ./.github/workflows/gh-pages.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

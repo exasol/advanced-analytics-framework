@@ -15,6 +15,6 @@
 
 
 
-[python]: https://docs.python.org
+[python]: https://docs.python.org/3
 
 [pytest]: https://docs.pytest.org/en/stable/

@@ -1,4 +1,4 @@
-## AAF Proxies
+# AAF Proxies
 
 The Advanced Analytics Framework (AAF) uses _Object Proxies_ to manage temporary objects.
 
