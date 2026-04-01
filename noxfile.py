@@ -4,20 +4,12 @@ import re
 from pathlib import Path
 
 import nox
-from exasol.toolbox.nox._shared import (
-    _version,
-    get_filtered_python_files,
-)
-
 # imports all nox task provided by the toolbox
 from exasol.toolbox.nox.tasks import *
 from nox import Session
 
 from exasol.analytics.query_handler.deployment.slc import custom_slc_builder
-from noxconfig import (
-    PROJECT_CONFIG,
-    ROOT_DIR,
-)
+from noxconfig import ROOT_DIR
 
 # default actions to be run if nothing is explicitly specified with the -s option
 nox.options.sessions = ["format:fix"]
@@ -136,33 +128,3 @@ def build_language_container(session: Session):
 def run_python_integration_tests_with_db(session: Session):
     dir = INTEGRATION_TEST_DIRECTORY / "with_db"
     _run_in_dev_env_poetry_call(session, "pytest", dir, *session.posargs)
-
-
-# These overridden functions should be removed as part of:
-#    https://github.com/exasol/advanced-analytics-framework/issues/341
-
-
-def _pyupgrade(session: Session, files: list[str]) -> None:
-    session.run(
-        "pyupgrade",
-        "--py39-plus",
-        "--exit-zero-even-if-changed",
-        *files,
-    )
-
-
-def _code_format(session: Session, mode: Mode, files: list[str]) -> None:
-    def command(*args: str) -> list[str]:
-        return list(args) if mode == Mode.Fix else list(args) + ["--check"]
-
-    session.run(*command("isort"), *files)
-    session.run(*command("black"), *files)
-
-
-@nox.session(name="format:fix2", python=False)
-def fix(session: Session) -> None:
-    """Runs all automated fixes on the code base"""
-    py_files = get_filtered_python_files(PROJECT_CONFIG.root_path)
-    _version(session, Mode.Fix)
-    _pyupgrade(session, files=py_files)
-    _code_format(session, Mode.Fix, py_files)
