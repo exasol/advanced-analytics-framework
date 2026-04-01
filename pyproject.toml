@@ -89,6 +89,7 @@ fail-under = 6.0
 line-length = 88
 verbose = false
 include = "\\.pyi?$"
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
