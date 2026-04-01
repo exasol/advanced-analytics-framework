@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 import nox
+
 # imports all nox task provided by the toolbox
 from exasol.toolbox.nox.tasks import *
 from nox import Session
