@@ -166,4 +166,4 @@ TAGS
 # locally build script language container files
 .slc
 
-.html-documentation
+/.html-documentation

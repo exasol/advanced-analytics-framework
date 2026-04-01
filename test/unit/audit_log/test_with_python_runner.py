@@ -118,8 +118,7 @@ def expect_count_rows(
     query: str,
 ) -> list[list[str, MockResultSet]]:
     def count_rows(event_name: str) -> list[str, MockResultSet]:
-        return expect_query(
-            f"""
+        return expect_query(f"""
             INSERT INTO {audit_table.fully_qualified} (
               "LOG_TIMESTAMP",
               "ROW_COUNT",
@@ -144,8 +143,7 @@ def expect_count_rows(
               '{log_span_id}',
               'INSERT',
               'RUN_ID_2'
-            """
-        )
+            """)
 
     return [
         count_rows("Begin"),
@@ -162,12 +160,10 @@ def expect_query_with_temp_view(
 ) -> list[list[str, MockResultSet]]:
     view_fq = ViewNameImpl(view_name, SchemaName(db_schema)).fully_qualified
     return [
-        expect_query(
-            f"""
+        expect_query(f"""
             CREATE OR REPLACE VIEW {view_fq} AS
             {query} as {column.name.name};
-            """
-        ),
+            """),
         expect_query(
             f"""
             SELECT
@@ -241,8 +237,7 @@ def test_audit(
             decimal_column("CONTINUE_INPUT_COLUMN", precision=1, scale=0),
         ),
         # final audit log query
-        expect_query(
-            f"""
+        expect_query(f"""
             INSERT INTO {audit_table.name.fully_qualified} (
               "LOG_TIMESTAMP",
               "SESSION_ID",
@@ -253,8 +248,7 @@ def test_audit(
               CURRENT_SESSION,
               '{{{{"c": 456}}}}',
               'RUN_ID_2'
-            """
-        ),
+            """),
         # sub query of final audit log query
         *expect_query_with_temp_view(
             aaf_pytest_db_schema,

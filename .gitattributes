@@ -1,14 +1,19 @@
-poetry.lock     linguist-generated=True
-version.py      linguist-generated=True
-exasol/analytics/resources/outputs/create_query_loop.sql linguist-generated=True
+/poetry.lock     linguist-generated
+/version.py      linguist-generated
+/exasol/analytics/resources/outputs/create_query_loop.sql linguist-generated
 
 # PTB GitHub Workflows (CI/CD & Publishing)
-.github/workflows/build-and-publish.yml     linguist-generated=true
-.github/workflows/cd.yml                    linguist-generated=true
-.github/workflows/check-release-tag.yml     linguist-generated=true
-.github/workflows/ci.yml                    linguist-generated=true
-.github/workflows/gh-pages.yml              linguist-generated=true
-.github/workflows/matrix-*.yml              linguist-generated=true
-.github/workflows/merge-gate.yml            linguist-generated=true
-.github/workflows/pr-merge.yml              linguist-generated=true
-.github/workflows/report.yml                linguist-generated=true
+/.github/workflows/build-and-publish.yml     linguist-generated
+/.github/workflows/cd.yml                    linguist-generated
+/.github/workflows/check-release-tag.yml     linguist-generated
+/.github/workflows/ci.yml                    linguist-generated
+/.github/workflows/gh-pages.yml              linguist-generated
+/.github/workflows/matrix-*.yml              linguist-generated
+/.github/workflows/merge-gate.yml            linguist-generated
+/.github/workflows/pr-merge.yml              linguist-generated
+/.github/workflows/report.yml                linguist-generated
+
+# Manually modified files:
+
+# /.github/workflows/checks.yml -- Contains additional jobs for code generation and lua tests
+# /.github/workflows/slow-checks.yml -- individual content

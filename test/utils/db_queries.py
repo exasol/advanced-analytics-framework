@@ -34,7 +34,5 @@ class DBQueries:
 
     @staticmethod
     def set_language_settings_to(db_conn, alter_type, language_settings):
-        db_conn.execute(
-            f"""ALTER {alter_type.upper()} SET SCRIPT_LANGUAGES=
-            '{language_settings}'"""
-        )
+        db_conn.execute(f"""ALTER {alter_type.upper()} SET SCRIPT_LANGUAGES=
+            '{language_settings}'""")

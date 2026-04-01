@@ -46,7 +46,7 @@ class ExampleQueryHandler(UDFQueryHandler):
             return SelectQuery(table_query_string(statement, **kwargs))
 
         self.bfs_proxy = self.query_handler_context.get_temporary_bucketfs_location()
-        self._bfs_file(self.bfs_proxy).write(sample_content("bucketfs"))
+        self._bfs_file(self.bfs_proxy).write(sample_content("bucketfs").encode())
         self.db_table_proxy = self.query_handler_context.get_temporary_table_name()
         query_list = [
             table_query('CREATE TABLE {table_name} ("c1" VARCHAR(100), "c2" INTEGER)'),
