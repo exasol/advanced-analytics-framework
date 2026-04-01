@@ -1,7 +1,5 @@
 from typing import (
     Literal,
-    Optional,
-    Union,
 )
 
 from pydantic import (
@@ -21,7 +19,7 @@ class BaseMessage(BaseModel, frozen=True):
 class RegisterPeer(BaseMessage, frozen=True):
     message_type: Literal["RegisterPeer"] = "RegisterPeer"
     peer: Peer
-    source: Optional[Peer] = None
+    source: Peer | None = None
 
 
 class AcknowledgeRegisterPeer(BaseMessage, frozen=True):
@@ -142,26 +140,26 @@ class Broadcast(BaseMessage, frozen=True):
 
 
 class Message(RootModel, frozen=True):
-    root: Union[
-        Ping,
-        RegisterPeer,
-        AcknowledgeRegisterPeer,
-        RegisterPeerComplete,
-        PeerRegisterForwarderIsReady,
-        Stop,
-        PrepareToStop,
-        IsReadyToStop,
-        Payload,
-        AcknowledgePayload,
-        AbortPayload,
-        MyConnectionInfo,
-        ConnectionIsReady,
-        SynchronizeConnection,
-        AcknowledgeConnection,
-        CloseConnection,
-        AcknowledgeCloseConnection,
-        ConnectionIsClosed,
-        Timeout,
-        Gather,
-        Broadcast,
-    ] = Field(discriminator="message_type")
+    root: (
+        Ping
+        | RegisterPeer
+        | AcknowledgeRegisterPeer
+        | RegisterPeerComplete
+        | PeerRegisterForwarderIsReady
+        | Stop
+        | PrepareToStop
+        | IsReadyToStop
+        | Payload
+        | AcknowledgePayload
+        | AbortPayload
+        | MyConnectionInfo
+        | ConnectionIsReady
+        | SynchronizeConnection
+        | AcknowledgeConnection
+        | CloseConnection
+        | AcknowledgeCloseConnection
+        | ConnectionIsClosed
+        | Timeout
+        | Gather
+        | Broadcast
+    ) = Field(discriminator="message_type")

@@ -1,5 +1,4 @@
 import unicodedata
-from typing import Optional
 
 from typeguard import typechecked
 
@@ -23,7 +22,7 @@ class UnicodeCategories:
 class ExasolIdentifierImpl(ExasolIdentifier):
 
     @typechecked
-    def __init__(self, name: Optional[str]):
+    def __init__(self, name: str | None):
         if not self._validate_name(name):
             raise ValueError(f"Name '{name}' is not valid")
         self._name = str(name)
@@ -37,7 +36,7 @@ class ExasolIdentifierImpl(ExasolIdentifier):
         return f'"{self._name}"'
 
     @classmethod
-    def _validate_name(cls, name: Optional[str]) -> bool:
+    def _validate_name(cls, name: str | None) -> bool:
         if name is None or name == "":
             return False
         if not cls._validate_first_character(name[0]):

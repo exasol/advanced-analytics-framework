@@ -14,9 +14,6 @@ from enum import (
 from io import BytesIO
 from typing import (
     Any,
-    List,
-    Optional,
-    Tuple,
 )
 
 import exasol.bucketfs as bfs
@@ -78,10 +75,10 @@ class UDFParameter:
     # hence need to be Optional, see method
     # QueryHandlerRunnerUDF._get_parameter().
     #
-    temporary_schema_name: Optional[str] = None
-    python_class_name: Optional[str] = None
-    python_class_module: Optional[str] = None
-    parameter: Optional[str] = None
+    temporary_schema_name: str | None = None
+    python_class_name: str | None = None
+    python_class_module: str | None = None
+    parameter: str | None = None
 
 
 class QueryHandlerStatus(Enum):
@@ -92,8 +89,8 @@ class QueryHandlerStatus(Enum):
 
 @dataclass
 class UDFResult:
-    input_query_view: Optional[str] = None
-    input_query: Optional[str] = None
+    input_query_view: str | None = None
+    input_query: str | None = None
     final_result: str = "{}"
     query_list: list[Query] = field(default_factory=list)
     cleanup_query_list: list[Query] = field(default_factory=list)
@@ -314,7 +311,7 @@ class QueryHandlerRunnerUDF:
         self._state_file_bucketfs_location().rm()
 
     def _create_udf_query_result(
-        self, ctx, query_columns: Optional[list[Column]]
+        self, ctx, query_columns: list[Column] | None
     ) -> UDFQueryResult:
         colum_start_ix = 8 if self._checked_parameter.iter_num == 0 else 4
         if query_columns is None:

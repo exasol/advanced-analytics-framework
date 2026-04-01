@@ -5,9 +5,6 @@ from abc import (
 from collections.abc import Iterator
 from typing import (
     Any,
-    List,
-    Tuple,
-    Union,
 )
 
 from exasol.analytics.schema.column import Column
@@ -42,7 +39,7 @@ class QueryResult(ABC):
         pass
 
     @abstractmethod
-    def fetch_as_dataframe(self, num_rows: Union[str, int], start_col: int = 0):
+    def fetch_as_dataframe(self, num_rows: str | int, start_col: int = 0):
         pass
 
     @abstractmethod

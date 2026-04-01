@@ -2,19 +2,16 @@ from enum import (
     Enum,
     auto,
 )
-from typing import List
 
 import pytest
 from typeguard import TypeCheckError
 
 from exasol.analytics.query_handler.graph.stage.sql.dataset import Dataset
 from exasol.analytics.query_handler.graph.stage.sql.dependency import (
-    Dependencies,
     Dependency,
 )
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     MultiDatasetSQLStageInputOutput,
-    SQLStageInputOutput,
 )
 from exasol.analytics.schema import (
     Column,

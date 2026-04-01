@@ -1,24 +1,20 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
+from collections.abc import (
+    Callable,
+    Iterator,
+)
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
-    Callable,
     Generic,
-    Optional,
-    TypeAlias,
     TypeVar,
-    Union,
     cast,
 )
 
-from pydantic import BaseModel
-
 from exasol.analytics.audit.audit import AuditTable
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
-from exasol.analytics.query_handler.graph.stage.sql.sql_stage_graph import SQLStageGraph
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query.select import (

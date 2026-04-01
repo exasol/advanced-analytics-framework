@@ -4,9 +4,7 @@ from collections.abc import Iterator
 from typing import (
     TYPE_CHECKING,
     Any,
-    List,
     Optional,
-    Union,
 )
 
 from exasol.analytics.query_handler.query.result.interface import (
@@ -69,7 +67,7 @@ class UDFQueryResult(QueryResult):
         return self._ctx.size()
 
     def fetch_as_dataframe(
-        self, num_rows: Union[str, int], start_col: int = 0
+        self, num_rows: str | int, start_col: int = 0
     ) -> Optional["pandas.DataFrame"]:
         # This place intentionally uses a forward reference, to avoid
         # importing pandas which might take several seconds, see comment at

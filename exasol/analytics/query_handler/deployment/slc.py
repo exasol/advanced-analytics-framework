@@ -1,10 +1,10 @@
 import subprocess
-from collections.abc import Generator
+from collections.abc import (
+    Callable,
+    Generator,
+)
 from contextlib import contextmanager
 from pathlib import Path
-from typing import (
-    Callable,
-)
 
 from exasol.python_extension_common.deployment.language_container_builder import (
     LanguageContainerBuilder,

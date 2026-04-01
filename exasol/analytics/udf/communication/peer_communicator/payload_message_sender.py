@@ -1,5 +1,3 @@
-from typing import List
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 

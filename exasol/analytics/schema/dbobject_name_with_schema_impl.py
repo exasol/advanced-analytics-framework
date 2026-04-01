@@ -1,5 +1,3 @@
-from typing import Optional
-
 from typeguard import typechecked
 
 from exasol.analytics.schema.dbobject_name_impl import DBObjectNameImpl
@@ -13,12 +11,12 @@ from exasol.analytics.utils.repr_generation_for_object import generate_repr_for_
 class DBObjectNameWithSchemaImpl(DBObjectNameImpl, DBObjectNameWithSchema):
 
     @typechecked
-    def __init__(self, db_object_name: str, schema: Optional[SchemaName] = None):
+    def __init__(self, db_object_name: str, schema: SchemaName | None = None):
         super().__init__(db_object_name)
         self._schema_name = schema
 
     @property
-    def schema_name(self) -> Optional[SchemaName]:
+    def schema_name(self) -> SchemaName | None:
         return self._schema_name
 
     @property

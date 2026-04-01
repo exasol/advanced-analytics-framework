@@ -1,5 +1,4 @@
 import json
-from typing import Union
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.json_udf_query_handler import (
@@ -32,12 +31,12 @@ class TestJSONQueryHandler(JSONQueryHandler):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[JSONType]]:
+    def start(self) -> Continue | Finish[JSONType]:
         return Finish[JSONType](self._parameter)
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[JSONType]]:
+    ) -> Continue | Finish[JSONType]:
         return Finish[JSONType](self._parameter)
 
 

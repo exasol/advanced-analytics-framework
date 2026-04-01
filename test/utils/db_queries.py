@@ -1,5 +1,3 @@
-from typing import List
-
 deployed_script_list = ["AAF_QUERY_HANDLER_UDF", "AAF_RUN_QUERY_HANDLER"]
 
 

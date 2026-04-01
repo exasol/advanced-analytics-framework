@@ -1,5 +1,3 @@
-from typing import Optional
-
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.schema_name import SchemaName
@@ -11,9 +9,9 @@ class ViewNameBuilder:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        schema: Optional[SchemaName] = None,
-        view_name: Optional[ViewName] = None,
+        name: str | None = None,
+        schema: SchemaName | None = None,
+        view_name: ViewName | None = None,
     ):
         """
         Creates a builder for ViewName objects,
@@ -45,5 +43,5 @@ class ViewNameBuilder:
         return self.create(self._name, self._schema_name)
 
     @staticmethod
-    def create(name: str, schema: Optional[SchemaName] = None) -> ViewName:
+    def create(name: str, schema: SchemaName | None = None) -> ViewName:
         return ViewNameImpl(name, schema)

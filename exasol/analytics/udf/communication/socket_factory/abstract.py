@@ -3,13 +3,6 @@ from enum import (
     Enum,
     auto,
 )
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Set,
-    Union,
-)
 
 
 class Frame(abc.ABC):
@@ -60,16 +53,16 @@ class Socket(abc.ABC):
     @abc.abstractmethod
     def poll(
         self,
-        flags: Union[PollerFlag, set[PollerFlag]],
-        timeout_in_ms: Optional[int] = None,
-    ) -> Optional[set[PollerFlag]]:
+        flags: PollerFlag | set[PollerFlag],
+        timeout_in_ms: int | None = None,
+    ) -> set[PollerFlag] | None:
         """
         Checks if the socket can receive or send without blocking or
         if timeout is set, it waits until a requested event occurred.
         """
 
     @abc.abstractmethod
-    def close(self, linger: Optional[int] = None):
+    def close(self, linger: int | None = None):
         """
         Closes the socket asynchronously. but waits until no unsent messages are queued.
         If linger is not None it forces the close after the number of seconds.
@@ -93,15 +86,11 @@ class Socket(abc.ABC):
 class Poller(abc.ABC):
 
     @abc.abstractmethod
-    def register(
-        self, socket: Socket, flags: Union[PollerFlag, set[PollerFlag]]
-    ) -> None:
+    def register(self, socket: Socket, flags: PollerFlag | set[PollerFlag]) -> None:
         """Register a socket with the events we want to poll."""
 
     @abc.abstractmethod
-    def poll(
-        self, timeout_in_ms: Optional[int] = None
-    ) -> dict[Socket, set[PollerFlag]]:
+    def poll(self, timeout_in_ms: int | None = None) -> dict[Socket, set[PollerFlag]]:
         """Poll if an event occurred for the registered sockets or wait until an event occurred, if timeout is set."""
 
 

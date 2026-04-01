@@ -2,7 +2,6 @@ from dataclasses import (
     dataclass,
     field,
 )
-from typing import List
 
 from exasol.analytics.query_handler.graph.stage.sql.dependency import Dependencies
 from exasol.analytics.schema import (

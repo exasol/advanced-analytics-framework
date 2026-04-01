@@ -1,7 +1,5 @@
-import socket
 import time
 from typing import (
-    Optional,
     cast,
 )
 
@@ -111,12 +109,12 @@ class DiscoveryStrategy:
             self._peer_communicator.register_peer(ping_message.source)
         return TIMEOUT_IN_SECONDS
 
-    def _receive_message(self, timeout_in_seconds: float) -> Optional[bytes]:
+    def _receive_message(self, timeout_in_seconds: float) -> bytes | None:
         try:
             serialized_message = self._global_discovery_socket.recvfrom(
                 timeout_in_seconds=timeout_in_seconds
             )
-        except socket.timeout as e:
+        except TimeoutError as e:
             serialized_message = None
         return serialized_message
 

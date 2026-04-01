@@ -3,7 +3,6 @@ from collections.abc import Mapping
 from typing import (
     TYPE_CHECKING,
     Optional,
-    Union,
 )
 
 if TYPE_CHECKING:
@@ -38,7 +37,7 @@ class UDFContextWrapper:
         return self.ctx[self._get_mapped_column(name)]
 
     def get_dataframe(
-        self, num_rows: Union[str, int], start_col: int = 0
+        self, num_rows: str | int, start_col: int = 0
     ) -> Optional["pandas.DataFrame"]:
         # This place intentionally uses a forward reference, to avoid
         # importing pandas which might take several seconds, see comment at

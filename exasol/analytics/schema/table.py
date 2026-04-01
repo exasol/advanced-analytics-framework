@@ -1,6 +1,4 @@
 import textwrap
-from inspect import cleandoc
-from typing import List
 
 from typeguard import typechecked
 

@@ -2,7 +2,6 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Optional
 
 
 class ExasolIdentifier(ABC):
@@ -41,5 +40,5 @@ class ExasolIdentifier(ABC):
         pass
 
 
-def qualified_name(prefix: Optional[ExasolIdentifier], suffix: str) -> str:
+def qualified_name(prefix: ExasolIdentifier | None, suffix: str) -> str:
     return suffix if prefix is None else f"{prefix.fully_qualified}.{suffix}"

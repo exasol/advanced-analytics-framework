@@ -1,11 +1,5 @@
-import textwrap
-import traceback
 from abc import ABC
-from typing import (
-    Callable,
-    List,
-    Set,
-)
+from collections.abc import Callable
 
 import exasol.bucketfs as bfs
 

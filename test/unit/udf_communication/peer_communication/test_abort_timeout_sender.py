@@ -1,7 +1,6 @@
 import dataclasses
 from typing import (
     Any,
-    Union,
     cast,
 )
 from unittest.mock import (
@@ -36,8 +35,8 @@ def mock_cast(obj: Any) -> Mock:
 class TestSetup:
     __test__ = False
     reason: str
-    timer_mock: Union[MagicMock, Timer]
-    out_control_socket_mock: Union[MagicMock, Socket]
+    timer_mock: MagicMock | Timer
+    out_control_socket_mock: MagicMock | Socket
     abort_timeout_sender: AbortTimeoutSender = None
 
     def reset_mock(self):

@@ -5,10 +5,6 @@ from test.test_package.test_query_handlers.query_handler_test import (
     QUERY_LIST,
     TEST_INPUT,
 )
-from typing import (
-    List,
-    Tuple,
-)
 
 import pyexasol
 import pytest

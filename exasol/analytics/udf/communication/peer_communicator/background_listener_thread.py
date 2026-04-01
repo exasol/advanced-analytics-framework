@@ -1,10 +1,5 @@
 import dataclasses
 import enum
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -187,8 +182,8 @@ class BackgroundListenerThread:
         self._socket_factory = socket_factory
         self._status = BackgroundListenerThread.Status.RUNNING
         self._peer_state: dict[Peer, BackgroundPeerState] = {}
-        self._register_peer_connection: Optional[RegisterPeerConnection] = None
-        self._sockets: Optional[RuntimeSockets] = None
+        self._register_peer_connection: RegisterPeerConnection | None = None
+        self._sockets: RuntimeSockets | None = None
 
     def run(self):
         self._sockets = RuntimeSockets.create(

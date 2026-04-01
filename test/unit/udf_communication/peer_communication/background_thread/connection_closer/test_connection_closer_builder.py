@@ -1,9 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    List,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -46,19 +42,19 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    out_control_socket_mock: Union[MagicMock, Socket]
-    clock_mock: Union[MagicMock, Clock]
+    out_control_socket_mock: MagicMock | Socket
+    clock_mock: MagicMock | Clock
     timeout_config: ConnectionCloserTimeoutConfig
-    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory]
-    connection_is_closed_sender_factory_mock: Union[
-        MagicMock, ConnectionIsClosedSenderFactory
-    ]
-    close_connection_sender_factory_mock: Union[MagicMock, CloseConnectionSenderFactory]
-    timer_factory_mock: Union[MagicMock, TimerFactory]
+    abort_timeout_sender_factory_mock: MagicMock | AbortTimeoutSenderFactory
+    connection_is_closed_sender_factory_mock: (
+        MagicMock | ConnectionIsClosedSenderFactory
+    )
+    close_connection_sender_factory_mock: MagicMock | CloseConnectionSenderFactory
+    timer_factory_mock: MagicMock | TimerFactory
     timer_mocks: list[Mock]
-    sender_mock: Union[MagicMock, Sender]
+    sender_mock: MagicMock | Sender
     connection_closer_builder: ConnectionCloserBuilder
-    connection_closer_factory_mock: Union[MagicMock, ConnectionCloserFactory]
+    connection_closer_factory_mock: MagicMock | ConnectionCloserFactory
 
     def reset_mock(self):
         self.connection_is_closed_sender_factory_mock.reset_mock()
@@ -86,27 +82,27 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g",
     )
-    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory] = (
+    abort_timeout_sender_factory_mock: MagicMock | AbortTimeoutSenderFactory = (
         create_autospec(AbortTimeoutSenderFactory)
     )
-    conncection_is_ready_sender_factory_mock: Union[
-        MagicMock, ConnectionIsClosedSenderFactory
-    ] = create_autospec(ConnectionIsClosedSenderFactory)
-    close_connection_sender_factory_mock: Union[
-        MagicMock, CloseConnectionSenderFactory
-    ] = create_autospec(CloseConnectionSenderFactory)
-    timer_factory_mock: Union[MagicMock, TimerFactory] = create_autospec(TimerFactory)
+    conncection_is_ready_sender_factory_mock: (
+        MagicMock | ConnectionIsClosedSenderFactory
+    ) = create_autospec(ConnectionIsClosedSenderFactory)
+    close_connection_sender_factory_mock: MagicMock | CloseConnectionSenderFactory = (
+        create_autospec(CloseConnectionSenderFactory)
+    )
+    timer_factory_mock: MagicMock | TimerFactory = create_autospec(TimerFactory)
     timer_mocks = [Mock(), Mock(), Mock(), Mock(), Mock()]
     mock_cast(timer_factory_mock.create).side_effect = timer_mocks
-    out_control_socket_mock: Union[MagicMock, Socket] = create_autospec(Socket)
-    clock_mock: Union[MagicMock, Clock] = create_autospec(Clock)
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
+    out_control_socket_mock: MagicMock | Socket = create_autospec(Socket)
+    clock_mock: MagicMock | Clock = create_autospec(Clock)
+    sender_mock: MagicMock | Sender = create_autospec(Sender)
     timeout_config = ConnectionCloserTimeoutConfig(
         abort_timeout_in_ms=1,
         close_retry_timeout_in_ms=2,
         connection_is_closed_wait_time_in_ms=3,
     )
-    connection_closer_factory_mock: Union[MagicMock, ConnectionCloserFactory] = (
+    connection_closer_factory_mock: MagicMock | ConnectionCloserFactory = (
         create_autospec(ConnectionCloserFactory)
     )
     connection_closer_builder = ConnectionCloserBuilder(

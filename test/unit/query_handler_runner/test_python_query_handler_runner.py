@@ -1,11 +1,3 @@
-import re
-from inspect import cleandoc
-from pathlib import PurePosixPath
-from typing import (
-    List,
-    Union,
-)
-
 import pytest
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
@@ -69,12 +61,12 @@ class StartFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         return Finish[TestOutput](TestOutput(self._parameter))
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         pass
 
 
@@ -103,13 +95,13 @@ class StartFinishCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutp
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         self._query_handler_context.get_temporary_table_name()
         return Finish[TestOutput](TestOutput(self._parameter))
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         pass
 
 
@@ -143,13 +135,13 @@ class StartErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOutpu
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         pass
 
 
@@ -184,7 +176,7 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         column = decimal_column("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
             f"SELECT 1 as {column.name.quoted_name}",
@@ -194,7 +186,7 @@ class ContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         if query_result.a != 1:
             raise AssertionError(f"query_result.a != 1, got {query_result.a}")
         return Finish[TestOutput](TestOutput(self._parameter))
@@ -246,7 +238,7 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         input_query = SelectQueryWithColumnDefinition(
             f"""SELECT 1 as {ColumnName("b").quoted_name}""",
             [Column(ColumnName("a"), ColumnType("INTEGER"))],
@@ -255,7 +247,7 @@ class ContinueWrongColumnsTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         raise AssertionError("handle_query_result shouldn't be called")
 
 
@@ -305,7 +297,7 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         column = decimal_column("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
             f"""SELECT 1 as {column.name.quoted_name}""",
@@ -316,7 +308,7 @@ class ContinueQueryListTestQueryHandler(QueryHandler[TestInput, TestOutput]):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         return Finish[TestOutput](TestOutput(self._parameter))
 
 
@@ -372,7 +364,7 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         column = decimal_column("a", precision=1, scale=0)
         input_query = SelectQueryWithColumnDefinition(
             f"""SELECT 1 as {column.name.quoted_name}""",
@@ -382,7 +374,7 @@ class ContinueErrorCleanupQueriesTestQueryHandler(QueryHandler[TestInput, TestOu
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         self._query_handler_context.get_temporary_table_name()
         raise Exception("Start failed")
 
@@ -435,7 +427,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
         self._parameter = parameter
         self._iter = 0
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         column_name = ColumnName("a")
         input_query = SelectQueryWithColumnDefinition(
             f"""SELECT 1 as {column_name.quoted_name}""",
@@ -445,7 +437,7 @@ class ContinueContinueFinishTestQueryHandler(QueryHandler[TestInput, TestOutput]
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         if self._iter == 0:
             self._iter += 1
             column_name = ColumnName("b")
@@ -537,7 +529,7 @@ class ContinueContinueCleanupFinishTestQueryHandler(
         self._parameter = parameter
         self._iter = 0
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         self._child_query_handler_conntext = (
             self._query_handler_context.get_child_query_handler_context()
         )
@@ -551,7 +543,7 @@ class ContinueContinueCleanupFinishTestQueryHandler(
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         if self._iter == 0:
             self._child_query_handler_conntext.release()
             self._iter += 1
@@ -645,13 +637,13 @@ class FailInCleanupAfterException(QueryHandler[TestInput, TestOutput]):
         self._parameter = parameter
         self._iter = 0
 
-    def start(self) -> Union[Continue, Finish[TestOutput]]:
+    def start(self) -> Continue | Finish[TestOutput]:
         self._query_handler_context.get_child_query_handler_context()
         raise Exception(EXPECTED_EXCEPTION)
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[TestOutput]]:
+    ) -> Continue | Finish[TestOutput]:
         pass
 
 

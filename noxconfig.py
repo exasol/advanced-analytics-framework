@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from exasol.toolbox.config import BaseConfig
-from pydantic import computed_field
 
 ROOT_DIR = Path(__file__).parent
 

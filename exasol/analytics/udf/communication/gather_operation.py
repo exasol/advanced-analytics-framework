@@ -1,9 +1,3 @@
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -37,7 +31,7 @@ class GatherOperation:
         sequence_number: int,
         value: bytes,
         localhost_communicator: PeerCommunicator,
-        multi_node_communicator: Optional[PeerCommunicator],
+        multi_node_communicator: PeerCommunicator | None,
         socket_factory: SocketFactory,
         number_of_instances_per_node: int,
     ):
@@ -60,7 +54,7 @@ class GatherOperation:
             sequence_number=self._sequence_number,
         )
 
-    def __call__(self) -> Optional[list[bytes]]:
+    def __call__(self) -> list[bytes] | None:
         if self._localhost_communicator.rank > LOCALHOST_LEADER_RANK:
             self._send_to_localhost_leader()
             return None
@@ -77,7 +71,7 @@ class GatherOperation:
         self._logger.info("_send_to_localhost_leader", frame=frames[0].to_bytes())
         self._localhost_communicator.send(peer=leader, message=frames)
 
-    def _handle_messages_from_local_peers(self) -> Optional[list[bytes]]:
+    def _handle_messages_from_local_peers(self) -> list[bytes] | None:
         if self._checked_multi_node_communicator.rank > 0:
             self._forward_to_multi_node_leader()
             return None

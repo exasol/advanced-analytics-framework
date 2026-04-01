@@ -1,9 +1,6 @@
 import dataclasses
 from abc import ABC
 from collections.abc import Sized
-from typing import (
-    List,
-)
 
 import exasol.bucketfs as bfs
 

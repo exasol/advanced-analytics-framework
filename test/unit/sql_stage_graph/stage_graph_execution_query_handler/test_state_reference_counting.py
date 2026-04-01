@@ -6,9 +6,6 @@ from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_se
 )
 from test.utils.mock_cast import mock_cast
 from typing import (
-    Dict,
-    List,
-    Union,
     cast,
 )
 from unittest.mock import (
@@ -34,10 +31,10 @@ def _get_finish(test_setup: TestSetup, i: int) -> Finish:
 
 
 def create_diamond_setup(
-    stage1_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage2_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage3_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage4_result_prototypes: list[Union[Continue, Finish, MagicMock]],
+    stage1_result_prototypes: list[Continue | Finish | MagicMock],
+    stage2_result_prototypes: list[Continue | Finish | MagicMock],
+    stage3_result_prototypes: list[Continue | Finish | MagicMock],
+    stage4_result_prototypes: list[Continue | Finish | MagicMock],
 ) -> TestSetup:
     stage1_setup = create_mocks_for_stage(stage1_result_prototypes, stage_index=1)
     stage2_setup = create_mocks_for_stage(stage2_result_prototypes, stage_index=2)

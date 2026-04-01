@@ -1,8 +1,6 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
 from typing import (
-    List,
-    Tuple,
     Union,
 )
 from unittest.mock import (
@@ -64,7 +62,7 @@ class SQLStageQueryHandlerMockSetup:
 
 @dataclasses.dataclass
 class SQLStageQueryHandlerSetupDefinition:
-    result_prototypes: list[Union[Continue, Finish]]
+    result_prototypes: list[Continue | Finish]
 
     def create_mock_setup(self) -> SQLStageQueryHandlerMockSetup:
         results: list[MockQueryHandlerResult] = [
@@ -247,7 +245,7 @@ def test_start_single_query_handler_returning_finish():
         test_setup.reset_mock()
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.start()
         return result
 
@@ -293,7 +291,7 @@ def test_start_single_query_handler_returning_continue():
         test_setup.reset_mock()
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.start()
         return result
 
@@ -345,7 +343,7 @@ def test_handle_query_result_single_query_handler_returning_continue_finish():
 
     def act(
         test_setup: TestSetup, query_Result: MockQueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.handle_query_result(query_result)
         return result
 
@@ -395,7 +393,7 @@ def test_start_two_query_handler_returning_finish():
         test_setup.reset_mock()
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.start()
         return result
 
@@ -435,7 +433,7 @@ def test_start_two_query_handler_returning_continue_finish_part1():
         test_setup.reset_mock()
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.start()
         return result
 
@@ -482,7 +480,7 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part2()
 
     def act(
         test_setup: TestSetup, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.handle_query_result(query_result)
         return result
 
@@ -533,7 +531,7 @@ def test_handle_query_result_two_query_handler_returning_continue_finish_part3()
 
     def act(
         test_setup: TestSetup, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.execution_query_handler.handle_query_result(query_result)
         return result
 

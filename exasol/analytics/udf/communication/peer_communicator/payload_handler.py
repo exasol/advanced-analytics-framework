@@ -1,5 +1,3 @@
-from typing import List
-
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.peer_communicator.payload_receiver import (
     PayloadReceiver,

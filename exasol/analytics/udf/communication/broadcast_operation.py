@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -27,9 +25,9 @@ class BroadcastOperation:
     def __init__(
         self,
         sequence_number: int,
-        value: Optional[bytes],
+        value: bytes | None,
         localhost_communicator: PeerCommunicator,
-        multi_node_communicator: Optional[PeerCommunicator],
+        multi_node_communicator: PeerCommunicator | None,
         socket_factory: SocketFactory,
     ):
         self._socket_factory = socket_factory

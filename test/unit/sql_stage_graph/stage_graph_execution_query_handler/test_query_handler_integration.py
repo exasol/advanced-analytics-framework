@@ -1,14 +1,7 @@
 import dataclasses
 import enum
+from collections.abc import Callable
 from contextlib import contextmanager
-from pathlib import PurePosixPath
-from typing import (
-    Callable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
 from unittest.mock import Mock
 
 import exasol.bucketfs as bfs
@@ -62,12 +55,12 @@ class StartOnlyForwardInputTestSQLStageQueryHandler(SQLStageQueryHandler):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def start(self) -> Continue | Finish[SQLStageInputOutput]:
         return Finish[SQLStageInputOutput](self._parameter.sql_stage_inputs[0])
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         raise NotImplementedError()
 
 
@@ -80,10 +73,10 @@ class StartOnlyCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
     ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
-        self.stage_input_output: Optional[SQLStageInputOutput] = None
-        self.input_table_like_name: Optional[str] = None
+        self.stage_input_output: SQLStageInputOutput | None = None
+        self.input_table_like_name: str | None = None
 
-    def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def start(self) -> Continue | Finish[SQLStageInputOutput]:
         datasets = self._parameter.sql_stage_inputs[0].datasets
         input_table_like = datasets[TestDatasetName.TRAIN].table_like
         # This tests also, if temporary table names are still valid
@@ -95,7 +88,7 @@ class StartOnlyCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHandler):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         raise NotImplementedError()
 
 
@@ -108,11 +101,11 @@ class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHand
     ):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
-        self.stage_input_output: Optional[SQLStageInputOutput] = None
-        self.continue_result: Optional[Continue] = None
-        self.query_result: Optional[QueryResult] = None
+        self.stage_input_output: SQLStageInputOutput | None = None
+        self.continue_result: Continue | None = None
+        self.query_result: QueryResult | None = None
 
-    def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def start(self) -> Continue | Finish[SQLStageInputOutput]:
         datasets = self._parameter.sql_stage_inputs[0].datasets
         table_like = datasets[TestDatasetName.TRAIN].table_like
         table_like_name = table_like.name
@@ -127,7 +120,7 @@ class HandleQueryResultCreateNewOutputTestSQLStageQueryHandler(SQLStageQueryHand
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         self.query_result = query_result
         table_name = self._query_handler_context.get_temporary_table_name()
         self.stage_input_output = create_stage_input_output(table_name)
@@ -146,7 +139,7 @@ class TestSQLStage(SQLStage):
         self, *, index: int, query_handler_factory: SQLStageQueryHandlerFactory
     ):
         self._query_handler_factory = query_handler_factory
-        self.sql_stage_query_handler: Optional[SQLStageQueryHandler] = None
+        self.sql_stage_query_handler: SQLStageQueryHandler | None = None
         self._index = index
 
     def create_query_handler(
@@ -278,7 +271,7 @@ def test_start_with_single_stage_with_start_only_forward_query_handler(
         )
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.start()
         return result
 
@@ -335,7 +328,7 @@ def test_start_with_two_stages_with_start_only_forward_query_handler(
         )
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.start()
         return result
 
@@ -396,7 +389,7 @@ def test_start_with_single_stage_with_start_only_create_new_output_query_handler
         )
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.start()
         return result
 
@@ -465,7 +458,7 @@ def test_start_with_two_stages_with_start_only_create_new_output_query_handler(
         )
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.start()
         return result
 
@@ -531,7 +524,7 @@ def test_start_with_single_stage_with_handle_query_result_create_new_output_quer
         )
         return test_setup
 
-    def act(test_setup: TestSetup) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def act(test_setup: TestSetup) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.start()
         return result
 
@@ -587,7 +580,7 @@ def test_handle_query_result_with_single_stage_with_handle_query_result_create_n
 
     def act(
         test_setup: TestSetup, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         result = test_setup.query_handler.handle_query_result(query_result)
         return result
 

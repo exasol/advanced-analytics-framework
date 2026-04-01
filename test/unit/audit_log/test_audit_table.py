@@ -1,10 +1,8 @@
 import logging
-import re
 import uuid
 from inspect import cleandoc
 from test.utils.audit_table_utils import (
     SAMPLE_LOG_SPAN,
-    LogSpan,
     create_insert_query,
     prefix_matcher,
     query_matcher,
@@ -19,14 +17,11 @@ from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     CustomQuery,
-    DbOperationType,
-    ModifyQuery,
     Query,
     SelectQuery,
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.schema import (
-    DbObjectType,
     SchemaName,
     TableName,
     TableNameImpl,

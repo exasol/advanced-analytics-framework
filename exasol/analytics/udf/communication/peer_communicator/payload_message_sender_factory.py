@@ -1,5 +1,3 @@
-from typing import List
-
 from exasol.analytics.udf.communication.messages import Payload
 from exasol.analytics.udf.communication.peer_communicator.clock import Clock
 from exasol.analytics.udf.communication.peer_communicator.payload_message_sender import (

@@ -1,18 +1,14 @@
 import logging
 import textwrap
+from collections.abc import Callable
 from inspect import cleandoc
 from typing import (
-    Callable,
     Generic,
-    List,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.context.top_level_query_handler_context import (
-    ConnectionLookup,
     TopLevelQueryHandlerContext,
 )
 from exasol.analytics.query_handler.query.interface import Query
@@ -76,7 +72,7 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
                 f"Execution of query handler {self._state.query_handler} failed."
             ) from e
 
-    def _handle_continue(self, result: Continue) -> Union[Continue, Finish[ResultType]]:
+    def _handle_continue(self, result: Continue) -> Continue | Finish[ResultType]:
         self._release_and_create_query_handler_context_of_input_query()
         self._cleanup_query_handler_context()
         self._execute_queries(result.query_list)

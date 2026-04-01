@@ -3,7 +3,6 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.interface import Query
 from exasol.analytics.schema import (
     Column,

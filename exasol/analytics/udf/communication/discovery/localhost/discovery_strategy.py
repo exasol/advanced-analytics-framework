@@ -1,13 +1,10 @@
-import socket
 import time
 from typing import (
-    Optional,
     cast,
 )
 
 from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.discovery.localhost.discovery_socket import (
-    DiscoverySocket,
     DiscoverySocketFactory,
 )
 from exasol.analytics.udf.communication.ip_address import Port
@@ -101,12 +98,12 @@ class DiscoveryStrategy:
             self._peer_communicator.register_peer(ping_message.source)
         return timeout_in_seconds
 
-    def _receive_message(self, timeout_in_seconds: float) -> Optional[bytes]:
+    def _receive_message(self, timeout_in_seconds: float) -> bytes | None:
         try:
             serialized_message = self._local_discovery_socket.recvfrom(
                 timeout_in_seconds=timeout_in_seconds
             )
-        except socket.timeout as e:
+        except TimeoutError as e:
             serialized_message = None
         return serialized_message
 

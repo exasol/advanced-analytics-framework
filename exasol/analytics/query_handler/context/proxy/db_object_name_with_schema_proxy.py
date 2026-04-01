@@ -1,6 +1,5 @@
 from typing import (
     Generic,
-    Optional,
     TypeVar,
 )
 
@@ -22,6 +21,6 @@ class DBObjectNameWithSchemaProxy(
         super().__init__(db_object_name_with_schema, global_counter_value)
 
     @property
-    def schema_name(self) -> Optional[SchemaName]:
+    def schema_name(self) -> SchemaName | None:
         self._check_if_released()
         return self._db_object_name.schema_name

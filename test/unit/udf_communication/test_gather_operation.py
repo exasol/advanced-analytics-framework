@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -15,7 +14,6 @@ from exasol.analytics.udf.communication.messages import Gather
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator import PeerCommunicator
 from exasol.analytics.udf.communication.serialization import (
-    deserialize_message,
     serialize_message,
 )
 from exasol.analytics.udf.communication.socket_factory.abstract import (
@@ -29,9 +27,9 @@ class Fixture:
     sequence_number: int
     value: bytes
     number_of_instances_per_node: int
-    localhost_communicator_mock: Union[MagicMock, PeerCommunicator]
-    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator]
-    socket_factory_mock: Union[MagicMock, SocketFactory]
+    localhost_communicator_mock: MagicMock | PeerCommunicator
+    multi_node_communicator_mock: MagicMock | PeerCommunicator
+    socket_factory_mock: MagicMock | SocketFactory
     gather_operation: GatherOperation
 
     def reset_mocks(self):
@@ -43,15 +41,13 @@ class Fixture:
 def create_setup(number_of_instances_per_node: int) -> Fixture:
     sequence_number = 0
     value = b"0"
-    localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+    localhost_communicator_mock: MagicMock | PeerCommunicator = create_autospec(
         PeerCommunicator
     )
-    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+    multi_node_communicator_mock: MagicMock | PeerCommunicator = create_autospec(
         PeerCommunicator
     )
-    socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(
-        SocketFactory
-    )
+    socket_factory_mock: MagicMock | SocketFactory = create_autospec(SocketFactory)
     gather_operation = GatherOperation(
         sequence_number=sequence_number,
         value=value,
@@ -127,7 +123,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.multi_node_communicator_mock.peer = multi_node_peer
     test_setup.localhost_communicator_mock.peer = localhost_leader
-    recv_message_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_message_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(recv_message_frame_mock.to_bytes).return_value = serialize_message(
         Gather(
             source=localhost_peer,
@@ -136,7 +132,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
             position=1,
         )
     )
-    recv_value_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_value_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [
         multi_node_leader,
         multi_node_peer,
@@ -203,7 +199,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.multi_node_communicator_mock.peer = multi_node_peer
     test_setup.localhost_communicator_mock.peer = localhost_leader
-    recv_message_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_message_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(recv_message_frame_mock.to_bytes).return_value = serialize_message(
         Gather(
             source=localhost_peer,
@@ -212,7 +208,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
             position=1,
         )
     )
-    recv_value_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_value_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(test_setup.localhost_communicator_mock.poll_peers).return_value = [
         localhost_peer
     ]
@@ -238,7 +234,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     multi_node_peer = ModelFactory.create_factory(Peer).build()
     multi_node_leader = ModelFactory.create_factory(Peer).build()
     test_setup.multi_node_communicator_mock.peer = multi_node_peer
-    recv_message_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_message_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(recv_message_frame_mock.to_bytes).return_value = serialize_message(
         Gather(
             source=multi_node_peer,
@@ -247,7 +243,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
             position=1,
         )
     )
-    recv_value_frame_mock: Union[MagicMock, Frame] = create_autospec(Frame)
+    recv_value_frame_mock: MagicMock | Frame = create_autospec(Frame)
     mock_cast(test_setup.multi_node_communicator_mock.peers).return_value = [
         multi_node_leader,
         multi_node_peer,

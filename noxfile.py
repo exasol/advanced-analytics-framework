@@ -159,7 +159,7 @@ def _code_format(session: Session, mode: Mode, files: list[str]) -> None:
     session.run(*command("black"), *files)
 
 
-@nox.session(name="format:fix", python=False)
+@nox.session(name="format:fix2", python=False)
 def fix(session: Session) -> None:
     """Runs all automated fixes on the code base"""
     py_files = get_filtered_python_files(PROJECT_CONFIG.root_path)

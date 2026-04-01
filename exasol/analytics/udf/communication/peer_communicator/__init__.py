@@ -1,1 +1,1 @@
-from .peer_communicator import PeerCommunicator
+from .peer_communicator import PeerCommunicator as PeerCommunicator

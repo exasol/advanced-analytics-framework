@@ -11,10 +11,6 @@ from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_se
     create_execution_query_handler_state_setup,
     create_mocks_for_stage,
 )
-from typing import (
-    List,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -37,10 +33,10 @@ from exasol.analytics.query_handler.result import (
 
 
 def create_diamond_setup(
-    stage1_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage2_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage3_result_prototypes: list[Union[Continue, Finish, MagicMock]],
-    stage4_result_prototypes: list[Union[Continue, Finish, MagicMock]],
+    stage1_result_prototypes: list[Continue | Finish | MagicMock],
+    stage2_result_prototypes: list[Continue | Finish | MagicMock],
+    stage3_result_prototypes: list[Continue | Finish | MagicMock],
+    stage4_result_prototypes: list[Continue | Finish | MagicMock],
 ) -> TestSetup:
     stage1_setup = create_mocks_for_stage(stage1_result_prototypes, stage_index=0)
     stage2_setup = create_mocks_for_stage(stage2_result_prototypes, stage_index=1)

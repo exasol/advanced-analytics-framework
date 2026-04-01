@@ -6,10 +6,7 @@ from enum import (
 )
 from typing import (
     Any,
-    Optional,
 )
-
-import typeguard
 
 from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
@@ -22,14 +19,14 @@ class SizeUnit(Enum):
 @dataclasses.dataclass(frozen=True, repr=True, eq=True)
 class ColumnType:
     name: str
-    precision: Optional[int] = None
-    scale: Optional[int] = None
-    size: Optional[int] = None
-    characterSet: Optional[str] = None
-    withLocalTimeZone: Optional[bool] = None
-    fraction: Optional[int] = None
-    srid: Optional[int] = None
-    unit: Optional[SizeUnit] = None
+    precision: int | None = None
+    scale: int | None = None
+    size: int | None = None
+    characterSet: str | None = None
+    withLocalTimeZone: bool | None = None
+    fraction: int | None = None
+    srid: int | None = None
+    unit: SizeUnit | None = None
 
     @property
     def rendered(self) -> str:

@@ -1,5 +1,3 @@
-from typing import Union
-
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.result.interface import QueryResult
 from exasol.analytics.query_handler.query.select import (
@@ -35,12 +33,10 @@ class QueryHandlerTestWithOneIteration(UDFQueryHandler):
                 f"Expected parameter={parameter} to be '{TEST_INPUT}'."
             )
 
-    def start(self) -> Union[Continue, Finish[ResultType]]:
+    def start(self) -> Continue | Finish[ResultType]:
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -57,7 +53,7 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         return_query = 'SELECT 1 AS "a", 2 AS "b" FROM DUAL'
         return_query_columns = [
             Column(ColumnName("a"), ColumnType("INTEGER")),
@@ -71,9 +67,7 @@ class QueryHandlerTestWithTwoIteration(UDFQueryHandler):
         )
         return query_handler_result
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         a = query_result.a
         if a != 1:
             raise AssertionError(f"Expected query_result.a={a} to be 1.")
@@ -101,13 +95,11 @@ class QueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(
         super().__init__(parameter, query_handler_context)
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -130,14 +122,12 @@ class QueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHandler
         self.proxy = None
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         self.proxy = self.child.get_temporary_table_name()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 

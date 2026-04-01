@@ -1,10 +1,3 @@
-from typing import (
-    Any,
-    Callable,
-    Tuple,
-)
-
-import pyexasol
 import pytest
 
 from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (

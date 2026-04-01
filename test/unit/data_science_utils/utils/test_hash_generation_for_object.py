@@ -1,8 +1,4 @@
 import dataclasses
-from typing import (
-    Dict,
-    List,
-)
 
 from exasol.analytics.utils.hash_generation_for_object import generate_hash_for_object
 

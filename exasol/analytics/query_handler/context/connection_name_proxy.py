@@ -1,6 +1,5 @@
 from exasol.analytics.query_handler.context.connection_name import (
     ConnectionName,
-    ConnectionNameImpl,
 )
 from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (
     DBObjectNameProxy,
