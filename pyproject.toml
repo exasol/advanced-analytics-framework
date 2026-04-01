@@ -89,6 +89,7 @@ fail-under = 6.0
 line-length = 88
 verbose = false
 include = "\\.pyi?$"
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
@@ -105,6 +106,7 @@ poetry-plugin-export = ">=1.8"
 projectKey = "com.exasol:advanced-analytics-framework"
 host.url = "https://sonarcloud.io"
 organization = "exasol"
+exclusions = "exasol/analytics/version.py"
 
 [tool.ruff.lint]
 extend-ignore = [
@@ -113,9 +115,11 @@ extend-ignore = [
     "UP", # pyupgrade rules
     "D",  # Docstring rules
 ]
-extend-select = ["F401"]
-unfixable = []
 
-# See https://github.com/exasol/advanced-analytics-framework/issues/319
 [tool.coverage.report]
+# see https://github.com/exasol/advanced-analytics-framework/blob/main/doc/developer_guide/developer_guide.md#measuring-code-coverage
 ignore_errors = true
+
+# extend-select = ["F401"] # See https://github.com/exasol/advanced-analytics-framework/issues/341
+extend-select = []
+unfixable = []
