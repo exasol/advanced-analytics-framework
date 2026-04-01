@@ -82,7 +82,7 @@ Running the AAF requires an SLC. The following command
 python -m exasol.analytics.query_handler.deployment.deploy language-container
 ```
 
-See the documentation in the Exasol Python Extension Common package for [options common to all Exasol extensions](https://github.com/exasol/python-extension-common/blob/0.8.0/doc/user_guide/user-guide).
+See the documentation in the Exasol Python Extension Common package for [options common to all Exasol extensions](https://github.com/exasol/python-extension-common/blob/main/doc/user_guide/user-guide.md).
 
 ### Defining Additional SQL Scripts
 
@@ -133,7 +133,7 @@ EXECUTE SCRIPT "<AAF_DB_SCHEMA>"."AAF_RUN_QUERY_HANDLER"('{
 }');
 ```
 
-See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-example-query-handler) for a complete example.
+See [Implementing a Custom Algorithm as Example Query Handler](#implementing-a-custom-algorithm-as-query-handler) for a complete example.
 
 ### Placeholders
 

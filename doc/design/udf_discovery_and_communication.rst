@@ -1,9 +1,8 @@
 UDF Discovery and Communication
-===============================
+*******************************
 
-===================
 Establish Connection
-===================
+====================
 
 * We use a protocol similar to the TCP Handshake for establishing the connection
 * However, our protocol has two different requirements compared to TCP:
@@ -37,9 +36,8 @@ Establish Connection
 
 * State diagram:
 
-.. image:: establish_connection/state_diagram.png
+.. image:: establish_connection/state_machine.png
 
-========================
 Local Discovery Strategy
 ========================
 
@@ -57,7 +55,6 @@ Local Discovery Strategy
 
 .. image:: local_discovery_strategy/one_peer_receives_ping.png
 
-=========================
 Global Discovery Strategy
 =========================
 
@@ -72,8 +69,6 @@ should listen for the `PingMessage`'s on the designated node.
 
 .. image:: global_discovery/global_discovery_strategy.png
 
-
-========================
 Global Cluster Formation
 ========================
 
