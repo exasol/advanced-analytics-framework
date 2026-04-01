@@ -53,7 +53,7 @@ def run_in_dev_env_poetry(session: Session):
     _run_in_dev_env_poetry_call(session, *session.posargs)
 
 
-@nox.session(name="devenv:pytest", python=False)
+@nox.session(name="devenv:py-unit-tests", python=False)
 def run_python_test(session: Session):
     """
     This Nox session is currently unused.
