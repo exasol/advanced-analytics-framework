@@ -74,8 +74,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
-    assert statement.query_string == cleandoc(
-        f"""
+    assert statement.query_string == cleandoc(f"""
         INSERT INTO {audit_table.name.fully_qualified} (
           "LOG_TIMESTAMP",
           "SESSION_ID",
@@ -90,8 +89,7 @@ def test_audit_query_no_subquery(audit_table, other_table):
           '{SAMPLE_LOG_SPAN.id}',
           'sample log span',
           '{SAMPLE_RUN_ID}'
-        """
-    )
+        """)
 
 
 def test_audit_query_with_subquery(audit_table, other_table):
@@ -107,8 +105,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
     )
     statement = next(audit_table.augment([audit_query]))
     LOG.debug(f"insert statement: \n{statement}")
-    assert statement.query_string == cleandoc(
-        f"""
+    assert statement.query_string == cleandoc(f"""
         INSERT INTO {audit_table.name.fully_qualified} (
           "LOG_TIMESTAMP",
           "SESSION_ID",
@@ -126,8 +123,7 @@ def test_audit_query_with_subquery(audit_table, other_table):
           '{SAMPLE_RUN_ID}',
           "SUB_QUERY"."ERROR_MESSAGE"
         FROM (SELECT ERROR AS ERROR_MESSAGE FROM {other}) as "SUB_QUERY"
-        """
-    )
+        """)
 
 
 def test_modify_query_with_audit_false(audit_table, other_table):
@@ -148,8 +144,7 @@ def test_count_rows(audit_table, other_table):
     statement = audit_table._count_rows(query, "Phase")
     LOG.debug(f"{statement}")
     otname = other_table.fully_qualified
-    assert statement.query_string == cleandoc(
-        f"""
+    assert statement.query_string == cleandoc(f"""
         INSERT INTO {audit_table.name.fully_qualified} (
           "LOG_TIMESTAMP",
           "ROW_COUNT",
@@ -176,8 +171,7 @@ def test_count_rows(audit_table, other_table):
           'INSERT',
           '{SAMPLE_LOG_SPAN.id}',
           '{SAMPLE_RUN_ID}'
-        """
-    )
+        """)
 
 
 def test_modify_query(audit_table, other_table):

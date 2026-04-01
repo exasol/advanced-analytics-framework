@@ -132,21 +132,17 @@ class PythonQueryHandlerRunner(Generic[ParameterType, ResultType]):
         temporary_view_name = (
             self._state.input_query_query_handler_context.get_temporary_view_name()
         )
-        input_query_create_view_string = cleandoc(
-            f"""
+        input_query_create_view_string = cleandoc(f"""
             CREATE OR REPLACE VIEW {temporary_view_name.fully_qualified} AS
             {input_query.query_string};
-            """
-        )
+            """)
         full_qualified_columns = [
             col.name.fully_qualified for col in input_query.output_columns
         ]
         columns_str = ",\n".join(full_qualified_columns)
-        input_query_string = cleandoc(
-            f"""
+        input_query_string = cleandoc(f"""
             SELECT
             {textwrap.indent(columns_str, " " * 4)}
             FROM {temporary_view_name.fully_qualified};
-            """
-        )
+            """)
         return input_query_create_view_string, input_query_string

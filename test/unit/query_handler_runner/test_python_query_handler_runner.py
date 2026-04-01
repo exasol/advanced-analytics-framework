@@ -210,12 +210,10 @@ def test_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -271,12 +269,10 @@ def test_continue_wrong_columns(aaf_pytest_db_schema, prefix, context_mock):
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "b";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -401,12 +397,10 @@ def test_continue_error_cleanup_queries(aaf_pytest_db_schema, prefix, context_mo
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -479,12 +473,10 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_2_1" AS
             SELECT 1 as "a";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -502,12 +494,10 @@ def test_continue_continue_finish(aaf_pytest_db_schema, prefix, context_mock):
             ),
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_2_1";'),
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "b";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -592,12 +582,10 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
     sql_executor = create_sql_executor(
         aaf_pytest_db_schema,
         prefix,
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_4_1" AS
             SELECT 1 as "a";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
@@ -616,12 +604,10 @@ def test_continue_cleanup_continue_finish(aaf_pytest_db_schema, prefix, context_
         ),
         expect_query('DROP VIEW IF EXISTS "{schema}"."{prefix}_4_1";'),
         expect_query('DROP TABLE IF EXISTS "{schema}"."{prefix}_2_1";'),
-        expect_query(
-            """
+        expect_query("""
             CREATE OR REPLACE VIEW "{schema}"."{prefix}_6_1" AS
             SELECT 1 as "b";
-            """
-        ),
+            """),
         expect_query(
             """
             SELECT
