@@ -1,7 +1,4 @@
-from typing import (
-    Callable,
-    Union,
-)
+from collections.abc import Callable
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.graph.stage.sql.execution.input import (
@@ -39,13 +36,13 @@ class SQLStageGraphExecutionQueryHandler(
         super().__init__(parameter, query_handler_context)
         self._state = query_handler_state_factory(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    def start(self) -> Continue | Finish[SQLStageInputOutput]:
         result = self._run_until_continue_or_last_stage_finished()
         return result
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         result = self._state.get_current_query_handler().handle_query_result(
             query_result
         )
@@ -62,7 +59,7 @@ class SQLStageGraphExecutionQueryHandler(
 
     def _run_until_continue_or_last_stage_finished(
         self,
-    ) -> Union[Continue, Finish[SQLStageInputOutput]]:
+    ) -> Continue | Finish[SQLStageInputOutput]:
         while True:
             handler = self._state.get_current_query_handler()
             result = handler.start()

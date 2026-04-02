@@ -2,13 +2,12 @@ import json
 import multiprocessing
 import time
 from abc import ABC
+from collections.abc import Callable
 from multiprocessing import Process
 from queue import Queue
 from typing import (
     Any,
-    Callable,
     Generic,
-    List,
     TypeVar,
 )
 

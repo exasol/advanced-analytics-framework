@@ -1,7 +1,6 @@
 import pytest
 
 from exasol.analytics.schema import (
-    ExasolIdentifier,
     ExasolIdentifierImpl,
 )
 

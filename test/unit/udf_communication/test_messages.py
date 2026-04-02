@@ -1,5 +1,4 @@
 from typing import (
-    Type,
     get_args,
 )
 

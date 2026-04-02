@@ -1,5 +1,3 @@
-from typing import Optional
-
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.column_name import ColumnName
@@ -9,9 +7,9 @@ from exasol.analytics.schema.table_like_name import TableLikeName
 class ColumnNameBuilder:
     def __init__(
         self,
-        name: Optional[str] = None,
-        table_like_name: Optional[TableLikeName] = None,
-        column_name: Optional[ColumnName] = None,
+        name: str | None = None,
+        table_like_name: TableLikeName | None = None,
+        column_name: ColumnName | None = None,
     ):
         """
         Creates a builder for ColumnName objects,
@@ -45,7 +43,5 @@ class ColumnNameBuilder:
         return name
 
     @staticmethod
-    def create(
-        name: str, table_like_name: Optional[TableLikeName] = None
-    ) -> ColumnName:
+    def create(name: str, table_like_name: TableLikeName | None = None) -> ColumnName:
         return ColumnName(name, table_like_name)

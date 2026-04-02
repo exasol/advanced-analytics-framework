@@ -2,7 +2,6 @@ from test.unit.sql_stage_graph.stage_graph_execution_query_handler.state_test_se
     TestSetup,
 )
 from test.utils.mock_cast import mock_cast
-from typing import List
 
 from exasol.analytics.query_handler.graph.stage.sql.input_output import (
     SQLStageInputOutput,

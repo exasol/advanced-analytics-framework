@@ -12,7 +12,6 @@ from exasol.analytics.audit.columns import BaseAuditColumns
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     LogSpan,
-    ModifyQuery,
     SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.schema import (

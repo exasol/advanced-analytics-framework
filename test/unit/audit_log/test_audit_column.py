@@ -1,5 +1,4 @@
 from exasol.analytics.audit.audit import BaseAuditColumns
-from exasol.analytics.schema import Column
 
 
 def test_access_by_name():

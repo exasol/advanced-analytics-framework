@@ -1,9 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    List,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     call,
@@ -34,11 +30,11 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 @dataclasses.dataclass(frozen=True)
 class TestSetup:
     __test__ = False
-    sender_mock: Union[Sender, MagicMock]
-    abort_time_mock: Union[Timer, MagicMock]
-    out_control_socket_mock: Union[Socket, MagicMock]
-    retry_timer_mock: Union[Timer, MagicMock]
-    frame_mocks: list[Union[Frame, MagicMock]]
+    sender_mock: Sender | MagicMock
+    abort_time_mock: Timer | MagicMock
+    out_control_socket_mock: Socket | MagicMock
+    retry_timer_mock: Timer | MagicMock
+    frame_mocks: list[Frame | MagicMock]
     message: messages.Payload
     payload_message_sender: PayloadMessageSender
 

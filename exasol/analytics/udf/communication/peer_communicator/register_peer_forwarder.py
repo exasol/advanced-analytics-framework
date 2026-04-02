@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -33,7 +31,7 @@ class RegisterPeerForwarder:
         peer: Peer,
         my_connection_info: ConnectionInfo,
         sender: Sender,
-        register_peer_connection: Optional[RegisterPeerConnection],
+        register_peer_connection: RegisterPeerConnection | None,
         abort_timeout_sender: AbortTimeoutSender,
         acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
         register_peer_sender: RegisterPeerSender,

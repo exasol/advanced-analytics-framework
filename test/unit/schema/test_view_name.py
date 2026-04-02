@@ -2,7 +2,6 @@ import pytest
 
 from exasol.analytics.schema import (
     SchemaName,
-    TableName,
     TableNameImpl,
     ViewNameImpl,
 )

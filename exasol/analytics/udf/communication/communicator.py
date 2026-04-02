@@ -1,8 +1,3 @@
-from typing import (
-    List,
-    Optional,
-)
-
 from exasol.analytics.udf.communication.broadcast_operation import BroadcastOperation
 from exasol.analytics.udf.communication.discovery import (
     localhost,
@@ -61,7 +56,7 @@ class Communicator:
         self._sequence_number += 1
         return sequence_number
 
-    def _create_multi_node_communicator(self) -> Optional[PeerCommunicator]:
+    def _create_multi_node_communicator(self) -> PeerCommunicator | None:
         multi_node_name = f"{self._name}_global"
         multi_node_group_identifier = f"{self._group_identifier}_global"
         if self._localhost_communicator.rank == LOCALHOST_LEADER_RANK:
@@ -100,7 +95,7 @@ class Communicator:
         )
         return peer_communicator
 
-    def gather(self, value: bytes) -> Optional[list[bytes]]:
+    def gather(self, value: bytes) -> list[bytes] | None:
         sequence_number = self._next_sequence_number()
         gather = GatherOperation(
             sequence_number=sequence_number,
@@ -112,7 +107,7 @@ class Communicator:
         )
         return gather()
 
-    def broadcast(self, value: Optional[bytes]) -> bytes:
+    def broadcast(self, value: bytes | None) -> bytes:
         sequence_number = self._next_sequence_number()
         operation = BroadcastOperation(
             sequence_number=sequence_number,

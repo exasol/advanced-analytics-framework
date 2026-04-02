@@ -3,7 +3,6 @@ import logging
 from exasol.analytics.query_handler.deployment.aaf_exasol_lua_script_generator import (
     save_aaf_query_loop_lua_script,
 )
-from exasol.analytics.query_handler.deployment.lua_script_bundle import LuaScriptBundle
 
 
 def generate_scripts():

@@ -12,7 +12,6 @@ from exasol.analytics.query_handler.query.select import (
     LogSpan,
     ModifyQuery,
     Query,
-    SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.schema import (
     Column,

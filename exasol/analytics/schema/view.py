@@ -1,5 +1,3 @@
-from typing import List
-
 from typeguard import typechecked
 
 from exasol.analytics.schema.column import Column

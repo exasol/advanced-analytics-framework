@@ -1,5 +1,3 @@
-from inspect import cleandoc
-
 import pytest
 
 from exasol.analytics.schema import (
@@ -8,9 +6,6 @@ from exasol.analytics.schema import (
     InsertStatement,
     TableNameImpl,
     UnknownColumnError,
-    decimal_column,
-    timestamp_column,
-    varchar_column,
 )
 
 

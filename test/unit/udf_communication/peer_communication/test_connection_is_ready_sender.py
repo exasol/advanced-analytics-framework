@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -28,8 +27,8 @@ from exasol.analytics.udf.communication.socket_factory.abstract import Socket
 class TestSetup:
     __test__ = False
     peer: Peer
-    timer_mock: Union[MagicMock, Timer]
-    out_control_socket_mock: Union[MagicMock, Socket]
+    timer_mock: MagicMock | Timer
+    out_control_socket_mock: MagicMock | Socket
     peer_is_ready_sender: ConnectionIsReadySender = None
 
     def reset_mock(self):

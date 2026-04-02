@@ -1,12 +1,6 @@
 import dataclasses
 import difflib
 from inspect import cleandoc
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Tuple,
-)
 
 from exasol.analytics.sql_executor.interface import (
     ResultSet,

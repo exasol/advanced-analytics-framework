@@ -1,9 +1,6 @@
-from typing import Optional
-
 from typeguard import typechecked
 
 from exasol.analytics.schema.exasol_identifier import (
-    ExasolIdentifier,
     qualified_name,
 )
 from exasol.analytics.schema.exasol_identifier_impl import ExasolIdentifierImpl

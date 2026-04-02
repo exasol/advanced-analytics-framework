@@ -1,5 +1,4 @@
 import dataclasses
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -36,10 +35,10 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    sender_mock: Union[MagicMock, Sender]
-    abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender]
-    connection_is_ready_sender_mock: Union[MagicMock, ConnectionIsReadySender]
-    synchronize_connection_sender_mock: Union[MagicMock, SynchronizeConnectionSender]
+    sender_mock: MagicMock | Sender
+    abort_timeout_sender_mock: MagicMock | AbortTimeoutSender
+    connection_is_ready_sender_mock: MagicMock | ConnectionIsReadySender
+    synchronize_connection_sender_mock: MagicMock | SynchronizeConnectionSender
 
     connection_establisher: ConnectionEstablisher
 
@@ -65,16 +64,16 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g",
     )
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
-    abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender] = create_autospec(
+    sender_mock: MagicMock | Sender = create_autospec(Sender)
+    abort_timeout_sender_mock: MagicMock | AbortTimeoutSender = create_autospec(
         AbortTimeoutSender
     )
-    connection_is_ready_sender: Union[MagicMock, ConnectionIsReadySender] = (
-        create_autospec(ConnectionIsReadySender)
+    connection_is_ready_sender: MagicMock | ConnectionIsReadySender = create_autospec(
+        ConnectionIsReadySender
     )
-    synchronize_connection_sender_mock: Union[
-        MagicMock, SynchronizeConnectionSender
-    ] = create_autospec(SynchronizeConnectionSender)
+    synchronize_connection_sender_mock: MagicMock | SynchronizeConnectionSender = (
+        create_autospec(SynchronizeConnectionSender)
+    )
     connection_establisher = ConnectionEstablisher(
         my_connection_info=my_connection_info,
         peer=peer,

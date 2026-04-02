@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 from typing import (
     IO,
-    List,
     Union,
 )
 

@@ -5,7 +5,6 @@ from test.unit.udf_framework.mock_query_handlers import TEST_CONNECTION
 from test.utils.test_utils import pytest_regex
 from typing import (
     Any,
-    Dict,
 )
 
 import pytest

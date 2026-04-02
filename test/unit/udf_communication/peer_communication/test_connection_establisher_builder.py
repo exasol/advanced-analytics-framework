@@ -1,9 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    List,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -46,21 +42,19 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    out_control_socket_mock: Union[MagicMock, Socket]
-    clock_mock: Union[MagicMock, Clock]
+    out_control_socket_mock: MagicMock | Socket
+    clock_mock: MagicMock | Clock
     timeout_config: ConnectionEstablisherTimeoutConfig
-    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory]
-    connection_is_ready_sender_factory_mock: Union[
-        MagicMock, ConnectionIsReadySenderFactory
-    ]
-    synchronize_connection_sender_factory_mock: Union[
-        MagicMock, SynchronizeConnectionSenderFactory
-    ]
-    timer_factory_mock: Union[MagicMock, TimerFactory]
+    abort_timeout_sender_factory_mock: MagicMock | AbortTimeoutSenderFactory
+    connection_is_ready_sender_factory_mock: MagicMock | ConnectionIsReadySenderFactory
+    synchronize_connection_sender_factory_mock: (
+        MagicMock | SynchronizeConnectionSenderFactory
+    )
+    timer_factory_mock: MagicMock | TimerFactory
     timer_mocks: list[Mock]
-    sender_mock: Union[MagicMock, Sender]
+    sender_mock: MagicMock | Sender
     connection_establisher_builder: ConnectionEstablisherBuilder
-    connection_establisher_factory_mock: Union[MagicMock, ConnectionEstablisherFactory]
+    connection_establisher_factory_mock: MagicMock | ConnectionEstablisherFactory
 
     def reset_mock(self):
         self.connection_is_ready_sender_factory_mock.reset_mock()
@@ -88,29 +82,29 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g",
     )
-    abort_timeout_sender_factory_mock: Union[MagicMock, AbortTimeoutSenderFactory] = (
+    abort_timeout_sender_factory_mock: MagicMock | AbortTimeoutSenderFactory = (
         create_autospec(AbortTimeoutSenderFactory)
     )
-    conncection_is_ready_sender_factory_mock: Union[
-        MagicMock, ConnectionIsReadySenderFactory
-    ] = create_autospec(ConnectionIsReadySenderFactory)
-    synchronize_connection_sender_factory_mock: Union[
-        MagicMock, SynchronizeConnectionSenderFactory
-    ] = create_autospec(SynchronizeConnectionSenderFactory)
-    timer_factory_mock: Union[MagicMock, TimerFactory] = create_autospec(TimerFactory)
+    conncection_is_ready_sender_factory_mock: (
+        MagicMock | ConnectionIsReadySenderFactory
+    ) = create_autospec(ConnectionIsReadySenderFactory)
+    synchronize_connection_sender_factory_mock: (
+        MagicMock | SynchronizeConnectionSenderFactory
+    ) = create_autospec(SynchronizeConnectionSenderFactory)
+    timer_factory_mock: MagicMock | TimerFactory = create_autospec(TimerFactory)
     timer_mocks = [Mock(), Mock(), Mock(), Mock(), Mock()]
     mock_cast(timer_factory_mock.create).side_effect = timer_mocks
-    out_control_socket_mock: Union[MagicMock, Socket] = create_autospec(Socket)
-    clock_mock: Union[MagicMock, Clock] = create_autospec(Clock)
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
+    out_control_socket_mock: MagicMock | Socket = create_autospec(Socket)
+    clock_mock: MagicMock | Clock = create_autospec(Clock)
+    sender_mock: MagicMock | Sender = create_autospec(Sender)
     timeout_config = ConnectionEstablisherTimeoutConfig(
         abort_timeout_in_ms=1,
         synchronize_retry_timeout_in_ms=2,
         connection_is_ready_wait_time_in_ms=3,
     )
-    connection_establisher_factory_mock: Union[
-        MagicMock, ConnectionEstablisherFactory
-    ] = create_autospec(ConnectionEstablisherFactory)
+    connection_establisher_factory_mock: MagicMock | ConnectionEstablisherFactory = (
+        create_autospec(ConnectionEstablisherFactory)
+    )
     connection_establisher_builder = ConnectionEstablisherBuilder(
         abort_timeout_sender_factory=abort_timeout_sender_factory_mock,
         connection_is_ready_sender_factory=conncection_is_ready_sender_factory_mock,

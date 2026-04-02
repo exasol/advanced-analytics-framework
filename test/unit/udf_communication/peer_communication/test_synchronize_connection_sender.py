@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -26,8 +25,8 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    timer_mock: Union[MagicMock, Timer]
-    sender_mock: Union[MagicMock, Sender]
+    timer_mock: MagicMock | Timer
+    sender_mock: MagicMock | Sender
     synchronize_connection_sender: SynchronizeConnectionSender
 
     def reset_mocks(self):

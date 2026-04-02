@@ -4,12 +4,6 @@ from dataclasses import (
     asdict,
     dataclass,
 )
-from typing import (
-    List,
-    Optional,
-    Set,
-    Tuple,
-)
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -18,7 +12,6 @@ from exasol.analytics.udf.communication import messages
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.ip_address import IPAddress
 from exasol.analytics.udf.communication.messages import (
-    IsReadyToStop,
     Message,
     PrepareToStop,
     Stop,
@@ -138,7 +131,7 @@ class BackgroundListenerInterface:
         self._in_control.socket.send_multipart([frame] + payload)
 
     def receive_messages(
-        self, timeout_in_milliseconds: Optional[int] = 0
+        self, timeout_in_milliseconds: int | None = 0
     ) -> Iterator[tuple[Message, list[Frame]]]:
         def poll() -> set[PollerFlag]:
             return (

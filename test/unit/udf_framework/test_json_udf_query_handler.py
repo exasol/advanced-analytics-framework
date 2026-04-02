@@ -1,6 +1,5 @@
 import json
 from json import JSONDecodeError
-from typing import Union
 
 import pytest
 
@@ -32,12 +31,12 @@ class ConstructorTestJSONQueryHandler(JSONQueryHandler):
     ):
         super().__init__(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[JSONType]]:
+    def start(self) -> Continue | Finish[JSONType]:
         raise AssertionError("Should not be called")
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[JSONType]]:
+    ) -> Continue | Finish[JSONType]:
         raise AssertionError("Should not be called")
 
 
@@ -68,12 +67,12 @@ class StartReturnParameterTestJSONQueryHandler(JSONQueryHandler):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[JSONType]]:
+    def start(self) -> Continue | Finish[JSONType]:
         return Finish[JSONType](self._parameter)
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[JSONType]]:
+    ) -> Continue | Finish[JSONType]:
         raise AssertionError("Should not be called")
 
 
@@ -97,12 +96,12 @@ class HandleQueryResultCheckQueryResultTestJSONQueryHandler(JSONQueryHandler):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[JSONType]]:
+    def start(self) -> Continue | Finish[JSONType]:
         raise AssertionError("Should not be called")
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[JSONType]]:
+    ) -> Continue | Finish[JSONType]:
         a = query_result.a
         return Finish[JSONType]({"a": a})
 

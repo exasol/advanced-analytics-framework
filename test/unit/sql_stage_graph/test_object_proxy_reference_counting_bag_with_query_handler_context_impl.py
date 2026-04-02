@@ -1,10 +1,5 @@
-from pathlib import PurePosixPath
-
 import pytest
 
-from exasol.analytics.query_handler.context.top_level_query_handler_context import (
-    TopLevelQueryHandlerContext,
-)
 from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_reference_counting_bag import (
     ObjectProxyReferenceCountingBag,
 )

@@ -1,7 +1,4 @@
 import dataclasses
-from typing import Optional
-
-import typeguard
 
 from exasol.analytics.schema.column_name import ColumnName
 from exasol.analytics.schema.column_type import (
@@ -26,8 +23,8 @@ class Column:
 
 def decimal_column(
     name: str,
-    precision: Optional[int] = None,
-    scale: Optional[int] = 0,
+    precision: int | None = None,
+    scale: int | None = 0,
 ) -> Column:
     type = ColumnType("DECIMAL", precision=precision, scale=scale)
     return Column(ColumnName(name), type)
@@ -35,7 +32,7 @@ def decimal_column(
 
 def timestamp_column(
     name: str,
-    precision: Optional[int] = None,
+    precision: int | None = None,
 ) -> Column:
     return Column(ColumnName(name), ColumnType("TIMESTAMP", precision=precision))
 
@@ -57,8 +54,8 @@ def varchar_column(
 
 def hashtype_column(
     name: str,
-    bytes: Optional[int] = None,
-    bits: Optional[int] = None,
+    bytes: int | None = None,
+    bits: int | None = None,
 ) -> Column:
 
     if bytes is not None and bits is not None:

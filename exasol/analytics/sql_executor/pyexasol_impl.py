@@ -1,7 +1,5 @@
 from typing import (
     Any,
-    List,
-    Tuple,
 )
 
 import pyexasol
@@ -9,7 +7,6 @@ from pyexasol import ExaStatement
 
 from exasol.analytics.schema import (
     Column,
-    ColumnName,
     ColumnNameBuilder,
     ColumnType,
 )

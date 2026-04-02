@@ -1,7 +1,6 @@
 from collections import deque
 from typing import (
     Deque,
-    List,
 )
 
 import structlog

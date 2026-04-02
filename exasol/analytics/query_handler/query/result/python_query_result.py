@@ -1,10 +1,6 @@
 from collections.abc import Iterator
 from typing import (
     Any,
-    List,
-    Optional,
-    Tuple,
-    Union,
 )
 
 import pandas as pd
@@ -57,7 +53,7 @@ class PythonQueryResult(QueryResult):
         }
         self._next()
 
-    def _range(self, num_rows: Union[int, str]) -> range:
+    def _range(self, num_rows: int | str) -> range:
         if isinstance(num_rows, int):
             return range(num_rows - 1)
         if num_rows == "all":
@@ -65,8 +61,8 @@ class PythonQueryResult(QueryResult):
         raise ValueError(f'num_rows must be an int or str "all" but is {num_rows}')
 
     def fetch_as_dataframe(
-        self, num_rows: Union[int, str], start_col=0
-    ) -> Optional[pd.DataFrame]:
+        self, num_rows: int | str, start_col=0
+    ) -> pd.DataFrame | None:
         batch_list = []
         if self._current_row is not None:
             batch_list.append(self._current_row)

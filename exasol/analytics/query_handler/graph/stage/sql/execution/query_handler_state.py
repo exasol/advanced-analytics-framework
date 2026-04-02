@@ -1,10 +1,7 @@
 import enum
+from collections.abc import Callable
 from typing import (
-    Callable,
     DefaultDict,
-    List,
-    Optional,
-    Union,
 )
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
@@ -58,14 +55,14 @@ class SQLStageGraphExecutionQueryHandlerState:
             self._sql_stage_graph.compute_dependency_order()
         )
         self._current_stage_index = 0
-        self._current_stage: Optional[SQLStage] = self._stages_in_execution_order[
+        self._current_stage: SQLStage | None = self._stages_in_execution_order[
             self._current_stage_index
         ]
         self._stage_inputs_map[self._current_stage].append(parameter.input)
-        self._current_query_handler: Optional[
+        self._current_query_handler: None | (
             QueryHandler[list[SQLStageInputOutput], SQLStageInputOutput]
-        ] = None
-        self._current_qh_context: Optional[ScopeQueryHandlerContext] = None
+        ) = None
+        self._current_qh_context: ScopeQueryHandlerContext | None = None
         self._create_current_query_handler()
 
     def get_current_query_handler(
@@ -93,7 +90,7 @@ class SQLStageGraphExecutionQueryHandlerState:
         return value
 
     def handle_result(
-        self, result: Union[Continue, Finish[SQLStageInputOutput]]
+        self, result: Continue | Finish[SQLStageInputOutput]
     ) -> ResultHandlerReturnValue:
         # check if current query handler is set
         self.get_current_query_handler()

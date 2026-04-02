@@ -1,5 +1,3 @@
-from typing import Optional
-
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.schema_name import SchemaName
@@ -11,9 +9,9 @@ class UDFNameBuilder:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        schema: Optional[SchemaName] = None,
-        udf_name: Optional[UDFName] = None,
+        name: str | None = None,
+        schema: SchemaName | None = None,
+        udf_name: UDFName | None = None,
     ):
         """
         Creates a builder for UDFName objects,
@@ -45,5 +43,5 @@ class UDFNameBuilder:
         return self.create(self._name, self._schema_name)
 
     @staticmethod
-    def create(name: str, schema: Optional[SchemaName] = None) -> UDFName:
+    def create(name: str, schema: SchemaName | None = None) -> UDFName:
         return UDFNameImpl(name, schema)

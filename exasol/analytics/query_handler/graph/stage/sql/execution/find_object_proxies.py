@@ -1,9 +1,6 @@
 from collections.abc import Iterable
 from typing import (
     Any,
-    Dict,
-    List,
-    Set,
 )
 
 from exasol.analytics.query_handler.context.proxy.db_object_name_proxy import (

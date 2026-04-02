@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -31,7 +29,7 @@ class SendSocketFactory:
         )
 
     def create_send_socket(self) -> Socket:
-        send_socket: Optional[Socket] = None
+        send_socket: Socket | None = None
         try:
             send_socket = self._socket_factory.create_socket(SocketType.DEALER)
             send_socket.connect(

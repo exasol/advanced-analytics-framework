@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -16,7 +14,7 @@ LOGGER: FilteringBoundLogger = structlog.get_logger()
 class RegisterPeerSender:
     def __init__(
         self,
-        register_peer_connection: Optional[RegisterPeerConnection],
+        register_peer_connection: RegisterPeerConnection | None,
         needs_to_send_for_peer: bool,
         my_connection_info: ConnectionInfo,
         peer: Peer,
@@ -68,7 +66,7 @@ class RegisterPeerSender:
 class RegisterPeerSenderFactory:
     def create(
         self,
-        register_peer_connection: Optional[RegisterPeerConnection],
+        register_peer_connection: RegisterPeerConnection | None,
         needs_to_send_for_peer: bool,
         my_connection_info: ConnectionInfo,
         peer: Peer,

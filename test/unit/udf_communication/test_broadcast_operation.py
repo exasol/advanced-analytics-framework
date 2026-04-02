@@ -1,10 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    List,
-    Optional,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -29,9 +24,9 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 class Fixture:
     sequence_number: int
     value: bytes
-    localhost_communicator_mock: Union[MagicMock, PeerCommunicator]
-    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator]
-    socket_factory_mock: Union[MagicMock, SocketFactory]
+    localhost_communicator_mock: MagicMock | PeerCommunicator
+    multi_node_communicator_mock: MagicMock | PeerCommunicator
+    socket_factory_mock: MagicMock | SocketFactory
     broadcast_operation: BroadcastOperation
 
     def reset_mocks(self):
@@ -40,17 +35,15 @@ class Fixture:
         self.multi_node_communicator_mock.reset_mock()
 
 
-def create_setup(value: Optional[bytes]) -> Fixture:
+def create_setup(value: bytes | None) -> Fixture:
     sequence_number = 0
-    localhost_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+    localhost_communicator_mock: MagicMock | PeerCommunicator = create_autospec(
         PeerCommunicator
     )
-    multi_node_communicator_mock: Union[MagicMock, PeerCommunicator] = create_autospec(
+    multi_node_communicator_mock: MagicMock | PeerCommunicator = create_autospec(
         PeerCommunicator
     )
-    socket_factory_mock: Union[MagicMock, SocketFactory] = create_autospec(
-        SocketFactory
-    )
+    socket_factory_mock: MagicMock | SocketFactory = create_autospec(SocketFactory)
     broadcast_operation = BroadcastOperation(
         sequence_number=sequence_number,
         value=value,
@@ -87,7 +80,7 @@ def test_call_localhost_rank_greater_zero():
     leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.peer = peer
     test_setup.localhost_communicator_mock.leader = leader
-    frames: list[Union[Frame, MagicMock]] = [
+    frames: list[Frame | MagicMock] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -124,7 +117,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_greater_zero():
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frames: list[Union[Frame, MagicMock]] = [
+    frames: list[Frame | MagicMock] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -173,7 +166,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: list[Union[Frame, MagicMock]] = [
+    frame_mocks: list[Frame | MagicMock] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]
@@ -226,7 +219,7 @@ def test_call_localhost_rank_equal_zero_multi_node_rank_equal_zero_multi_node_nu
     localhost_leader = ModelFactory.create_factory(Peer).build()
     test_setup.localhost_communicator_mock.leader = localhost_leader
     test_setup.multi_node_communicator_mock.leader = multi_node_leader
-    frame_mocks: list[Union[Frame, MagicMock]] = [
+    frame_mocks: list[Frame | MagicMock] = [
         create_autospec(Frame),
         create_autospec(Frame),
     ]

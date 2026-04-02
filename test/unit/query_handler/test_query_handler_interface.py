@@ -1,7 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    Union,
 )
 from unittest.mock import MagicMock
 
@@ -34,7 +32,7 @@ class TestQueryHandler(QueryHandler[dict[str, Any], int]):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[int]]:
+    def start(self) -> Continue | Finish[int]:
         return Continue(
             [],
             SelectQueryWithColumnDefinition(
@@ -43,9 +41,7 @@ class TestQueryHandler(QueryHandler[dict[str, Any], int]):
             ),
         )
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[int]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[int]:
         return Finish(query_result.A)
 
 

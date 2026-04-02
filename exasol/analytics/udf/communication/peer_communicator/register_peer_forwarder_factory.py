@@ -1,5 +1,3 @@
-from typing import Optional
-
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo
 from exasol.analytics.udf.communication.peer import Peer
 from exasol.analytics.udf.communication.peer_communicator.abort_timeout_sender import (
@@ -30,7 +28,7 @@ class RegisterPeerForwarderFactory:
         peer: Peer,
         my_connection_info: ConnectionInfo,
         sender: Sender,
-        register_peer_connection: Optional[RegisterPeerConnection],
+        register_peer_connection: RegisterPeerConnection | None,
         abort_timeout_sender: AbortTimeoutSender,
         acknowledge_register_peer_sender: AcknowledgeRegisterPeerSender,
         register_peer_sender: RegisterPeerSender,

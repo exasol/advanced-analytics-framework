@@ -1,10 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    List,
-    Tuple,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     call,
@@ -42,11 +37,11 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 @dataclasses.dataclass
 class TestSetup:
     __test__ = False
-    sender_mock: Union[MagicMock, Sender]
-    out_control_socket_mock: Union[MagicMock, Socket]
-    clock_mock: Union[MagicMock, Clock]
-    payload_message_sender_factory_mock: Union[MagicMock, PayloadMessageSenderFactory]
-    payload_message_sender_mocks: list[Union[MagicMock, PayloadMessageSender]]
+    sender_mock: MagicMock | Sender
+    out_control_socket_mock: MagicMock | Socket
+    clock_mock: MagicMock | Clock
+    payload_message_sender_factory_mock: MagicMock | PayloadMessageSenderFactory
+    payload_message_sender_mocks: list[MagicMock | PayloadMessageSender]
     payload_message_sender_timeout_config: PayloadMessageSenderTimeoutConfig
     my_connection_info: ConnectionInfo
     peer: Peer
@@ -79,9 +74,9 @@ def create_test_setup(number_of_messages: int) -> TestSetup:
         )
     )
     clock_mock = create_autospec(Clock)
-    payload_message_sender_factory_mock: Union[
-        MagicMock, PayloadMessageSenderFactory
-    ] = create_autospec(PayloadMessageSenderFactory)
+    payload_message_sender_factory_mock: MagicMock | PayloadMessageSenderFactory = (
+        create_autospec(PayloadMessageSenderFactory)
+    )
     payload_message_sender_mocks = [
         create_autospec(PayloadMessageSender) for i in range(number_of_messages)
     ]

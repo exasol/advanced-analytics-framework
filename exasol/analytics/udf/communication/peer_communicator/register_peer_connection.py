@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from structlog.typing import FilteringBoundLogger
 
@@ -19,8 +17,8 @@ class RegisterPeerConnection:
 
     def __init__(
         self,
-        predecessor: Optional[Peer],
-        predecessor_send_socket_factory: Optional[SendSocketFactory],
+        predecessor: Peer | None,
+        predecessor_send_socket_factory: SendSocketFactory | None,
         successor: Peer,
         successor_send_socket_factory: SendSocketFactory,
         my_connection_info: ConnectionInfo,
@@ -34,7 +32,7 @@ class RegisterPeerConnection:
         self._predecessor = predecessor
         self._my_connection_info = my_connection_info
         self._successor_socket = successor_send_socket_factory.create_send_socket()
-        self._predecessor_socket: Optional[Socket] = None
+        self._predecessor_socket: Socket | None = None
         if predecessor_send_socket_factory is not None:
             self._predecessor_socket = (
                 predecessor_send_socket_factory.create_send_socket()
@@ -45,7 +43,7 @@ class RegisterPeerConnection:
         return self._successor
 
     @property
-    def predecessor(self) -> Optional[Peer]:
+    def predecessor(self) -> Peer | None:
         return self._predecessor
 
     def forward(self, peer: Peer):

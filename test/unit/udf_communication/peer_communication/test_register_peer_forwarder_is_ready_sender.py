@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -32,8 +31,8 @@ class TestSetup:
     __test__ = False
     my_connection_info: ConnectionInfo
     peer: Peer
-    timer_mock: Union[Timer, MagicMock]
-    out_control_socket_mock: Union[Socket, MagicMock]
+    timer_mock: Timer | MagicMock
+    out_control_socket_mock: Socket | MagicMock
     register_peer_forwarder_is_ready_sender: RegisterPeerForwarderIsReadySender
 
     def reset_mock(self):
@@ -58,8 +57,8 @@ def create_test_setup(
             group_identifier="g",
         )
     )
-    timer_mock: Union[Timer, MagicMock] = create_autospec(Timer)
-    out_control_socket_mock: Union[Socket, MagicMock] = create_autospec(Socket)
+    timer_mock: Timer | MagicMock = create_autospec(Timer)
+    out_control_socket_mock: Socket | MagicMock = create_autospec(Socket)
     register_peer_forwarder_is_ready_sender = RegisterPeerForwarderIsReadySender(
         peer=peer,
         my_connection_info=my_connection_info,

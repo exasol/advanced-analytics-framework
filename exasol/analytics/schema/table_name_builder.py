@@ -1,8 +1,3 @@
-from typing import (
-    Optional,
-    Union,
-)
-
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.schema_name import SchemaName
@@ -14,9 +9,9 @@ class TableNameBuilder:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        schema: Optional[SchemaName] = None,
-        table_name: Optional[TableName] = None,
+        name: str | None = None,
+        schema: SchemaName | None = None,
+        table_name: TableName | None = None,
     ):
         """
         Creates a builder for TableName objects,
@@ -48,5 +43,5 @@ class TableNameBuilder:
         return self.create(self._name, self._schema_name)
 
     @staticmethod
-    def create(name: str, schema: Optional[SchemaName] = None) -> TableName:
+    def create(name: str, schema: SchemaName | None = None) -> TableName:
         return TableNameImpl(name, schema)

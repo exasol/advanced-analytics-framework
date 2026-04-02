@@ -1,4 +1,3 @@
-from typing import Union
 from unittest.mock import (
     MagicMock,
     create_autospec,
@@ -15,7 +14,7 @@ from exasol.analytics.query_handler.graph.stage.sql.sql_stage_query_handler impo
 )
 
 
-def mock_bfs_location() -> Union[bfs.path.PathLike, MagicMock]:
+def mock_bfs_location() -> bfs.path.PathLike | MagicMock:
     return create_autospec(bfs.path.PathLike)
 
 
@@ -29,7 +28,7 @@ def test_empty_stage_inputs():
 
 def test_non_empty_stage_inputs():
     bucketfs_location = mock_bfs_location()
-    sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
+    sql_stage_input: SQLStageInputOutput | MagicMock = create_autospec(
         SQLStageInputOutput
     )
     obj = SQLStageQueryHandlerInput(
@@ -43,7 +42,7 @@ def test_non_empty_stage_inputs():
 
 def test_equality():
     bucketfs_location = mock_bfs_location()
-    sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
+    sql_stage_input: SQLStageInputOutput | MagicMock = create_autospec(
         SQLStageInputOutput
     )
     obj1 = SQLStageQueryHandlerInput(
@@ -57,10 +56,10 @@ def test_equality():
 
 def test_inequality_sql_stage_input():
     bucketfs_location = mock_bfs_location()
-    sql_stage_input1: Union[SQLStageInputOutput, MagicMock] = create_autospec(
+    sql_stage_input1: SQLStageInputOutput | MagicMock = create_autospec(
         SQLStageInputOutput
     )
-    sql_stage_input2: Union[SQLStageInputOutput, MagicMock] = create_autospec(
+    sql_stage_input2: SQLStageInputOutput | MagicMock = create_autospec(
         SQLStageInputOutput
     )
     obj1 = SQLStageQueryHandlerInput(
@@ -75,7 +74,7 @@ def test_inequality_sql_stage_input():
 def test_inequality_bucketfs_location():
     bucketfs_location1 = mock_bfs_location()
     bucketfs_location2 = mock_bfs_location()
-    sql_stage_input: Union[SQLStageInputOutput, MagicMock] = create_autospec(
+    sql_stage_input: SQLStageInputOutput | MagicMock = create_autospec(
         SQLStageInputOutput
     )
     obj1 = SQLStageQueryHandlerInput(

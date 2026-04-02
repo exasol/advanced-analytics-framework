@@ -1,11 +1,6 @@
 import time
+from collections.abc import Callable
 from dataclasses import asdict
-from typing import (
-    Callable,
-    Dict,
-    List,
-    Optional,
-)
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -94,7 +89,7 @@ class PeerCommunicator:
         self._logger.info("my_connection_info")
         self._peer_states: dict[Peer, FrontendPeerState] = {}
 
-    def _handle_messages(self, timeout_in_milliseconds: Optional[int] = 0):
+    def _handle_messages(self, timeout_in_milliseconds: int | None = 0):
         for message_obj, frames in self._background_listener.receive_messages(
             timeout_in_milliseconds
         ):
@@ -142,7 +137,7 @@ class PeerCommunicator:
     def _wait_for_condition(
         self,
         condition: Callable[[], bool],
-        timeout_in_milliseconds: Optional[int] = None,
+        timeout_in_milliseconds: int | None = None,
     ) -> bool:
         start_time_ns = time.monotonic_ns()
         self._handle_messages(timeout_in_milliseconds=0)
@@ -158,12 +153,12 @@ class PeerCommunicator:
             self._handle_messages(timeout_in_milliseconds=handle_message_timeout_ms)
         return condition()
 
-    def wait_for_peers(self, timeout_in_milliseconds: Optional[int] = None) -> bool:
+    def wait_for_peers(self, timeout_in_milliseconds: int | None = None) -> bool:
         return self._wait_for_condition(
             self._are_all_peers_connected, timeout_in_milliseconds
         )
 
-    def peers(self, timeout_in_milliseconds: Optional[int] = None) -> list[Peer]:
+    def peers(self, timeout_in_milliseconds: int | None = None) -> list[Peer]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
             peers = [peer for peer in self._peer_states.keys()] + [
@@ -230,7 +225,7 @@ class PeerCommunicator:
         self._peer_states[peer].send(message)
 
     def recv(
-        self, peer: Peer, timeout_in_milliseconds: Optional[int] = None
+        self, peer: Peer, timeout_in_milliseconds: int | None = None
     ) -> list[Frame]:
         self.wait_for_peers()
         peer_has_received_messages = self._wait_for_condition(
@@ -244,8 +239,8 @@ class PeerCommunicator:
 
     def poll_peers(
         self,
-        peers: Optional[list[Peer]] = None,
-        timeout_in_milliseconds: Optional[int] = None,
+        peers: list[Peer] | None = None,
+        timeout_in_milliseconds: int | None = None,
     ) -> list[Peer]:
         self.wait_for_peers()
 

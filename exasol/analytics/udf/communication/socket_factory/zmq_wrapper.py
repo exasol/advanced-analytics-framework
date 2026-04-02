@@ -1,10 +1,3 @@
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Set,
-    Union,
-)
 from warnings import warn
 
 import zmq
@@ -19,7 +12,7 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 )
 
 
-def _flags_to_bitmask(flags: Union[PollerFlag, set[PollerFlag]]) -> int:
+def _flags_to_bitmask(flags: PollerFlag | set[PollerFlag]) -> int:
     if isinstance(flags, set):
         result = 0
         for flag in flags:
@@ -95,8 +88,8 @@ class ZMQSocket(Socket):
 
     def poll(
         self,
-        flags: Union[PollerFlag, set[PollerFlag]],
-        timeout_in_ms: Optional[int] = None,
+        flags: PollerFlag | set[PollerFlag],
+        timeout_in_ms: int | None = None,
     ) -> set[PollerFlag]:
         input_bitmask = _flags_to_bitmask(flags)
         result_bitmask = self._internal_socket.poll(
@@ -137,9 +130,7 @@ class ZMQPoller(Poller):
         self._internal_poller = zmq.Poller()
         self._sockets_map = {}
 
-    def register(
-        self, socket: Socket, flags: Union[PollerFlag, set[PollerFlag]]
-    ) -> None:
+    def register(self, socket: Socket, flags: PollerFlag | set[PollerFlag]) -> None:
         if isinstance(socket, ZMQSocket):
             self._sockets_map[socket._internal_socket] = socket
             bitmask = _flags_to_bitmask(flags)
@@ -147,9 +138,7 @@ class ZMQPoller(Poller):
         else:
             raise ValueError(f"Socket not supported: {socket}")
 
-    def poll(
-        self, timeout_in_ms: Optional[int] = None
-    ) -> dict[Socket, set[PollerFlag]]:
+    def poll(self, timeout_in_ms: int | None = None) -> dict[Socket, set[PollerFlag]]:
         poll_result = dict(self._internal_poller.poll(timeout_in_ms))
         result = {
             self._sockets_map[zmq_socket]: _bitmask_to_flags(bitmask)

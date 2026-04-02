@@ -1,13 +1,7 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import (
-    Any,
-    Union,
-    cast,
-)
 from unittest.mock import (
     MagicMock,
-    Mock,
     call,
     create_autospec,
 )
@@ -33,8 +27,8 @@ from exasol.analytics.udf.communication.peer_communicator.timer import Timer
 class TestSetup:
     __test__ = False
     peer: Peer
-    timer_mock: Union[MagicMock, Timer]
-    register_peer_connection: Union[MagicMock, RegisterPeerConnection]
+    timer_mock: MagicMock | Timer
+    register_peer_connection: MagicMock | RegisterPeerConnection
     register_peer_sender: RegisterPeerSender = None
 
     def reset_mock(self):

@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -41,11 +40,11 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    payload_handler_mock: Union[MagicMock, PayloadHandler]
-    sender_mock: Union[MagicMock, Sender]
-    connection_establisher_mock: Union[MagicMock, ConnectionEstablisher]
-    connection_closer_mock: Union[MagicMock, ConnectionCloser]
-    register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder]
+    payload_handler_mock: MagicMock | PayloadHandler
+    sender_mock: MagicMock | Sender
+    connection_establisher_mock: MagicMock | ConnectionEstablisher
+    connection_closer_mock: MagicMock | ConnectionCloser
+    register_peer_forwarder_mock: MagicMock | RegisterPeerForwarder
     background_peer_state: BackgroundPeerState
 
     def reset_mocks(self):
@@ -71,18 +70,16 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g",
     )
-    payload_handler_mock: Union[MagicMock, PayloadHandler] = create_autospec(
-        PayloadHandler
+    payload_handler_mock: MagicMock | PayloadHandler = create_autospec(PayloadHandler)
+    sender_mock: MagicMock | Sender = create_autospec(Sender)
+    connection_establisher_mock: MagicMock | ConnectionEstablisher = create_autospec(
+        ConnectionEstablisher
     )
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
-    connection_establisher_mock: Union[MagicMock, ConnectionEstablisher] = (
-        create_autospec(ConnectionEstablisher)
-    )
-    connection_closer_mock: Union[MagicMock, ConnectionCloser] = create_autospec(
+    connection_closer_mock: MagicMock | ConnectionCloser = create_autospec(
         ConnectionCloser
     )
-    register_peer_forwarder_mock: Union[MagicMock, RegisterPeerForwarder] = (
-        create_autospec(RegisterPeerForwarder)
+    register_peer_forwarder_mock: MagicMock | RegisterPeerForwarder = create_autospec(
+        RegisterPeerForwarder
     )
     background_peer_state = BackgroundPeerState(
         my_connection_info=my_connection_info,

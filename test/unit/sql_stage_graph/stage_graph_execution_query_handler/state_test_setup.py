@@ -1,7 +1,6 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
 from typing import (
-    List,
     Union,
 )
 from unittest.mock import (
@@ -171,7 +170,7 @@ def create_mock_query_handler_context(
 
 
 def create_mocks_for_stage(
-    result_prototypes: list[Union[Finish, Continue]], *, stage_index: int
+    result_prototypes: list[Finish | Continue], *, stage_index: int
 ) -> StageSetup:
     child_scoped_query_handler_context: MockScopeQueryHandlerContext = create_autospec(
         ScopeQueryHandlerContext

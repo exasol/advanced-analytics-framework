@@ -1,5 +1,4 @@
 import dataclasses
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -34,10 +33,10 @@ class TestSetup:
     __test__ = False
     peer: Peer
     my_connection_info: ConnectionInfo
-    sender_mock: Union[MagicMock, Sender]
-    abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender]
-    connection_is_closed_sender_mock: Union[MagicMock, ConnectionIsClosedSender]
-    close_connection_sender_mock: Union[MagicMock, CloseConnectionSender]
+    sender_mock: MagicMock | Sender
+    abort_timeout_sender_mock: MagicMock | AbortTimeoutSender
+    connection_is_closed_sender_mock: MagicMock | ConnectionIsClosedSender
+    close_connection_sender_mock: MagicMock | CloseConnectionSender
 
     connection_closer: ConnectionCloser
 
@@ -63,15 +62,15 @@ def create_test_setup() -> TestSetup:
         port=Port(port=10),
         group_identifier="g",
     )
-    sender_mock: Union[MagicMock, Sender] = create_autospec(Sender)
-    abort_timeout_sender_mock: Union[MagicMock, AbortTimeoutSender] = create_autospec(
+    sender_mock: MagicMock | Sender = create_autospec(Sender)
+    abort_timeout_sender_mock: MagicMock | AbortTimeoutSender = create_autospec(
         AbortTimeoutSender
     )
-    connection_is_closed_sender: Union[MagicMock, ConnectionIsClosedSender] = (
-        create_autospec(ConnectionIsClosedSender)
+    connection_is_closed_sender: MagicMock | ConnectionIsClosedSender = create_autospec(
+        ConnectionIsClosedSender
     )
-    close_connection_sender_mock: Union[MagicMock, CloseConnectionSender] = (
-        create_autospec(CloseConnectionSender)
+    close_connection_sender_mock: MagicMock | CloseConnectionSender = create_autospec(
+        CloseConnectionSender
     )
     connection_closer = ConnectionCloser(
         my_connection_info=my_connection_info,

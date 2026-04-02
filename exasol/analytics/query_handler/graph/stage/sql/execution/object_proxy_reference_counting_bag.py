@@ -1,7 +1,4 @@
-from typing import (
-    Callable,
-    Dict,
-)
+from collections.abc import Callable
 
 from exasol.analytics.query_handler.context.proxy.object_proxy import ObjectProxy
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext

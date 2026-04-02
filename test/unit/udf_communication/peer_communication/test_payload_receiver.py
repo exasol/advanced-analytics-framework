@@ -1,9 +1,4 @@
 import dataclasses
-from typing import (
-    List,
-    Tuple,
-    Union,
-)
 from unittest.mock import (
     MagicMock,
     call,
@@ -32,8 +27,8 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
 @dataclasses.dataclass
 class TestSetup:
     __test__ = False
-    sender_mock: Union[MagicMock, Sender]
-    out_control_socket_mock: Union[MagicMock, Socket]
+    sender_mock: MagicMock | Sender
+    out_control_socket_mock: MagicMock | Socket
     my_connection_info: ConnectionInfo
     peer: Peer
     payload_receiver: PayloadReceiver

@@ -1,7 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    Union,
 )
 
 from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
@@ -40,12 +38,10 @@ class MockQueryHandlerWithOneIteration(UDFQueryHandler):
                 f"Expected parameter={parameter} to be '{TEST_INPUT}'."
             )
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -62,7 +58,7 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
         super().__init__(parameter, query_handler_context)
         self._parameter = parameter
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         return_query = (
             "SELECT a, table1.b, c FROM table1, table2 " "WHERE table1.b=table2.b"
         )
@@ -80,7 +76,7 @@ class MockQueryHandlerWithTwoIterations(UDFQueryHandler):
 
     def handle_query_result(
         self, query_result: QueryResult
-    ) -> Union[Continue, Finish[dict[str, Any]]]:
+    ) -> Continue | Finish[dict[str, Any]]:
         a = query_result.a
         if a != 1:
             raise AssertionError(f"Expected query_result.a={a} to be 1.")
@@ -107,13 +103,11 @@ class QueryHandlerTestWithOneIterationAndTempTable(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         self._query_handler_context.get_temporary_table_name()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -135,13 +129,11 @@ class MockQueryHandlerWithOneIterationWithNotReleasedChildQueryHandlerContext(
         super().__init__(parameter, query_handler_context)
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -164,14 +156,12 @@ class MockQueryHandlerWithOneIterationWithNotReleasedTemporaryObject(UDFQueryHan
         self.proxy = None
         self.child = None
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         self.child = self._query_handler_context.get_child_query_handler_context()
         self.proxy = self.child.get_temporary_table_name()
         return Finish(result=FINAL_RESULT)
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 
@@ -192,15 +182,13 @@ class MockQueryHandlerUsingConnection(UDFQueryHandler):
     def __init__(self, parameter: str, query_handler_context: ScopeQueryHandlerContext):
         super().__init__(parameter, query_handler_context)
 
-    def start(self) -> Union[Continue, Finish[str]]:
+    def start(self) -> Continue | Finish[str]:
         connection = self._query_handler_context.get_connection(TEST_CONNECTION)
         return Finish(
             f"{connection.name},{connection.address},{connection.user},{connection.password}"
         )
 
-    def handle_query_result(
-        self, query_result: QueryResult
-    ) -> Union[Continue, Finish[str]]:
+    def handle_query_result(self, query_result: QueryResult) -> Continue | Finish[str]:
         pass
 
 

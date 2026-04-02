@@ -1,14 +1,9 @@
 import dataclasses
 from enum import Enum
-from typing import (
-    Any,
-    Dict,
-)
+from typing import Any
 
 import typeguard
 from typeguard import TypeCheckError
-
-from exasol.analytics.utils.data_classes_runtime_type_check import check_dataclass_types
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,9 +1,3 @@
-from typing import (
-    List,
-    Optional,
-    Union,
-)
-
 from typeguard import TypeCheckError
 
 from exasol.analytics.schema.column import Column
@@ -12,8 +6,8 @@ from exasol.analytics.schema.table_name import TableName
 
 
 class TableBuilder:
-    def __init__(self, table: Union[Table, None] = None):
-        self._name: Optional[TableName]
+    def __init__(self, table: Table | None = None):
+        self._name: TableName | None
         self._columns: list[Column] = []
         self._name, self._columns = (table.name, table.columns) if table else (None, [])
 

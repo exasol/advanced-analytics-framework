@@ -115,11 +115,9 @@ extend-ignore = [
     "UP", # pyupgrade rules
     "D",  # Docstring rules
 ]
-
-[tool.coverage.report]
-# see https://github.com/exasol/advanced-analytics-framework/blob/main/doc/developer_guide/developer_guide.md#measuring-code-coverage
-ignore_errors = true
-
-# extend-select = ["F401"] # See https://github.com/exasol/advanced-analytics-framework/issues/341
-extend-select = []
+extend-select = ["F401"]
 unfixable = []
+
+# See https://github.com/exasol/advanced-analytics-framework/issues/319
+[tool.coverage.report]
+ignore_errors = true

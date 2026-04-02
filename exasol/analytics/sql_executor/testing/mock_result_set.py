@@ -1,9 +1,4 @@
 import itertools
-from typing import (
-    List,
-    Optional,
-    Tuple,
-)
 
 from exasol.analytics.schema import Column
 from exasol.analytics.sql_executor.interface import ResultSet
@@ -12,7 +7,7 @@ from exasol.analytics.sql_executor.interface import ResultSet
 class MockResultSet(ResultSet):
 
     def __init__(
-        self, rows: Optional[list[tuple]] = None, columns: Optional[list[Column]] = None
+        self, rows: list[tuple] | None = None, columns: list[Column] | None = None
     ):
         self._columns = columns
         self._rows = rows

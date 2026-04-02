@@ -16,13 +16,10 @@ from exasol.analytics.audit.audit_query_handler import (
     ParameterType,
     ResultType,
 )
-from exasol.analytics.query_handler.context.scope import ScopeQueryHandlerContext
 from exasol.analytics.query_handler.query.select import (
     AuditQuery,
     DbOperationType,
-    ModifyQuery,
     Query,
-    SelectQueryWithColumnDefinition,
 )
 from exasol.analytics.query_handler.query_handler import QueryHandler
 from exasol.analytics.query_handler.result import (
@@ -30,9 +27,7 @@ from exasol.analytics.query_handler.result import (
     Finish,
 )
 from exasol.analytics.schema import (
-    Column,
     SchemaName,
-    TableName,
     TableNameImpl,
     decimal_column,
 )

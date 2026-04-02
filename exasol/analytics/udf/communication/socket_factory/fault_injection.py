@@ -1,9 +1,4 @@
 from typing import (
-    Dict,
-    List,
-    Optional,
-    Set,
-    Union,
     cast,
 )
 from warnings import warn
@@ -99,9 +94,9 @@ class Socket(abstract.Socket):
 
     def poll(
         self,
-        flags: Union[abstract.PollerFlag, set[abstract.PollerFlag]],
-        timeout_in_ms: Optional[int] = None,
-    ) -> Optional[set[abstract.PollerFlag]]:
+        flags: abstract.PollerFlag | set[abstract.PollerFlag],
+        timeout_in_ms: int | None = None,
+    ) -> set[abstract.PollerFlag] | None:
         return self._internal_socket.poll(flags, timeout_in_ms)
 
     def close(self, linger=None):
@@ -140,7 +135,7 @@ class Poller(abstract.Poller):
     def register(
         self,
         socket: abstract.Socket,
-        flags: Union[abstract.PollerFlag, set[abstract.PollerFlag]],
+        flags: abstract.PollerFlag | set[abstract.PollerFlag],
     ) -> None:
         if not isinstance(socket, Socket):
             raise TypeError(f"Socket type not supported {socket}")
@@ -149,7 +144,7 @@ class Poller(abstract.Poller):
         self._internal_poller.register(internal_socket, flags)
 
     def poll(
-        self, timeout_in_ms: Optional[int] = None
+        self, timeout_in_ms: int | None = None
     ) -> dict[abstract.Socket, set[abstract.PollerFlag]]:
         poll_result = self._internal_poller.poll(timeout_in_ms)
         return {

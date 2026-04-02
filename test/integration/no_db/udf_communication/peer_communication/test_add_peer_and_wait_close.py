@@ -1,26 +1,16 @@
 import sys
 import time
 import traceback
-from pathlib import Path
 from test.integration.no_db.structlog.structlog_utils import configure_structlog
-from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
-    ConditionalMethodDropper,
-)
 from test.integration.no_db.udf_communication.peer_communication.utils import (
     BidirectionalQueue,
     PeerCommunicatorTestProcessParameter,
     TestProcess,
     assert_processes_finish,
 )
-from typing import (
-    Dict,
-    List,
-)
 
 import structlog
 import zmq
-from structlog import WriteLoggerFactory
-from structlog.tracebacks import ExceptionDictTransformer
 from structlog.types import FilteringBoundLogger
 
 from exasol.analytics.udf.communication.connection_info import ConnectionInfo

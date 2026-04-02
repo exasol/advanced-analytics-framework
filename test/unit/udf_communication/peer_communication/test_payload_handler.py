@@ -1,6 +1,5 @@
 import dataclasses
 from test.utils.mock_cast import mock_cast
-from typing import Union
 from unittest.mock import (
     MagicMock,
     call,
@@ -26,8 +25,8 @@ from exasol.analytics.udf.communication.socket_factory.abstract import Frame
 @dataclasses.dataclass
 class TestSetup:
     __test__ = False
-    payload_sender_mock: Union[MagicMock, PayloadSender]
-    payload_receiver_mock: Union[MagicMock, PayloadReceiver]
+    payload_sender_mock: MagicMock | PayloadSender
+    payload_receiver_mock: MagicMock | PayloadReceiver
     payload_handler: PayloadHandler
 
     def reset_mock(self):
