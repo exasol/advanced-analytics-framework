@@ -22,8 +22,9 @@ class ColumnType:
     precision: int | None = None
     scale: int | None = None
     size: int | None = None
-    characterSet: str | None = None  # NOSONAR(S116) ignore naming conventions
-    withLocalTimeZone: bool | None = None  # NOSONAR(S116) ignore naming conventions
+    # ignore sonar errors on python:S116 naming conventions
+    characterSet: str | None = None  # NOSONAR
+    withLocalTimeZone: bool | None = None  # NOSONAR
     fraction: int | None = None
     srid: int | None = None
     unit: SizeUnit | None = None
