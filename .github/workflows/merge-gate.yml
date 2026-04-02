@@ -9,6 +9,7 @@ jobs:
     uses: ./.github/workflows/checks.yml
     permissions:
       contents: read
+    secrets: inherit
 
   approve-run-slow-tests:
     name: Approve Running Slow Tests?
