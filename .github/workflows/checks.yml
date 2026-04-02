@@ -244,12 +244,6 @@ jobs:
           path: .coverage
           include-hidden-files: true
 
-      - name: Upload to Sonar
-        id: upload-to-sonar
-        env:
-          SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
-        run: poetry run -- nox -s sonar:check
-
   Code-Generation:
     uses: ./.github/workflows/check-code-generation.yml
     permissions:
