@@ -1,5 +1,4 @@
 /poetry.lock     linguist-generated
-/version.py      linguist-generated
 /exasol/analytics/resources/outputs/create_query_loop.sql linguist-generated
 
 # PTB GitHub Workflows (CI/CD & Publishing)
