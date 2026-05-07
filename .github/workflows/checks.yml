@@ -221,3 +221,13 @@ jobs:
           name: coverage-python${{ matrix.python-versions }}-fast
           path: .coverage
           include-hidden-files: true
+
+  Code-Generation:
+    uses: ./.github/workflows/check-code-generation.yml
+    permissions:
+      contents: read
+
+  Lua:
+    uses: ./.github/workflows/lua-tests.yml
+    permissions:
+      contents: read
