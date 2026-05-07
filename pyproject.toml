@@ -57,7 +57,7 @@ dev = [
     "exasol-script-languages-container-tool>1,<4",
     "pytest-exasol-slc>=1.0.1,<2",
     "pytest-exasol-backend>=0.3.0,<2",
-    "pytest-exasol-extension>=0.1.0,<2",
+    "pytest-exasol-extension>=1.0.1,<2",
     "types-networkx>=3.5.0.20250728,<4",
     "pandas-stubs>=2.3.0.250703,<3",
 ]
