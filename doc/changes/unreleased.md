@@ -8,6 +8,7 @@ This release fixes vulnerabilities by updating dependencies.
 
 * #345: Fixed vulnerabilities by updating dependencies
 * #349: Fixed vulnerabilities by updating dependencies
+* #351: Fixed vulnerabilities by updating pytest
 
 ## Refactorings
 
