@@ -21,7 +21,7 @@ dependencies = [
     "importlib-resources>=6.5.2,<7",
     "exasol-bucketfs>=1.0.1,<3",
     "click>=8.1.8,<9",
-    "pyexasol>=0.25.0,<2",
+    "pyexasol>=0.25.0,<3",
     "pandas>=2.2.3,<3",
     "pydantic>=2.10.6,<3",
     "pyzmq>=26.2.1,<27",
@@ -52,7 +52,7 @@ dev = [
     "polyfactory>=2.19.0,<3",
     "pytest-repeat>=0.9.3",
     "elasticsearch>=8.17.1,<9",
-    "exasol-toolbox>=7",
+    "exasol-toolbox>=8.1.1",
     "exasol-python-extension-common>=0.12.0,<1.0.0",
     "exasol-script-languages-container-tool>1,<4",
     "pytest-exasol-slc>=1.0.1,<2",
@@ -69,9 +69,7 @@ build-backend = "poetry.core.masonry.api"
 [[tool.mypy.overrides]]
 module = [
     # no py.typed file yet
-    "pyexasol.*",
     "exasol_udf_mock_python.*",
-    "exasol.python_extension_common.*", # typed from 0.9.0
     # not type checking yet
     "test.*",
     # no stubs available as of 2025
