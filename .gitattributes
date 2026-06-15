@@ -15,3 +15,6 @@
 .github/workflows/periodic-validation.yml   linguist-generated=true
 .github/workflows/pr-merge.yml              linguist-generated=true
 .github/workflows/report.yml                linguist-generated=true
+.github/workflows/matrix-all.yml            linguist-generated=true
+.github/workflows/matrix-exasol.yml         linguist-generated=true
+.github/workflows/matrix-python.yml         linguist-generated=true
