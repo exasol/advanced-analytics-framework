@@ -4,17 +4,32 @@ on:
   workflow_call:
 
 jobs:
+  build-matrix:
+    name: Build Matrix
+    uses: ./.github/workflows/matrix.yml
+    with:
+      matrix_keys_json: '["minimum_python_version"]'
+    permissions:
+      contents: read
+
   check_code_generation:
     name: Lua Amalgate
     runs-on: ubuntu-24.04
-
+    needs:
+      - build-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out Repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v6
+        uses: exasol/python-toolbox/.github/actions/python-environment@v10
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.minimum_python_version }}
           poetry-version: "2.3.0"
 
       - name: Install Development Environment

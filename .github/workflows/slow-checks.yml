@@ -4,16 +4,36 @@ on:
   workflow_call:
 
 jobs:
+  build-matrix:
+    name: Build Matrix
+    uses: ./.github/workflows/matrix.yml
+    with:
+      matrix_keys_json: '["minimum_python_version"]'
+    permissions:
+      contents: read
+
   run-itests-no-db:
     name: iTests (no DB)
+    needs:
+      - build-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
     uses: ./.github/workflows/tests-integration-no-db.yml
-    secrets: inherit
     with:
-      python-version: "3.10"
+      python-version: ${{ matrix.minimum_python_version }}
 
   run-itests-with-db:
     name: iTests (with DB)
+    needs:
+      - build-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
     uses: ./.github/workflows/tests-integration-db.yml
-    secrets: inherit
     with:
-      python-version: "3.10"
+      python-version: ${{ matrix.minimum_python_version }}
