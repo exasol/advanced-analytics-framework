@@ -13,10 +13,13 @@ jobs:
     name: Prepare Parallelization Matrix
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out Repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v6
+        uses: exasol/python-toolbox/.github/actions/python-environment@v10
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: "2.3.0"
@@ -37,10 +40,13 @@ jobs:
         file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out Repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v6
+        uses: exasol/python-toolbox/.github/actions/python-environment@v10
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: "2.3.0"
