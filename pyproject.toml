@@ -54,7 +54,7 @@ dev = [
     "elasticsearch>=8.17.1,<9",
     "exasol-toolbox>=10.4.0,<11",
     "exasol-python-extension-common>=0.12.0,<1.0.0",
-    "exasol-script-languages-container-tool>1,<4",
+    "exasol-script-languages-container-tool>1,<5",
     "pytest-exasol-slc>=1.0.1,<2",
     "pytest-exasol-backend>=0.3.0,<2",
     "pytest-exasol-extension>=1.0.1,<2",
