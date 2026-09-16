@@ -6,7 +6,7 @@ on:
 jobs:
   build-matrix:
     name: Build Matrix
-    uses: ./.github/workflows/matrix.yml
+    uses: $/.github/workflows/matrix.yml
     with:
       matrix_keys_json: '["minimum_python_version"]'
     permissions:
@@ -21,7 +21,7 @@ jobs:
       matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
     permissions:
       contents: read
-    uses: ./.github/workflows/tests-integration-no-db.yml
+    uses: $/.github/workflows/tests-integration-no-db.yml
     with:
       python-version: ${{ matrix.minimum_python_version }}
 
@@ -34,6 +34,6 @@ jobs:
       matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
     permissions:
       contents: read
-    uses: ./.github/workflows/tests-integration-db.yml
+    uses: $/.github/workflows/tests-integration-db.yml
     with:
       python-version: ${{ matrix.minimum_python_version }}
