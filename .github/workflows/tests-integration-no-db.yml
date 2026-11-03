@@ -11,15 +11,15 @@ jobs:
 
   testmatrix:
     name: Prepare Parallelization Matrix
-    runs-on: ubuntu-24.04
+    runs-on: "ubuntu-26.04"
     steps:
       - name: Check out Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v10
+        uses: exasol/python-toolbox/.github/actions/python-environment@v12
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: "2.3.0"
@@ -38,15 +38,15 @@ jobs:
       fail-fast: false
       matrix:
         file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
-    runs-on: ubuntu-24.04
+    runs-on: "ubuntu-26.04"
     steps:
       - name: Check out Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v10
+        uses: exasol/python-toolbox/.github/actions/python-environment@v12
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: "2.3.0"

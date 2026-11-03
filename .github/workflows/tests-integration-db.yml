@@ -9,7 +9,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-24.04
+    runs-on: "ubuntu-26.04"
     name: Python iTests With DB
     steps:
 
@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Python & Poetry Environment
-        uses: exasol/python-toolbox/.github/actions/python-environment@v10
+        uses: exasol/python-toolbox/.github/actions/python-environment@v12
         with:
           python-version: ${{ inputs.python-version }}
           poetry-version: "2.3.0"
