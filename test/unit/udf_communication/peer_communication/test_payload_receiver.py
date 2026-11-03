@@ -103,7 +103,7 @@ def test_init():
     )
 
 
-@pytest.mark.parametrize("number_of_messages", [i for i in range(1, 10)])
+@pytest.mark.parametrize("number_of_messages", [*range(1, 10)])
 def test_received_payload_in_sequence(number_of_messages: int):
     test_setup = create_test_setup()
     for sequence_number in range(number_of_messages - 1):
@@ -120,7 +120,7 @@ def test_received_payload_in_sequence(number_of_messages: int):
     ] and test_setup.sender_mock.mock_calls == [call.send(message=acknowledge_message)]
 
 
-@pytest.mark.parametrize("number_of_messages", [i for i in range(1, 10)])
+@pytest.mark.parametrize("number_of_messages", [*range(1, 10)])
 def test_received_payload_in_reverse_sequence(number_of_messages: int):
     test_setup = create_test_setup()
     frames_of_previous_message = []
@@ -192,7 +192,7 @@ def test_received_payload_in_reverse_sequence_incomplete_multiple_times(
     )
 
 
-@pytest.mark.parametrize("number_of_messages", [i for i in range(1, 10)])
+@pytest.mark.parametrize("number_of_messages", [*range(1, 10)])
 def test_is_ready_to_close_after_received_payload_in_sequence(number_of_messages: int):
     test_setup = create_test_setup()
     for sequence_number in range(number_of_messages):
@@ -204,7 +204,7 @@ def test_is_ready_to_close_after_received_payload_in_sequence(number_of_messages
     assert result
 
 
-@pytest.mark.parametrize("number_of_messages", [i for i in range(1, 10)])
+@pytest.mark.parametrize("number_of_messages", [*range(1, 10)])
 def test_is_ready_to_stop_after_received_payload_in_reverse_sequence(
     number_of_messages: int,
 ):
@@ -238,7 +238,7 @@ def test_is_ready_to_stop_payload_in_sequence_multiple_times(
     assert is_ready_to_stop
 
 
-@pytest.mark.parametrize("number_of_messages", [i for i in range(2, 10)])
+@pytest.mark.parametrize("number_of_messages", [*range(2, 10)])
 def test_is_ready_to_stop_after_received_payload_in_reverse_sequence_incomplete(
     number_of_messages: int,
 ):

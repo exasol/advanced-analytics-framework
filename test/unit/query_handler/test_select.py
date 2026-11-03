@@ -1,8 +1,3 @@
-from test.utils.audit_table_utils import (
-    SAMPLE_LOG_SPAN,
-    create_insert_query,
-)
-
 import pytest
 
 from exasol.analytics.query_handler.query.select import (
@@ -17,6 +12,10 @@ from exasol.analytics.schema import (
     DbOperationType,
     SchemaName,
     TableNameImpl,
+)
+from test.utils.audit_table_utils import (
+    SAMPLE_LOG_SPAN,
+    create_insert_query,
 )
 
 

@@ -1,13 +1,6 @@
 import sys
 import time
 import traceback
-from test.integration.no_db.structlog.structlog_utils import configure_structlog
-from test.integration.no_db.udf_communication.peer_communication.utils import (
-    BidirectionalQueue,
-    PeerCommunicatorTestProcessParameter,
-    TestProcess,
-    assert_processes_finish,
-)
 
 import pytest
 import structlog
@@ -33,6 +26,13 @@ from exasol.analytics.udf.communication.socket_factory.fault_injection import (
 )
 from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocketFactory,
+)
+from test.integration.no_db.structlog.structlog_utils import configure_structlog
+from test.integration.no_db.udf_communication.peer_communication.utils import (
+    BidirectionalQueue,
+    PeerCommunicatorTestProcessParameter,
+    TestProcess,
+    assert_processes_finish,
 )
 
 configure_structlog(__file__)

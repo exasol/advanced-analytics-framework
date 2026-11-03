@@ -5,4 +5,4 @@ channels:
 dependencies:
   - lua==5.4.*
   - luarocks==3.12.*=*lua54*
-  - python==3.10.*
+  - python==3.11.*
