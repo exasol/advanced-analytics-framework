@@ -7,7 +7,7 @@ authors = ["Umit Buyuksahin <umit.buyuksahin@exasol.com>"]
 include = ["../test_query_handlers/*"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 [tool.poetry.dev-dependencies]
 
