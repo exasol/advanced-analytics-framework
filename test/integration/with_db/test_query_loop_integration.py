@@ -1,13 +1,14 @@
 import json
 import textwrap
+
+import pyexasol
+import pytest
+
 from test.test_package.test_query_handlers.query_handler_test import (
     FINAL_RESULT,
     QUERY_LIST,
     TEST_INPUT,
 )
-
-import pyexasol
-import pytest
 
 QUERY_FLUSH_STATS = """FLUSH STATISTICS"""
 QUERY_AUDIT_LOGS = """

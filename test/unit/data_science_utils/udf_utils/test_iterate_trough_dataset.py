@@ -22,7 +22,7 @@ def udf_wrapper():
         )
 
 
-@pytest.mark.parametrize("input_size", [i for i in range(1, 150)])
+@pytest.mark.parametrize("input_size", [*range(1, 150)])
 def test_iterate_through_dataset(input_size):
     executor = UDFMockExecutor()
     meta = MockMetaData(

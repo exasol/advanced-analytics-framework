@@ -43,13 +43,13 @@ class MockResultSet(ResultSet):
         if self._rows is None:
             raise NotImplementedError()
         else:
-            return [row for row in itertools.islice(self, size)]
+            return [*itertools.islice(self, size)]
 
     def fetchall(self) -> list[tuple]:
         if self._rows is None:
             raise NotImplementedError()
         else:
-            return [row for row in self]
+            return [*self]
 
     def rowcount(self):
         if self._rows is None:

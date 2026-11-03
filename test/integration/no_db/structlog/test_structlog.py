@@ -1,7 +1,7 @@
-from test.integration.no_db.structlog.structlog_utils import configure_structlog
-
 import pytest
 import structlog
+
+from test.integration.no_db.structlog.structlog_utils import configure_structlog
 
 
 def test_structlog_success():
