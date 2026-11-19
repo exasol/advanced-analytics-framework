@@ -1,12 +1,13 @@
 from pathlib import Path
-from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
-    ConditionalMethodDropper,
-)
 
 import structlog
 from structlog import WriteLoggerFactory
 from structlog.processors import CallsiteParameter
 from structlog.tracebacks import ExceptionDictTransformer
+
+from test.integration.no_db.udf_communication.peer_communication.conditional_method_dropper import (
+    ConditionalMethodDropper,
+)
 
 CALLSITE_PARAMETER_ADDER_PARAMETERS = {
     CallsiteParameter.FILENAME,

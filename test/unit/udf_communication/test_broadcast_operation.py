@@ -1,5 +1,4 @@
 import dataclasses
-from test.utils.mock_cast import mock_cast
 from unittest.mock import (
     MagicMock,
     Mock,
@@ -18,6 +17,7 @@ from exasol.analytics.udf.communication.socket_factory.abstract import (
     Frame,
     SocketFactory,
 )
+from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass(frozen=True)

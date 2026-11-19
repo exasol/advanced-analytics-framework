@@ -1,5 +1,4 @@
 import dataclasses
-from test.utils.mock_cast import mock_cast
 from typing import (
     Union,
 )
@@ -22,6 +21,7 @@ from exasol.analytics.query_handler.graph.stage.sql.execution.object_proxy_refer
     ObjectProxyReferenceCounterFactory,
     ObjectProxyReferenceCountingBag,
 )
+from test.utils.mock_cast import mock_cast
 
 MockObjectProxyReferenceCounter = Union[ObjectProxyReferenceCounter, MagicMock]
 MockObjectProxyReferenceCounterFactory = Union[ObjectProxyReferenceCounterFactory, Mock]

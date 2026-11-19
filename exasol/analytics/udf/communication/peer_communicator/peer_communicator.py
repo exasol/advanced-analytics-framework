@@ -161,7 +161,7 @@ class PeerCommunicator:
     def peers(self, timeout_in_milliseconds: int | None = None) -> list[Peer]:
         self.wait_for_peers(timeout_in_milliseconds)
         if self._are_all_peers_connected():
-            peers = [peer for peer in self._peer_states.keys()] + [
+            peers = [*self._peer_states.keys()] + [
                 Peer(connection_info=self._my_connection_info)
             ]
             return sorted(peers, key=key_for_peer)

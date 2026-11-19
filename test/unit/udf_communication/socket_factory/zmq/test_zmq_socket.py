@@ -1,4 +1,3 @@
-from test.utils.mock_cast import mock_cast
 from unittest.mock import (
     MagicMock,
     create_autospec,
@@ -17,6 +16,7 @@ from exasol.analytics.udf.communication.socket_factory.zmq_wrapper import (
     ZMQSocket,
     ZMQSocketFactory,
 )
+from test.utils.mock_cast import mock_cast
 
 
 def test_create_socket_with():
