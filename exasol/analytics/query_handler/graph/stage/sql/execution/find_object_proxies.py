@@ -35,6 +35,8 @@ def _find_object_proxies(obj: Any, already_seen: set[int]) -> list[ObjectProxy]:
             return [obj]
         elif isinstance(obj, dict):
             return find_object_proxies_in_dict(obj, already_seen)
+        elif _is_type_or_type_hint(obj):
+            return []
         elif isinstance(obj, Iterable) and not isinstance(obj, str):
             generator = (_find_object_proxies(o, already_seen) for o in obj)
             return sum(generator, [])  # Append all sublist
@@ -42,6 +44,17 @@ def _find_object_proxies(obj: Any, already_seen: set[int]) -> list[ObjectProxy]:
             return find_object_proxies_in_dict(obj.__dict__, already_seen)
         else:
             return []
+
+
+def _is_type_or_type_hint(obj: Any) -> bool:
+    """
+    Return True if obj is a class or a type hint, for example Generic[T].
+
+    Classes and type hints cannot contain ObjectProxy objects.
+    Since Python 3.11, type hints are Iterable. Each iteration step
+    makes a new object, thus the search must not go into them.
+    """
+    return isinstance(obj, type) or type(obj).__module__ == "typing"
 
 
 def find_object_proxies_in_dict(obj: dict, already_seen: set[int]) -> list[ObjectProxy]:
