@@ -167,3 +167,6 @@ TAGS
 .slc
 
 /.html-documentation
+
+# Claude
+/.serena
