@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-versions: ["3.10"]
+        python-versions: ["3.11"]
 
     steps:
       - name: Check out Repository
