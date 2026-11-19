@@ -1,5 +1,4 @@
 import dataclasses
-from test.utils.mock_cast import mock_cast
 from unittest.mock import (
     MagicMock,
     call,
@@ -20,6 +19,7 @@ from exasol.analytics.udf.communication.peer_communicator.payload_sender import 
     PayloadSender,
 )
 from exasol.analytics.udf.communication.socket_factory.abstract import Frame
+from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass

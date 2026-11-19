@@ -1,4 +1,3 @@
-from test.utils.mock_cast import mock_cast
 from unittest.mock import (
     MagicMock,
     call,
@@ -13,6 +12,7 @@ from exasol.analytics.udf.communication.socket_factory import (
     abstract,
     fault_injection,
 )
+from test.utils.mock_cast import mock_cast
 
 
 def test_create_socket_with():

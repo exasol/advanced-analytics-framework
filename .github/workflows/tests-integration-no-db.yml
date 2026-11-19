@@ -11,7 +11,7 @@ jobs:
 
   testmatrix:
     name: Prepare Parallelization Matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out Repository
         uses: actions/checkout@v6
@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         file: ${{ fromJSON(needs.testmatrix.outputs.files) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out Repository
         uses: actions/checkout@v6

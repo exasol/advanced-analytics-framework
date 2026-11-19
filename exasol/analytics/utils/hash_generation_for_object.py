@@ -29,9 +29,13 @@ def _hash_object(obj: Any, already_seen: set[int]) -> int:
             return hash(obj)
         elif isinstance(obj, dict):
             return hash(
-                (
-                    _hash_object(obj.keys(), already_seen),
-                    _hash_object(obj.values(), already_seen),
+                # See https://github.com/exasol/advanced-analytics-framework/issues/379
+                tuple(
+                    (
+                        _hash_object(key, already_seen),
+                        _hash_object(value, already_seen),
+                    )
+                    for key, value in obj.items()
                 )
             )
         elif isinstance(obj, Iterable):

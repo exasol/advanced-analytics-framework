@@ -1,5 +1,4 @@
 import dataclasses
-from test.utils.mock_cast import mock_cast
 from unittest.mock import (
     MagicMock,
     call,
@@ -18,6 +17,7 @@ from exasol.analytics.udf.communication.peer_communicator.synchronize_connection
     SynchronizeConnectionSender,
 )
 from exasol.analytics.udf.communication.peer_communicator.timer import Timer
+from test.utils.mock_cast import mock_cast
 
 
 @dataclasses.dataclass()

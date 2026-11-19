@@ -49,7 +49,7 @@ def test_sql_executor(pyexasol_sql_executor):
 
 def test_for_loop(pyexasol_result_set):
     input = pyexasol_result_set[EXPECTED_RESULT_INDEX]
-    result = [row for row in pyexasol_result_set[RESULT_SET_INDEX]]
+    result = [*pyexasol_result_set[RESULT_SET_INDEX]]
     assert input == result
 
 

@@ -108,3 +108,12 @@ ignore_errors = true
 ```
 
 See also https://github.com/exasol/advanced-analytics-framework/issues/319.
+
+## Updating the Python version
+
+Affected files
+* `pyproject.toml`
+* `noxconfig.py`, also call `nox -s workflow:generate -- all`
+* `conda.yml`
+
+
