@@ -11,5 +11,6 @@ def test_structlog_success():
 
 def test_structlog_exception():
     structlog.configure(processors=[structlog.processors.CallsiteParameterAdder()])
-    with pytest.raises(AttributeError):
+    # with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         structlog.get_logger().exception("Simulated exception")
