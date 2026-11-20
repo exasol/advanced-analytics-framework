@@ -2,6 +2,8 @@
 
 ## Summary
 
+This release drops support for Python 3.10, fixes vulnerabilities by updating dependencies, and some minor issues observed when switching to Python 3.11.
+
 ## Security Issues
 
 This release fixes vulnerabilities by updating dependencies:
